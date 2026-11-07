@@ -1,5 +1,6 @@
 import Phaser from 'phaser'
-import { BRIDGE_KEY } from '../config'
+import { BRIDGE_KEY, GAME_HEIGHT } from '../config'
+import { clampViewInset } from '../world/viewInset'
 import { Gate } from '../entities/Gate'
 import { Monster } from '../entities/Monster'
 import { Player } from '../entities/Player'
@@ -32,7 +33,10 @@ export class GameScene extends Phaser.Scene {
   reducedMotion = false
   /** Stored for the later audio spec; no sound is played yet. */
   muted = false
+  /** Fraction of the view covered by the docked question panel (display only). */
+  viewInset = 0
 
+  private insetTween: Phaser.Tweens.Tween | null = null
   private movement: MovementSystem | null = null
   private interaction: InteractionSystem | null = null
   private effects: EffectsSystem | null = null
@@ -78,6 +82,36 @@ export class GameScene extends Phaser.Scene {
   /** Camera follows the given object. */
   followTarget(target: Phaser.GameObjects.GameObject): void {
     this.cameras.main.startFollow(target, true, 0.1, 0.1)
+    this.applyViewInset(false)
+  }
+
+  /**
+   * Phaser centers the camera on (target.y - followOffset.y). A positive y
+   * offset therefore puts the camera center ABOVE the target (target drawn
+   * lower). To draw the target higher, in the middle of the visible area
+   * above the panel (height H*(1-f)), the camera center must move below the
+   * target by f*H/2, so the offset is negative. Camera bounds still clamp.
+   */
+  private applyViewInset(animate: boolean): void {
+    const cam = this.cameras.main
+    const targetY = -(this.viewInset * GAME_HEIGHT) / 2
+    this.insetTween?.stop()
+    this.insetTween = null
+    if (animate && !this.reducedMotion) {
+      const state = { y: cam.followOffset.y }
+      this.insetTween = this.tweens.add({
+        targets: state,
+        y: targetY,
+        duration: 200,
+        ease: 'Sine.easeOut',
+        onUpdate: () => cam.setFollowOffset(0, state.y),
+        onComplete: () => {
+          this.insetTween = null
+        },
+      })
+    } else {
+      cam.setFollowOffset(0, targetY)
+    }
   }
 
   update(time: number): void {
@@ -118,6 +152,10 @@ export class GameScene extends Phaser.Scene {
         break
       case 'set-muted':
         this.muted = e.value
+        break
+      case 'set-view-inset':
+        this.viewInset = clampViewInset(e.bottomFraction)
+        this.applyViewInset(true)
         break
       case 'reset':
         if (this.rooms.length > 0) this.build()

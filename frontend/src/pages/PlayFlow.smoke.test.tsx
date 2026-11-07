@@ -248,6 +248,19 @@ describe('play flow smoke test', () => {
     expect(room1.monster.question_ids).toContain(questionOf(dialog2).id)
   })
 
+  it('keeps set-view-inset at 0 (panel sits below the stage) when the panel opens and after it closes', async () => {
+    const insets = () =>
+      sent().flatMap((e) => (e.type === 'set-view-inset' ? [e.bottomFraction] : []))
+    await startAndEncounter()
+    await vi.waitFor(() => expect(insets().at(-1)).toBe(0))
+
+    await user.keyboard('{Escape}')
+    const pause = await screen.findByRole('dialog', { name: 'Paused' })
+    await user.click(within(pause).getByRole('button', { name: /Retreat from battle/ }))
+    await vi.waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
+    await vi.waitFor(() => expect(insets().at(-1)).toBe(0))
+  })
+
   it('clears room 1, opens the gate, enters room 2 and asks room 2 questions', async () => {
     await startDemo()
     const load = sent().find((e) => e.type === 'load-dungeon') as Extract<ToGameEvent, { type: 'load-dungeon' }>

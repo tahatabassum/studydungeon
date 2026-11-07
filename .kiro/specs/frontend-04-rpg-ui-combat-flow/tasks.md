@@ -123,65 +123,65 @@ Working rules for every task:
     - Run `npm run typecheck`, `npm run lint`, `npm test`, `npm run build`
     - Browser checklist: new colors everywhere, gothic headings, readable body text, focus rings visible, no horizontal scroll
 
-- [ ] 3. Phase 3: HUD, room progression and question panel
-  - [~] 3.1 Create the pixel-art core in `src/art/`
+- [x] 3. Phase 3: HUD, room progression and question panel
+  - [x] 3.1 Create the pixel-art core in `src/art/`
     - `src/art/palette.ts` (shared palette), `src/art/pixelMap.ts` (`PixelMap`, `validatePixelMap`, `pixelMapToRgba`, `pixelMapToRuns`); no Phaser import
     - _Requirements: 14.1, 14.2, 14.3, 14.4_
-  - [~] 3.2 Write property test for pixel map validation and rendering
+  - [x] 3.2 Write property test for pixel map validation and rendering
     - Create `src/art/pixelMap.property.test.ts`
     - **Property 12: Pixel map validation and rendering**
     - **Validates: Requirements 14.1, 14.3, 14.4**
-  - [~] 3.3 Create the React `PixelSprite` and HUD icon maps
+  - [x] 3.3 Create the React `PixelSprite` and HUD icon maps
     - `src/components/PixelSprite.tsx` (inline SVG from runs, `shape-rendering="crispEdges"`, accessible label or `aria-hidden`); `src/art/sprites/icons.ts` (heart, crown, lock, check)
     - Add `src/components/PixelSprite.test.tsx`
     - _Requirements: 14.5, 9.6_
-  - [~] 3.4 Author the original monster and player base sprites
+  - [x] 3.4 Author the original monster and player base sprites
     - `src/art/sprites/monsters.ts` (paper wraith, toxic slime, gear golem, memory eater, exam warden, 32x32 or smaller) and `src/art/sprites/player.ts`; add a registry export and a test that every map validates
     - _Requirements: 14.1, 14.7, 15.5_
-  - [~] 3.5 Add `getProgress()` to the API contract
+  - [x] 3.5 Add `getProgress()` to the API contract
     - `src/types/api.ts` (`ProgressInfo`), `src/api/ApiClient.ts`, `src/api/client.ts` (`GET /progress`), `src/api/mock/mockAdapter.ts` (level and `xp_to_next` computed only here, from run XP); update `src/api/client.test.ts`, `src/api/index.test.ts`, `src/api/mock/mockAdapter.test.ts`
     - _Requirements: 20.1, 20.2_
-  - [~] 3.6 Write property test for mock progress
+  - [x] 3.6 Write property test for mock progress
     - Create `src/api/mock/progress.property.test.ts`
     - **Property 17: Mock progress is monotonic**
     - **Validates: Requirements 20.2**
-  - [~] 3.7 Create HUD helpers
+  - [x] 3.7 Create HUD helpers
     - `src/components/hudHelpers.ts` with `isLowHealth` and `roomMarkerState`
     - _Requirements: 11.2, 12.1_
-  - [~] 3.8 Write property test for the low-health predicate
+  - [x] 3.8 Write property test for the low-health predicate
     - Create `src/components/hudHelpers.test.ts`
     - **Property 10: Low-health predicate**
     - **Validates: Requirements 11.2**
-  - [~] 3.9 Write property test for room marker state
+  - [x] 3.9 Write property test for room marker state
     - Same file as 3.8
     - **Property 11: Room marker state**
     - **Validates: Requirements 12.1, 12.2**
-  - [~] 3.10 Rebuild the HUD player and XP blocks
+  - [x] 3.10 Rebuild the HUD player and XP blocks
     - `src/components/Hud.tsx`, `src/components/ProgressBar.tsx`: heart icon, current and maximum, smooth bar, low-health warning with icon and text, magical XP bar with gain animation (instant under reduced motion), streak
     - _Requirements: 11.1, 11.2, 11.4, 11.5_
-  - [~] 3.11 Rebuild the HUD monster block
+  - [x] 3.11 Rebuild the HUD monster block
     - `src/components/Hud.tsx`: portrait from the monster pixel map, name, current and maximum, animated bar, shown during an encounter or in a room with a living monster
     - _Requirements: 11.3_
-  - [~] 3.12 Wire the level display
+  - [x] 3.12 Wire the level display
     - `src/pages/usePlaySession.ts`: call `getProgress()` after run start and after each monster defeat, ignore errors; `src/components/Hud.tsx`: show level, total XP and XP to next exactly as returned, hidden when absent; add a hook or component test for the failure case
     - _Requirements: 11.6, 11.7, 20.3_
-  - [~] 3.13 Restyle the guest banner and add the controls hint
+  - [x] 3.13 Restyle the guest banner and add the controls hint
     - `src/components/GuestBanner.tsx` (less dominant, themed "Create Account"); new `src/components/ControlsHint.tsx` listing WASD, E, Esc and 1 to 4; update the banner's existing test if present
     - _Requirements: 11.8, 11.9_
-  - [~] 3.14 Redesign `src/components/RoomProgress.tsx`
+  - [x] 3.14 Redesign `src/components/RoomProgress.tsx`
     - Use `roomMarkerState`; cleared, glowing current, locked, crown for boss; icon plus accessible text; subtle transitions disabled by reduced motion; keep the "Room N of M: label" text used by tests
     - _Requirements: 12.1, 12.2, 12.3, 12.4, 12.5_
-  - [~] 3.15 Style the Question_Panel as a spellbook
+  - [x] 3.15 Style the Question_Panel as a spellbook
     - `src/components/QuestionPanel.tsx` and `src/components/SourceLine.tsx`: parchment surface, dark ornate frame, gothic heading, body font at least 16 px, 2x2 option grid with number badges, hover and selected states, green and gold correct styling, red incorrect styling, damage dealt and received chips
     - Add `src/components/QuestionPanel.test.tsx` (keys 1 to 4, disabled states, labels, `keysEnabled` false ignores keys)
     - _Requirements: 4.1, 4.2, 4.5, 5.7, 13.1, 13.2, 13.3, 13.4, 13.5, 13.6_
-  - [~] 3.16 Add the view inset to the bridge and scene
+  - [x] 3.16 Add the view inset to the bridge and scene
     - `src/game/events.ts`: `{ type: 'set-view-inset'; bottomFraction: number }`; `src/game/scenes/GameScene.ts`: clamp to 0 to 0.45 and call `cameras.main.setFollowOffset`; extend `src/game/events.test.ts`
     - _Requirements: 13.7_
-  - [~] 3.17 Dock the panel and rebuild the play screen layout
+  - [x] 3.17 Dock the panel and rebuild the play screen layout
     - `src/pages/PlayPage.tsx`: panel docked at the bottom of the play area (at most 45 percent of canvas height), Hud, Room_Progress, guest banner and controls hint arranged; `src/pages/usePlaySession.ts`: send `set-view-inset` with 0.45 while the panel is open and 0 otherwise
     - _Requirements: 13.7, 11.8, 21.1_
-  - [~] 3.18 Checkpoint - Phase 3
+  - [x] 3.18 Checkpoint - Phase 3
     - Ensure all tests pass, ask the user if questions arise.
     - Run `npm run typecheck`, `npm run lint`, `npm test`, `npm run build`
     - Browser checklist at the three resolutions: HUD fits, panel docked, player and monster visible above the panel, level shows or is hidden, room progress states, keys 1 to 4

@@ -22,6 +22,11 @@ export type ToGameEvent =
   | { type: 'reset' }
   | { type: 'set-reduced-motion'; value: boolean }
   | { type: 'set-muted'; value: boolean }
+  /**
+   * Display-only: shifts the camera so the player/monster stay visible above
+   * the docked question panel. No gameplay effect.
+   */
+  | { type: 'set-view-inset'; bottomFraction: number }
 
 export type FromGameEvent =
   | { type: 'ready' }

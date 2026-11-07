@@ -3,6 +3,7 @@ import { Check, X } from 'lucide-react'
 import { motion, useReducedMotion } from 'framer-motion'
 import { canAnswer, type CombatState } from '../state/combatMachine'
 import type { AnswerResult, Question } from '../types/api'
+import { Button } from './Button'
 import { SourceLine } from './SourceLine'
 
 /**
@@ -49,7 +50,7 @@ export function QuestionPanel({
   const headingId = useId()
   const reduceMotion = useReducedMotion()
   const panelRef = useRef<HTMLDivElement>(null)
-  const nextRef = useRef<HTMLButtonElement>(null)
+  const nextRef = useRef<HTMLDivElement>(null)
   const submittingRef = useRef(false)
   // Keyed by question id so a stale selection never leaks into the next question.
   const [selection, setSelection] = useState<{ qid: string; opt: string } | null>(null)
@@ -81,13 +82,12 @@ export function QuestionPanel({
   // Focus the first enabled option for each new question (and when answering becomes possible again).
   useEffect(() => {
     if (!answerable) return
-    const first = panelRef.current?.querySelector<HTMLButtonElement>('ul button:not(:disabled)')
-    ;(first ?? panelRef.current)?.focus()
+    panelRef.current?.focus()
   }, [question.id, answerable])
 
   // Move focus to Next when a result is waiting.
   useEffect(() => {
-    if (waiting) nextRef.current?.focus()
+    if (waiting) nextRef.current?.querySelector('button')?.focus()
   }, [waiting, question.id])
 
   useEffect(() => {
@@ -120,24 +120,29 @@ export function QuestionPanel({
       aria-modal="true"
       aria-labelledby={headingId}
       tabIndex={-1}
-      className="w-full max-w-xl rounded-xl border-4 border-double border-accent bg-ink p-6 text-bg shadow-[0_0_32px_color-mix(in_srgb,var(--color-accent)_45%,transparent)]"
+      className="relative w-full max-w-3xl outline-none focus:outline-none rounded-xl border-4 border-deep bg-surface-2 p-1 shadow-[0_0_16px_var(--color-deep)]"
     >
+      <span aria-hidden="true" className="pointer-events-none absolute left-1 top-1 h-4 w-4 rounded-tl border-l-4 border-t-4 border-gold" />
+      <span aria-hidden="true" className="pointer-events-none absolute right-1 top-1 h-4 w-4 rounded-tr border-r-4 border-t-4 border-gold" />
+      <span aria-hidden="true" className="pointer-events-none absolute bottom-1 left-1 h-4 w-4 rounded-bl border-b-4 border-l-4 border-gold" />
+      <span aria-hidden="true" className="pointer-events-none absolute bottom-1 right-1 h-4 w-4 rounded-br border-b-4 border-r-4 border-gold" />
       <motion.div
         key={question.id}
         initial={reduceMotion ? false : { opacity: 0, y: 16, scale: 0.97 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
         transition={{ duration: reduceMotion ? 0 : 0.2 }}
+        className="rounded-lg border border-deep/60 bg-ink p-3 text-bg sm:p-4"
       >
         {monsterName && (
-          <p className="mb-1 text-xs font-semibold uppercase tracking-widest text-deep">
+          <p className="mb-1 border-b border-deep/30 pb-0.5 font-[family-name:var(--font-display)] text-sm text-deep">
             {monsterName} blocks your way
           </p>
         )}
-        <h2 id={headingId} className="font-[family-name:var(--font-label)] text-xl font-bold">
+        <h2 id={headingId} className="font-[family-name:var(--font-body)] text-base font-semibold leading-snug sm:text-lg">
           {question.prompt}
         </h2>
 
-        <ul className="mt-4 flex flex-col gap-2">
+        <ul className="mt-2 grid grid-cols-1 gap-1.5 @[420px]:grid-cols-2">
           {options.map((opt, i) => {
             const isSelected = selected === opt
             const tone =
@@ -145,7 +150,9 @@ export function QuestionPanel({
                 ? shownResult.correct
                   ? 'border-health bg-health/30'
                   : 'border-danger bg-danger/20'
-                : 'border-deep/40 bg-bg/5 hover:enabled:border-magic'
+                : isSelected
+                  ? 'border-magic bg-magic/20'
+                  : 'border-deep/40 bg-bg/5 hover:enabled:border-magic hover:enabled:bg-magic/15'
             return (
               <li key={opt}>
                 <button
@@ -153,22 +160,18 @@ export function QuestionPanel({
                   disabled={!answerable}
                   aria-pressed={shownResult ? isSelected : undefined}
                   onClick={() => submit(opt)}
-                  className={`flex w-full items-center gap-3 rounded-lg border-2 px-3 py-2 text-left disabled:cursor-not-allowed disabled:opacity-80 ${tone}`}
+                  className={`flex h-full w-full items-center gap-2 rounded-lg border-2 px-2 py-1.5 text-left text-base leading-snug transition-colors focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-accent disabled:cursor-not-allowed disabled:opacity-80 ${tone}`}
                 >
                   <span
                     aria-hidden="true"
-                    className="flex h-7 w-7 shrink-0 items-center justify-center rounded bg-deep text-sm font-bold text-ink"
+                    className="flex h-6 w-6 shrink-0 items-center justify-center rounded bg-deep text-sm font-bold text-ink"
                   >
                     {i + 1}
                   </span>
                   <span>{opt}</span>
                   {shownResult && isSelected && (
-                    <span className="ml-auto inline-flex items-center gap-1 font-bold">
-                      {shownResult.correct ? (
-                        <Check aria-hidden="true" className="size-4" />
-                      ) : (
-                        <X aria-hidden="true" className="size-4" />
-                      )}
+                    <span aria-hidden="true" className="ml-auto inline-flex items-center gap-1 font-bold">
+                      {shownResult.correct ? <Check className="size-4" /> : <X className="size-4" />}
                       <span>{shownResult.correct ? 'Correct' : 'Incorrect'}</span>
                     </span>
                   )}
@@ -179,57 +182,58 @@ export function QuestionPanel({
         </ul>
 
         {combat === 'submitting' && (
-          <p role="status" className="mt-3 text-sm text-deep">
+          <p role="status" className="mt-2 text-sm text-deep">
             Resolving your answer…
           </p>
         )}
         {error && (
-          <p role="alert" className="mt-3 text-sm font-semibold text-danger">
+          <p role="alert" className="mt-2 text-sm font-semibold text-danger">
             {error}
           </p>
         )}
 
         {combat === 'question' && onRetreat && (
-          <div className="mt-4 flex justify-start">
-            <button
-              type="button"
+          <div className="mt-2 flex justify-start">
+            <Button
+              variant="secondary"
               onClick={onRetreat}
-              className="rounded-lg border-2 border-deep/60 px-4 py-1 text-sm font-semibold text-deep hover:border-magic"
+              className="px-3! py-0.5! text-sm! text-deep!"
             >
               Retreat from battle
-            </button>
+            </Button>
           </div>
         )}
 
         {shownResult && (
-          <div className="mt-4">
-            <p
-              role="status"
-              className={`inline-flex items-center gap-2 text-lg font-bold ${shownResult.correct ? 'text-[color-mix(in_srgb,var(--color-health),var(--color-bg)_70%)]' : 'text-danger'}`}
-            >
-              {shownResult.correct ? (
-                <Check aria-hidden="true" className="size-5" />
-              ) : (
-                <X aria-hidden="true" className="size-5" />
-              )}
-              <span>{shownResult.correct ? 'Correct!' : 'Incorrect'}</span>
-            </p>
-            <p className="mt-1 text-sm font-semibold">
-              {shownResult.correct
-                ? `You dealt ${shownResult.damage_dealt} damage`
-                : `You took ${damageReceived ?? 0} damage`}
-            </p>
-            <SourceLine source={shownResult.source} explanation={shownResult.explanation} />
+          <div className="mt-2 flex flex-wrap items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
+              <p
+                role="status"
+                className={`inline-flex items-center gap-2 rounded-md border-2 px-2 py-0.5 text-base font-bold ${shownResult.correct ? 'border-health bg-health/20 text-[color-mix(in_srgb,var(--color-health),var(--color-bg)_70%)]' : 'border-danger bg-danger/10 text-danger'}`}
+              >
+                {shownResult.correct ? (
+                  <Check aria-hidden="true" className="size-5" />
+                ) : (
+                  <X aria-hidden="true" className="size-5" />
+                )}
+                <span>{shownResult.correct ? 'Correct!' : 'Incorrect'}</span>
+              </p>
+              <p className="rounded-full border border-deep/50 bg-deep/10 px-2 text-sm font-semibold text-bg">
+                {shownResult.correct
+                  ? `You dealt ${shownResult.damage_dealt} damage`
+                  : `You took ${damageReceived ?? 0} damage`}
+              </p>
+            </div>
+            <SourceLine
+              source={shownResult.source}
+              explanation={shownResult.explanation}
+              className="min-w-0 flex-1 basis-48 px-2 py-1"
+            />
             {waiting && (
-              <div className="mt-4 flex justify-end">
-                <button
-                  type="button"
-                  ref={nextRef}
-                  onClick={onNext}
-                  className="rounded-lg bg-deep px-6 py-2 font-semibold text-ink hover:brightness-125"
-                >
+              <div ref={nextRef} className="ml-auto flex justify-end">
+                <Button onClick={onNext} className="px-5! py-1! text-base!">
                   Next
-                </button>
+                </Button>
               </div>
             )}
           </div>

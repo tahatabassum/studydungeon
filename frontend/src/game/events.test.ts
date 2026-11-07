@@ -33,6 +33,16 @@ describe('createGameBridge', () => {
     ])
   })
 
+  it('queues set-view-inset until ready and delivers it', () => {
+    const bridge = createGameBridge()
+    const got: ToGameEvent[] = []
+    bridge.onToGame((e) => got.push(e))
+    bridge.send({ type: 'set-view-inset', bottomFraction: 0.3 })
+    expect(got).toEqual([])
+    bridge.emit({ type: 'ready' })
+    expect(got).toEqual([{ type: 'set-view-inset', bottomFraction: 0.3 }])
+  })
+
   it('delivers room-entered and gate-opened to React', () => {
     const bridge = createGameBridge()
     const got: FromGameEvent[] = []

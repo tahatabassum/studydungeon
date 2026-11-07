@@ -275,6 +275,25 @@ describe('multi-room mock behaviour', () => {
     expect(s.accuracy).toBe(1)
   })
 
+  it('getProgress starts at level 1 with 100 xp to next, grows after a room clear, levels up at >=100 xp', async () => {
+    const { api, run } = await freshRun()
+    await expect(api.getProgress()).resolves.toEqual({ level: 1, total_xp: 0, xp_to_next: 100 })
+    await killRoom(api, run.id, 'room-1')
+    await api.clearRoom(run.id, 'room-1')
+    const p1 = await api.getProgress()
+    expect(p1.total_xp).toBeGreaterThan(0)
+    expect(p1.level).toBe(1)
+    expect(p1.xp_to_next).toBe(100 - p1.total_xp)
+    for (const id of ['room-2', 'room-3', 'room-4']) {
+      await killRoom(api, run.id, id)
+      await api.clearRoom(run.id, id)
+    }
+    const p2 = await api.getProgress()
+    expect(p2.total_xp).toBeGreaterThanOrEqual(100)
+    expect(p2.level).toBeGreaterThanOrEqual(2)
+    expect(p2.xp_to_next).toBeGreaterThan(0)
+  })
+
   it('boss wrong answers cost 12 player HP', async () => {
     const { api, run } = await freshRun()
     const r = await answer(api, run.id, 'b1', false, 'bw')

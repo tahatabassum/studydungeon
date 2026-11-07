@@ -1,9 +1,12 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
+import { Button } from '@/components/Button'
 import { ConfirmDialog } from '@/components/ConfirmDialog'
+import { ControlsHint } from '@/components/ControlsHint'
 import { DefeatOverlay } from '@/components/DefeatOverlay'
 import { GuestBanner } from '@/components/GuestBanner'
 import { Hud } from '@/components/Hud'
+import { Panel } from '@/components/Panel'
 import { PauseMenu } from '@/components/PauseMenu'
 import { QuestionPanel } from '@/components/QuestionPanel'
 import { Spinner } from '@/components/Spinner'
@@ -43,10 +46,12 @@ export default function PlayPage() {
   const showVictory =
     state.phase === 'victory' || (bossCleared && state.phase === 'cleared' && !state.summary)
   const showTopicCleared = state.phase === 'cleared' && !room.is_boss && s.clearedXp !== null
+  const combatActive = isCombatActive(state.combat)
+  const panelVisible = combatActive && s.question !== null
 
   return (
-    <main className="flex h-screen flex-col items-center gap-2 overflow-hidden bg-bg p-3 text-ink">
-      <div className="flex w-full max-w-5xl flex-col gap-2">
+    <main className="grid h-screen h-dvh w-full grid-rows-[auto_minmax(0,1fr)_auto] overflow-hidden bg-bg px-3 py-1.5 text-ink">
+      <div className="mx-auto flex w-full max-w-[90rem] flex-col gap-1">
         <GuestBanner isGuest={user?.is_guest ?? false} />
         <Hud
           playerHp={state.playerHp}
@@ -54,22 +59,51 @@ export default function PlayPage() {
           monsterHp={state.monsterHp}
           maxMonsterHp={state.maxMonsterHp}
           monsterName={room.monster.name}
+          monsterKind={room.monster.kind}
+          isBoss={room.is_boss}
+          showMonster={combatActive || state.monsterHp > 0}
           xp={state.xp}
           streak={state.streak}
+          level={s.progress?.level}
+          xpToNext={s.progress?.xp_to_next}
+          totalXp={s.progress?.total_xp}
           rooms={s.rooms}
           currentRoomId={s.currentRoomId}
           clearedRoomIds={s.clearedRoomIds}
         />
       </div>
 
-      <div
-        ref={gameWrapRef}
-        className="relative aspect-video w-full min-h-0 max-w-[min(64rem,calc((100vh-12rem)*16/9))]"
-      >
-        <GameCanvas bridge={s.bridge} className="size-full" />
+      <div className="relative mx-auto flex min-h-0 w-full max-w-[90rem] flex-col items-center gap-2 overflow-hidden pt-1 min-[900px]:flex-row min-[900px]:items-stretch">
+        {/* Definite-size slot: container-type:size makes cqw/cqh the real available space. */}
+        <div className="flex min-h-0 w-full min-w-0 flex-1 items-center justify-center [container-type:size]">
+          <div
+            ref={gameWrapRef}
+            className="relative aspect-video w-[min(100cqw,calc(100cqh*16/9))] max-h-full max-w-full overflow-hidden"
+          >
+            <GameCanvas bridge={s.bridge} className="absolute inset-0 size-full" />
+          {showTopicCleared && !s.clearError && (
+            <div className="pointer-events-none absolute inset-x-0 top-3 z-10 flex justify-center">
+              <Panel tone="gold" role="status" className="px-6 py-3 text-lg font-bold text-accent">
+                Room cleared! +{s.clearedXp} XP — the gate opens
+              </Panel>
+            </div>
+          )}
 
-        {isCombatActive(state.combat) && s.question && (
-          <div className="absolute inset-0 z-10 flex items-center justify-center bg-bg/50 p-2">
+          {s.clearError && (
+            <div className="absolute inset-x-0 top-3 z-10 flex justify-center">
+              <Panel tone="danger" role="alert" className="flex items-center gap-3 px-6 py-3">
+                <span>{s.clearError}</span>
+                <Button variant="secondary" onClick={() => void s.retryClear()}>
+                  Retry
+                </Button>
+              </Panel>
+            </div>
+          )}
+          </div>
+        </div>
+
+        {panelVisible && s.question && (
+          <div className="@container w-full max-w-3xl shrink-0 overflow-hidden min-[900px]:max-w-none min-[900px]:w-[clamp(300px,34vw,420px)] min-[900px]:min-h-0 min-[900px]:self-center min-[900px]:overflow-y-auto min-[900px]:overflow-x-hidden">
             <QuestionPanel
               question={s.question}
               combat={state.combat}
@@ -86,38 +120,9 @@ export default function PlayPage() {
             />
           </div>
         )}
-
-        {showTopicCleared && !s.clearError && (
-          <div className="absolute inset-x-0 top-4 z-10 flex justify-center">
-            <p
-              role="status"
-              className="rounded-lg border-2 border-accent bg-panel px-6 py-3 text-lg font-bold text-accent"
-            >
-              Room cleared! +{s.clearedXp} XP — the gate opens
-            </p>
-          </div>
-        )}
-
-        {s.clearError && (
-          <div className="absolute inset-x-0 top-4 z-10 flex justify-center">
-            <div
-              role="alert"
-              className="flex items-center gap-3 rounded-lg border-2 border-danger bg-panel px-6 py-3 text-ink"
-            >
-              <span>{s.clearError}</span>
-              <button
-                type="button"
-                onClick={() => void s.retryClear()}
-                className="rounded border border-accent px-3 py-1 font-semibold text-accent"
-              >
-                Retry
-              </button>
-            </div>
-          </div>
-        )}
       </div>
 
-      <p className="text-sm text-ink-muted">WASD / Arrows to move · E to fight · Esc to pause</p>
+      <ControlsHint className="justify-center" />
 
       {state.phase === 'paused' && !confirmingExit && (
         <PauseMenu

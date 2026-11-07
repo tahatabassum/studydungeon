@@ -2,7 +2,7 @@ import type { ApiClient } from '../ApiClient'
 import { ApiError } from '../errors'
 import demoDungeonJson from '../../demo/demoDungeon.json'
 import { BOSS_PROFILE, INITIAL_STATE, ROOM_PROFILE, applyAnswer } from '../../demo/rules'
-import type { AnswerResult, Dungeon, Room, RunSummary } from '../../types/api'
+import type { AnswerResult, Dungeon, ProgressInfo, Room, RunSummary } from '../../types/api'
 import { answerKey } from './answerKey'
 
 export interface MockAdapterOptions {
@@ -43,6 +43,21 @@ interface RunRecord {
   xp: number
   finished: boolean
   summary: RunSummary | null
+}
+
+/**
+ * MOCK-ONLY level formula (pending Person A's game-design.md; the real backend owns this).
+ * Level 1 at 0 XP; reaching level n+1 from level n costs 100 * n XP
+ * (100 XP for L2, +200 for L3, +300 for L4, ...). `xpToNext` is always > 0.
+ */
+function progressFromXp(totalXp: number): ProgressInfo {
+  let level = 1
+  let remaining = Math.max(0, totalXp)
+  while (remaining >= 100 * level) {
+    remaining -= 100 * level
+    level += 1
+  }
+  return { level, total_xp: Math.max(0, totalXp), xp_to_next: 100 * level - remaining }
 }
 
 const randomSuffix = (): string => Math.random().toString(36).slice(2, 6).padEnd(4, '0')
@@ -176,6 +191,14 @@ export function createMockAdapter(options: MockAdapterOptions = {}): ApiClient {
         }
       }
       return { ...run.summary }
+    },
+
+    async getProgress() {
+      await wait()
+      // Cumulative across all runs of this adapter instance (answer xp + clear xp, summed).
+      let totalXp = 0
+      for (const run of runs.values()) totalXp += run.xp
+      return progressFromXp(totalXp)
     },
   }
 }

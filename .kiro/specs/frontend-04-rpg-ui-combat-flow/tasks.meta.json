@@ -23,6 +23,22 @@
     "1.10 Write property test for reducer copies values from the result": {
       "status": "passed",
       "lastRunTimestamp": 1794071756272
+    },
+    "3.2 Write property test for pixel map validation and rendering": {
+      "status": "passed",
+      "lastRunTimestamp": 1794074825637
+    },
+    "3.8 Write property test for the low-health predicate": {
+      "status": "passed",
+      "lastRunTimestamp": 1794074855371
+    },
+    "3.6 Write property test for mock progress": {
+      "status": "passed",
+      "lastRunTimestamp": 1794074881071
+    },
+    "3.9 Write property test for room marker state": {
+      "status": "passed",
+      "lastRunTimestamp": 1794075129189
     }
   },
   "executionHistory": {
@@ -500,6 +516,16 @@
         "executionId": "a940afc4-d557-48ac-9cef-8f6b8238752d",
         "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
         "timestamp": 1794069417982
+      },
+      {
+        "executionId": "a3718a53-0d99-4086-bbed-9fc5f8adbb35",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794074603093
+      },
+      {
+        "executionId": "a3718a53-0d99-4086-bbed-9fc5f8adbb35",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794074643959
       }
     ],
     "3.2 Write property test for pixel map validation and rendering": [
@@ -507,6 +533,16 @@
         "executionId": "a940afc4-d557-48ac-9cef-8f6b8238752d",
         "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
         "timestamp": 1794069418146
+      },
+      {
+        "executionId": "a3718a53-0d99-4086-bbed-9fc5f8adbb35",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794074750225
+      },
+      {
+        "executionId": "a3718a53-0d99-4086-bbed-9fc5f8adbb35",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794074998603
       }
     ],
     "3.3 Create the React `PixelSprite` and HUD icon maps": [
@@ -514,6 +550,16 @@
         "executionId": "a940afc4-d557-48ac-9cef-8f6b8238752d",
         "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
         "timestamp": 1794069418302
+      },
+      {
+        "executionId": "a3718a53-0d99-4086-bbed-9fc5f8adbb35",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794074750412
+      },
+      {
+        "executionId": "a3718a53-0d99-4086-bbed-9fc5f8adbb35",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794074998826
       }
     ],
     "3.4 Author the original monster and player base sprites": [
@@ -521,6 +567,16 @@
         "executionId": "a940afc4-d557-48ac-9cef-8f6b8238752d",
         "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
         "timestamp": 1794069418552
+      },
+      {
+        "executionId": "a3718a53-0d99-4086-bbed-9fc5f8adbb35",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794074750952
+      },
+      {
+        "executionId": "a3718a53-0d99-4086-bbed-9fc5f8adbb35",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794074998979
       }
     ],
     "3.5 Add `getProgress()` to the API contract": [
@@ -528,6 +584,16 @@
         "executionId": "a940afc4-d557-48ac-9cef-8f6b8238752d",
         "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
         "timestamp": 1794069418757
+      },
+      {
+        "executionId": "a3718a53-0d99-4086-bbed-9fc5f8adbb35",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794074603401
+      },
+      {
+        "executionId": "a3718a53-0d99-4086-bbed-9fc5f8adbb35",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794074645162
       }
     ],
     "3.6 Write property test for mock progress": [
@@ -535,6 +601,16 @@
         "executionId": "a940afc4-d557-48ac-9cef-8f6b8238752d",
         "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
         "timestamp": 1794069418907
+      },
+      {
+        "executionId": "a3718a53-0d99-4086-bbed-9fc5f8adbb35",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794074752094
+      },
+      {
+        "executionId": "a3718a53-0d99-4086-bbed-9fc5f8adbb35",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794075000010
       }
     ],
     "3.7 Create HUD helpers": [
@@ -542,6 +618,16 @@
         "executionId": "a940afc4-d557-48ac-9cef-8f6b8238752d",
         "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
         "timestamp": 1794069419059
+      },
+      {
+        "executionId": "a3718a53-0d99-4086-bbed-9fc5f8adbb35",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794074604282
+      },
+      {
+        "executionId": "a3718a53-0d99-4086-bbed-9fc5f8adbb35",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794074645779
       }
     ],
     "3.8 Write property test for the low-health predicate": [
@@ -549,6 +635,16 @@
         "executionId": "a940afc4-d557-48ac-9cef-8f6b8238752d",
         "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
         "timestamp": 1794069419210
+      },
+      {
+        "executionId": "a3718a53-0d99-4086-bbed-9fc5f8adbb35",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794074752604
+      },
+      {
+        "executionId": "a3718a53-0d99-4086-bbed-9fc5f8adbb35",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794075000780
       }
     ],
     "3.9 Write property test for room marker state": [
@@ -556,6 +652,16 @@
         "executionId": "a940afc4-d557-48ac-9cef-8f6b8238752d",
         "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
         "timestamp": 1794069419369
+      },
+      {
+        "executionId": "a3718a53-0d99-4086-bbed-9fc5f8adbb35",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794075053375
+      },
+      {
+        "executionId": "a3718a53-0d99-4086-bbed-9fc5f8adbb35",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794075516912
       }
     ],
     "3.10 Rebuild the HUD player and XP blocks": [
@@ -563,6 +669,16 @@
         "executionId": "a940afc4-d557-48ac-9cef-8f6b8238752d",
         "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
         "timestamp": 1794069419515
+      },
+      {
+        "executionId": "a3718a53-0d99-4086-bbed-9fc5f8adbb35",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794075053805
+      },
+      {
+        "executionId": "a3718a53-0d99-4086-bbed-9fc5f8adbb35",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794075517713
       }
     ],
     "3.11 Rebuild the HUD monster block": [
@@ -570,6 +686,16 @@
         "executionId": "a940afc4-d557-48ac-9cef-8f6b8238752d",
         "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
         "timestamp": 1794069419671
+      },
+      {
+        "executionId": "a3718a53-0d99-4086-bbed-9fc5f8adbb35",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794075532008
+      },
+      {
+        "executionId": "a3718a53-0d99-4086-bbed-9fc5f8adbb35",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794075777876
       }
     ],
     "3.12 Wire the level display": [
@@ -577,6 +703,16 @@
         "executionId": "a940afc4-d557-48ac-9cef-8f6b8238752d",
         "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
         "timestamp": 1794069419864
+      },
+      {
+        "executionId": "a3718a53-0d99-4086-bbed-9fc5f8adbb35",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794075789284
+      },
+      {
+        "executionId": "a3718a53-0d99-4086-bbed-9fc5f8adbb35",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794075809647
       }
     ],
     "3.13 Restyle the guest banner and add the controls hint": [
@@ -584,6 +720,16 @@
         "executionId": "a940afc4-d557-48ac-9cef-8f6b8238752d",
         "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
         "timestamp": 1794069419977
+      },
+      {
+        "executionId": "a3718a53-0d99-4086-bbed-9fc5f8adbb35",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794075532802
+      },
+      {
+        "executionId": "a3718a53-0d99-4086-bbed-9fc5f8adbb35",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794075778198
       }
     ],
     "3.14 Redesign `src/components/RoomProgress.tsx`": [
@@ -591,6 +737,16 @@
         "executionId": "a940afc4-d557-48ac-9cef-8f6b8238752d",
         "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
         "timestamp": 1794069420124
+      },
+      {
+        "executionId": "a3718a53-0d99-4086-bbed-9fc5f8adbb35",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794075054575
+      },
+      {
+        "executionId": "a3718a53-0d99-4086-bbed-9fc5f8adbb35",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794075518925
       }
     ],
     "3.15 Style the Question_Panel as a spellbook": [
@@ -598,6 +754,26 @@
         "executionId": "a940afc4-d557-48ac-9cef-8f6b8238752d",
         "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
         "timestamp": 1794069420280
+      },
+      {
+        "executionId": "a3718a53-0d99-4086-bbed-9fc5f8adbb35",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794075055752
+      },
+      {
+        "executionId": "a3718a53-0d99-4086-bbed-9fc5f8adbb35",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794075519773
+      },
+      {
+        "executionId": "6268f777-7059-4af2-94e9-49f373afb9a5",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794077350342
+      },
+      {
+        "executionId": "6268f777-7059-4af2-94e9-49f373afb9a5",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794077448276
       }
     ],
     "3.16 Add the view inset to the bridge and scene": [
@@ -605,6 +781,16 @@
         "executionId": "a940afc4-d557-48ac-9cef-8f6b8238752d",
         "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
         "timestamp": 1794069420420
+      },
+      {
+        "executionId": "a3718a53-0d99-4086-bbed-9fc5f8adbb35",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794075056781
+      },
+      {
+        "executionId": "a3718a53-0d99-4086-bbed-9fc5f8adbb35",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794075520699
       }
     ],
     "3.17 Dock the panel and rebuild the play screen layout": [
@@ -612,6 +798,26 @@
         "executionId": "a940afc4-d557-48ac-9cef-8f6b8238752d",
         "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
         "timestamp": 1794069420533
+      },
+      {
+        "executionId": "a3718a53-0d99-4086-bbed-9fc5f8adbb35",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794075810911
+      },
+      {
+        "executionId": "a3718a53-0d99-4086-bbed-9fc5f8adbb35",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794076149498
+      },
+      {
+        "executionId": "2e62b7be-53ad-41f6-b061-ff5b0d901a7d",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794076567681
+      },
+      {
+        "executionId": "2e62b7be-53ad-41f6-b061-ff5b0d901a7d",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794077160166
       }
     ],
     "3.18 Checkpoint - Phase 3": [
@@ -619,6 +825,16 @@
         "executionId": "a940afc4-d557-48ac-9cef-8f6b8238752d",
         "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
         "timestamp": 1794069420650
+      },
+      {
+        "executionId": "a3718a53-0d99-4086-bbed-9fc5f8adbb35",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794076161693
+      },
+      {
+        "executionId": "a3718a53-0d99-4086-bbed-9fc5f8adbb35",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794076343792
       }
     ],
     "4.1 Create the theme selector": [
@@ -871,6 +1087,13 @@
         "executionId": "1cd105b0-c5ba-47f3-882c-73bf36624127",
         "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
         "timestamp": 1794073818198
+      }
+    ],
+    "3. Phase 3: HUD, room progression and question panel": [
+      {
+        "executionId": "a3718a53-0d99-4086-bbed-9fc5f8adbb35",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794076344117
       }
     ]
   }

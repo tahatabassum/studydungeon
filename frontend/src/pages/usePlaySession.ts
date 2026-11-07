@@ -8,7 +8,7 @@ import { pickQuestionId } from '@/state/questionSelector'
 import { initialRunState, runReducer } from '@/state/runReducer'
 import { useReducedMotion } from '@/state/useReducedMotion'
 import { useSession } from '@/state/SessionContext'
-import type { Dungeon, Question, Room } from '@/types/api'
+import type { Dungeon, ProgressInfo, Question, Room } from '@/types/api'
 
 function newAttemptId(): string {
   return typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function'
@@ -31,6 +31,7 @@ export function usePlaySession() {
   const [muted, setMuted] = useState(false)
   const [clearError, setClearError] = useState<string | null>(null)
   const [finishError, setFinishError] = useState<string | null>(null)
+  const [progress, setProgress] = useState<ProgressInfo | null>(null)
   const navigate = useNavigate()
 
   const apiRef = useRef<ApiClient | null>(null)
@@ -42,6 +43,7 @@ export function usePlaySession() {
   const stateRef = useRef(state)
   const questionRef = useRef(question)
   const gameWrapRef = useRef<HTMLDivElement>(null)
+  const mountedRef = useRef(true)
 
   useEffect(() => {
     stateRef.current = state
@@ -53,6 +55,23 @@ export function usePlaySession() {
 
   const focusGame = useCallback(() => {
     gameWrapRef.current?.querySelector<HTMLElement>('[role="application"]')?.focus()
+  }, [])
+
+  useEffect(() => {
+    mountedRef.current = true
+    return () => {
+      mountedRef.current = false
+    }
+  }, [])
+
+  /** Fetches Level/XP display data. Never throws or blocks gameplay; errors clear it. */
+  const refreshProgress = useCallback(async (api: ApiClient) => {
+    try {
+      const p = await api.getProgress()
+      if (mountedRef.current) setProgress(p)
+    } catch {
+      if (mountedRef.current) setProgress(null)
+    }
   }, [])
 
   // Destroy the bridge on unmount. Declared first so it runs before re-sending effects on remount.
@@ -71,6 +90,7 @@ export function usePlaySession() {
         apiRef.current = api
         setDungeon(d)
         dispatch({ type: 'run-started', run, rooms: d.rooms })
+        void refreshProgress(api)
       } catch {
         if (!cancelled) setLoadError('The dungeon could not be loaded.')
       }
@@ -78,7 +98,7 @@ export function usePlaySession() {
     return () => {
       cancelled = true
     }
-  }, [dungeonId])
+  }, [dungeonId, refreshProgress])
 
   // Push data to Phaser. Effects re-run on StrictMode remount, so these are idempotent.
   useEffect(() => {
@@ -93,6 +113,11 @@ export function usePlaySession() {
   useEffect(() => {
     if (dungeon) bridge.send({ type: 'set-phase', phase: state.phase })
   }, [bridge, dungeon, state.phase])
+
+  // The question panel sits below the stage (no overlap), so the arena view needs no inset.
+  useEffect(() => {
+    bridge.send({ type: 'set-view-inset', bottomFraction: 0 })
+  }, [bridge])
 
   // Phaser -> React events.
   useEffect(() => {
@@ -186,13 +211,14 @@ export function usePlaySession() {
         pendingClearRoomRef.current = null
         dispatch({ type: 'room-cleared', roomId, xpDelta: res.xp_delta })
         setClearedXp(res.xp_delta)
+        void refreshProgress(api)
         if (dungeon.rooms.find((r) => r.id === roomId)?.is_boss) await finish()
         else bridge.send({ type: 'gate-open', roomId })
       } catch {
         setClearError('The room could not be cleared. Please try again.')
       }
     },
-    [bridge, dungeon, finish],
+    [bridge, dungeon, finish, refreshProgress],
   )
 
   /** Leaves the current result: next question, room clear, or defeat. */
@@ -283,13 +309,15 @@ export function usePlaySession() {
       setClearError(null)
       setFinishError(null)
       dispatch({ type: 'run-started', run, rooms: dungeon.rooms })
+      void refreshProgress(api)
       bridge.send({ type: 'reset' })
+      bridge.send({ type: 'set-view-inset', bottomFraction: 0 })
       bridge.send({ type: 'set-phase', phase: 'exploring' })
       setTimeout(focusGame, 0)
     } catch {
       setLoadError('A new run could not be started.')
     }
-  }, [bridge, dungeon, focusGame])
+  }, [bridge, dungeon, focusGame, refreshProgress])
 
   const toggleMute = useCallback(() => setMuted((m) => !m), [])
   const exit = useCallback(() => navigate('/'), [navigate])
@@ -357,6 +385,7 @@ export function usePlaySession() {
     answerError,
     animDone,
     clearedXp,
+    progress,
     onAnswer,
     skipWait,
     restart,
