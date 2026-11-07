@@ -41,6 +41,13 @@ const roomIdArb = fc.constantFrom(...IDS)
 const actionArb: fc.Arbitrary<RunAction> = fc.oneof(
   roomIdArb.map((roomId): RunAction => ({ type: 'room-entered', roomId })),
   fc.constant<RunAction>({ type: 'encounter-started' }),
+  fc.constantFrom<RunAction>(
+    { type: 'question-presented' },
+    { type: 'answer-submitted' },
+    { type: 'answer-failed' },
+    { type: 'advance' },
+    { type: 'retreat' },
+  ),
   resultArb.map((result): RunAction => ({ type: 'result-received', result })),
   fc.constant<RunAction>({ type: 'result-settled' }),
   fc.tuple(roomIdArb, fc.nat(100)).map(([roomId, xpDelta]): RunAction => ({ type: 'room-cleared', roomId, xpDelta })),
@@ -62,11 +69,13 @@ describe('Property 10: Reducer copies authoritative values and gates victory', (
           const base: RunState = {
             ...started(),
             phase: 'encounter',
+            combat: 'submitting',
             currentRoomId: roomId,
             xp,
             score,
           }
           const next = runReducer(base, { type: 'result-received', result })
+          expect(next.combat).toBe('result')
           expect(next.playerHp).toBe(result.player_hp_remaining)
           expect(next.monsterHp).toBe(result.monster_hp_remaining)
           expect(next.roomHp[roomId]).toBe(result.monster_hp_remaining)

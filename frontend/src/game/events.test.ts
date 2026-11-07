@@ -11,7 +11,7 @@ describe('createGameBridge', () => {
     expect(got).toEqual([])
     bridge.emit({ type: 'ready' })
     expect(got.map((e) => e.type)).toEqual(['reset', 'set-phase'])
-    bridge.send({ type: 'room-cleared' })
+    bridge.send({ type: 'gate-open', roomId: 'room-1' })
     expect(got).toHaveLength(3)
   })
 

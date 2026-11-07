@@ -5,6 +5,7 @@
  */
 import type { GamePhase } from '@/game/events'
 import type { AnswerResult, Run, RunSummary } from '@/types/api'
+import type { CombatState } from './combatMachine'
 
 /** Minimal room shape the reducer needs; the full Room type is assignable to it. */
 export interface RoomInfo {
@@ -31,6 +32,10 @@ export interface RunState {
   score: number
   streak: number
   lastResult: AnswerResult | null
+  /** Combat sub-state of the current encounter; null while exploring. */
+  combat: CombatState | null
+  /** Player HP before the latest result (display only). */
+  prevPlayerHp: number
   /** Phase to restore on resume; null when not paused. */
   prevPhase: Phase | null
   currentRoomId: string | null
@@ -55,6 +60,8 @@ export const initialRunState: RunState = {
   score: 0,
   streak: 0,
   lastResult: null,
+  combat: null,
+  prevPlayerHp: 0,
   prevPhase: null,
   currentRoomId: null,
   roomOrder: [],
@@ -66,13 +73,20 @@ export const initialRunState: RunState = {
 }
 
 export type RunAction =
-  /** Without ooms (legacy), a single room is assumed and maxMonsterHp is used. */
+  /** Without 
+ooms (legacy), a single room is assumed and maxMonsterHp is used. */
   | { type: 'run-started'; run: RunInfo; rooms?: readonly RoomInfo[]; maxMonsterHp?: number }
   | { type: 'room-entered'; roomId: string }
   | { type: 'encounter-started' }
+  | { type: 'question-presented' }
+  | { type: 'answer-submitted' }
+  | { type: 'answer-failed' }
+  | { type: 'advance' }
+  | { type: 'retreat' }
   | { type: 'result-received'; result: AnswerResult }
   | { type: 'result-settled' }
-  /** oomId defaults to the current room. */
+  /** 
+oomId defaults to the current room. */
   | { type: 'room-cleared'; roomId?: string; xpDelta: number }
   | { type: 'gate-opened'; roomId?: string }
   | { type: 'run-finished'; summary: RunSummary }
@@ -128,14 +142,39 @@ export function runReducer(state: RunState, action: RunAction): RunState {
 
     case 'encounter-started':
       if (state.phase !== 'exploring') return state
-      return { ...state, phase: 'encounter' }
+      if (state.combat !== null && state.combat !== 'exited') return state
+      return { ...state, phase: 'encounter', combat: 'starting' }
+
+    case 'question-presented':
+      if (state.combat !== 'starting' && state.combat !== 'next') return state
+      return { ...state, phase: 'encounter', combat: 'question' }
+
+    case 'answer-submitted':
+      if (state.combat !== 'question') return state
+      return { ...state, combat: 'submitting' }
+
+    case 'answer-failed':
+      if (state.combat !== 'submitting') return state
+      return { ...state, combat: 'question' }
+
+    case 'advance':
+      if (state.combat === 'next') return { ...state, phase: 'encounter', combat: 'question' }
+      if (state.combat === 'monster_defeated') return { ...state, phase: 'cleared', combat: null }
+      if (state.combat === 'player_defeated') return { ...state, phase: 'defeated', combat: null }
+      return state
+
+    case 'retreat':
+      if (state.combat !== 'question') return state
+      return { ...state, phase: 'exploring', combat: 'exited' }
 
     case 'result-received': {
-      if (state.phase !== 'encounter' && state.phase !== 'resolving') return state
+      if (state.combat !== 'submitting') return state
       const r = action.result
       return {
         ...state,
         phase: 'resolving',
+        combat: 'result',
+        prevPlayerHp: state.playerHp,
         playerHp: r.player_hp_remaining,
         monsterHp: r.monster_hp_remaining,
         streak: r.streak,
@@ -149,10 +188,10 @@ export function runReducer(state: RunState, action: RunAction): RunState {
     }
 
     case 'result-settled':
-      if (state.phase !== 'resolving') return state
-      if (state.playerHp <= 0) return { ...state, phase: 'defeated' }
-      if (state.monsterHp <= 0) return { ...state, phase: 'cleared' }
-      return { ...state, phase: 'exploring' }
+      if (state.combat !== 'result') return state
+      if (state.playerHp <= 0) return { ...state, combat: 'player_defeated' }
+      if (state.monsterHp <= 0) return { ...state, combat: 'monster_defeated' }
+      return { ...state, combat: 'next' }
 
     case 'room-cleared': {
       if (state.phase === 'defeated' || state.phase === 'paused' || state.phase === 'victory') return state
@@ -162,6 +201,7 @@ export function runReducer(state: RunState, action: RunAction): RunState {
       return {
         ...state,
         phase: 'cleared',
+        combat: null,
         xp: state.xp + action.xpDelta,
         clearedRoomIds: [...state.clearedRoomIds, id],
       }
@@ -176,7 +216,7 @@ export function runReducer(state: RunState, action: RunAction): RunState {
       return { ...state, summary: action.summary, phase: 'victory', prevPhase: null }
 
     case 'pause':
-      if (state.phase !== 'exploring') return state
+      if (state.phase !== 'exploring' && !(state.phase === 'encounter' && state.combat === 'question')) return state
       return { ...state, phase: 'paused', prevPhase: state.phase }
 
     case 'resume':

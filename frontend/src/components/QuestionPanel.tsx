@@ -1,172 +1,229 @@
 import { useEffect, useId, useRef, useState } from 'react'
 import { motion, useReducedMotion } from 'framer-motion'
+import { canAnswer, type CombatState } from '../state/combatMachine'
 import type { AnswerResult, Question } from '../types/api'
 import { SourceLine } from './SourceLine'
 
 /**
- * Purely presentational. The parent (PlayPage) owns attempt_id generation,
+ * Mostly presentational. The parent (PlayPage) owns attempt_id generation,
  * the Api_Client call and retry with the SAME attempt_id: on error it simply
  * calls onAnswer again via the re-enabled option buttons.
+ * The panel stays mounted for the whole encounter; `combat` drives what it shows.
  */
 export interface QuestionPanelProps {
   question: Question
+  combat: CombatState | null
   monsterName?: string
-  pending: boolean
   error?: string | null
   result?: AnswerResult | null
+  /** Display-only amount of HP the player lost on the last (wrong) answer. */
+  damageReceived?: number
   onAnswer(selected: string): void
-  onContinue?(): void
-  returnFocusTo?: HTMLElement | null
+  onNext(): void
+  onRetreat?(): void
+  /** False while paused or while an overlay is open: number/Enter keys are ignored. */
+  keysEnabled: boolean
+}
+
+function isWaiting(c: CombatState | null): boolean {
+  return c === 'next' || c === 'monster_defeated' || c === 'player_defeated'
+}
+
+function showsResult(c: CombatState | null): boolean {
+  return c === 'result' || isWaiting(c)
 }
 
 export function QuestionPanel({
   question,
+  combat,
   monsterName,
-  pending,
   error,
   result,
+  damageReceived,
   onAnswer,
-  onContinue,
-  returnFocusTo,
+  onNext,
+  onRetreat,
+  keysEnabled,
 }: QuestionPanelProps) {
   const headingId = useId()
   const reduceMotion = useReducedMotion()
   const panelRef = useRef<HTMLDivElement>(null)
-  const continueRef = useRef<HTMLButtonElement>(null)
+  const nextRef = useRef<HTMLButtonElement>(null)
   const submittingRef = useRef(false)
-  const [selected, setSelected] = useState<string | null>(null)
+  // Keyed by question id so a stale selection never leaks into the next question.
+  const [selection, setSelection] = useState<{ qid: string; opt: string } | null>(null)
+  const selected = selection && selection.qid === question.id ? selection.opt : null
 
   const options = question.type === 'true_false' ? question.options.slice(0, 2) : question.options.slice(0, 4)
-  const locked = pending || !!result
+  const answerable = canAnswer(combat)
+  const waiting = isWaiting(combat)
+  const shownResult = showsResult(combat) ? (result ?? null) : null
 
-  // Release the double-submit guard once a pending request settles.
+  // Release the double-submit guard when the combat state or question changes (incl. retry after error).
   useEffect(() => {
-    if (!pending) submittingRef.current = false
-  }, [pending, error, result])
+    submittingRef.current = false
+  }, [combat, error, question.id])
 
   const submit = (opt: string) => {
-    if (locked || submittingRef.current) return
+    if (!answerable || submittingRef.current) return
     submittingRef.current = true
-    setSelected(opt)
+    setSelection({ qid: question.id, opt })
     onAnswer(opt)
   }
-  const submitRef = useRef(submit)
+
+  // Latest-props refs so the single window listener never goes stale.
+  const latest = useRef({ submit, options, keysEnabled, answerable, waiting, onNext })
   useEffect(() => {
-    submitRef.current = submit
+    latest.current = { submit, options, keysEnabled, answerable, waiting, onNext }
   })
 
-  // Move focus in on mount; restore on unmount.
+  // Focus the first enabled option for each new question (and when answering becomes possible again).
   useEffect(() => {
-    const first = panelRef.current?.querySelector<HTMLButtonElement>('button:not(:disabled)')
+    if (!answerable) return
+    const first = panelRef.current?.querySelector<HTMLButtonElement>('ul button:not(:disabled)')
     ;(first ?? panelRef.current)?.focus()
-    return () => {
-      returnFocusTo?.focus()
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  }, [question.id, answerable])
 
+  // Move focus to Next when a result is waiting.
   useEffect(() => {
-    if (result) continueRef.current?.focus()
-  }, [result])
+    if (waiting) nextRef.current?.focus()
+  }, [waiting, question.id])
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.repeat) return
-      const n = Number(e.key)
-      if (Number.isInteger(n) && n >= 1 && n <= options.length) {
+      const cur = latest.current
+      if (!cur.keysEnabled) return
+      if (e.key === 'Enter') {
+        if (!cur.waiting) return
+        // A focused button handles Enter natively via click; avoid a double trigger.
+        if (e.target instanceof HTMLElement && e.target.closest('button')) return
         e.preventDefault()
-        submitRef.current(options[n - 1])
+        cur.onNext()
+        return
+      }
+      const n = Number(e.key)
+      if (Number.isInteger(n) && n >= 1 && n <= cur.options.length && cur.answerable) {
+        e.preventDefault()
+        cur.submit(cur.options[n - 1])
       }
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [question.id])
+  }, [])
 
   return (
-    <motion.div
+    <div
       ref={panelRef}
       role="dialog"
       aria-modal="true"
       aria-labelledby={headingId}
       tabIndex={-1}
-      initial={reduceMotion ? false : { opacity: 0, y: 16, scale: 0.97 }}
-      animate={{ opacity: 1, y: 0, scale: 1 }}
-      transition={{ duration: reduceMotion ? 0 : 0.2 }}
       className="w-full max-w-xl rounded-xl border-4 border-double border-amber bg-parchment p-6 text-stone-900 shadow-[0_0_32px_rgba(233,162,59,0.45)]"
     >
-      {monsterName && (
-        <p className="mb-1 text-xs font-semibold uppercase tracking-widest text-purple">
-          {monsterName} blocks your way
-        </p>
-      )}
-      <h2 id={headingId} className="text-xl font-bold">
-        {question.prompt}
-      </h2>
-
-      <ul className="mt-4 flex flex-col gap-2">
-        {options.map((opt, i) => {
-          const isSelected = selected === opt
-          const tone =
-            result && isSelected
-              ? result.correct
-                ? 'border-mint bg-mint/30'
-                : 'border-blood bg-blood/20'
-              : 'border-stone-400 bg-white/60 hover:enabled:border-purple'
-          return (
-            <li key={opt}>
-              <button
-                type="button"
-                disabled={locked}
-                aria-pressed={result ? isSelected : undefined}
-                onClick={() => submit(opt)}
-                className={`flex w-full items-center gap-3 rounded-lg border-2 px-3 py-2 text-left disabled:cursor-not-allowed disabled:opacity-80 ${tone}`}
-              >
-                <span
-                  aria-hidden="true"
-                  className="flex h-7 w-7 shrink-0 items-center justify-center rounded bg-purple text-sm font-bold text-parchment"
-                >
-                  {i + 1}
-                </span>
-                <span>{opt}</span>
-              </button>
-            </li>
-          )
-        })}
-      </ul>
-
-      {pending && (
-        <p role="status" className="mt-3 text-sm text-stone-700">
-          Resolving your answer…
-        </p>
-      )}
-      {error && (
-        <p role="alert" className="mt-3 text-sm font-semibold text-blood">
-          {error}
-        </p>
-      )}
-
-      {result && (
-        <div className="mt-4">
-          <p
-            role="status"
-            className={`text-lg font-bold ${result.correct ? 'text-emerald-700' : 'text-blood'}`}
-          >
-            {result.correct ? 'Correct! Your strike lands' : 'Wrong! The monster strikes back'}
+      <motion.div
+        key={question.id}
+        initial={reduceMotion ? false : { opacity: 0, y: 16, scale: 0.97 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        transition={{ duration: reduceMotion ? 0 : 0.2 }}
+      >
+        {monsterName && (
+          <p className="mb-1 text-xs font-semibold uppercase tracking-widest text-purple">
+            {monsterName} blocks your way
           </p>
-          <SourceLine source={result.source} explanation={result.explanation} />
-          <div className="mt-4 flex justify-end">
+        )}
+        <h2 id={headingId} className="text-xl font-bold">
+          {question.prompt}
+        </h2>
+
+        <ul className="mt-4 flex flex-col gap-2">
+          {options.map((opt, i) => {
+            const isSelected = selected === opt
+            const tone =
+              shownResult && isSelected
+                ? shownResult.correct
+                  ? 'border-mint bg-mint/30'
+                  : 'border-blood bg-blood/20'
+                : 'border-stone-400 bg-white/60 hover:enabled:border-purple'
+            return (
+              <li key={opt}>
+                <button
+                  type="button"
+                  disabled={!answerable}
+                  aria-pressed={shownResult ? isSelected : undefined}
+                  onClick={() => submit(opt)}
+                  className={`flex w-full items-center gap-3 rounded-lg border-2 px-3 py-2 text-left disabled:cursor-not-allowed disabled:opacity-80 ${tone}`}
+                >
+                  <span
+                    aria-hidden="true"
+                    className="flex h-7 w-7 shrink-0 items-center justify-center rounded bg-purple text-sm font-bold text-parchment"
+                  >
+                    {i + 1}
+                  </span>
+                  <span>{opt}</span>
+                  {shownResult && isSelected && (
+                    <span className="ml-auto font-bold">
+                      {shownResult.correct ? '✔ Correct' : '✖ Incorrect'}
+                    </span>
+                  )}
+                </button>
+              </li>
+            )
+          })}
+        </ul>
+
+        {combat === 'submitting' && (
+          <p role="status" className="mt-3 text-sm text-stone-700">
+            Resolving your answer…
+          </p>
+        )}
+        {error && (
+          <p role="alert" className="mt-3 text-sm font-semibold text-blood">
+            {error}
+          </p>
+        )}
+
+        {combat === 'question' && onRetreat && (
+          <div className="mt-4 flex justify-start">
             <button
               type="button"
-              ref={continueRef}
-              onClick={onContinue}
-              className="rounded-lg bg-purple px-6 py-2 font-semibold text-parchment hover:brightness-125"
+              onClick={onRetreat}
+              className="rounded-lg border-2 border-stone-500 px-4 py-1 text-sm font-semibold text-stone-700 hover:border-purple"
             >
-              Continue
+              Retreat from battle
             </button>
           </div>
-        </div>
-      )}
-    </motion.div>
+        )}
+
+        {shownResult && (
+          <div className="mt-4">
+            <p
+              role="status"
+              className={`text-lg font-bold ${shownResult.correct ? 'text-emerald-700' : 'text-blood'}`}
+            >
+              {shownResult.correct ? '✔ Correct!' : '✖ Incorrect'}
+            </p>
+            <p className="mt-1 text-sm font-semibold">
+              {shownResult.correct
+                ? `You dealt ${shownResult.damage_dealt} damage`
+                : `You took ${damageReceived ?? 0} damage`}
+            </p>
+            <SourceLine source={shownResult.source} explanation={shownResult.explanation} />
+            {waiting && (
+              <div className="mt-4 flex justify-end">
+                <button
+                  type="button"
+                  ref={nextRef}
+                  onClick={onNext}
+                  className="rounded-lg bg-purple px-6 py-2 font-semibold text-parchment hover:brightness-125"
+                >
+                  Next
+                </button>
+              </div>
+            )}
+          </div>
+        )}
+      </motion.div>
+    </div>
   )
 }

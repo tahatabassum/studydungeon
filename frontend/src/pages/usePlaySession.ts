@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { getApi } from '@/api'
 import type { ApiClient } from '@/api'
 import { createGameBridge } from '@/game/events'
+import { canAnswer, canRetreat, readDelayMs } from '@/state/combatMachine'
 import { pickQuestionId } from '@/state/questionSelector'
 import { initialRunState, runReducer } from '@/state/runReducer'
 import { useReducedMotion } from '@/state/useReducedMotion'
@@ -24,7 +25,6 @@ export function usePlaySession() {
   const [dungeon, setDungeon] = useState<Dungeon | null>(null)
   const [loadError, setLoadError] = useState<string | null>(null)
   const [question, setQuestion] = useState<Question | null>(null)
-  const [pending, setPending] = useState(false)
   const [answerError, setAnswerError] = useState<string | null>(null)
   const [animDone, setAnimDone] = useState(false)
   const [clearedXp, setClearedXp] = useState<number | null>(null)
@@ -37,6 +37,8 @@ export function usePlaySession() {
   const attemptIdRef = useRef<string>('')
   const askCountsRef = useRef<Map<string, number>>(new Map())
   const pendingClearRoomRef = useRef<string | null>(null)
+  const submittingRef = useRef(false)
+  const clearStartedRoomsRef = useRef<Set<string>>(new Set())
   const stateRef = useRef(state)
   const questionRef = useRef(question)
   const gameWrapRef = useRef<HTMLDivElement>(null)
@@ -96,7 +98,8 @@ export function usePlaySession() {
   useEffect(() => {
     return bridge.on((e) => {
       if (e.type === 'encounter-started') {
-        if (stateRef.current.phase !== 'exploring' || !dungeon) return
+        const cur = stateRef.current
+        if (cur.phase !== 'exploring' || (cur.combat !== null && cur.combat !== 'exited') || !dungeon) return
         const monsterRoom = dungeon.rooms.find((r) => r.monster.id === e.monsterId)
         if (!monsterRoom) return
         const count = askCountsRef.current.get(e.monsterId) ?? 0
@@ -106,15 +109,17 @@ export function usePlaySession() {
           setLoadError('This monster has no questions to ask.')
           return
         }
+        // The counter advances when a question is presented.
         askCountsRef.current.set(e.monsterId, count + 1)
         attemptIdRef.current = newAttemptId()
         setAnswerError(null)
-        setPending(false)
         setAnimDone(false)
         setQuestion(q)
         dispatch({ type: 'encounter-started' })
+        dispatch({ type: 'question-presented' })
       } else if (e.type === 'result-animation-done') {
         setAnimDone(true)
+        dispatch({ type: 'result-settled' })
       } else if (e.type === 'pause-requested') {
         dispatch({ type: 'pause' })
       } else if (e.type === 'room-entered') {
@@ -131,21 +136,26 @@ export function usePlaySession() {
       const q = questionRef.current
       const runId = stateRef.current.runId
       if (!api || !q || !runId) return
-      setPending(true)
+      if (stateRef.current.phase === 'paused') return
+      if (!canAnswer(stateRef.current.combat) || submittingRef.current) return
+      submittingRef.current = true
       setAnswerError(null)
+      dispatch({ type: 'answer-submitted' })
       try {
         const result = await api.submitAttempt(runId, {
           question_id: q.id,
           selected_answer: selected,
+          // Same attempt_id is reused on retry until a new question is presented.
           attempt_id: attemptIdRef.current,
         })
         setAnimDone(false)
         dispatch({ type: 'result-received', result })
         bridge.send({ type: 'apply-result', result })
-        // pending stays true until the animation completes, keeping options locked.
       } catch {
-        setPending(false)
+        dispatch({ type: 'answer-failed' })
         setAnswerError('Your answer could not be submitted. Please try again.')
+      } finally {
+        submittingRef.current = false
       }
     },
     [bridge],
@@ -185,17 +195,72 @@ export function usePlaySession() {
     [bridge, dungeon, finish],
   )
 
-  const onContinue = useCallback(async () => {
+  /** Leaves the current result: next question, room clear, or defeat. */
+  const advanceCombat = useCallback(() => {
     const s = stateRef.current
-    dispatch({ type: 'result-settled' })
-    setQuestion(null)
-    setPending(false)
-    if (s.phase === 'resolving' && s.playerHp > 0 && s.monsterHp <= 0 && s.currentRoomId) {
-      await clear(s.currentRoomId)
+    const c = s.combat
+    if (c !== 'next' && c !== 'monster_defeated' && c !== 'player_defeated') return
+    dispatch({ type: 'advance' })
+    if (c === 'next') {
+      const monsterRoom = dungeon?.rooms.find((r) => r.id === s.currentRoomId)
+      const monsterId = monsterRoom?.monster.id
+      const count = monsterId ? (askCountsRef.current.get(monsterId) ?? 0) : 0
+      const qid = monsterRoom ? pickQuestionId(monsterRoom.monster.question_ids, count) : undefined
+      const q = qid ? dungeon?.questions.find((x) => x.id === qid) : undefined
+      if (!monsterId || !q) {
+        setLoadError('This monster has no questions to ask.')
+        return
+      }
+      askCountsRef.current.set(monsterId, count + 1)
+      attemptIdRef.current = newAttemptId()
+      setAnswerError(null)
+      setAnimDone(false)
+      setQuestion(q)
+      dispatch({ type: 'question-presented' })
+    } else if (c === 'monster_defeated') {
+      setQuestion(null)
+      const roomId = s.currentRoomId
+      if (roomId && !clearStartedRoomsRef.current.has(roomId)) {
+        clearStartedRoomsRef.current.add(roomId)
+        void clear(roomId)
+      }
     } else {
-      focusGame()
+      setQuestion(null)
     }
-  }, [clear, focusGame])
+  }, [clear, dungeon])
+
+  const advanceRef = useRef(advanceCombat)
+  const waitTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  useEffect(() => {
+    advanceRef.current = advanceCombat
+  })
+
+  const clearWaitTimer = useCallback(() => {
+    if (waitTimerRef.current !== null) {
+      clearTimeout(waitTimerRef.current)
+      waitTimerRef.current = null
+    }
+  }, [])
+
+  // Auto-advance after the read delay while a result is being shown.
+  const combat = state.combat
+  const lastCorrect = state.lastResult?.correct ?? true
+  useEffect(() => {
+    if (combat !== 'next' && combat !== 'monster_defeated' && combat !== 'player_defeated') return
+    waitTimerRef.current = setTimeout(() => {
+      waitTimerRef.current = null
+      advanceRef.current()
+    }, readDelayMs(lastCorrect))
+    return clearWaitTimer
+  }, [combat, lastCorrect, clearWaitTimer])
+
+  /** Skips the read delay (Next button / Enter). No-op outside a waiting state. */
+  const skipWait = useCallback(() => {
+    const c = stateRef.current.combat
+    if (c !== 'next' && c !== 'monster_defeated' && c !== 'player_defeated') return
+    clearWaitTimer()
+    advanceRef.current()
+  }, [clearWaitTimer])
 
   const retryClear = useCallback(async () => {
     if (pendingClearRoomRef.current) await clear(pendingClearRoomRef.current)
@@ -210,8 +275,8 @@ export function usePlaySession() {
       const run = await api.startRun(dungeon.id)
       askCountsRef.current = new Map()
       pendingClearRoomRef.current = null
+      clearStartedRoomsRef.current = new Set()
       setQuestion(null)
-      setPending(false)
       setAnswerError(null)
       setAnimDone(false)
       setClearedXp(null)
@@ -232,15 +297,29 @@ export function usePlaySession() {
     dispatch({ type: 'resume' })
   }, [])
 
+  /** Abandons the current encounter (only from an unanswered question). Monster HP is kept. */
+  const retreat = useCallback(() => {
+    const cur = stateRef.current
+    if (!canRetreat(cur.combat)) return
+    // Paused-from-question: resume first so the final phase is 'exploring'.
+    if (cur.phase === 'paused') dispatch({ type: 'resume' })
+    dispatch({ type: 'retreat' })
+    setQuestion(null)
+    setAnswerError(null)
+    setTimeout(focusGame, 0)
+  }, [focusGame])
+
   // Esc toggles pause while exploring/paused.
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key !== 'Escape' || e.repeat) return
       // The exit confirmation owns Esc while open (it cancels back to the pause menu).
       if (document.querySelector('[role="alertdialog"]')) return
-      const phase = stateRef.current.phase
-      if (phase === 'exploring') dispatch({ type: 'pause' })
-      else if (phase === 'paused') dispatch({ type: 'resume' })
+      const { phase, combat: c } = stateRef.current
+      if (phase === 'paused') dispatch({ type: 'resume' })
+      else if (phase === 'exploring' || (phase === 'encounter' && c === 'question')) {
+        dispatch({ type: 'pause' })
+      }
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
@@ -252,6 +331,8 @@ export function usePlaySession() {
     if (prevPhase.current === 'paused' && state.phase !== 'paused') focusGame()
     prevPhase.current = state.phase
   }, [state.phase, focusGame])
+
+  const pending = state.combat === 'submitting' || state.combat === 'result'
 
   const session = {
     bridge,
@@ -277,9 +358,10 @@ export function usePlaySession() {
     animDone,
     clearedXp,
     onAnswer,
-    onContinue,
+    skipWait,
     restart,
     resume,
+    retreat,
   }
   return [session, gameWrapRef] as const
 }

@@ -102,7 +102,7 @@ export class EffectsSystem {
     this.timers.push(this.scene.time.delayedCall(FALLBACK_MS, finish))
   }
 
-  /** Idempotent gate open for the explicit room-cleared event. */
+  /** Idempotent gate open for the explicit gate-open event. */
   openGate(gate: Gate | null): void {
     gate?.open()
   }

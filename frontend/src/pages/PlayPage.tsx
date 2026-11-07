@@ -9,6 +9,7 @@ import { QuestionPanel } from '@/components/QuestionPanel'
 import { Spinner } from '@/components/Spinner'
 import { VictoryOverlay } from '@/components/VictoryOverlay'
 import { GameCanvas } from '@/game/GameCanvas'
+import { damageReceived, isCombatActive } from '@/state/combatMachine'
 import { useSession } from '@/state/SessionContext'
 import { usePlaySession } from './usePlaySession'
 
@@ -67,16 +68,21 @@ export default function PlayPage() {
       >
         <GameCanvas bridge={s.bridge} className="size-full" />
 
-        {s.question && (
+        {isCombatActive(state.combat) && s.question && (
           <div className="absolute inset-0 z-10 flex items-center justify-center bg-background/50 p-2">
             <QuestionPanel
               question={s.question}
+              combat={state.combat}
               monsterName={room.monster.name}
-              pending={s.pending}
               error={s.answerError}
-              result={s.animDone ? state.lastResult : null}
+              result={state.lastResult}
+              damageReceived={
+                state.lastResult ? damageReceived(state.prevPlayerHp, state.lastResult) : undefined
+              }
               onAnswer={(sel) => void s.onAnswer(sel)}
-              onContinue={() => void s.onContinue()}
+              onNext={s.skipWait}
+              onRetreat={s.retreat}
+              keysEnabled={state.phase !== 'paused' && state.phase !== 'defeated' && !showVictory}
             />
           </div>
         )}
@@ -116,6 +122,7 @@ export default function PlayPage() {
       {state.phase === 'paused' && !confirmingExit && (
         <PauseMenu
           onResume={s.resume}
+          onRetreat={state.combat === 'question' ? s.retreat : undefined}
           onRestart={() => void s.restart()}
           muted={s.muted}
           onToggleMute={s.toggleMute}

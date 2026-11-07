@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react'
 import type { KeyboardEvent } from 'react'
-import { Volume2, VolumeX } from 'lucide-react'
+import { Footprints, Volume2, VolumeX } from 'lucide-react'
 import { Button } from './Button'
 
 export interface PauseMenuProps {
@@ -13,6 +13,8 @@ export interface PauseMenuProps {
   onToggleMute?(): void
   /** When provided, an Exit button is rendered. */
   onExit?(): void
+  /** When provided, a "Retreat from battle" button is rendered (paused mid-question). */
+  onRetreat?(): void
 }
 
 /**
@@ -26,6 +28,7 @@ export function PauseMenu({
   muted = false,
   onToggleMute,
   onExit,
+  onRetreat,
 }: PauseMenuProps) {
   const rootRef = useRef<HTMLDivElement>(null)
   const returnRef = useRef(returnFocusTo)
@@ -69,6 +72,12 @@ export function PauseMenu({
           Paused
         </h2>
         <Button onClick={onResume}>Resume</Button>
+        {onRetreat && (
+          <Button variant="secondary" onClick={onRetreat}>
+            <Footprints aria-hidden="true" className="h-5 w-5" />
+            Retreat from battle
+          </Button>
+        )}
         {onToggleMute && (
           <Button variant="secondary" aria-pressed={muted} onClick={onToggleMute}>
             {muted ? (

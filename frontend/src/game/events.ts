@@ -15,13 +15,9 @@ export type GamePhase =
   | 'victory'
 
 export type ToGameEvent =
-  /** @deprecated removed in tasks 6.3/8.3 */
-  | { type: 'load-room'; room: Room }
   | { type: 'load-dungeon'; rooms: Room[] }
   | { type: 'set-phase'; phase: GamePhase }
   | { type: 'apply-result'; result: AnswerResult }
-  /** @deprecated removed in tasks 6.3/8.3 */
-  | { type: 'room-cleared' }
   | { type: 'gate-open'; roomId: string }
   | { type: 'reset' }
   | { type: 'set-reduced-motion'; value: boolean }

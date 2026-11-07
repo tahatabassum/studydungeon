@@ -10,7 +10,6 @@ import { RoomTracker } from '../systems/RoomTracker'
 import type { FromGameEvent, GameBridge, GamePhase, ToGameEvent } from '../events'
 import { buildDungeonLayout, type DungeonLayout } from '../world/DungeonLayout'
 import {
-  GATE,
   MONSTER_SPAWN,
   TILE,
   WORLD_H,
@@ -40,10 +39,6 @@ export class GameScene extends Phaser.Scene {
   private gates = new Map<string, Gate>()
   private monsters = new Map<string, Monster>() // room id -> monster
   private activeMonster: Monster | null = null
-  /** @deprecated single-room compatibility until task 8.3 rewires React. */
-  private legacy = false
-  /** @deprecated legacy single gate (top wall) for the old room-clear visual. */
-  private legacyGate: Gate | null = null
 
   private bridge: GameBridge | undefined
   private built: Phaser.GameObjects.GameObject[] = []
@@ -60,8 +55,8 @@ export class GameScene extends Phaser.Scene {
       () => ({
         player: this.player,
         monster: this.activeMonster ?? this.currentMonster(),
-        // Gates open only on an explicit gate-open event, except the deprecated legacy gate.
-        gate: this.legacyGate,
+        // Gates open only on an explicit gate-open event.
+        gate: null,
       }),
       () => this.reducedMotion,
     )
@@ -110,13 +105,7 @@ export class GameScene extends Phaser.Scene {
   private handle(e: ToGameEvent): void {
     switch (e.type) {
       case 'load-dungeon':
-        this.legacy = false
         this.rooms = e.rooms
-        this.build()
-        break
-      case 'load-room': // deprecated: one-room dungeon with the legacy top gate
-        this.legacy = true
-        this.rooms = [{ ...e.room, order: e.room.order ?? 0, is_boss: e.room.is_boss ?? false }]
         this.build()
         break
       case 'set-phase':
@@ -134,9 +123,6 @@ export class GameScene extends Phaser.Scene {
       case 'gate-open':
         this.gates.get(e.roomId)?.open()
         break
-      case 'room-cleared': // deprecated
-        this.legacyGate?.open()
-        break
       case 'apply-result':
         this.effects?.apply(e.result)
         break
@@ -153,8 +139,6 @@ export class GameScene extends Phaser.Scene {
     this.destroyActors()
     for (const g of this.gates.values()) g.destroy()
     this.gates.clear()
-    this.legacyGate?.destroy()
-    this.legacyGate = null
     this.walls?.destroy(true)
     this.walls = null
     for (const o of this.built) o.destroy()
@@ -186,7 +170,7 @@ export class GameScene extends Phaser.Scene {
 
     layout.rooms.forEach((b, k) => {
       const origin: Point = { x: b.rect.x, y: b.rect.y }
-      const hasExit = k < layout.rooms.length - 1 || this.legacy
+      const hasExit = k < layout.rooms.length - 1
       const opts = { origin, exitGap: hasExit, entryGap: k > 0 }
       this.drawFloor(origin)
       for (const t of borderWallTiles(opts)) walls.create(t.x, t.y, 'wall-tile').setDepth(1)
@@ -221,14 +205,6 @@ export class GameScene extends Phaser.Scene {
         ),
       )
     }
-    if (this.legacy) {
-      const origin = layout.rooms[0].rect
-      this.legacyGate = new Gate(
-        this,
-        { ...GATE, x: GATE.x + origin.x, y: GATE.y + origin.y },
-        this.reducedMotion,
-      )
-    }
 
     const player = new Player(this, layout.spawn, this.reducedMotion)
     this.player = player
@@ -244,7 +220,6 @@ export class GameScene extends Phaser.Scene {
 
     const obstacles: Phaser.Types.Physics.Arcade.ArcadeColliderType[] = [walls]
     for (const g of this.gates.values()) obstacles.push(g.zone)
-    if (this.legacyGate) obstacles.push(this.legacyGate.zone)
     for (const m of this.monsters.values()) obstacles.push(m.zone)
     this.movement = new MovementSystem(this, player, () => this.phase === 'exploring', obstacles)
 

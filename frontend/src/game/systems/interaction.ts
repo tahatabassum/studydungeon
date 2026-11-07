@@ -1,4 +1,18 @@
+import type { GamePhase } from '../events'
 import type { Point } from '../world/RoomLayout'
+
+export interface EngageInput {
+  phase: GamePhase
+  inRange: boolean
+  alive: boolean
+  pressed: boolean
+  armed: boolean
+}
+
+/** Pure engage rule: only while exploring, with a living monster in range, a fresh key press, and armed. */
+export function shouldEngage({ phase, inRange, alive, pressed, armed }: EngageInput): boolean {
+  return phase === 'exploring' && alive && inRange && pressed && armed
+}
 
 /**
  * Interaction range in pixels, measured between the CENTERS of the player and monster.

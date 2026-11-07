@@ -30,6 +30,7 @@ type Spec =
   | { k: 'gate' }
   | { k: 'encounter' }
   | { k: 'settle' }
+  | { k: 'flow'; a: 'present' | 'submit' | 'fail' | 'advance' | 'retreat' }
 
 const specArb: fc.Arbitrary<Spec> = fc.oneof(
   { weight: 3, arbitrary: fc.record({ k: fc.constant('enter' as const), room: fc.nat(7) }) },
@@ -48,6 +49,13 @@ const specArb: fc.Arbitrary<Spec> = fc.oneof(
   { weight: 2, arbitrary: fc.constant({ k: 'gate' as const }) },
   { weight: 2, arbitrary: fc.constant({ k: 'encounter' as const }) },
   { weight: 2, arbitrary: fc.constant({ k: 'settle' as const }) },
+  {
+    weight: 6,
+    arbitrary: fc.record({
+      k: fc.constant('flow' as const),
+      a: fc.constantFrom('present' as const, 'submit' as const, 'fail' as const, 'advance' as const, 'retreat' as const),
+    }),
+  },
 )
 
 function toAction(s: Spec, ids: string[]): RunAction {
@@ -65,6 +73,14 @@ function toAction(s: Spec, ids: string[]): RunAction {
       return { type: 'encounter-started' }
     case 'settle':
       return { type: 'result-settled' }
+    case 'flow':
+      return {
+        present: { type: 'question-presented' },
+        submit: { type: 'answer-submitted' },
+        fail: { type: 'answer-failed' },
+        advance: { type: 'advance' },
+        retreat: { type: 'retreat' },
+      }[s.a] as RunAction
   }
 }
 
