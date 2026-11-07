@@ -3,6 +3,7 @@ import type { Monster } from '../entities/Monster'
 import type { Player } from '../entities/Player'
 import type { GameBridge, GamePhase } from '../events'
 import { isWithinRange, shouldEngage } from './interaction'
+import { sfx } from '@/audio/sfx'
 import { CSS_COLORS } from '../colors'
 import { FONT_LABEL } from '../fonts'
 
@@ -71,6 +72,7 @@ export class InteractionSystem {
     this.prompt.setVisible(alive && inRange)
     if (monster && shouldEngage({ phase, inRange, alive, pressed, armed: this.armed })) {
       this.armed = false
+      sfx.play('growl')
       this.bridge?.emit({ type: 'encounter-started', monsterId: monster.id })
     }
   }

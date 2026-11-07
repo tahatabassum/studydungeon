@@ -199,6 +199,20 @@ export class Monster {
     })
   }
 
+  /** Scale/fade-in the first time the player enters this room. Static under reduced motion. */
+  playIntro(): void {
+    if (this.reducedMotion || !this.alive || !this.sprite.active) return
+    const target = this.style.scale
+    this.sprite.setAlpha(0).setScale(target * (this.isBoss ? 0.5 : 0.7))
+    this.scene.tweens.add({
+      targets: this.sprite,
+      alpha: 1,
+      scale: target,
+      duration: this.isBoss ? 450 : 300,
+      ease: this.isBoss ? 'Back.easeOut' : 'Sine.easeOut',
+    })
+  }
+
   /** Plays the erosion animation, then fades out. Same as defeat(). */
   playDeath(): void {
     this.defeat()

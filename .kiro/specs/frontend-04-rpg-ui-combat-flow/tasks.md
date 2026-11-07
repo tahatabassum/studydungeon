@@ -248,38 +248,38 @@ Working rules for every task:
     - Run `npm run typecheck`, `npm run lint`, `npm test`, `npm run build`
     - Browser checklist: pause, exit confirmation, victory, defeat, landing page themed; Tab stays inside overlays; Esc behavior correct
 
-- [ ] 6. Phase 6: Atmosphere, animations and optional sound
-  - [~] 6.1 Create the object pool
+- [x] 6. Phase 6: Atmosphere, animations and optional sound
+  - [x] 6.1 Create the object pool
     - `src/game/systems/objectPool.ts` (`ObjectPool<T>` with create, reset, max)
     - _Requirements: 18.4_
-  - [~] 6.2 Write property test for pool reuse
+  - [x] 6.2 Write property test for pool reuse
     - Create `src/game/systems/objectPool.property.test.ts`
     - **Property 15: Pool reuse**
     - **Validates: Requirements 18.4**
-  - [~] 6.3 Add the atmosphere system
+  - [x] 6.3 Add the atmosphere system
     - `src/game/systems/AtmosphereSystem.ts`: dust, fog, torch flicker, theme magic particles from the room theme, capped by the global particle cap, disabled or static under reduced motion; created and destroyed by `GameScene`
     - _Requirements: 18.1, 18.3_
-  - [~] 6.4 Pool damage numbers and effects
+  - [x] 6.4 Pool damage numbers and effects
     - `src/game/systems/EffectsSystem.ts`: use `ObjectPool` for floating text and spark images, no per-frame allocation, values only from `AnswerResult`; keep exactly one `result-animation-done`
     - _Requirements: 18.4, 18.5, 18.6_
-  - [~] 6.5 Add transitions and entrances
+  - [x] 6.5 Add transitions and entrances
     - `src/game/scenes/GameScene.ts`, `src/game/entities/Gate.ts`, `src/game/entities/Monster.ts`: door opening, room transition fade, monster intro, boss entrance (movement effects skipped under reduced motion)
     - _Requirements: 15.6, 18.2, 18.3_
-  - [~] 6.6 Create the sound engine
+  - [x] 6.6 Create the sound engine
     - `src/audio/sfx.ts`: Web Audio synthesis for footstep, growl, attack, hit, correct, wrong, gate, victory, defeat; `unlock()` creates the context, injectable context factory, quiet master gain (at most 0.3), no audio files, no failures when the context cannot be created
     - _Requirements: 19.1, 19.2, 19.3, 19.5, 19.7_
-  - [~] 6.7 Write property test and unit tests for the sound engine
+  - [x] 6.7 Write property test and unit tests for the sound engine
     - Create `src/audio/sfx.property.test.ts` plus unit tests for cues, default volume and the throwing factory
     - **Property 16: Sound mute gating**
     - **Validates: Requirements 19.2, 19.4, 19.7**
-  - [~] 6.8 Wire sound
+  - [x] 6.8 Wire sound
     - React: `src/pages/usePlaySession.ts` plays correct, wrong, victory and defeat cues and calls `sfx.setMuted` with the mute state; call `sfx.unlock()` on the first key or pointer event in `PlayPage`; Phaser: footstep in `MovementSystem.ts`, growl on engage, attack and hit in `EffectsSystem.ts`, gate in `Gate.ts`
     - Keep the Import_Boundary test green
     - _Requirements: 19.3, 19.4, 19.6_
-  - [~] 6.9 Audit reduced motion across CSS, Framer Motion and Phaser
+  - [x] 6.9 Audit reduced motion across CSS, Framer Motion and Phaser
     - Search `src/` for `animate`, `transition`, `tweens.add`, `particles` and keyframes; make each respect `useReducedMotion`, the CSS media query and the `set-reduced-motion` event; add a test for any new helper
     - _Requirements: 18.3, 2.6, 4.6_
-  - [~] 6.10 Checkpoint - Phase 6
+  - [x] 6.10 Checkpoint - Phase 6
     - Ensure all tests pass, ask the user if questions arise.
     - Run `npm run typecheck`, `npm run lint`, `npm test`, `npm run build`
     - Browser checklist: dust, fog, torches, particles; damage numbers; door and boss entrance; sounds on first key press; mute silences everything; enabling "reduce motion" in the OS removes movement effects

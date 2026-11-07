@@ -4,6 +4,7 @@ import { clampViewInset } from '../world/viewInset'
 import { Gate } from '../entities/Gate'
 import { Monster } from '../entities/Monster'
 import { Player } from '../entities/Player'
+import { AtmosphereSystem } from '../systems/AtmosphereSystem'
 import { EffectsSystem } from '../systems/EffectsSystem'
 import { InteractionSystem } from '../systems/InteractionSystem'
 import { MovementSystem } from '../systems/MovementSystem'
@@ -43,6 +44,11 @@ export class GameScene extends Phaser.Scene {
   private interaction: InteractionSystem | null = null
   private effects: EffectsSystem | null = null
   private tracker: RoomTracker | null = null
+  private atmosphere: AtmosphereSystem | null = null
+  /** Per-room theme/origin/boss flag, used for ambience and entrances. */
+  private roomInfo = new Map<string, { theme: RoomTheme; origin: Point; boss: boolean }>()
+  /** Rooms whose monster intro has already played. */
+  private introduced = new Set<string>()
   /** Exit gate per room id (rooms without a following room have none). */
   private gates = new Map<string, Gate>()
   private monsters = new Map<string, Monster>() // room id -> monster
@@ -68,11 +74,14 @@ export class GameScene extends Phaser.Scene {
       }),
       () => this.reducedMotion,
     )
+    this.atmosphere = new AtmosphereSystem(this, () => this.reducedMotion)
 
     const off = this.bridge?.onToGame((e) => this.handle(e))
     const cleanup = (): void => {
       off?.()
-      this.effects?.cancel()
+      this.effects?.destroy()
+      this.atmosphere?.destroy()
+      this.atmosphere = null
       this.destroyActors()
     }
     this.events.once('shutdown', cleanup)
@@ -176,8 +185,28 @@ export class GameScene extends Phaser.Scene {
     return obj
   }
 
+  /** Ambience, room fade, monster intro and boss entrance when the player enters a room. */
+  private onRoomChange(roomId: string, first: boolean): void {
+    const info = this.roomInfo.get(roomId)
+    if (!info) return
+    this.atmosphere?.setRoom(info.theme, info.origin)
+    const cam = this.cameras.main
+    const intro = !this.introduced.has(roomId)
+    if (!first && !this.reducedMotion && !(info.boss && intro)) cam.fadeIn(180, 0, 0, 0)
+    if (!intro) return
+    this.introduced.add(roomId)
+    this.monsters.get(roomId)?.playIntro()
+    if (info.boss && !this.reducedMotion) {
+      cam.shake(120, 0.006)
+      cam.flash(220, 200, 30, 50)
+    }
+  }
+
   private teardown(): void {
-    this.effects?.cancel()
+    this.effects?.reset()
+    this.atmosphere?.clearRoom()
+    this.roomInfo.clear()
+    this.introduced.clear()
     this.destroyActors()
     for (const g of this.gates.values()) g.destroy()
     this.gates.clear()
@@ -217,6 +246,7 @@ export class GameScene extends Phaser.Scene {
       const room = roomById.get(b.id)
       // Theme comes only from room data (monster kind and boss flag).
       const theme = selectTheme(room?.monster.kind, room?.is_boss ?? b.isBoss)
+      this.roomInfo.set(b.id, { theme, origin, boss: b.isBoss })
       this.drawFloor(origin, theme)
       for (const o of decorateRoom(this, theme, origin)) this.track(o)
       for (const t of borderWallTiles(opts)) walls.create(t.x, t.y, 'wall-tile').setDepth(1)
@@ -247,6 +277,7 @@ export class GameScene extends Phaser.Scene {
         spec.afterRoomId,
         Gate.fromSpec(this, spec, this.reducedMotion, (roomId) =>
           this.bridge?.emit({ type: 'gate-opened', roomId } satisfies FromGameEvent),
+          (x, y) => this.effects?.puff(x, y),
         ),
       )
     }
@@ -268,7 +299,12 @@ export class GameScene extends Phaser.Scene {
     for (const m of this.monsters.values()) obstacles.push(m.zone)
     this.movement = new MovementSystem(this, player, () => this.phase === 'exploring', obstacles)
 
-    this.tracker = new RoomTracker(layout, () => ({ x: player.x, y: player.y }), this.bridge)
+    this.tracker = new RoomTracker(
+      layout,
+      () => ({ x: player.x, y: player.y }),
+      this.bridge,
+      (id, first) => this.onRoomChange(id, first),
+    )
     // Record which monster started the encounter so effects target it.
     const bridge = this.bridge
     const wrapped: GameBridge | undefined = bridge && {

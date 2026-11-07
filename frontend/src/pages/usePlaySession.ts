@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useReducer, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { getApi } from '@/api'
+import { sfx } from '@/audio/sfx'
 import type { ApiClient } from '@/api'
 import { createGameBridge } from '@/game/events'
 import { canAnswer, canRetreat, readDelayMs } from '@/state/combatMachine'
@@ -106,7 +107,23 @@ export function usePlaySession() {
   }, [bridge, dungeon])
   useEffect(() => {
     bridge.send({ type: 'set-muted', value: muted })
+    sfx.setMuted(muted)
   }, [bridge, muted])
+
+  // Audio may only start after a user gesture: unlock on the first key or pointer press.
+  useEffect(() => {
+    const unlock = () => {
+      sfx.unlock()
+      window.removeEventListener('keydown', unlock)
+      window.removeEventListener('pointerdown', unlock)
+    }
+    window.addEventListener('keydown', unlock)
+    window.addEventListener('pointerdown', unlock)
+    return () => {
+      window.removeEventListener('keydown', unlock)
+      window.removeEventListener('pointerdown', unlock)
+    }
+  }, [])
   useEffect(() => {
     bridge.send({ type: 'set-reduced-motion', value: reducedMotion })
   }, [bridge, reducedMotion])
@@ -176,6 +193,8 @@ export function usePlaySession() {
         setAnimDone(false)
         dispatch({ type: 'result-received', result })
         bridge.send({ type: 'apply-result', result })
+        sfx.play(result.correct ? 'correct' : 'wrong')
+        if (result.player_hp_remaining <= 0) setTimeout(() => sfx.play('defeat'), 450)
       } catch {
         dispatch({ type: 'answer-failed' })
         setAnswerError('Your answer could not be submitted. Please try again.')
@@ -194,6 +213,7 @@ export function usePlaySession() {
     try {
       const summary = await api.finishRun(runId)
       dispatch({ type: 'run-finished', summary })
+      sfx.play('victory')
     } catch {
       setFinishError('Your results could not be loaded.')
     }
