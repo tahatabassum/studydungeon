@@ -1,0 +1,52 @@
+@import "tailwindcss";
+
+/* Design_Tokens: @theme emits these as CSS variables on :root and as Tailwind colors. */
+@theme {
+  --color-background: #100d18;
+  --color-panel: #1d1728;
+  --color-parchment: #f2e8d5;
+  --color-purple: #7546a8;
+  --color-blood: #b83d4a;
+  --color-amber: #e9a23b;
+  --color-mint: #68c9a5;
+  --color-muted: #a79cb5;
+}
+
+html,
+body,
+#root {
+  min-height: 100%;
+}
+
+body {
+  margin: 0;
+  overflow-x: hidden;
+}
+
+:focus-visible {
+  outline: 3px solid var(--color-amber);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Landing page decorative effects (CSS-only, disabled by reduced motion above). */
+@keyframes sd-flicker {
+  0%, 100% { opacity: 0.9; transform: scale(1); }
+  45% { opacity: 0.6; transform: scale(0.94); }
+  70% { opacity: 1; transform: scale(1.06); }
+}
+@keyframes sd-drift {
+  0% { transform: translateX(-4%); }
+  100% { transform: translateX(4%); }
+}
+.sd-flicker { animation: sd-flicker 2.4s ease-in-out infinite; }
+.sd-drift { animation: sd-drift 14s ease-in-out infinite alternate; }
