@@ -1,6 +1,5 @@
-import { useEffect, useRef } from 'react'
-import type { KeyboardEvent } from 'react'
 import { Button } from './Button'
+import { OverlayFrame } from './OverlayFrame'
 
 export interface ConfirmDialogProps {
   title: string
@@ -20,59 +19,28 @@ export function ConfirmDialog({
   onConfirm,
   onCancel,
 }: ConfirmDialogProps) {
-  const rootRef = useRef<HTMLDivElement>(null)
-
-  useEffect(() => {
-    rootRef.current?.querySelector<HTMLButtonElement>('button[data-cancel]')?.focus()
-  }, [])
-
-  const onKeyDown = (e: KeyboardEvent<HTMLDivElement>) => {
-    if (e.key === 'Escape') {
-      e.preventDefault()
-      e.stopPropagation()
-      onCancel()
-      return
-    }
-    if (e.key !== 'Tab') return
-    const buttons = rootRef.current?.querySelectorAll<HTMLButtonElement>('button')
-    if (!buttons || buttons.length === 0) return
-    const first = buttons[0]
-    const last = buttons[buttons.length - 1]
-    if (e.shiftKey && document.activeElement === first) {
-      e.preventDefault()
-      last.focus()
-    } else if (!e.shiftKey && document.activeElement === last) {
-      e.preventDefault()
-      first.focus()
-    }
-  }
-
   return (
-    <div
-      ref={rootRef}
+    <OverlayFrame
+      title={title}
+      titleId="confirm-title"
       role="alertdialog"
-      aria-modal="true"
-      aria-labelledby="confirm-title"
-      aria-describedby="confirm-desc"
-      onKeyDown={onKeyDown}
-      className="fixed inset-0 z-[60] flex items-center justify-center bg-bg/85 p-4"
+      describedBy="confirm-desc"
+      initialFocus="button[data-cancel]"
+      onEscape={onCancel}
+      zClass="z-[60]"
+      widthClass="max-w-sm"
     >
-      <div className="flex w-full max-w-sm flex-col items-center gap-4 rounded-xl border-2 border-accent bg-panel p-8 text-center">
-        <h2 id="confirm-title" className="font-[family-name:var(--font-display)] text-2xl font-bold text-ink">
-          {title}
-        </h2>
-        <p id="confirm-desc" className="text-ink">
-          {message}
-        </p>
-        <div className="flex flex-wrap justify-center gap-3">
-          <Button variant="primary" onClick={onCancel} data-cancel>
-            {cancelLabel}
-          </Button>
-          <Button variant="secondary" onClick={onConfirm}>
-            {confirmLabel}
-          </Button>
-        </div>
+      <p id="confirm-desc" className="text-ink">
+        {message}
+      </p>
+      <div className="flex flex-wrap justify-center gap-3 font-(family-name:--font-label)">
+        <Button variant="primary" onClick={onCancel} data-cancel>
+          {cancelLabel}
+        </Button>
+        <Button variant="secondary" onClick={onConfirm}>
+          {confirmLabel}
+        </Button>
       </div>
-    </div>
+    </OverlayFrame>
   )
 }

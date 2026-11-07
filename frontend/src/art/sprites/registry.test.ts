@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { validatePixelMap } from '../pixelMap';
-import { DECOR_SPRITES, ICONS, MONSTER_SPRITES, PLAYER_SPRITES, SPRITE_REGISTRY, getSprite } from './index';
+import { CHARACTER_SPRITES, DECOR_SPRITES, ICONS, MONSTER_SPRITES, PLAYER_SPRITES, SPRITE_REGISTRY, getSprite } from './index';
 
 describe('sprite registry', () => {
   it('every sprite passes validatePixelMap with no errors', () => {
@@ -16,7 +16,8 @@ describe('sprite registry', () => {
       Object.keys(MONSTER_SPRITES).length +
       Object.keys(PLAYER_SPRITES).length +
       Object.keys(ICONS).length +
-      Object.keys(DECOR_SPRITES).length;
+      Object.keys(DECOR_SPRITES).length +
+      Object.keys(CHARACTER_SPRITES).length;
     expect(entries.length).toBe(total);
   });
 
@@ -26,6 +27,20 @@ describe('sprite registry', () => {
     }
     expect(getSprite('player_idle')).toBeDefined();
     expect(getSprite('nope')).toBeUndefined();
+  });
+
+  it('contains the six decorative characters', () => {
+    for (const n of [
+      'friendly_ghost',
+      'small_vampire',
+      'skeleton_companion',
+      'bat',
+      'black_cat',
+      'haunted_portrait',
+    ]) {
+      expect(getSprite(n), n).toBeDefined();
+      expect(CHARACTER_SPRITES[n]).toBeDefined();
+    }
   });
 
   it('sizes stay within 32x32', () => {

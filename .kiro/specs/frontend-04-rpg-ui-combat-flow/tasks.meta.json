@@ -1054,6 +1054,16 @@
         "executionId": "a940afc4-d557-48ac-9cef-8f6b8238752d",
         "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
         "timestamp": 1794069422675
+      },
+      {
+        "executionId": "d1dd1953-7cde-4238-b2b8-af76fe0c1c25",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794079175841
+      },
+      {
+        "executionId": "d1dd1953-7cde-4238-b2b8-af76fe0c1c25",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794079702620
       }
     ],
     "5.2 Restyle the pause menu and exit confirmation": [
@@ -1061,6 +1071,16 @@
         "executionId": "a940afc4-d557-48ac-9cef-8f6b8238752d",
         "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
         "timestamp": 1794069422857
+      },
+      {
+        "executionId": "d1dd1953-7cde-4238-b2b8-af76fe0c1c25",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794079176960
+      },
+      {
+        "executionId": "d1dd1953-7cde-4238-b2b8-af76fe0c1c25",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794079702934
       }
     ],
     "5.3 Restyle victory and defeat overlays": [
@@ -1068,6 +1088,16 @@
         "executionId": "a940afc4-d557-48ac-9cef-8f6b8238752d",
         "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
         "timestamp": 1794069423013
+      },
+      {
+        "executionId": "d1dd1953-7cde-4238-b2b8-af76fe0c1c25",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794079177782
+      },
+      {
+        "executionId": "d1dd1953-7cde-4238-b2b8-af76fe0c1c25",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794079703739
       }
     ],
     "5.4 Author the decorative UI character sprites": [
@@ -1075,6 +1105,16 @@
         "executionId": "a940afc4-d557-48ac-9cef-8f6b8238752d",
         "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
         "timestamp": 1794069423146
+      },
+      {
+        "executionId": "d1dd1953-7cde-4238-b2b8-af76fe0c1c25",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794079179094
+      },
+      {
+        "executionId": "d1dd1953-7cde-4238-b2b8-af76fe0c1c25",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794079704692
       }
     ],
     "5.5 Restyle the landing page": [
@@ -1082,6 +1122,16 @@
         "executionId": "a940afc4-d557-48ac-9cef-8f6b8238752d",
         "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
         "timestamp": 1794069423270
+      },
+      {
+        "executionId": "d1dd1953-7cde-4238-b2b8-af76fe0c1c25",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794079179947
+      },
+      {
+        "executionId": "d1dd1953-7cde-4238-b2b8-af76fe0c1c25",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794079705679
       }
     ],
     "5.6 Checkpoint - Phase 5": [
@@ -1089,6 +1139,16 @@
         "executionId": "a940afc4-d557-48ac-9cef-8f6b8238752d",
         "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
         "timestamp": 1794069423396
+      },
+      {
+        "executionId": "d1dd1953-7cde-4238-b2b8-af76fe0c1c25",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794079180795
+      },
+      {
+        "executionId": "d1dd1953-7cde-4238-b2b8-af76fe0c1c25",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794079706708
       }
     ],
     "6.1 Create the object pool": [
@@ -1229,6 +1289,13 @@
         "executionId": "05f2f061-4620-4b11-a103-437cdcfafc3f",
         "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
         "timestamp": 1794078651205
+      }
+    ],
+    "5. Phase 5: Pause, victory, defeat and menus": [
+      {
+        "executionId": "d1dd1953-7cde-4238-b2b8-af76fe0c1c25",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794079706852
       }
     ]
   }

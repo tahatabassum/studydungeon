@@ -227,23 +227,23 @@ Working rules for every task:
     - Run `npm run typecheck`, `npm run lint`, `npm test`, `npm run build`
     - Browser checklist: five visibly different rooms, crisp pixel art, monsters animate in idle, attack, hit and death, boss looks larger, movement still collides correctly
 
-- [ ] 5. Phase 5: Pause, victory, defeat and menus
-  - [~] 5.1 Create a shared Overlay shell
+- [x] 5. Phase 5: Pause, victory, defeat and menus
+  - [x] 5.1 Create a shared Overlay shell
     - `src/components/OverlayFrame.tsx`: modal container with focus trap, Esc handling where allowed, focus return, gothic heading; add `src/components/OverlayFrame.test.tsx` (Tab cycle, focus return)
     - _Requirements: 16.1, 16.2_
-  - [~] 5.2 Restyle the pause menu and exit confirmation
+  - [x] 5.2 Restyle the pause menu and exit confirmation
     - `src/components/PauseMenu.tsx` and `src/components/ConfirmDialog.tsx` on `OverlayFrame`; keep Resume, Restart, mute, Exit and "Retreat from battle"; exit still needs confirmation
     - _Requirements: 16.1, 16.3, 16.6_
-  - [~] 5.3 Restyle victory and defeat overlays
+  - [x] 5.3 Restyle victory and defeat overlays
     - `src/components/VictoryOverlay.tsx` (run summary, retry on error) and `src/components/DefeatOverlay.tsx` (final XP, score, retry); update their existing tests
     - _Requirements: 16.1, 16.4, 16.5, 7.2_
-  - [~] 5.4 Author the decorative UI character sprites
+  - [x] 5.4 Author the decorative UI character sprites
     - `src/art/sprites/characters.ts`: friendly ghost, small vampire, skeleton companion, bat, black cat, haunted portrait; add them to the validation registry test
     - _Requirements: 14.5, 14.7_
-  - [~] 5.5 Restyle the landing page
+  - [x] 5.5 Restyle the landing page
     - `src/pages/LandingPage.tsx` and `src/pages/LoginPlaceholder.tsx`: palette, gothic headings and `PixelSprite` characters placed outside the arena; "Try the Demo" remains one click; update the existing landing test
     - _Requirements: 17.1, 17.2, 14.6_
-  - [~] 5.6 Checkpoint - Phase 5
+  - [x] 5.6 Checkpoint - Phase 5
     - Ensure all tests pass, ask the user if questions arise.
     - Run `npm run typecheck`, `npm run lint`, `npm test`, `npm run build`
     - Browser checklist: pause, exit confirmation, victory, defeat, landing page themed; Tab stays inside overlays; Esc behavior correct

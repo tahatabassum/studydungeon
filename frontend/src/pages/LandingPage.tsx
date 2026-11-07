@@ -3,6 +3,9 @@ import { useNavigate } from 'react-router-dom';
 import { BookOpen, Flame, Ghost, Skull, Sword } from 'lucide-react';
 import { ApiError, getApi } from '../api';
 import { Button } from '../components/Button';
+import { Panel } from '../components/Panel';
+import { PixelSprite } from '../components/PixelSprite';
+import { CHARACTER_SPRITES } from '../art/sprites';
 import { useSession } from '../state/SessionContext';
 
 const STEPS = [
@@ -50,17 +53,25 @@ export default function LandingPage() {
         <div className="sd-drift absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-ink-muted/20 to-transparent blur-2xl" />
         <Flame className="sd-flicker absolute bottom-10 left-[8%] h-12 w-12 text-accent" />
         <Flame className="sd-flicker absolute bottom-10 right-[8%] h-12 w-12 text-accent" />
+        <div className="hidden md:block">
+          <PixelSprite map={CHARACTER_SPRITES.haunted_portrait} scale={4} className="absolute left-[4%] top-24 opacity-90" />
+          <PixelSprite map={CHARACTER_SPRITES.bat} scale={4} className="absolute right-[6%] top-20 motion-safe:animate-bounce" />
+          <PixelSprite map={CHARACTER_SPRITES.black_cat} scale={4} className="absolute bottom-6 left-[15%]" />
+          <PixelSprite map={CHARACTER_SPRITES.skeleton_companion} scale={4} className="absolute bottom-6 right-[15%]" />
+          <PixelSprite map={CHARACTER_SPRITES.small_vampire} scale={4} className="absolute right-[4%] top-1/2" />
+          <PixelSprite map={CHARACTER_SPRITES.friendly_ghost} scale={4} className="sd-drift absolute left-[5%] top-1/2" />
+        </div>
       </div>
 
       <header className="relative flex items-center gap-2 px-6 py-4">
         <Skull aria-hidden="true" className="h-6 w-6 text-danger" />
-        <span className="font-semibold tracking-wide">StudyDungeon</span>
+        <span className="font-(family-name:--font-label) font-semibold tracking-wide">StudyDungeon</span>
       </header>
 
-      <main className="relative mx-auto flex w-full max-w-4xl flex-1 flex-col items-center gap-8 px-6 py-8 text-center">
+      <main className="relative mx-auto flex w-full max-w-3xl flex-1 flex-col items-center gap-8 px-6 py-6 text-center">
         <section className="flex flex-col items-center gap-4">
-          <h1 className="font-display text-5xl font-bold tracking-tight sm:text-6xl">StudyDungeon</h1>
-          <p className="max-w-xl text-lg text-ink-muted">
+          <h1 className="font-(family-name:--font-display) text-6xl text-gold sm:text-7xl">StudyDungeon</h1>
+          <p className="max-w-xl font-(family-name:--font-label) text-lg text-ink-muted">
             Turn your notes into a haunted dungeon.
           </p>
           <div className="flex flex-col items-center gap-3">
@@ -82,18 +93,18 @@ export default function LandingPage() {
         </section>
 
         <section aria-labelledby="how-it-works" className="w-full">
-          <h2 id="how-it-works" className="mb-4 font-display text-2xl font-semibold">
+          <h2 id="how-it-works" className="mb-4 font-(family-name:--font-display) text-3xl text-ink">
             How it works
           </h2>
           <ol className="grid gap-4 sm:grid-cols-3">
             {STEPS.map(({ icon: Icon, title, text }, i) => (
-              <li key={title} className="rounded-lg bg-panel p-5 text-left">
+              <Panel as="li" tone="gold" key={title} className="p-5 text-left">
                 <Icon aria-hidden="true" className="mb-2 h-7 w-7 text-health" />
-                <h3 className="font-semibold">
+                <h3 className="font-(family-name:--font-label) font-semibold">
                   {i + 1}. {title}
                 </h3>
                 <p className="text-sm text-ink-muted">{text}</p>
-              </li>
+              </Panel>
             ))}
           </ol>
         </section>
