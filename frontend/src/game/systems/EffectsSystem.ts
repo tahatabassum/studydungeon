@@ -5,6 +5,8 @@ import type { Gate } from '../entities/Gate'
 import type { Monster } from '../entities/Monster'
 import type { Player } from '../entities/Player'
 import { planCombat } from './combatPlan'
+import { COLORS, CSS_COLORS } from '../colors'
+import { FONT_DISPLAY } from '../fonts'
 
 const PROJECTILE_MS = 250
 const LUNGE_MS = 160
@@ -77,13 +79,13 @@ export class EffectsSystem {
         monster.nudge(player && player.x < monster.position.x ? 6 : -6, 60)
       }
       if (has('damage-number') && plan.damageText && monster) {
-        this.floatText(monster.position.x, monster.position.y - 40, plan.damageText, '#E9A23B', reduced)
+        this.floatText(monster.position.x, monster.position.y - 40, plan.damageText, CSS_COLORS.ACCENT, reduced)
       }
       if (has('monster-hp')) monster?.setHp(result.monster_hp_remaining, true)
       if (has('player-flash')) player?.flashHit()
       if (has('camera-shake')) this.scene.cameras.main.shake(plan.shakeMs, 0.004)
       if (!result.correct && player) {
-        this.floatText(player.x, player.y - 30, 'Ouch!', '#B83D4A', reduced)
+        this.floatText(player.x, player.y - 30, 'Ouch!', CSS_COLORS.DANGER, reduced)
       }
     })
 
@@ -120,10 +122,10 @@ export class EffectsSystem {
     this.ensureSpark()
     const { scene } = this
     const to = monster.position
-    const head = scene.add.image(player.x, player.y, 'spark').setTint(0xe9a23b).setDepth(20)
+    const head = scene.add.image(player.x, player.y, 'spark').setTint(COLORS.ACCENT).setDepth(20)
     const trail = scene.add
       .image(player.x, player.y, 'spark')
-      .setTint(0x7546a8)
+      .setTint(COLORS.MAGIC)
       .setScale(1.6)
       .setAlpha(0.6)
       .setBlendMode(Phaser.BlendModes.ADD)
@@ -150,11 +152,11 @@ export class EffectsSystem {
   private floatText(x: number, y: number, text: string, color: string, reduced: boolean): void {
     const t = this.scene.add
       .text(x, y, text, {
-        fontFamily: 'serif',
+        fontFamily: FONT_DISPLAY,
         fontSize: '24px',
         fontStyle: 'bold',
         color,
-        stroke: '#100D18',
+        stroke: CSS_COLORS.BG,
         strokeThickness: 4,
       })
       .setOrigin(0.5)
@@ -176,7 +178,7 @@ export class EffectsSystem {
   private burst(x: number, y: number): void {
     for (let i = 0; i < 8; i++) {
       const a = (Math.PI * 2 * i) / 8
-      const c = this.scene.add.circle(x, y, 4, i % 2 ? 0x7546a8 : 0xe9a23b, 1).setDepth(20)
+      const c = this.scene.add.circle(x, y, 4, i % 2 ? COLORS.MAGIC : COLORS.ACCENT, 1).setDepth(20)
       this.scene.tweens.add({
         targets: c,
         x: x + Math.cos(a) * 40,

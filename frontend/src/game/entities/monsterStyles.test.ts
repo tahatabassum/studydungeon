@@ -1,13 +1,14 @@
 import { describe, expect, it } from 'vitest'
 import { BOSS_SCALE, getMonsterStyle } from './monsterStyles'
+import { COLORS } from '../colors'
 
 const ROOM_KINDS = ['paper_wraith', 'toxic_slime', 'gear_golem', 'memory_eater'] as const
 
 describe('getMonsterStyle', () => {
   it('returns the defined style for each known room kind', () => {
-    expect(getMonsterStyle('paper_wraith', false)).toMatchObject({ texture: 'monster', aura: 0x7546a8, scale: 1 })
+    expect(getMonsterStyle('paper_wraith', false)).toMatchObject({ texture: 'monster', aura: COLORS.MAGIC, scale: 1 })
     expect(getMonsterStyle('toxic_slime', false)).toMatchObject({ texture: 'monster-slime', aura: 0x4fbf5a, scale: 1 })
-    expect(getMonsterStyle('gear_golem', false)).toMatchObject({ texture: 'monster-gear', aura: 0xe9a23b, scale: 1 })
+    expect(getMonsterStyle('gear_golem', false)).toMatchObject({ texture: 'monster-gear', aura: COLORS.ACCENT, scale: 1 })
     expect(getMonsterStyle('memory_eater', false)).toMatchObject({ texture: 'monster-eater', aura: 0x3fa7c9, scale: 1 })
   })
 

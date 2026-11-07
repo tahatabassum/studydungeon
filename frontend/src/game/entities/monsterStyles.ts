@@ -1,3 +1,5 @@
+import { COLORS } from '../colors'
+
 /** Pure monster visual styles (no Phaser import) so they are unit-testable. */
 export interface MonsterStyle {
   /** Procedural texture key generated in BootScene. */
@@ -10,17 +12,17 @@ export interface MonsterStyle {
 }
 
 const KNOWN: Record<string, MonsterStyle> = {
-  paper_wraith: { texture: 'monster', tint: 0xffffff, aura: 0x7546a8, scale: 1 },
+  paper_wraith: { texture: 'monster', tint: 0xffffff, aura: COLORS.MAGIC, scale: 1 },
   toxic_slime: { texture: 'monster-slime', tint: 0xffffff, aura: 0x4fbf5a, scale: 1 },
-  gear_golem: { texture: 'monster-gear', tint: 0xffffff, aura: 0xe9a23b, scale: 1 },
+  gear_golem: { texture: 'monster-gear', tint: 0xffffff, aura: COLORS.ACCENT, scale: 1 },
   memory_eater: { texture: 'monster-eater', tint: 0xffffff, aura: 0x3fa7c9, scale: 1 },
-  exam_warden: { texture: 'monster-eater', tint: 0xd04a5a, aura: 0xb83d4a, scale: 1.8 },
+  exam_warden: { texture: 'monster-eater', tint: 0xd04a5a, aura: COLORS.DANGER, scale: 1.8 },
 }
 
 const DEFAULT_STYLE: MonsterStyle = {
   texture: 'monster',
   tint: 0xc9c2d6,
-  aura: 0x7546a8,
+  aura: COLORS.MAGIC,
   scale: 1,
 }
 

@@ -20,6 +20,8 @@ import {
   type Point,
 } from '../world/RoomLayout'
 import type { Room } from '@/types/api'
+import { COLORS, CSS_COLORS } from '../colors'
+import { FONT_DISPLAY } from '../fonts'
 
 export class GameScene extends Phaser.Scene {
   walls: Phaser.Physics.Arcade.StaticGroup | null = null
@@ -187,9 +189,9 @@ export class GameScene extends Phaser.Scene {
         this.track(
           this.add
             .text(origin.x + WORLD_W / 2, origin.y + TILE + 6, room.label, {
-              fontFamily: 'serif',
+              fontFamily: FONT_DISPLAY,
               fontSize: '22px',
-              color: '#F2E8D5',
+              color: CSS_COLORS.INK,
             })
             .setOrigin(0.5, 0)
             .setDepth(50),
@@ -268,11 +270,11 @@ export class GameScene extends Phaser.Scene {
     for (const t of torches) {
       const glow = this.track(
         this.add
-          .circle(t.x, t.y, 56, 0xe9a23b, 0.18)
+          .circle(t.x, t.y, 56, COLORS.ACCENT, 0.18)
           .setBlendMode(Phaser.BlendModes.ADD)
           .setDepth(3),
       )
-      this.track(this.add.circle(t.x, t.y, 5, 0xe9a23b, 1).setDepth(3))
+      this.track(this.add.circle(t.x, t.y, 5, COLORS.ACCENT, 1).setDepth(3))
       if (!this.reducedMotion) {
         this.tweens.add({
           targets: glow,

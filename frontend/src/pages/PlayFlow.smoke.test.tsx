@@ -140,7 +140,7 @@ describe('play flow smoke test', () => {
       await user.click(correctButton(dialog))
       await vi.waitFor(() => expect(applyResults()).toHaveLength(i + 1))
       animationDone()
-      await screen.findByText('✔ Correct!')
+      await screen.findByText('Correct!')
       advance(1200)
     }
 

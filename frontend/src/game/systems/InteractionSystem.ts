@@ -3,6 +3,8 @@ import type { Monster } from '../entities/Monster'
 import type { Player } from '../entities/Player'
 import type { GameBridge, GamePhase } from '../events'
 import { isWithinRange, shouldEngage } from './interaction'
+import { CSS_COLORS } from '../colors'
+import { FONT_LABEL } from '../fonts'
 
 /** Shows "Press E to engage" near a living monster and emits encounter-started once. */
 export class InteractionSystem {
@@ -30,10 +32,10 @@ export class InteractionSystem {
 
     this.prompt = scene.add
       .text(initial?.position.x ?? 0, (initial?.position.y ?? 0) - 76, 'Press E to engage', {
-        fontFamily: 'serif',
+        fontFamily: FONT_LABEL,
         fontSize: '14px',
-        color: '#F2E8D5',
-        backgroundColor: '#100D18',
+        color: CSS_COLORS.INK,
+        backgroundColor: CSS_COLORS.BG,
         padding: { x: 8, y: 4 },
       })
       .setOrigin(0.5, 1)

@@ -26,7 +26,7 @@ export function RoomProgress({ rooms, currentRoomId, clearedRoomIds }: RoomProgr
   const current = currentIndex >= 0 ? rooms[currentIndex] : undefined
 
   return (
-    <div className="rounded-lg border border-border bg-panel/90 px-3 py-2 text-sm text-parchment">
+    <div className="rounded-lg border border-deep bg-panel/90 px-3 py-2 text-sm text-ink">
       <p className="mb-1 font-semibold">
         {current ? `Room ${currentIndex + 1} of ${rooms.length}: ${current.label}` : `${rooms.length} rooms`}
       </p>
@@ -46,10 +46,10 @@ export function RoomProgress({ rooms, currentRoomId, clearedRoomIds }: RoomProgr
                 : Lock
           const style =
             state === 'cleared'
-              ? 'border-mint text-mint'
+              ? 'border-health text-health'
               : state === 'current'
-                ? 'border-amber text-amber border-2'
-                : 'border-muted text-muted border-dashed'
+                ? 'border-accent text-accent border-2'
+                : 'border-ink-muted text-ink-muted border-dashed'
           return (
             <li
               key={room.id}

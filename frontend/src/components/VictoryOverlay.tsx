@@ -50,31 +50,31 @@ export function VictoryOverlay({
       role="dialog"
       aria-modal="true"
       aria-labelledby="victory-title"
-      className="fixed inset-0 z-50 flex items-center justify-center bg-background/85 p-4"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-bg/85 p-4"
       initial={reduced ? false : { opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={reduced ? { duration: 0 } : { duration: 0.4 }}
     >
-      <div className="flex w-full max-w-md flex-col items-center gap-4 rounded-xl border-2 border-amber bg-panel p-8 text-center shadow-[0_0_48px_var(--color-amber)]">
+      <div className="flex w-full max-w-md flex-col items-center gap-4 rounded-xl border-2 border-accent bg-panel p-8 text-center shadow-[0_0_48px_var(--color-accent)]">
         <Trophy
           aria-hidden="true"
-          className="h-12 w-12 text-amber motion-safe:animate-bounce"
+          className="h-12 w-12 text-accent motion-safe:animate-bounce"
         />
-        <h2 id="victory-title" className="text-3xl font-bold text-parchment">
+        <h2 id="victory-title" className="font-[family-name:var(--font-display)] text-3xl font-bold text-ink">
           The Exam Warden falls!
         </h2>
-        <p className="text-muted">Dungeon cleared</p>
+        <p className="text-ink-muted">Dungeon cleared</p>
 
         {pending && !summary && (
-          <div className="flex items-center gap-2 text-muted">
+          <div className="flex items-center gap-2 text-ink-muted">
             <Spinner label="Loading results" />
             <span>Tallying your results…</span>
           </div>
         )}
 
         {showError && (
-          <div role="alert" className="flex flex-col items-center gap-3 text-parchment">
-            <AlertTriangle aria-hidden="true" className="h-6 w-6 text-blood" />
+          <div role="alert" className="flex flex-col items-center gap-3 text-ink">
+            <AlertTriangle aria-hidden="true" className="h-6 w-6 text-danger" />
             <p>{error}</p>
             {onRetry && (
               <Button variant="secondary" onClick={onRetry}>
@@ -85,10 +85,10 @@ export function VictoryOverlay({
         )}
 
         {summary && (
-          <dl className="grid w-full grid-cols-2 gap-3 text-parchment">
+          <dl className="grid w-full grid-cols-2 gap-3 text-ink">
             {stats.map(([label, value]) => (
-              <div key={label} className="rounded-lg border border-purple bg-background/40 p-3">
-                <dt className="text-sm text-muted">{label}</dt>
+              <div key={label} className="rounded-lg border border-magic bg-bg/40 p-3">
+                <dt className="text-sm text-ink-muted">{label}</dt>
                 <dd className="text-xl font-bold">{value}</dd>
               </div>
             ))}

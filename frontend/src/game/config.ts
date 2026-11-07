@@ -2,6 +2,7 @@ import Phaser from 'phaser'
 import type { GameBridge } from './events'
 import { BootScene } from './scenes/BootScene'
 import { GameScene } from './scenes/GameScene'
+import { CSS_COLORS } from './colors'
 
 export const GAME_WIDTH = 960
 export const GAME_HEIGHT = 540
@@ -17,7 +18,7 @@ export function createGameConfig(
     parent,
     width: GAME_WIDTH,
     height: GAME_HEIGHT,
-    backgroundColor: '#100D18',
+    backgroundColor: CSS_COLORS.BG,
     pixelArt: false,
     physics: { default: 'arcade', arcade: { gravity: { x: 0, y: 0 }, debug: false } },
     scale: { mode: Phaser.Scale.FIT, autoCenter: Phaser.Scale.CENTER_BOTH },

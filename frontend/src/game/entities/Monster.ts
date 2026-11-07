@@ -1,6 +1,8 @@
 import Phaser from 'phaser'
 import type { Point } from '../world/RoomLayout'
 import { getMonsterStyle, type MonsterStyle } from './monsterStyles'
+import { COLORS, CSS_COLORS } from '../colors'
+import { FONT_DISPLAY, FONT_LABEL } from '../fonts'
 
 const BAR_W = 64
 const BAR_H = 8
@@ -63,9 +65,9 @@ export class Monster {
       .setDepth(8)
     this.label = scene.add
       .text(at.x, at.y - this.barOffset - 6, data.name, {
-        fontFamily: 'serif',
+        fontFamily: isBoss ? FONT_DISPLAY : FONT_LABEL,
         fontSize: isBoss ? '20px' : '14px',
-        color: '#F2E8D5',
+        color: CSS_COLORS.INK,
       })
       .setOrigin(0.5, 1)
       .setDepth(9)
@@ -107,9 +109,9 @@ export class Monster {
     const y = this.position.y - this.barOffset
     const ratio = this.maxHp > 0 ? Phaser.Math.Clamp(value / this.maxHp, 0, 1) : 0
     this.bar.clear()
-    this.bar.fillStyle(0x100d18, 0.85)
+    this.bar.fillStyle(COLORS.BG, 0.85)
     this.bar.fillRect(x - 1, y - 1, this.barW + 2, this.barH + 2)
-    this.bar.fillStyle(0xb83d4a, 1)
+    this.bar.fillStyle(COLORS.DANGER, 1)
     this.bar.fillRect(x, y, this.barW * ratio, this.barH)
   }
 

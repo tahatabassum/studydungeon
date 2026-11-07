@@ -55,13 +55,13 @@ export function ConfirmDialog({
       aria-labelledby="confirm-title"
       aria-describedby="confirm-desc"
       onKeyDown={onKeyDown}
-      className="fixed inset-0 z-[60] flex items-center justify-center bg-background/85 p-4"
+      className="fixed inset-0 z-[60] flex items-center justify-center bg-bg/85 p-4"
     >
-      <div className="flex w-full max-w-sm flex-col items-center gap-4 rounded-xl border-2 border-amber bg-panel p-8 text-center">
-        <h2 id="confirm-title" className="text-2xl font-bold text-parchment">
+      <div className="flex w-full max-w-sm flex-col items-center gap-4 rounded-xl border-2 border-accent bg-panel p-8 text-center">
+        <h2 id="confirm-title" className="font-[family-name:var(--font-display)] text-2xl font-bold text-ink">
           {title}
         </h2>
-        <p id="confirm-desc" className="text-parchment">
+        <p id="confirm-desc" className="text-ink">
           {message}
         </p>
         <div className="flex flex-wrap justify-center gap-3">

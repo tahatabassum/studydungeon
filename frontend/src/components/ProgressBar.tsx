@@ -17,7 +17,7 @@ export function ProgressBar({ value, max, label, fillClassName }: ProgressBarPro
       aria-valuenow={clamped}
       aria-valuemin={0}
       aria-valuemax={safeMax}
-      className="h-3 w-full overflow-hidden rounded-full bg-background"
+      className="h-3 w-full overflow-hidden rounded-full bg-bg"
     >
       <div
         className={`h-full rounded-full motion-safe:transition-[width] motion-safe:duration-300 ${fillClassName}`}

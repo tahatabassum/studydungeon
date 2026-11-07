@@ -21,7 +21,7 @@ export default function PlayPage() {
 
   if (s.loadError) {
     return (
-      <main className="flex min-h-screen flex-col items-center justify-center gap-4 bg-background text-parchment">
+      <main className="flex min-h-screen flex-col items-center justify-center gap-4 bg-bg text-ink">
         <p role="alert">{s.loadError}</p>
         <Link to="/" className="underline">
           Back to start
@@ -32,7 +32,7 @@ export default function PlayPage() {
 
   if (s.loading || !room) {
     return (
-      <main className="flex min-h-screen items-center justify-center gap-3 bg-background text-parchment">
+      <main className="flex min-h-screen items-center justify-center gap-3 bg-bg text-ink">
         <Spinner label="Summoning the dungeon..." />
         <span aria-hidden="true">Summoning the dungeon...</span>
       </main>
@@ -45,7 +45,7 @@ export default function PlayPage() {
   const showTopicCleared = state.phase === 'cleared' && !room.is_boss && s.clearedXp !== null
 
   return (
-    <main className="flex h-screen flex-col items-center gap-2 overflow-hidden bg-background p-3 text-parchment">
+    <main className="flex h-screen flex-col items-center gap-2 overflow-hidden bg-bg p-3 text-ink">
       <div className="flex w-full max-w-5xl flex-col gap-2">
         <GuestBanner isGuest={user?.is_guest ?? false} />
         <Hud
@@ -69,7 +69,7 @@ export default function PlayPage() {
         <GameCanvas bridge={s.bridge} className="size-full" />
 
         {isCombatActive(state.combat) && s.question && (
-          <div className="absolute inset-0 z-10 flex items-center justify-center bg-background/50 p-2">
+          <div className="absolute inset-0 z-10 flex items-center justify-center bg-bg/50 p-2">
             <QuestionPanel
               question={s.question}
               combat={state.combat}
@@ -91,7 +91,7 @@ export default function PlayPage() {
           <div className="absolute inset-x-0 top-4 z-10 flex justify-center">
             <p
               role="status"
-              className="rounded-lg border-2 border-amber bg-panel px-6 py-3 text-lg font-bold text-amber"
+              className="rounded-lg border-2 border-accent bg-panel px-6 py-3 text-lg font-bold text-accent"
             >
               Room cleared! +{s.clearedXp} XP — the gate opens
             </p>
@@ -102,13 +102,13 @@ export default function PlayPage() {
           <div className="absolute inset-x-0 top-4 z-10 flex justify-center">
             <div
               role="alert"
-              className="flex items-center gap-3 rounded-lg border-2 border-blood bg-panel px-6 py-3 text-parchment"
+              className="flex items-center gap-3 rounded-lg border-2 border-danger bg-panel px-6 py-3 text-ink"
             >
               <span>{s.clearError}</span>
               <button
                 type="button"
                 onClick={() => void s.retryClear()}
-                className="rounded border border-amber px-3 py-1 font-semibold text-amber"
+                className="rounded border border-accent px-3 py-1 font-semibold text-accent"
               >
                 Retry
               </button>
@@ -117,7 +117,7 @@ export default function PlayPage() {
         )}
       </div>
 
-      <p className="text-sm text-muted">WASD / Arrows to move · E to fight · Esc to pause</p>
+      <p className="text-sm text-ink-muted">WASD / Arrows to move · E to fight · Esc to pause</p>
 
       {state.phase === 'paused' && !confirmingExit && (
         <PauseMenu

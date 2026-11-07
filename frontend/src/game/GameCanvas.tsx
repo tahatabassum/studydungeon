@@ -35,10 +35,10 @@ export function GameCanvas({ bridge, className }: GameCanvasProps) {
       aria-label="Dungeon game"
       role="application"
       tabIndex={0}
-      className={`outline-none focus-visible:ring-2 focus-visible:ring-amber ${className ?? ''}`}
+      className={`outline-none focus-visible:ring-2 focus-visible:ring-accent ${className ?? ''}`}
     >
       {failed && (
-        <p role="alert" className="p-4 text-parchment">
+        <p role="alert" className="p-4 text-ink">
           The game could not start in this browser. Try a browser with WebGL or canvas support.
         </p>
       )}

@@ -1,5 +1,6 @@
 import Phaser from 'phaser'
 import type { Point } from '../world/RoomLayout'
+import { COLORS } from '../colors'
 
 /** Arcade sprite using the procedural 'player' texture, with glow, breathing and walk bob. */
 export class Player extends Phaser.Physics.Arcade.Sprite {
@@ -18,7 +19,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     this.setCircle(10, 6, 10)
 
     this.glow = scene.add
-      .ellipse(at.x, at.y + 14, 28, 10, 0xe9a23b, 0.28)
+      .ellipse(at.x, at.y + 14, 28, 10, COLORS.ACCENT, 0.28)
       .setBlendMode(Phaser.BlendModes.ADD)
       .setDepth(9)
     this.once(Phaser.GameObjects.Events.DESTROY, () => this.glow.destroy())
@@ -46,7 +47,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
 
   /** Brief red hit tint (callers skip this for reduced motion). */
   flashHit(): void {
-    this.setTintFill(0xb83d4a)
+    this.setTintFill(COLORS.DANGER)
     this.scene.time.delayedCall(140, () => {
       if (this.active) this.clearTint()
     })

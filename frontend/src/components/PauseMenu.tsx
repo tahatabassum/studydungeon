@@ -65,10 +65,10 @@ export function PauseMenu({
       aria-modal="true"
       aria-labelledby="pause-title"
       onKeyDown={onKeyDown}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 p-4"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-bg/80 p-4"
     >
-      <div className="flex w-full max-w-sm flex-col items-center gap-4 rounded-xl border-2 border-purple bg-panel p-8 text-center">
-        <h2 id="pause-title" className="text-3xl font-bold text-parchment">
+      <div className="flex w-full max-w-sm flex-col items-center gap-4 rounded-xl border-2 border-magic bg-panel p-8 text-center">
+        <h2 id="pause-title" className="font-[family-name:var(--font-display)] text-3xl font-bold text-ink">
           Paused
         </h2>
         <Button onClick={onResume}>Resume</Button>

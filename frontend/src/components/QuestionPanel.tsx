@@ -1,4 +1,5 @@
 import { useEffect, useId, useRef, useState } from 'react'
+import { Check, X } from 'lucide-react'
 import { motion, useReducedMotion } from 'framer-motion'
 import { canAnswer, type CombatState } from '../state/combatMachine'
 import type { AnswerResult, Question } from '../types/api'
@@ -119,7 +120,7 @@ export function QuestionPanel({
       aria-modal="true"
       aria-labelledby={headingId}
       tabIndex={-1}
-      className="w-full max-w-xl rounded-xl border-4 border-double border-amber bg-parchment p-6 text-stone-900 shadow-[0_0_32px_rgba(233,162,59,0.45)]"
+      className="w-full max-w-xl rounded-xl border-4 border-double border-accent bg-ink p-6 text-bg shadow-[0_0_32px_color-mix(in_srgb,var(--color-accent)_45%,transparent)]"
     >
       <motion.div
         key={question.id}
@@ -128,11 +129,11 @@ export function QuestionPanel({
         transition={{ duration: reduceMotion ? 0 : 0.2 }}
       >
         {monsterName && (
-          <p className="mb-1 text-xs font-semibold uppercase tracking-widest text-purple">
+          <p className="mb-1 text-xs font-semibold uppercase tracking-widest text-deep">
             {monsterName} blocks your way
           </p>
         )}
-        <h2 id={headingId} className="text-xl font-bold">
+        <h2 id={headingId} className="font-[family-name:var(--font-label)] text-xl font-bold">
           {question.prompt}
         </h2>
 
@@ -142,9 +143,9 @@ export function QuestionPanel({
             const tone =
               shownResult && isSelected
                 ? shownResult.correct
-                  ? 'border-mint bg-mint/30'
-                  : 'border-blood bg-blood/20'
-                : 'border-stone-400 bg-white/60 hover:enabled:border-purple'
+                  ? 'border-health bg-health/30'
+                  : 'border-danger bg-danger/20'
+                : 'border-deep/40 bg-bg/5 hover:enabled:border-magic'
             return (
               <li key={opt}>
                 <button
@@ -156,14 +157,19 @@ export function QuestionPanel({
                 >
                   <span
                     aria-hidden="true"
-                    className="flex h-7 w-7 shrink-0 items-center justify-center rounded bg-purple text-sm font-bold text-parchment"
+                    className="flex h-7 w-7 shrink-0 items-center justify-center rounded bg-deep text-sm font-bold text-ink"
                   >
                     {i + 1}
                   </span>
                   <span>{opt}</span>
                   {shownResult && isSelected && (
-                    <span className="ml-auto font-bold">
-                      {shownResult.correct ? '✔ Correct' : '✖ Incorrect'}
+                    <span className="ml-auto inline-flex items-center gap-1 font-bold">
+                      {shownResult.correct ? (
+                        <Check aria-hidden="true" className="size-4" />
+                      ) : (
+                        <X aria-hidden="true" className="size-4" />
+                      )}
+                      <span>{shownResult.correct ? 'Correct' : 'Incorrect'}</span>
                     </span>
                   )}
                 </button>
@@ -173,12 +179,12 @@ export function QuestionPanel({
         </ul>
 
         {combat === 'submitting' && (
-          <p role="status" className="mt-3 text-sm text-stone-700">
+          <p role="status" className="mt-3 text-sm text-deep">
             Resolving your answer…
           </p>
         )}
         {error && (
-          <p role="alert" className="mt-3 text-sm font-semibold text-blood">
+          <p role="alert" className="mt-3 text-sm font-semibold text-danger">
             {error}
           </p>
         )}
@@ -188,7 +194,7 @@ export function QuestionPanel({
             <button
               type="button"
               onClick={onRetreat}
-              className="rounded-lg border-2 border-stone-500 px-4 py-1 text-sm font-semibold text-stone-700 hover:border-purple"
+              className="rounded-lg border-2 border-deep/60 px-4 py-1 text-sm font-semibold text-deep hover:border-magic"
             >
               Retreat from battle
             </button>
@@ -199,9 +205,14 @@ export function QuestionPanel({
           <div className="mt-4">
             <p
               role="status"
-              className={`text-lg font-bold ${shownResult.correct ? 'text-emerald-700' : 'text-blood'}`}
+              className={`inline-flex items-center gap-2 text-lg font-bold ${shownResult.correct ? 'text-[color-mix(in_srgb,var(--color-health),var(--color-bg)_70%)]' : 'text-danger'}`}
             >
-              {shownResult.correct ? '✔ Correct!' : '✖ Incorrect'}
+              {shownResult.correct ? (
+                <Check aria-hidden="true" className="size-5" />
+              ) : (
+                <X aria-hidden="true" className="size-5" />
+              )}
+              <span>{shownResult.correct ? 'Correct!' : 'Incorrect'}</span>
             </p>
             <p className="mt-1 text-sm font-semibold">
               {shownResult.correct
@@ -215,7 +226,7 @@ export function QuestionPanel({
                   type="button"
                   ref={nextRef}
                   onClick={onNext}
-                  className="rounded-lg bg-purple px-6 py-2 font-semibold text-parchment hover:brightness-125"
+                  className="rounded-lg bg-deep px-6 py-2 font-semibold text-ink hover:brightness-125"
                 >
                   Next
                 </button>

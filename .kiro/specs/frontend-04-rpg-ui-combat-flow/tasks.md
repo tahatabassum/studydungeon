@@ -90,35 +90,35 @@ Working rules for every task:
     - Run `npm run typecheck`, `npm run lint`, `npm test`, `npm run build`
     - Browser checklist: press E once, three questions follow with no E, wrong answer auto-advances, Esc in a question shows Retreat, retreat then E resumes, monster defeat opens the gate, HP 0 shows defeat
 
-- [ ] 2. Phase 2: Design system and typography
-  - [~] 2.1 Install and wire self-hosted fonts
+- [x] 2. Phase 2: Design system and typography
+  - [x] 2.1 Install and wire self-hosted fonts
     - `npm install --save-exact @fontsource/pirata-one @fontsource/cinzel @fontsource/inter`; import `latin-400` (Pirata One), `latin-400` and `latin-700` (Cinzel), `latin-400` and `latin-600` (Inter) CSS in `src/main.tsx`
     - Add `--font-display`, `--font-label`, `--font-body` with fallbacks to `src/index.css`
     - Create `ASSETS_LICENSES.md` (in `frontend/`) with the three fonts, OFL license and source links
     - _Requirements: 10.1, 10.2, 10.3, 10.5, 23.1, 23.2_
-  - [~] 2.2 Replace color tokens in `src/index.css` and add token tests
+  - [x] 2.2 Replace color tokens in `src/index.css` and add token tests
     - Define the ten palette colors with semantic names (`--color-bg`, `--color-surface-2`, `--color-panel`, `--color-deep`, `--color-magic`, `--color-accent`, `--color-ink`, `--color-danger`, `--color-health`, `--color-gold`) and remove the legacy tokens
     - Add `src/design/tokens.test.ts` that parses `index.css`: palette values present and AA contrast (4.5:1 body, 3:1 large and borders) for the declared text and background pairs
     - _Requirements: 9.1, 9.2, 9.4_
-  - [~] 2.3 Migrate component class names to the new tokens
+  - [x] 2.3 Migrate component class names to the new tokens
     - Update every file in `src/components/` that uses `bg-background`, `text-parchment`, `text-amber`, `text-mint`, `text-purple`, `text-muted`, `border-blood`, `bg-panel` and similar
     - _Requirements: 9.2_
-  - [~] 2.4 Migrate pages and app shell to the new tokens
+  - [x] 2.4 Migrate pages and app shell to the new tokens
     - Update `src/pages/PlayPage.tsx`, `LandingPage.tsx`, `LoginPlaceholder.tsx`, `src/App.tsx`, `src/game/GameCanvas.tsx` class names
     - _Requirements: 9.2_
-  - [~] 2.5 Share palette colors with Phaser code
+  - [x] 2.5 Share palette colors with Phaser code
     - Create `src/game/colors.ts` (numeric palette values mirroring `index.css`) and replace hard-coded hex values in `src/game/scenes/`, `src/game/entities/` and `src/game/systems/EffectsSystem.ts`; add a test that the numeric values equal the `index.css` palette
     - _Requirements: 9.1, 9.2_
-  - [~] 2.6 Create shared UI primitives
+  - [x] 2.6 Create shared UI primitives
     - Add `src/components/Panel.tsx` and `src/components/Frame.tsx` (ornate border, consistent radius and spacing); restyle `src/components/Button.tsx` with variants and a visible focus ring
     - _Requirements: 9.3, 9.5_
-  - [~] 2.7 Add source scan tests
+  - [x] 2.7 Add source scan tests
     - Create `src/design/scans.test.ts`: no emoji in `src`, no legacy token class names, `@fontsource/*` versions in `package.json` are exact, `main.tsx` imports only `latin-*` files
     - _Requirements: 9.2, 9.6, 10.1, 10.3, 23.1_
-  - [~] 2.8 Make Phaser text wait for fonts
+  - [x] 2.8 Make Phaser text wait for fonts
     - Create `src/game/fonts.ts` with `waitForFonts(ready, timeoutMs)` and a unit test with fake promises; call it in `BootScene` before starting `GameScene`; use the font tokens (with fallback stack) for Phaser text
     - _Requirements: 10.4_
-  - [~] 2.9 Checkpoint - Phase 2
+  - [x] 2.9 Checkpoint - Phase 2
     - Ensure all tests pass, ask the user if questions arise.
     - Run `npm run typecheck`, `npm run lint`, `npm test`, `npm run build`
     - Browser checklist: new colors everywhere, gothic headings, readable body text, focus rings visible, no horizontal scroll

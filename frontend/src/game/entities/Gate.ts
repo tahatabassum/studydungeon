@@ -1,6 +1,7 @@
 import Phaser from 'phaser'
 import type { GateSpec } from '../world/DungeonLayout'
 import type { Rect } from '../world/RoomLayout'
+import { COLORS } from '../colors'
 
 /** Iron-bar gate. Blocks movement while closed; open() removes the body. */
 export class Gate {
@@ -39,11 +40,11 @@ export class Gate {
     const { x, y, w, h } = this.rect
     const g = this.bars
     g.clear()
-    g.fillStyle(0x100d18, 1)
+    g.fillStyle(COLORS.BG, 1)
     g.fillRect(x, y, w, h)
-    g.fillStyle(0xa79cb5, 1)
+    g.fillStyle(COLORS.INK_MUTED, 1)
     for (let bx = x + 6; bx < x + w - 4; bx += 12) g.fillRect(bx, y, 4, h)
-    g.fillStyle(0xb83d4a, 1)
+    g.fillStyle(COLORS.DANGER, 1)
     g.fillRect(x, y + h / 2 - 2, w, 4)
   }
 
