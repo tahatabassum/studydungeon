@@ -6,6 +6,11 @@
         "executionId": "d5c706e2-996b-427e-8cd7-d220199ad5fd",
         "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
         "timestamp": 1794082626427
+      },
+      {
+        "executionId": "d5c706e2-996b-427e-8cd7-d220199ad5fd",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794083813735
       }
     ],
     "1.2 Write contrast property test and palette parity test": [
@@ -13,6 +18,11 @@
         "executionId": "d5c706e2-996b-427e-8cd7-d220199ad5fd",
         "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
         "timestamp": 1794082626998
+      },
+      {
+        "executionId": "d5c706e2-996b-427e-8cd7-d220199ad5fd",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794083821048
       }
     ],
     "1.3 Refactor theme ids and selection": [
@@ -20,6 +30,217 @@
         "executionId": "d5c706e2-996b-427e-8cd7-d220199ad5fd",
         "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
         "timestamp": 1794082627458
+      },
+      {
+        "executionId": "d5c706e2-996b-427e-8cd7-d220199ad5fd",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794083822069
+      }
+    ],
+    "1.4 Update theme property tests": [
+      {
+        "executionId": "d5c706e2-996b-427e-8cd7-d220199ad5fd",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794082627878
+      },
+      {
+        "executionId": "d5c706e2-996b-427e-8cd7-d220199ad5fd",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794083823144
+      }
+    ],
+    "1.5 Implement Flicker_Function": [
+      {
+        "executionId": "d5c706e2-996b-427e-8cd7-d220199ad5fd",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794082628610
+      },
+      {
+        "executionId": "d5c706e2-996b-427e-8cd7-d220199ad5fd",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794083823820
+      }
+    ],
+    "1.6 Write flicker property tests": [
+      {
+        "executionId": "d5c706e2-996b-427e-8cd7-d220199ad5fd",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794082629446
+      },
+      {
+        "executionId": "d5c706e2-996b-427e-8cd7-d220199ad5fd",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794083824771
+      }
+    ],
+    "1.7 Implement Keep_Out_Zone and Prop_Placer": [
+      {
+        "executionId": "d5c706e2-996b-427e-8cd7-d220199ad5fd",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794082630258
+      },
+      {
+        "executionId": "d5c706e2-996b-427e-8cd7-d220199ad5fd",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794083825846
+      }
+    ],
+    "1.8 Write prop placement property tests": [
+      {
+        "executionId": "d5c706e2-996b-427e-8cd7-d220199ad5fd",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794082631580
+      },
+      {
+        "executionId": "d5c706e2-996b-427e-8cd7-d220199ad5fd",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794083826945
+      }
+    ],
+    "1.9 Implement theme budgets": [
+      {
+        "executionId": "d5c706e2-996b-427e-8cd7-d220199ad5fd",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794082632195
+      },
+      {
+        "executionId": "d5c706e2-996b-427e-8cd7-d220199ad5fd",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794083827761
+      }
+    ],
+    "1.10 Write theme budget property test": [
+      {
+        "executionId": "d5c706e2-996b-427e-8cd7-d220199ad5fd",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794082633392
+      },
+      {
+        "executionId": "d5c706e2-996b-427e-8cd7-d220199ad5fd",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794083828722
+      }
+    ],
+    "2.1 Procedural floor and wall generators": [
+      {
+        "executionId": "d5c706e2-996b-427e-8cd7-d220199ad5fd",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794082634486
+      },
+      {
+        "executionId": "d5c706e2-996b-427e-8cd7-d220199ad5fd",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794083829449
+      }
+    ],
+    "2.2 Glow, vignette and shadow textures": [
+      {
+        "executionId": "d5c706e2-996b-427e-8cd7-d220199ad5fd",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794082635377
+      },
+      {
+        "executionId": "d5c706e2-996b-427e-8cd7-d220199ad5fd",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794083830444
+      }
+    ],
+    "2.3 RoomBaker and GameScene integration": [
+      {
+        "executionId": "d5c706e2-996b-427e-8cd7-d220199ad5fd",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794082636302
+      },
+      {
+        "executionId": "d5c706e2-996b-427e-8cd7-d220199ad5fd",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794083831469
+      }
+    ],
+    "2.4 Write RoomBaker unit tests": [
+      {
+        "executionId": "d5c706e2-996b-427e-8cd7-d220199ad5fd",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794082637432
+      },
+      {
+        "executionId": "d5c706e2-996b-427e-8cd7-d220199ad5fd",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794083832243
+      }
+    ],
+    "2.5 LightSystem": [
+      {
+        "executionId": "d5c706e2-996b-427e-8cd7-d220199ad5fd",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794082638190
+      },
+      {
+        "executionId": "d5c706e2-996b-427e-8cd7-d220199ad5fd",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794083833121
+      }
+    ],
+    "2.6 Clockwork Crypt dressing and animated pieces": [
+      {
+        "executionId": "d5c706e2-996b-427e-8cd7-d220199ad5fd",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794082639374
+      },
+      {
+        "executionId": "d5c706e2-996b-427e-8cd7-d220199ad5fd",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794083834239
+      }
+    ],
+    "2.7 Gate glow and character polish": [
+      {
+        "executionId": "d5c706e2-996b-427e-8cd7-d220199ad5fd",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794082640223
+      },
+      {
+        "executionId": "d5c706e2-996b-427e-8cd7-d220199ad5fd",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794083835129
+      }
+    ],
+    "2.8 Debug_Overlay and canvas renderer switch": [
+      {
+        "executionId": "d5c706e2-996b-427e-8cd7-d220199ad5fd",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794082641484
+      },
+      {
+        "executionId": "d5c706e2-996b-427e-8cd7-d220199ad5fd",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794083836247
+      }
+    ],
+    "3. STOP: Phase 2 checkpoint, sample room review": [
+      {
+        "executionId": "d5c706e2-996b-427e-8cd7-d220199ad5fd",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794082642955
+      },
+      {
+        "executionId": "d5c706e2-996b-427e-8cd7-d220199ad5fd",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794083836887
+      }
+    ],
+    "1. Phase 2a: Foundations (palette, theme mapping, pure logic)": [
+      {
+        "executionId": "d5c706e2-996b-427e-8cd7-d220199ad5fd",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794083828776
+      }
+    ],
+    "2. Phase 2b: Sample room, Clockwork Crypt": [
+      {
+        "executionId": "d5c706e2-996b-427e-8cd7-d220199ad5fd",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794083836310
       }
     ]
   }

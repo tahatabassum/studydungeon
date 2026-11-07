@@ -8,6 +8,9 @@ export const PLAYER_TEXTURE_SCALE = 2
 /** Integer texture upscale for decor. */
 export const DECOR_TEXTURE_SCALE = 2
 
+/** Dark outline (night base) that separates the player silhouette from the floor. */
+const PLAYER_OUTLINE = 0x0c0912
+
 const PLAYER_BASE = 'player_idle'
 export const PLAYER_IDLE_TEXTURE = frameName(PLAYER_BASE, 'idle', 0)
 export const PLAYER_IDLE_ANIM = animKey(PLAYER_BASE, 'idle')
@@ -22,6 +25,8 @@ export interface TextureSpec {
   map: PixelMap
   scale: number
   allowLarge: boolean
+  /** Optional 0xRRGGBB outline drawn around solid pixels (inside the existing bounds). */
+  outline?: number
 }
 export interface AnimSpec {
   key: string
@@ -39,9 +44,12 @@ function framesPlan(
   base: PixelMap,
   kind: FrameKind,
   scale: number,
+  outline?: number,
 ): void {
   const frames = deriveFrames(base, kind)
-  for (const map of frames) plan.textures.push({ key: map.name, map, scale, allowLarge: true })
+  for (const map of frames) {
+    plan.textures.push({ key: map.name, map, scale, allowLarge: true, ...(outline === undefined ? {} : { outline }) })
+  }
   plan.anims.push({
     key: animKey(base.name, kind),
     textures: frames.map((f) => f.name),
@@ -57,12 +65,19 @@ export function buildArtPlan(): ArtPlan {
     for (const kind of MONSTER_FRAME_KINDS) framesPlan(plan, base, kind, 1)
   }
   const player = PLAYER_SPRITES[PLAYER_BASE]
-  framesPlan(plan, player, 'idle', PLAYER_TEXTURE_SCALE)
-  framesPlan(plan, player, 'walk', PLAYER_TEXTURE_SCALE)
+  framesPlan(plan, player, 'idle', PLAYER_TEXTURE_SCALE, PLAYER_OUTLINE)
+  framesPlan(plan, player, 'walk', PLAYER_TEXTURE_SCALE, PLAYER_OUTLINE)
   for (const map of Object.values(DECOR_SPRITES)) {
     plan.textures.push({ key: map.name, map, scale: DECOR_TEXTURE_SCALE, allowLarge: false })
   }
   return plan
+}
+
+/** True when any 4-neighbour of (x, y) is a visible pixel. Pure. */
+export function touchesSolid(rgba: ArrayLike<number>, width: number, height: number, x: number, y: number): boolean {
+  const solid = (nx: number, ny: number): boolean =>
+    nx >= 0 && ny >= 0 && nx < width && ny < height && rgba[(ny * width + nx) * 4 + 3] > 0
+  return solid(x - 1, y) || solid(x + 1, y) || solid(x, y - 1) || solid(x, y + 1)
 }
 
 function addPlaceholder(scene: Phaser.Scene, key: string): void {
@@ -93,13 +108,22 @@ function addTexture(scene: Phaser.Scene, spec: TextureSpec): void {
   for (let y = 0; y < height; y++) {
     for (let x = 0; x < width; x++) {
       const src = (y * width + x) * 4
-      if (rgba[src + 3] === 0) continue
+      let r = rgba[src]
+      let g = rgba[src + 1]
+      let b = rgba[src + 2]
+      if (rgba[src + 3] === 0) {
+        // Transparent pixel touching a solid one becomes a 1 map-pixel dark outline.
+        if (spec.outline === undefined || !touchesSolid(rgba, width, height, x, y)) continue
+        r = (spec.outline >> 16) & 255
+        g = (spec.outline >> 8) & 255
+        b = spec.outline & 255
+      }
       for (let sy = 0; sy < s; sy++) {
         for (let sx = 0; sx < s; sx++) {
           const dst = ((y * s + sy) * w + (x * s + sx)) * 4
-          image.data[dst] = rgba[src]
-          image.data[dst + 1] = rgba[src + 1]
-          image.data[dst + 2] = rgba[src + 2]
+          image.data[dst] = r
+          image.data[dst + 1] = g
+          image.data[dst + 2] = b
           image.data[dst + 3] = 255
         }
       }

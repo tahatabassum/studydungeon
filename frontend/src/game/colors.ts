@@ -11,6 +11,15 @@ export const COLORS = {
   DANGER: 0xc83e4d,
   HEALTH: 0x59c9a5,
   GOLD: 0xe9b44c,
+  PUMPKIN: 0xf28a1e,
+  EMBER: 0xe9a23b,
+  GHOST: 0x68c9a5,
+  TOXIC: 0x8be04e,
+  WITCH: 0x7546a8,
+  MAGENTA: 0xc04bd6,
+  INDIGO: 0x1a1638,
+  BONE: 0xf2e8d5,
+  BLOOD_RED: 0xb83d4a,
 } as const
 
 export type ColorName = keyof typeof COLORS
@@ -33,4 +42,13 @@ export const CSS_COLORS: Record<ColorName, string> = {
   DANGER: toCss(COLORS.DANGER),
   HEALTH: toCss(COLORS.HEALTH),
   GOLD: toCss(COLORS.GOLD),
+  PUMPKIN: toCss(COLORS.PUMPKIN),
+  EMBER: toCss(COLORS.EMBER),
+  GHOST: toCss(COLORS.GHOST),
+  TOXIC: toCss(COLORS.TOXIC),
+  WITCH: toCss(COLORS.WITCH),
+  MAGENTA: toCss(COLORS.MAGENTA),
+  INDIGO: toCss(COLORS.INDIGO),
+  BONE: toCss(COLORS.BONE),
+  BLOOD_RED: toCss(COLORS.BLOOD_RED),
 }

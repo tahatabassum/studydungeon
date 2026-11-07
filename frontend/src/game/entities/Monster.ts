@@ -3,6 +3,7 @@ import type { Point } from '../world/RoomLayout'
 import { getMonsterStyle, type MonsterStyle } from './monsterStyles'
 import { COLORS, CSS_COLORS } from '../colors'
 import { FONT_DISPLAY, FONT_LABEL } from '../fonts'
+import { glowKey } from '../textures/registerGlow'
 
 const BAR_W = 64
 const BAR_H = 8
@@ -35,6 +36,9 @@ export class Monster {
   private hpTween: Phaser.Tweens.Tween | null = null
   private bobTween: Phaser.Tweens.Tween | null = null
   private auraTween: Phaser.Tweens.Tween | null = null
+  private breathTween: Phaser.Tweens.Tween | null = null
+  private readonly feetY: number
+  private eyes: Phaser.GameObjects.Image[] = []
   private readonly parts: Phaser.GameObjects.GameObject[]
 
   constructor(
@@ -55,12 +59,29 @@ export class Monster {
     this.barW = isBoss ? BOSS_BAR_W : BAR_W
     this.barH = isBoss ? BOSS_BAR_H : BAR_H
 
+    // Feet-anchored sprite (origin bottom center) so breathing and intro scale from the ground.
     this.sprite = scene.add
       .sprite(at.x, at.y, this.style.texture)
       .setScale(this.style.scale)
+      .setOrigin(0.5, 1)
       .setDepth(8)
+    this.feetY = at.y + Math.round(this.sprite.displayHeight / 2)
+    this.sprite.setY(this.feetY)
     if (this.style.tint !== 0xffffff) this.sprite.setTint(this.style.tint)
     this.barOffset = Math.round(this.sprite.displayHeight / 2) + 10
+
+    // Two small glowing eye points that follow the sprite (updated in tick()).
+    const eyeKey = glowKey('warm')
+    this.eyes = scene.textures.exists(eyeKey)
+      ? [0, 1].map(() =>
+          scene.add
+            .image(at.x, at.y, eyeKey)
+            .setBlendMode(Phaser.BlendModes.ADD)
+            .setDisplaySize(14, 14)
+            .setTint(this.style.aura)
+            .setDepth(8.5),
+        )
+      : []
 
     // Boss gets a larger, stronger red glow (glowing eyes read through the aura).
     const auraSize = Math.max(this.sprite.displayWidth, this.sprite.displayHeight) * (isBoss ? 1.1 : 0.9)
@@ -82,18 +103,19 @@ export class Monster {
     this.zone = scene.add.zone(at.x, at.y, 32, 32)
     scene.physics.add.existing(this.zone, true)
 
-    this.parts = [this.aura, this.sprite, this.label, this.bar, this.zone]
+    this.parts = [this.aura, this.sprite, this.label, this.bar, this.zone, ...this.eyes]
 
     if (!reducedMotion) {
       this.sprite.play(this.style.anims.idle)
       this.bobTween = scene.tweens.add({
         targets: this.sprite,
-        y: at.y - 6,
+        y: this.feetY - 6,
         duration: 900,
         yoyo: true,
         repeat: -1,
         ease: 'Sine.easeInOut',
       })
+      this.startBreathing()
       this.auraTween = scene.tweens.add({
         targets: this.aura,
         alpha: { from: isBoss ? 0.28 : 0.18, to: isBoss ? 0.55 : 0.42 },
@@ -108,6 +130,36 @@ export class Monster {
 
   get currentHp(): number {
     return this.hp
+  }
+
+  /** World y of the feet (ground contact), for glow ring and shadow. */
+  get footY(): number {
+    return this.feetY
+  }
+
+  /** Idle breathing: scaleY 1 to 1.03 over 1.8 s, anchored at the feet. */
+  private startBreathing(): void {
+    if (this.reducedMotion) return
+    this.breathTween?.stop()
+    this.breathTween = this.scene.tweens.add({
+      targets: this.sprite,
+      scaleY: this.style.scale * 1.03,
+      duration: 1800,
+      yoyo: true,
+      repeat: -1,
+      ease: 'Sine.easeInOut',
+    })
+  }
+
+  /** Keep the glowing eyes on the sprite. No allocation; call each frame for the active monster. */
+  tick(time: number): void {
+    if (!this.alive) return
+    const eyeY = this.sprite.y - this.sprite.displayHeight * 0.62
+    const dx = this.sprite.displayWidth * 0.12
+    const pulse = this.reducedMotion ? 0.9 : 0.75 + 0.2 * Math.sin(time / 420)
+    for (let i = 0; i < this.eyes.length; i++) {
+      this.eyes[i].setPosition(this.sprite.x + (i === 0 ? -dx : dx), eyeY).setAlpha(pulse)
+    }
   }
 
   private drawBar(value: number): void {
@@ -169,6 +221,30 @@ export class Monster {
   /** Attack animation (lean with accent highlight). No-op under reduced motion. */
   playAttack(): void {
     this.playOnce(this.style.anims.attack)
+    this.windUp()
+  }
+
+  /**
+   * Wind-up pose over the existing lunge window: lean back about 6 px and warm tint for 200 ms.
+   * Runs alongside the attack animation, so combat timing is unchanged. Skipped when reduced.
+   */
+  private windUp(): void {
+    if (this.reducedMotion || !this.alive || !this.sprite.active) return
+    this.sprite.setTint(COLORS.EMBER)
+    this.scene.tweens.add({
+      targets: this.sprite,
+      angle: { from: 0, to: -6 },
+      duration: 80,
+      yoyo: true,
+      hold: 40,
+      ease: 'Sine.easeOut',
+    })
+    this.scene.time.delayedCall(200, () => {
+      if (!this.sprite.active) return
+      this.sprite.clearTint()
+      if (this.style.tint !== 0xffffff) this.sprite.setTint(this.style.tint)
+      this.sprite.setAngle(0)
+    })
   }
 
   /** Hit animation (bright flash frames). No-op under reduced motion. */
@@ -203,6 +279,8 @@ export class Monster {
   playIntro(): void {
     if (this.reducedMotion || !this.alive || !this.sprite.active) return
     const target = this.style.scale
+    this.breathTween?.stop()
+    this.breathTween = null
     this.sprite.setAlpha(0).setScale(target * (this.isBoss ? 0.5 : 0.7))
     this.scene.tweens.add({
       targets: this.sprite,
@@ -210,6 +288,9 @@ export class Monster {
       scale: target,
       duration: this.isBoss ? 450 : 300,
       ease: this.isBoss ? 'Back.easeOut' : 'Sine.easeOut',
+      onComplete: () => {
+        if (this.alive && this.sprite.active) this.startBreathing()
+      },
     })
   }
 
@@ -226,11 +307,14 @@ export class Monster {
     if (body) body.enable = false
     this.label.setVisible(false)
     this.bar.setVisible(false)
+    for (const e of this.eyes) e.setVisible(false)
     if (this.reducedMotion) {
       this.sprite.setAlpha(0)
       this.aura.setAlpha(0)
       return
     }
+    this.breathTween?.stop()
+    this.breathTween = null
     this.bobTween?.stop()
     this.bobTween = null
     this.auraTween?.stop()
@@ -239,9 +323,17 @@ export class Monster {
     this.sprite.clearTint()
     const fade = (): void => {
       if (!this.sprite.active) return
+      // Spark poof: the 8 pooled sparks come from EffectsSystem.burst; here the body shrinks away.
       this.scene.tweens.add({
         targets: [this.sprite, this.aura],
         alpha: 0,
+        duration: DEATH_FADE_MS,
+        ease: 'Sine.easeIn',
+      })
+      this.scene.tweens.add({
+        targets: this.sprite,
+        scaleX: this.sprite.scaleX * 0.6,
+        scaleY: this.sprite.scaleY * 0.6,
         duration: DEATH_FADE_MS,
         ease: 'Sine.easeIn',
       })
@@ -255,6 +347,7 @@ export class Monster {
     this.hpTween?.stop()
     this.bobTween?.stop()
     this.auraTween?.stop()
+    this.breathTween?.stop()
     for (const p of this.parts) p.destroy()
   }
 }

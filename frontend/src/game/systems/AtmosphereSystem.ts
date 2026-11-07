@@ -1,5 +1,6 @@
 import Phaser from 'phaser'
 import { MAX_PARTICLES, type ParticleSpec, type RoomTheme } from '../world/roomTheme'
+import { themeBudget } from '../world/themeBudget'
 import { TILE, WORLD_H, WORLD_W, type Point } from '../world/RoomLayout'
 import { ObjectPool } from './objectPool'
 import { ensureSparkTexture } from './sparkTexture'
@@ -23,7 +24,6 @@ const LOOKS: Record<ParticleSpec['kind'], Look> = {
 }
 
 const FOG_COUNT = 3
-const STATIC_COUNT = 4
 const DEPTH_FOG = 4
 const DEPTH_PARTICLE = 11
 
@@ -62,7 +62,7 @@ export class AtmosphereSystem {
     const reduced = this.isReduced()
     const spec = theme.particles
     const look = LOOKS[spec.kind]
-    const n = Math.min(spec.count, MAX_PARTICLES, reduced ? STATIC_COUNT : MAX_PARTICLES)
+    const n = themeBudget(theme, reduced).ambient
     const minX = origin.x + TILE * 2
     const minY = origin.y + TILE * 2
     const spanX = WORLD_W - TILE * 4
@@ -93,7 +93,7 @@ export class AtmosphereSystem {
       })
     }
 
-    if (!reduced && (theme.id === 'crypt' || theme.id === 'throne')) {
+    if (!reduced && (theme.id === 'pumpkin_workshop' || theme.id === 'boss_hall' || theme.id === 'clockwork_crypt')) {
       this.fog.forEach((f, i) => {
         const x = origin.x + (WORLD_W * (i + 1)) / (FOG_COUNT + 1)
         const y = origin.y + WORLD_H * (0.35 + 0.15 * (i % 2))

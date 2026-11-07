@@ -15,105 +15,105 @@ Rules for every task:
 
 ## Tasks
 
-- [ ] 1. Phase 2a: Foundations (palette, theme mapping, pure logic)
-  - [-] 1.1 Add palette tokens and contrast helper
+- [x] 1. Phase 2a: Foundations (palette, theme mapping, pure logic)
+  - [x] 1.1 Add palette tokens and contrast helper
     - Add pumpkin, ember, ghost, toxic, witch, magenta, indigo, bone, blood tokens (per D1) to `src/index.css` and `src/game/colors.ts`; keep all existing names
     - Create `src/design/contrast.ts` exporting `contrastRatio(fg, bg)`
     - _Requirements: 5.1, 5.2, 5.6, 4.6_
 
-  - [-] 1.2 Write contrast property test and palette parity test
+  - [x] 1.2 Write contrast property test and palette parity test
     - **Property 8: Contrast ratio is symmetric and bounded**
     - Create `src/design/contrast.property.test.ts` and `src/design/palette.test.ts` (index.css values equal colors.ts values; required text pairs meet 4.5:1 and UI pairs 3:1)
     - **Validates: Requirements 4.6, 5.6**
 
-  - [-] 1.3 Refactor theme ids and selection
+  - [x] 1.3 Refactor theme ids and selection
     - Edit `src/game/world/roomTheme.ts`: ids entry, library, witch_lab, clockwork_crypt, pumpkin_workshop, boss_hall; kind mapping per D2; add `palette`, `lights`, `pieces` fields; keep `selectTheme(kind, isBoss)` signature
     - Update `src/game/world/RoomDecorator.ts`, `src/game/world/decorPlacement.ts`, `src/game/world/registries.test.ts` for renamed ids
     - Per D2 decision, optionally rename label "Forgotten Wing" to "Pumpkin Workshop" in `src/demo/demoDungeon.json` and adjust `src/demo/demoDungeon.test.ts` if it asserts labels
     - _Requirements: 6.1, 6.2, 6.3, 6.4, 6.5, 6.6, 6.7_
 
-  - [ ] 1.4 Update theme property tests
+  - [x] 1.4 Update theme property tests
     - **Property 1: Boss rooms always use the boss hall theme**
     - **Property 2: Non-boss theme depends only on the monster kind**
     - Edit `src/game/world/roomTheme.property.test.ts` (100 runs minimum, tag comments)
     - **Validates: Requirements 6.1, 6.2, 6.3, 6.4, 6.5, 6.6**
 
-  - [ ] 1.5 Implement Flicker_Function
+  - [x] 1.5 Implement Flicker_Function
     - Create `src/game/systems/flicker.ts` exporting `flicker(timeMs, seed, min, max, reduced)` (pure, no allocation, sum of sines mapped into the bounds)
     - _Requirements: 8.1, 8.2, 8.3, 4.1, 4.3_
 
-  - [ ] 1.6 Write flicker property tests
+  - [x] 1.6 Write flicker property tests
     - **Property 3: Flicker stays within bounds and is deterministic**
     - **Property 4: Flicker is constant under reduced motion**
     - Create `src/game/systems/flicker.property.test.ts`
     - **Validates: Requirements 4.3, 8.1, 8.2, 8.3**
 
-  - [ ] 1.7 Implement Keep_Out_Zone and Prop_Placer
+  - [x] 1.7 Implement Keep_Out_Zone and Prop_Placer
     - Create `src/game/world/keepOut.ts` (corridor, monster, spawn and gate-approach rects derived from `RoomLayout.ts` constants)
     - Create `src/game/world/propPlacement.ts` exporting `placeProps(seed, kinds, blocked)` using a seeded RNG, bounded attempts, plain data output
     - _Requirements: 7.5, 9.1, 9.2, 9.3, 9.4_
 
-  - [ ] 1.8 Write prop placement property tests
+  - [x] 1.8 Write prop placement property tests
     - **Property 5: Placed props never block**
     - **Property 6: Prop placement is deterministic**
     - Create `src/game/world/propPlacement.property.test.ts`; include an example that the Clockwork Crypt prop list fully places for 200 seeds
     - **Validates: Requirements 7.5, 9.1, 9.2, 9.3**
 
-  - [ ] 1.9 Implement theme budgets
+  - [x] 1.9 Implement theme budgets
     - Create `src/game/world/themeBudget.ts` exporting caps and `themeBudget(theme, reduced)`; link `AMBIENT_CAP` to `MAX_PARTICLES`
     - Use the budget in `src/game/systems/AtmosphereSystem.ts` for the reduced-motion count
     - _Requirements: 2.2, 2.3, 10.1, 10.2, 10.3_
 
-  - [ ] 1.10 Write theme budget property test
+  - [x] 1.10 Write theme budget property test
     - **Property 7: Theme budgets respect the caps**
     - Create `src/game/world/themeBudget.property.test.ts`
     - **Validates: Requirements 2.2, 2.3, 10.1, 10.2, 10.3**
 
-- [ ] 2. Phase 2b: Sample room, Clockwork Crypt
-  - [ ] 2.1 Procedural floor and wall generators
+- [x] 2. Phase 2b: Sample room, Clockwork Crypt
+  - [x] 2.1 Procedural floor and wall generators
     - Create `src/art/room/rng.ts`, `src/art/room/floor.ts` (varied tones, cracks, moss, stains, seams, worn edges), `src/art/room/walls.ts` (top face, shaded inner face, arched doorways); all draw into a 2D context from a seed and palette
     - Add a smoke test `src/art/room/generators.test.ts` (runs in jsdom or node canvas stub, no exceptions, deterministic output hash)
     - _Requirements: 7.1, 7.2, 5.5_
 
-  - [ ] 2.2 Glow, vignette and shadow textures
+  - [x] 2.2 Glow, vignette and shadow textures
     - Create `src/game/textures/registerGlow.ts` (glow_warm, glow_cool, glow_green, glow_purple, glow_red, vignette, shadow_soft, beam, fog_blob) and register in `src/game/scenes/BootScene.ts`
     - Verify `textures.createCanvas` and blend mode usage against the design.md capability table before coding
     - _Requirements: 3.2, 3.3, 7.6_
 
-  - [ ] 2.3 RoomBaker and GameScene integration
+  - [x] 2.3 RoomBaker and GameScene integration
     - Create `src/game/systems/RoomBaker.ts` (CanvasTexture per room, lazy current plus next room, release beyond one step, `estimatedBytes()`)
     - Edit `src/game/scenes/GameScene.ts`: replace `drawFloor` with baked texture, hide `wall-tile` sprites with setVisible(false) while keeping bodies, call release in `teardown`
     - Fallback to the old Graphics floor if the canvas context is unavailable
     - _Requirements: 2.6, 2.7, 2.8, 7.1, 7.2, 1.1_
 
-  - [ ] 2.4 Write RoomBaker unit tests
+  - [x] 2.4 Write RoomBaker unit tests
     - Create `src/game/systems/RoomBaker.test.ts` (estimatedBytes for 1 and 3 rooms, release lowers the total)
     - _Requirements: 2.7, 2.8_
 
-  - [ ] 2.5 LightSystem
+  - [x] 2.5 LightSystem
     - Create `src/game/systems/LightSystem.ts` (flickering warm pools from theme lights, indigo MULTIPLY tint, vignette at depth 100, monster glow ring, player aura, contact shadows)
     - Edit `src/game/scenes/GameScene.ts` to create, update and destroy it; reduced motion uses constant intensity; reduce light count to 6 on the Canvas renderer
     - _Requirements: 7.6, 8.3, 4.1, 3.1, 3.2_
 
-  - [ ] 2.6 Clockwork Crypt dressing and animated pieces
+  - [x] 2.6 Clockwork Crypt dressing and animated pieces
     - Create `src/art/room/clockworkCrypt.ts` (baked wall dressing: clock face, pipes, cobwebs, chains, coffins, scatter props from `placeProps`)
     - Create `src/game/systems/AnimatedPieces.ts` (clock hands, pendulum, gears, steam from pool, bats from pool), static pose under reduced motion
     - Edit the crypt theme data in `src/game/world/roomTheme.ts` and wire in `src/game/scenes/GameScene.ts`
     - _Requirements: 7.4, 7.5, 4.2, 2.4, 2.5, 10.2_
 
-  - [ ] 2.7 Gate glow and character polish
+  - [x] 2.7 Gate glow and character polish
     - Edit `src/game/entities/Gate.ts` (iron bands, glow when openable, derived only from existing events)
     - Edit `src/game/entities/Monster.ts` (idle breathing, glowing eyes, wind-up, hit flash, spark-poof defeat) and `src/game/entities/Player.ts` (outline, cape and hat sway, small shadow)
     - Read these files first; keep attack timing and combat flow unchanged
     - _Requirements: 7.3, 7.7, 7.8, 7.9, 7.10, 7.11, 4.2, 1.1_
 
-  - [ ] 2.8 Debug_Overlay and canvas renderer switch
+  - [x] 2.8 Debug_Overlay and canvas renderer switch
     - Create `src/game/systems/DebugOverlay.ts` (fps, ambient count, tween count, renderer type, texture MiB; enabled by `?debug=1` or F3; no work when off)
     - Edit `src/game/config.ts` and `src/game/GameCanvas.tsx` to support `?renderer=canvas` for fallback checks
     - Edit `src/game/scenes/GameScene.ts` to create and update it
     - _Requirements: 2.9, 2.10, 3.1_
 
-- [ ] 3. STOP: Phase 2 checkpoint, sample room review
+- [x] 3. STOP: Phase 2 checkpoint, sample room review
   - Ensure typecheck, lint and all tests pass. Present screenshots or run instructions for the Clockwork Crypt (normal and reduced motion, WebGL and `?renderer=canvas`, `?debug=1`). Ask the user to approve or request changes. Do not start Phase 3 until approved.
   - _Requirements: 7.12_
 

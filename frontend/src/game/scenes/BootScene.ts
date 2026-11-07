@@ -3,6 +3,8 @@ import { GAME_HEIGHT, GAME_WIDTH } from '../config'
 import { COLORS } from '../colors'
 import { ensureFontsLoaded, waitForFonts } from '../fonts'
 import { registerArt } from '../textures/registerArt'
+import { registerGlow } from '../textures/registerGlow'
+import { registerPieces } from '../textures/registerPieces'
 
 const FONT_WAIT_MS = 1500
 
@@ -33,6 +35,8 @@ export class BootScene extends Phaser.Scene {
     this.load.on('progress', draw)
 
     registerArt(this)
+    registerGlow(this)
+    registerPieces(this)
     this.makeTextures()
     draw(1)
 

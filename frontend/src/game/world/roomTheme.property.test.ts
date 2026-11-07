@@ -7,9 +7,9 @@ import { selectTheme, THEMES, type ThemeId } from './roomTheme'
 
 const EXPECTED: Record<string, ThemeId> = {
   paper_wraith: 'library',
-  toxic_slime: 'lab',
-  gear_golem: 'workshop',
-  memory_eater: 'crypt',
+  toxic_slime: 'witch_lab',
+  gear_golem: 'clockwork_crypt',
+  memory_eater: 'pumpkin_workshop',
 }
 const KNOWN = Object.keys(EXPECTED)
 
@@ -19,10 +19,13 @@ const kindArb = fc.option(
 )
 
 describe('Property 13: Theme selection is data-driven', () => {
-  it('boss rooms always use the throne theme, whatever the kind', () => {
+  // Feature: frontend-06-halloween-visuals, Property 1: Boss rooms always use the boss hall theme
+  // Feature: frontend-06-halloween-visuals, Property 2: Non-boss theme depends only on the monster kind
+  // **Validates: Requirements 6.1, 6.2, 6.3, 6.4, 6.5, 6.6**
+  it('boss rooms always use the boss hall theme, whatever the kind', () => {
     fc.assert(
       fc.property(kindArb, (kind) => {
-        expect(selectTheme(kind, true).id).toBe('throne')
+        expect(selectTheme(kind, true).id).toBe('boss_hall')
       }),
       { numRuns: 100 },
     )

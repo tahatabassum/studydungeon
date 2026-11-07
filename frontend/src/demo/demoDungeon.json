@@ -58,7 +58,7 @@
                   },
                   {
                       "id":  "room-4",
-                      "label":  "Forgotten Wing",
+                      "label":  "Pumpkin Workshop",
                       "order":  4,
                       "is_boss":  false,
                       "monster":  {

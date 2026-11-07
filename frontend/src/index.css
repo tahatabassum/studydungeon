@@ -14,6 +14,17 @@
   --color-health: #59c9a5;
   --color-gold: #e9b44c;
 
+  /* Halloween accents. Witch purple is for fills and glows only (about 2.9:1 on bg). */
+  --color-pumpkin: #f28a1e;
+  --color-ember: #e9a23b;
+  --color-ghost: #68c9a5;
+  --color-toxic: #8be04e;
+  --color-witch: #7546a8;
+  --color-magenta: #c04bd6;
+  --color-indigo: #1a1638;
+  --color-bone: #f2e8d5;
+  --color-blood-red: #b83d4a;
+
   /* Semantic extra token (permanent): readable secondary text; no palette entry. */
   --color-ink-muted: #b9aec9;
 

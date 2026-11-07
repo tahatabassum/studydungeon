@@ -2,6 +2,7 @@ import Phaser from 'phaser'
 import type { GateSpec } from '../world/DungeonLayout'
 import type { Rect } from '../world/RoomLayout'
 import { COLORS } from '../colors'
+import { glowKey } from '../textures/registerGlow'
 import { sfx } from '@/audio/sfx'
 
 /** Iron-bar gate. Blocks movement while closed; open() removes the body. */
@@ -9,6 +10,8 @@ export class Gate {
   readonly zone: Phaser.GameObjects.Zone
   private readonly bars: Phaser.GameObjects.Graphics
   private opened = false
+  private openable = false
+  private glow: Phaser.GameObjects.Image | null = null
 
   constructor(
     private readonly scene: Phaser.Scene,
@@ -39,21 +42,62 @@ export class Gate {
     return this.opened
   }
 
+  /** Iron-banded gate: dark opening, vertical bars, two riveted iron bands. */
   private draw(): void {
     const { x, y, w, h } = this.rect
     const g = this.bars
     g.clear()
     g.fillStyle(COLORS.BG, 1)
     g.fillRect(x, y, w, h)
-    g.fillStyle(COLORS.INK_MUTED, 1)
+    g.fillStyle(0x6b6478, 1)
     for (let bx = x + 6; bx < x + w - 4; bx += 12) g.fillRect(bx, y, 4, h)
-    g.fillStyle(COLORS.DANGER, 1)
-    g.fillRect(x, y + h / 2 - 2, w, 4)
+    g.fillStyle(0x9a92a8, 1)
+    for (let bx = x + 6; bx < x + w - 4; bx += 12) g.fillRect(bx, y, 1, h)
+    // Two iron bands with rivets.
+    for (const by of [y + 5, y + h - 9]) {
+      g.fillStyle(0x2c2733, 1)
+      g.fillRect(x, by, w, 5)
+      g.fillStyle(0x4b4457, 1)
+      g.fillRect(x, by, w, 1)
+      g.fillStyle(COLORS.BONE, 1)
+      for (let bx = x + 8; bx < x + w - 4; bx += 24) g.fillRect(bx, by + 2, 2, 2)
+    }
+  }
+
+  /** Warm glow while the gate can open (its room's monster is defeated). Idempotent. */
+  setOpenable(): void {
+    if (this.openable || this.opened) return
+    this.openable = true
+    if (!this.scene.textures.exists(glowKey('warm'))) return
+    const cx = this.rect.x + this.rect.w / 2
+    const cy = this.rect.y + this.rect.h
+    const glow = this.scene.add
+      .image(cx, cy, glowKey('warm'))
+      .setBlendMode(Phaser.BlendModes.ADD)
+      .setDisplaySize(this.rect.w * 1.6, 96)
+      .setAlpha(0.4)
+      .setDepth(3)
+    this.glow = glow
+    if (!this.reducedMotion) {
+      this.scene.tweens.add({
+        targets: glow,
+        alpha: { from: 0.25, to: 0.55 },
+        duration: 900,
+        yoyo: true,
+        repeat: -1,
+        ease: 'Sine.easeInOut',
+      })
+    }
   }
 
   open(): void {
     if (this.opened) return
     this.opened = true
+    if (this.glow) {
+      this.scene.tweens.killTweensOf(this.glow)
+      this.glow.destroy()
+      this.glow = null
+    }
     const body = this.zone.body as Phaser.Physics.Arcade.StaticBody | null
     if (body) body.enable = false
     if (this.roomId !== undefined) this.onOpened?.(this.roomId)
@@ -73,6 +117,8 @@ export class Gate {
   }
 
   destroy(): void {
+    this.glow?.destroy()
+    this.glow = null
     this.bars.destroy()
     this.zone.destroy()
   }

@@ -31,9 +31,11 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
   }
 
   /** Called every frame with the intended velocity direction. */
-  tick(_time: number, dirX: number, dirY: number): void {
+  tick(time: number, dirX: number, dirY: number): void {
     this.moving = dirX !== 0 || dirY !== 0
     if (dirX !== 0) this.setFlipX(dirX < 0)
+    // Subtle cape and hat sway: a slight rock every 600 ms (static under reduced motion).
+    this.setAngle(this.reducedMotion ? 0 : Math.sin((time / 600) * Math.PI) * (this.moving ? 2.5 : 1.2))
 
     if (!this.reducedMotion) {
       const next = this.moving ? 'walk' : 'idle'
