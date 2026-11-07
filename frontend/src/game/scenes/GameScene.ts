@@ -6,36 +6,44 @@ import { Player } from '../entities/Player'
 import { EffectsSystem } from '../systems/EffectsSystem'
 import { InteractionSystem } from '../systems/InteractionSystem'
 import { MovementSystem } from '../systems/MovementSystem'
-import type { GameBridge, GamePhase, ToGameEvent } from '../events'
+import { RoomTracker } from '../systems/RoomTracker'
+import type { FromGameEvent, GameBridge, GamePhase, ToGameEvent } from '../events'
+import { buildDungeonLayout, type DungeonLayout } from '../world/DungeonLayout'
 import {
   GATE,
   MONSTER_SPAWN,
-  PILLARS,
-  PLAYER_SPAWN,
   TILE,
-  TORCHES,
   WORLD_H,
   WORLD_W,
   borderWallTiles,
+  pillarsFor,
+  torchesFor,
   type Point,
 } from '../world/RoomLayout'
 import type { Room } from '@/types/api'
 
 export class GameScene extends Phaser.Scene {
-  walls!: Phaser.Physics.Arcade.StaticGroup
-  gate: Gate | null = null
+  walls: Phaser.Physics.Arcade.StaticGroup | null = null
   player: Player | null = null
-  private movement: MovementSystem | null = null
-  monster: Monster | null = null
-  private interaction: InteractionSystem | null = null
-  private effects: EffectsSystem | null = null
-  readonly spawn: { player: Point; monster: Point } = {
-    player: { ...PLAYER_SPAWN },
-    monster: { ...MONSTER_SPAWN },
-  }
-  room: Room | null = null
+  layout: DungeonLayout | null = null
+  rooms: Room[] = []
   phase: GamePhase = 'exploring'
   reducedMotion = false
+  /** Stored for the later audio spec; no sound is played yet. */
+  muted = false
+
+  private movement: MovementSystem | null = null
+  private interaction: InteractionSystem | null = null
+  private effects: EffectsSystem | null = null
+  private tracker: RoomTracker | null = null
+  /** Exit gate per room id (rooms without a following room have none). */
+  private gates = new Map<string, Gate>()
+  private monsters = new Map<string, Monster>() // room id -> monster
+  private activeMonster: Monster | null = null
+  /** @deprecated single-room compatibility until task 8.3 rewires React. */
+  private legacy = false
+  /** @deprecated legacy single gate (top wall) for the old room-clear visual. */
+  private legacyGate: Gate | null = null
 
   private bridge: GameBridge | undefined
   private built: Phaser.GameObjects.GameObject[] = []
@@ -49,17 +57,20 @@ export class GameScene extends Phaser.Scene {
     this.effects = new EffectsSystem(
       this,
       this.bridge,
-      () => ({ player: this.player, monster: this.monster, gate: this.gate }),
+      () => ({
+        player: this.player,
+        monster: this.activeMonster ?? this.currentMonster(),
+        // Gates open only on an explicit gate-open event, except the deprecated legacy gate.
+        gate: this.legacyGate,
+      }),
       () => this.reducedMotion,
     )
-    this.physics.world.setBounds(0, 0, WORLD_W, WORLD_H)
-    this.cameras.main.setBounds(0, 0, WORLD_W, WORLD_H)
 
     const off = this.bridge?.onToGame((e) => this.handle(e))
     const cleanup = (): void => {
       off?.()
       this.effects?.cancel()
-      this.destroyPlayer()
+      this.destroyActors()
     }
     this.events.once('shutdown', cleanup)
     this.events.once('destroy', cleanup)
@@ -67,7 +78,7 @@ export class GameScene extends Phaser.Scene {
     this.bridge?.emit({ type: 'ready' })
   }
 
-  /** Camera follows the given object (the player, from task 6.4). */
+  /** Camera follows the given object. */
   followTarget(target: Phaser.GameObjects.GameObject): void {
     this.cameras.main.startFollow(target, true, 0.1, 0.1)
   }
@@ -75,24 +86,38 @@ export class GameScene extends Phaser.Scene {
   update(time: number): void {
     this.movement?.update(time)
     this.interaction?.update()
+    this.tracker?.update()
   }
 
-  private destroyPlayer(): void {
+  private currentMonster(): Monster | null {
+    const id = this.tracker?.currentRoomId
+    return id ? (this.monsters.get(id) ?? null) : null
+  }
+
+  private destroyActors(): void {
     this.interaction?.destroy()
     this.interaction = null
-    this.monster?.destroy()
-    this.monster = null
     this.movement?.destroy()
     this.movement = null
+    this.tracker = null
+    for (const m of this.monsters.values()) m.destroy()
+    this.monsters.clear()
+    this.activeMonster = null
     this.player?.destroy()
     this.player = null
   }
 
   private handle(e: ToGameEvent): void {
     switch (e.type) {
-      case 'load-room':
-        this.room = e.room
-        this.buildRoom(e.room)
+      case 'load-dungeon':
+        this.legacy = false
+        this.rooms = e.rooms
+        this.build()
+        break
+      case 'load-room': // deprecated: one-room dungeon with the legacy top gate
+        this.legacy = true
+        this.rooms = [{ ...e.room, order: e.room.order ?? 0, is_boss: e.room.is_boss ?? false }]
+        this.build()
         break
       case 'set-phase':
         this.phase = e.phase
@@ -100,11 +125,17 @@ export class GameScene extends Phaser.Scene {
       case 'set-reduced-motion':
         this.reducedMotion = e.value
         break
-      case 'reset':
-        if (this.room) this.buildRoom(this.room)
+      case 'set-muted':
+        this.muted = e.value
         break
-      case 'room-cleared':
-        this.effects?.openGate(this.gate)
+      case 'reset':
+        if (this.rooms.length > 0) this.build()
+        break
+      case 'gate-open':
+        this.gates.get(e.roomId)?.open()
+        break
+      case 'room-cleared': // deprecated
+        this.legacyGate?.open()
         break
       case 'apply-result':
         this.effects?.apply(e.result)
@@ -117,68 +148,133 @@ export class GameScene extends Phaser.Scene {
     return obj
   }
 
-  private clearRoom(): void {
+  private teardown(): void {
     this.effects?.cancel()
-    this.destroyPlayer()
-    this.gate?.destroy()
-    this.gate = null
+    this.destroyActors()
+    for (const g of this.gates.values()) g.destroy()
+    this.gates.clear()
+    this.legacyGate?.destroy()
+    this.legacyGate = null
     this.walls?.destroy(true)
+    this.walls = null
     for (const o of this.built) o.destroy()
     this.built = []
     this.tweens.killAll()
   }
 
-  private buildRoom(room: Room): void {
-    this.clearRoom()
-    this.drawFloor()
-
-    this.walls = this.physics.add.staticGroup()
-    for (const t of borderWallTiles()) this.walls.create(t.x, t.y, 'wall-tile').setDepth(1)
-    for (const p of PILLARS) {
-      for (let x = p.x; x < p.x + p.w; x += TILE) {
-        for (let y = p.y; y < p.y + p.h; y += TILE) {
-          this.walls.create(x + TILE / 2, y + TILE / 2, 'wall-tile').setDepth(1)
-        }
-      }
+  private build(): void {
+    this.teardown()
+    const result = buildDungeonLayout(this.rooms)
+    if (!result.ok) {
+      this.layout = null
+      console.error(`GameScene: invalid dungeon data (${result.error})`)
+      return
+    }
+    const layout = result.layout
+    this.layout = layout
+    const last = layout.rooms[layout.rooms.length - 1]
+    if (layout.rooms.some((r) => r.isBoss && r.id !== last.id)) {
+      console.warn('GameScene: boss room is not the highest order room')
     }
 
-    this.gate = new Gate(this, GATE, this.reducedMotion)
-    this.drawTorches()
+    this.physics.world.setBounds(layout.world.x, layout.world.y, layout.world.w, layout.world.h)
+    this.cameras.main.setBounds(layout.world.x, layout.world.y, layout.world.w, layout.world.h)
 
-    this.track(
-      this.add
-        .text(this.scale.width / 2, 12, room.label, {
-          fontFamily: 'serif',
-          fontSize: '22px',
-          color: '#F2E8D5',
-        })
-        .setOrigin(0.5, 0)
-        .setScrollFactor(0)
-        .setDepth(50),
-    )
+    this.walls = this.physics.add.staticGroup()
+    const walls = this.walls
+    const roomById = new Map(this.rooms.map((r) => [r.id, r]))
 
-    this.cameras.main.stopFollow()
-    this.cameras.main.centerOn(this.spawn.player.x, this.spawn.player.y)
-    const player = new Player(this, this.spawn.player, this.reducedMotion)
+    layout.rooms.forEach((b, k) => {
+      const origin: Point = { x: b.rect.x, y: b.rect.y }
+      const hasExit = k < layout.rooms.length - 1 || this.legacy
+      const opts = { origin, exitGap: hasExit, entryGap: k > 0 }
+      this.drawFloor(origin)
+      for (const t of borderWallTiles(opts)) walls.create(t.x, t.y, 'wall-tile').setDepth(1)
+      for (const p of pillarsFor(opts)) {
+        for (let x = p.x; x < p.x + p.w; x += TILE) {
+          for (let y = p.y; y < p.y + p.h; y += TILE) {
+            walls.create(x + TILE / 2, y + TILE / 2, 'wall-tile').setDepth(1)
+          }
+        }
+      }
+      this.drawTorches(torchesFor(opts))
+      const room = roomById.get(b.id)
+      if (room) {
+        this.track(
+          this.add
+            .text(origin.x + WORLD_W / 2, origin.y + TILE + 6, room.label, {
+              fontFamily: 'serif',
+              fontSize: '22px',
+              color: '#F2E8D5',
+            })
+            .setOrigin(0.5, 0)
+            .setDepth(50),
+        )
+      }
+    })
+
+    for (const spec of layout.gates) {
+      this.gates.set(
+        spec.afterRoomId,
+        Gate.fromSpec(this, spec, this.reducedMotion, (roomId) =>
+          this.bridge?.emit({ type: 'gate-opened', roomId } satisfies FromGameEvent),
+        ),
+      )
+    }
+    if (this.legacy) {
+      const origin = layout.rooms[0].rect
+      this.legacyGate = new Gate(
+        this,
+        { ...GATE, x: GATE.x + origin.x, y: GATE.y + origin.y },
+        this.reducedMotion,
+      )
+    }
+
+    const player = new Player(this, layout.spawn, this.reducedMotion)
     this.player = player
-    this.monster = new Monster(this, room.monster, this.spawn.monster, this.reducedMotion)
-    this.movement = new MovementSystem(this, player, () => this.phase === 'exploring', [
-      this.walls,
-      this.gate.zone,
-      this.monster.zone,
-    ])
+    for (const b of layout.rooms) {
+      const room = roomById.get(b.id)
+      if (!room) continue
+      const at = { x: MONSTER_SPAWN.x + b.rect.x, y: MONSTER_SPAWN.y + b.rect.y }
+      this.monsters.set(
+        b.id,
+        new Monster(this, room.monster, at, this.reducedMotion, b.isBoss),
+      )
+    }
+
+    const obstacles: Phaser.Types.Physics.Arcade.ArcadeColliderType[] = [walls]
+    for (const g of this.gates.values()) obstacles.push(g.zone)
+    if (this.legacyGate) obstacles.push(this.legacyGate.zone)
+    for (const m of this.monsters.values()) obstacles.push(m.zone)
+    this.movement = new MovementSystem(this, player, () => this.phase === 'exploring', obstacles)
+
+    this.tracker = new RoomTracker(layout, () => ({ x: player.x, y: player.y }), this.bridge)
+    // Record which monster started the encounter so effects target it.
+    const bridge = this.bridge
+    const wrapped: GameBridge | undefined = bridge && {
+      ...bridge,
+      emit: (ev) => {
+        if (ev.type === 'encounter-started') {
+          for (const m of this.monsters.values()) if (m.id === ev.monsterId) this.activeMonster = m
+        }
+        bridge.emit(ev)
+      },
+    }
     this.interaction = new InteractionSystem(
       this,
       player,
-      this.monster,
+      () => this.currentMonster(),
       () => this.phase,
-      this.bridge,
+      wrapped,
       this.reducedMotion,
     )
+
+    this.cameras.main.stopFollow()
+    this.cameras.main.centerOn(layout.spawn.x, layout.spawn.y)
     this.followTarget(player)
   }
 
-  private drawFloor(): void {
+  private drawFloor(origin: Point): void {
     const g = this.track(this.add.graphics().setDepth(0))
     const cols = WORLD_W / TILE
     const rows = WORLD_H / TILE
@@ -188,13 +284,13 @@ export class GameScene extends Phaser.Scene {
         // Deterministic subtle variation, no randomness so rebuilds look identical.
         const shade = ((c * 7 + r * 13) % 5) * 0x010101
         g.fillStyle(base + shade, 1)
-        g.fillRect(c * TILE, r * TILE, TILE, TILE)
+        g.fillRect(origin.x + c * TILE, origin.y + r * TILE, TILE, TILE)
       }
     }
   }
 
-  private drawTorches(): void {
-    for (const t of TORCHES) {
+  private drawTorches(torches: Point[]): void {
+    for (const t of torches) {
       const glow = this.track(
         this.add
           .circle(t.x, t.y, 56, 0xe9a23b, 0.18)

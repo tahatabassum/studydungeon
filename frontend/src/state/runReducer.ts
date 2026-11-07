@@ -4,7 +4,19 @@
  * values from Answer_Results and never derives damage, HP or streak itself.
  */
 import type { GamePhase } from '@/game/events'
-import type { AnswerResult, Run } from '@/types/api'
+import type { AnswerResult, Run, RunSummary } from '@/types/api'
+
+/** Minimal room shape the reducer needs; the full Room type is assignable to it. */
+export interface RoomInfo {
+  id: string
+  order?: number
+  is_boss?: boolean
+  monster: { max_hp: number }
+}
+type RunInfo = Run & { current_room_id?: string }
+
+/** Room id used when run-started carries no room list (legacy single-room flow). */
+export const SINGLE_ROOM_ID = 'room-1'
 
 export type Phase = GamePhase
 
@@ -21,6 +33,15 @@ export interface RunState {
   lastResult: AnswerResult | null
   /** Phase to restore on resume; null when not paused. */
   prevPhase: Phase | null
+  currentRoomId: string | null
+  /** Room ids by ascending order. */
+  roomOrder: string[]
+  bossRoomId: string | null
+  /** Remembered monster HP per room (copied from backend values). */
+  roomHp: Record<string, number>
+  roomMaxHp: Record<string, number>
+  clearedRoomIds: string[]
+  summary: RunSummary | null
 }
 
 export const initialRunState: RunState = {
@@ -35,30 +56,75 @@ export const initialRunState: RunState = {
   streak: 0,
   lastResult: null,
   prevPhase: null,
+  currentRoomId: null,
+  roomOrder: [],
+  bossRoomId: null,
+  roomHp: {},
+  roomMaxHp: {},
+  clearedRoomIds: [],
+  summary: null,
 }
 
 export type RunAction =
-  | { type: 'run-started'; run: Run; maxMonsterHp?: number }
+  /** Without ooms (legacy), a single room is assumed and maxMonsterHp is used. */
+  | { type: 'run-started'; run: RunInfo; rooms?: readonly RoomInfo[]; maxMonsterHp?: number }
+  | { type: 'room-entered'; roomId: string }
   | { type: 'encounter-started' }
   | { type: 'result-received'; result: AnswerResult }
   | { type: 'result-settled' }
-  | { type: 'room-cleared'; xpDelta: number }
+  /** oomId defaults to the current room. */
+  | { type: 'room-cleared'; roomId?: string; xpDelta: number }
+  | { type: 'gate-opened'; roomId?: string }
+  | { type: 'run-finished'; summary: RunSummary }
   | { type: 'pause' }
   | { type: 'resume' }
   | { type: 'reset' }
 
+function startRun(action: Extract<RunAction, { type: 'run-started' }>): RunState {
+  const { run } = action
+  const sorted = [...(action.rooms ?? [])].sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
+  const roomOrder = sorted.length > 0 ? sorted.map((r) => r.id) : [run.current_room_id ?? SINGLE_ROOM_ID]
+  const roomMaxHp: Record<string, number> = {}
+  if (sorted.length > 0) for (const r of sorted) roomMaxHp[r.id] = r.monster.max_hp
+  else roomMaxHp[roomOrder[0]] = action.maxMonsterHp ?? run.monster_hp
+  const roomHp = { ...roomMaxHp }
+  const currentRoomId = run.current_room_id ?? roomOrder[0]
+  roomHp[currentRoomId] = run.monster_hp
+  roomMaxHp[currentRoomId] ??= run.monster_hp
+  return {
+    ...initialRunState,
+    runId: run.id,
+    phase: 'exploring',
+    playerHp: run.player_hp,
+    monsterHp: run.monster_hp,
+    maxPlayerHp: run.player_hp,
+    maxMonsterHp: roomMaxHp[currentRoomId],
+    currentRoomId,
+    roomOrder,
+    bossRoomId: sorted.find((r) => r.is_boss)?.id ?? null,
+    roomHp,
+    roomMaxHp,
+  }
+}
+
 export function runReducer(state: RunState, action: RunAction): RunState {
   switch (action.type) {
     case 'run-started':
+      return startRun(action)
+
+    case 'room-entered': {
+      const id = action.roomId
+      const idx = state.roomOrder.indexOf(id)
+      if (idx < 0 || state.phase === 'defeated' || state.phase === 'victory') return state
+      if (id === state.currentRoomId) return state
+      if (idx > 0 && !state.clearedRoomIds.includes(state.roomOrder[idx - 1])) return state
       return {
-        ...initialRunState,
-        runId: action.run.id,
-        phase: 'exploring',
-        playerHp: action.run.player_hp,
-        monsterHp: action.run.monster_hp,
-        maxPlayerHp: action.run.player_hp,
-        maxMonsterHp: action.maxMonsterHp ?? action.run.monster_hp,
+        ...state,
+        currentRoomId: id,
+        monsterHp: state.roomHp[id] ?? 0,
+        maxMonsterHp: state.roomMaxHp[id] ?? 0,
       }
+    }
 
     case 'encounter-started':
       if (state.phase !== 'exploring') return state
@@ -76,6 +142,9 @@ export function runReducer(state: RunState, action: RunAction): RunState {
         xp: state.xp + r.xp_delta,
         score: state.score + r.score_delta,
         lastResult: r,
+        roomHp: state.currentRoomId
+          ? { ...state.roomHp, [state.currentRoomId]: r.monster_hp_remaining }
+          : state.roomHp,
       }
     }
 
@@ -85,9 +154,26 @@ export function runReducer(state: RunState, action: RunAction): RunState {
       if (state.monsterHp <= 0) return { ...state, phase: 'cleared' }
       return { ...state, phase: 'exploring' }
 
-    case 'room-cleared':
-      if (state.phase === 'defeated' || state.phase === 'paused') return state
-      return { ...state, phase: 'cleared', xp: state.xp + action.xpDelta }
+    case 'room-cleared': {
+      if (state.phase === 'defeated' || state.phase === 'paused' || state.phase === 'victory') return state
+      const id = action.roomId ?? state.currentRoomId
+      if (!id || state.roomHp[id] !== 0) return state
+      if (state.clearedRoomIds.includes(id)) return state
+      return {
+        ...state,
+        phase: 'cleared',
+        xp: state.xp + action.xpDelta,
+        clearedRoomIds: [...state.clearedRoomIds, id],
+      }
+    }
+
+    case 'gate-opened':
+      if (state.phase !== 'cleared') return state
+      return { ...state, phase: 'exploring' }
+
+    case 'run-finished':
+      if (!state.bossRoomId || !state.clearedRoomIds.includes(state.bossRoomId)) return state
+      return { ...state, summary: action.summary, phase: 'victory', prevPhase: null }
 
     case 'pause':
       if (state.phase !== 'exploring') return state

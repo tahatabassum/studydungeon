@@ -12,20 +12,28 @@ export type GamePhase =
   | 'cleared'
   | 'defeated'
   | 'paused'
+  | 'victory'
 
 export type ToGameEvent =
+  /** @deprecated removed in tasks 6.3/8.3 */
   | { type: 'load-room'; room: Room }
+  | { type: 'load-dungeon'; rooms: Room[] }
   | { type: 'set-phase'; phase: GamePhase }
   | { type: 'apply-result'; result: AnswerResult }
+  /** @deprecated removed in tasks 6.3/8.3 */
   | { type: 'room-cleared' }
+  | { type: 'gate-open'; roomId: string }
   | { type: 'reset' }
   | { type: 'set-reduced-motion'; value: boolean }
+  | { type: 'set-muted'; value: boolean }
 
 export type FromGameEvent =
   | { type: 'ready' }
   | { type: 'encounter-started'; monsterId: string }
   | { type: 'result-animation-done' }
   | { type: 'pause-requested' }
+  | { type: 'room-entered'; roomId: string }
+  | { type: 'gate-opened'; roomId: string }
 
 export interface GameBridge {
   /** React side: send an event to the game. Queued until the game is ready. */

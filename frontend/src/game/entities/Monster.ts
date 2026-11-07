@@ -1,8 +1,11 @@
 import Phaser from 'phaser'
 import type { Point } from '../world/RoomLayout'
+import { getMonsterStyle, type MonsterStyle } from './monsterStyles'
 
 const BAR_W = 64
 const BAR_H = 8
+const BOSS_BAR_W = 128
+const BOSS_BAR_H = 12
 const HP_TWEEN_MS = 300
 
 /** Procedural monster built from Room.monster data. Visual bob never moves the collision zone. */
@@ -13,10 +16,15 @@ export class Monster {
   /** Static collision body (does not bob) so the player collides with the monster. */
   readonly zone: Phaser.GameObjects.Zone
   readonly position: Point
+  readonly isBoss: boolean
   alive = true
 
   private hp: number
   private shownHp: number
+  private readonly style: MonsterStyle
+  private readonly barW: number
+  private readonly barH: number
+  private readonly barOffset: number
   private readonly sprite: Phaser.GameObjects.Image
   private readonly aura: Phaser.GameObjects.Ellipse
   private readonly label: Phaser.GameObjects.Text
@@ -26,9 +34,10 @@ export class Monster {
 
   constructor(
     private readonly scene: Phaser.Scene,
-    data: { id: string; name: string; max_hp: number },
+    data: { id: string; name: string; max_hp: number; kind?: string },
     at: Point,
     private readonly reducedMotion: boolean,
+    isBoss = false,
   ) {
     this.id = data.id
     this.name = data.name
@@ -36,16 +45,26 @@ export class Monster {
     this.hp = data.max_hp
     this.shownHp = data.max_hp
     this.position = { ...at }
+    this.isBoss = isBoss
+    this.style = getMonsterStyle(data.kind, isBoss)
+    this.barW = isBoss ? BOSS_BAR_W : BAR_W
+    this.barH = isBoss ? BOSS_BAR_H : BAR_H
+    this.barOffset = Math.round(50 * this.style.scale)
 
+    const auraSize = 64 * this.style.scale
     this.aura = scene.add
-      .ellipse(at.x, at.y + 4, 64, 64, 0x7546a8, 0.3)
+      .ellipse(at.x, at.y + 4, auraSize, auraSize, this.style.aura, 0.3)
       .setBlendMode(Phaser.BlendModes.ADD)
       .setDepth(7)
-    this.sprite = scene.add.image(at.x, at.y, 'monster').setDepth(8)
+    this.sprite = scene.add
+      .image(at.x, at.y, this.style.texture)
+      .setTint(this.style.tint)
+      .setScale(this.style.scale)
+      .setDepth(8)
     this.label = scene.add
-      .text(at.x, at.y - 56, data.name, {
+      .text(at.x, at.y - this.barOffset - 6, data.name, {
         fontFamily: 'serif',
-        fontSize: '14px',
+        fontSize: isBoss ? '20px' : '14px',
         color: '#F2E8D5',
       })
       .setOrigin(0.5, 1)
@@ -84,17 +103,20 @@ export class Monster {
   }
 
   private drawBar(value: number): void {
-    const x = this.position.x - BAR_W / 2
-    const y = this.position.y - 50
+    const x = this.position.x - this.barW / 2
+    const y = this.position.y - this.barOffset
     const ratio = this.maxHp > 0 ? Phaser.Math.Clamp(value / this.maxHp, 0, 1) : 0
     this.bar.clear()
     this.bar.fillStyle(0x100d18, 0.85)
-    this.bar.fillRect(x - 1, y - 1, BAR_W + 2, BAR_H + 2)
+    this.bar.fillRect(x - 1, y - 1, this.barW + 2, this.barH + 2)
     this.bar.fillStyle(0xb83d4a, 1)
-    this.bar.fillRect(x, y, BAR_W * ratio, BAR_H)
+    this.bar.fillRect(x, y, this.barW * ratio, this.barH)
   }
 
-  /** Set HP; tweens the bar over ~300 ms unless reduced motion or animate is false. */
+  /**
+   * Set HP from the latest authoritative value; tweens the bar over ~300 ms unless
+   * reduced motion or animate is false. Reaching 0 leads to the defeat visuals (idempotent).
+   */
   setHp(value: number, animate: boolean): void {
     this.hp = Phaser.Math.Clamp(value, 0, this.maxHp)
     this.hpTween?.stop()
@@ -102,6 +124,7 @@ export class Monster {
     if (!animate || this.reducedMotion) {
       this.shownHp = this.hp
       this.drawBar(this.shownHp)
+      if (this.hp <= 0) this.defeat()
       return
     }
     const state = { v: this.shownHp }
@@ -118,6 +141,7 @@ export class Monster {
         this.shownHp = this.hp
         this.drawBar(this.hp)
         this.hpTween = null
+        if (this.hp <= 0) this.defeat()
       },
     })
   }
@@ -127,7 +151,7 @@ export class Monster {
     if (this.reducedMotion) return
     this.sprite.setTintFill(0xffffff)
     this.scene.time.delayedCall(90, () => {
-      if (this.sprite.active) this.sprite.clearTint()
+      if (this.sprite.active) this.sprite.clearTint().setTint(this.style.tint)
     })
   }
 

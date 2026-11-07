@@ -3,6 +3,7 @@ import fc from 'fast-check'
 import { createMockAdapter } from './mockAdapter'
 import { ApiError } from '../errors'
 import demoDungeon from '../../demo/demoDungeon.json'
+import { answerKey } from './answerKey'
 import type { AnswerResult, AttemptRequest } from '../../types/api'
 
 const questions = demoDungeon.questions
@@ -14,6 +15,21 @@ const attemptArb = fc.record({
   qIndex: fc.integer({ min: 0, max: questionIds.length - 1 }),
   answer: answerArb,
 })
+
+type Outcome = AnswerResult | { status: number }
+
+async function tryAttempt(
+  api: ReturnType<typeof createMockAdapter>,
+  runId: string,
+  req: AttemptRequest,
+): Promise<Outcome> {
+  try {
+    return await api.submitAttempt(runId, req)
+  } catch (e) {
+    if (e instanceof ApiError) return { status: e.status }
+    throw e
+  }
+}
 
 async function freshRun() {
   const api = createMockAdapter()
@@ -50,7 +66,7 @@ describe('Property 5: Mock attempt results conform to the contract', () => {
           expect(r.player_hp_remaining).toBeGreaterThanOrEqual(0)
           expect(r.player_hp_remaining).toBeLessThanOrEqual(100)
           expect(r.monster_hp_remaining).toBeGreaterThanOrEqual(0)
-          expect(r.monster_hp_remaining).toBeLessThanOrEqual(60)
+          expect(r.monster_hp_remaining).toBeLessThanOrEqual(120)
           expect(['due', 'not_due']).toContain(r.review_status)
           expect(typeof r.source.page).toBe('number')
           expect(typeof r.source.chunk_id).toBe('string')
@@ -87,21 +103,21 @@ describe('Property 6: Attempt idempotence', () => {
           const plain = await freshRun()
           const withDup = await freshRun()
 
-          const plainResults: AnswerResult[] = []
-          for (const r of reqs) plainResults.push(await plain.api.submitAttempt(plain.run.id, r))
+          const plainResults: Outcome[] = []
+          for (const r of reqs) plainResults.push(await tryAttempt(plain.api, plain.run.id, r))
 
-          const dupResults: AnswerResult[] = []
+          const dupResults: Outcome[] = []
           for (let i = 0; i < reqs.length; i++) {
-            dupResults.push(await withDup.api.submitAttempt(withDup.run.id, reqs[i]))
+            dupResults.push(await tryAttempt(withDup.api, withDup.run.id, reqs[i]))
             if (i === dup) {
-              const again = await withDup.api.submitAttempt(withDup.run.id, reqs[i])
+              const again = await tryAttempt(withDup.api, withDup.run.id, reqs[i])
               expect(again).toEqual(dupResults[i])
             }
           }
           expect(dupResults).toEqual(plainResults)
 
-          const a = await plain.api.submitAttempt(plain.run.id, probeReq)
-          const b = await withDup.api.submitAttempt(withDup.run.id, probeReq)
+          const a = await tryAttempt(plain.api, plain.run.id, probeReq)
+          const b = await tryAttempt(withDup.api, withDup.run.id, probeReq)
           expect(b).toEqual(a)
         },
       ),
@@ -152,5 +168,116 @@ describe('mock adapter unit tests', () => {
       })
     }
     await expect(api.clearRoom(run.id, 'room-1')).resolves.toEqual({ xp_delta: 25 })
+  })
+
+  it('startRun begins in the first room with full player and room-1 monster HP', async () => {
+    const { run } = await freshRun()
+    expect(run.player_hp).toBe(100)
+    expect(run.monster_hp).toBe(60)
+    expect((run as { current_room_id?: string }).current_room_id).toBe('room-1')
+  })
+
+  it('clearRoom is idempotent: same xp_delta, no double counting in the summary', async () => {
+    const { api, run } = await freshRun()
+    await killRoom(api, run.id, 'room-1')
+    const first = await api.clearRoom(run.id, 'room-1')
+    const second = await api.clearRoom(run.id, 'room-1')
+    expect(second).toEqual(first)
+  })
+})
+
+async function answer(
+  api: ReturnType<typeof createMockAdapter>,
+  runId: string,
+  qid: string,
+  ok: boolean,
+  tag: string,
+) {
+  return api.submitAttempt(runId, {
+    question_id: qid,
+    selected_answer: ok ? answerKey[qid].correct : '__wrong__',
+    attempt_id: tag,
+  })
+}
+
+async function killRoom(api: ReturnType<typeof createMockAdapter>, runId: string, roomId: string) {
+  const room = demoDungeon.rooms.find((r) => r.id === roomId)!
+  const ids = room.monster.question_ids
+  let i = 0
+  const hits = Math.ceil(room.monster.max_hp / 20)
+  for (; i < hits; i++) await answer(api, runId, ids[i % ids.length], true, `${roomId}-k${i}`)
+}
+
+describe('multi-room mock behaviour', () => {
+  it('attempts change only the owning room monster and keep player HP run-wide', async () => {
+    const { api, run } = await freshRun()
+    await answer(api, run.id, 'q1', false, 'w1')
+    const r = await answer(api, run.id, 'm1', true, 'c1')
+    expect(r.player_hp_remaining).toBe(90)
+    expect(r.monster_hp_remaining).toBe(40)
+    const r2 = await answer(api, run.id, 'q1', true, 'c2')
+    expect(r2.monster_hp_remaining).toBe(40)
+  })
+
+  it('rejects attempts on a defeated monster with 409', async () => {
+    const { api, run } = await freshRun()
+    await killRoom(api, run.id, 'room-1')
+    await expect(answer(api, run.id, 'q1', true, 'late')).rejects.toMatchObject({ status: 409 })
+  })
+
+  it('clearRoom awards 25 for topic rooms and 100 for the boss; 409 while alive', async () => {
+    const { api, run } = await freshRun()
+    await expect(api.clearRoom(run.id, 'room-5')).rejects.toMatchObject({ status: 409 })
+    await expect(api.clearRoom(run.id, 'nope')).rejects.toMatchObject({ status: 404 })
+    await killRoom(api, run.id, 'room-2')
+    await expect(api.clearRoom(run.id, 'room-2')).resolves.toEqual({ xp_delta: 25 })
+    await killRoom(api, run.id, 'room-5')
+    await expect(api.clearRoom(run.id, 'room-5')).resolves.toEqual({ xp_delta: 100 })
+  })
+
+  it('finishRun is 409 before the boss is cleared, then returns a stable summary', async () => {
+    const { api, run } = await freshRun()
+    await expect(api.finishRun(run.id)).rejects.toMatchObject({ status: 409 })
+    await answer(api, run.id, 'b1', false, 'bw')
+    for (let i = 0; i < 6; i++) {
+      const r = await answer(api, run.id, `b${(i % 8) + 1}`, true, `bc${i}`)
+      if (i < 5) expect(r.monster_hp_remaining).toBeGreaterThan(0)
+      else expect(r.monster_hp_remaining).toBe(0)
+    }
+    await api.clearRoom(run.id, 'room-5')
+    const s = await api.finishRun(run.id)
+    expect(s).toMatchObject({ correct: 6, total: 7, score: 600, xp: 160 })
+    expect(s.accuracy).toBeCloseTo(6 / 7)
+    await expect(api.finishRun(run.id)).resolves.toEqual(s)
+  })
+
+  it('boss at full 120 HP: 5 correct answers leave it alive, the 6th brings it to 0', async () => {
+    const { api, run } = await freshRun()
+    const hp: number[] = []
+    for (let i = 0; i < 6; i++) {
+      const r = await answer(api, run.id, `b${i + 1}`, true, `bf${i}`)
+      hp.push(r.monster_hp_remaining)
+    }
+    expect(hp).toEqual([100, 80, 60, 40, 20, 0])
+  })
+
+  it('full dungeon playthrough ends in a consistent run summary', async () => {
+    const { api, run } = await freshRun()
+    const rooms = [...demoDungeon.rooms].sort((a, b) => a.order - b.order)
+    let hits = 0
+    for (const room of rooms) {
+      await killRoom(api, run.id, room.id)
+      hits += Math.ceil(room.monster.max_hp / 20)
+      await api.clearRoom(run.id, room.id)
+    }
+    const s = await api.finishRun(run.id)
+    expect(s).toMatchObject({ correct: hits, total: hits, xp: hits * 10 + 4 * 25 + 100 })
+    expect(s.accuracy).toBe(1)
+  })
+
+  it('boss wrong answers cost 12 player HP', async () => {
+    const { api, run } = await freshRun()
+    const r = await answer(api, run.id, 'b1', false, 'bw')
+    expect(r.player_hp_remaining).toBe(88)
   })
 })
