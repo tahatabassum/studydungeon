@@ -39,6 +39,14 @@
     "3.9 Write property test for room marker state": {
       "status": "passed",
       "lastRunTimestamp": 1794075129189
+    },
+    "4.2 Write property test for theme selection": {
+      "status": "passed",
+      "lastRunTimestamp": 1794078504450
+    },
+    "4.9 Write registry consistency test": {
+      "status": "passed",
+      "lastRunTimestamp": 1794078504967
     }
   },
   "executionHistory": {
@@ -842,6 +850,16 @@
         "executionId": "a940afc4-d557-48ac-9cef-8f6b8238752d",
         "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
         "timestamp": 1794069420756
+      },
+      {
+        "executionId": "05f2f061-4620-4b11-a103-437cdcfafc3f",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794077965707
+      },
+      {
+        "executionId": "05f2f061-4620-4b11-a103-437cdcfafc3f",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794078641516
       }
     ],
     "4.2 Write property test for theme selection": [
@@ -849,6 +867,16 @@
         "executionId": "a940afc4-d557-48ac-9cef-8f6b8238752d",
         "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
         "timestamp": 1794069420884
+      },
+      {
+        "executionId": "05f2f061-4620-4b11-a103-437cdcfafc3f",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794077966482
+      },
+      {
+        "executionId": "05f2f061-4620-4b11-a103-437cdcfafc3f",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794078641739
       }
     ],
     "4.3 Add frame derivation": [
@@ -856,6 +884,16 @@
         "executionId": "a940afc4-d557-48ac-9cef-8f6b8238752d",
         "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
         "timestamp": 1794069421150
+      },
+      {
+        "executionId": "05f2f061-4620-4b11-a103-437cdcfafc3f",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794077967527
+      },
+      {
+        "executionId": "05f2f061-4620-4b11-a103-437cdcfafc3f",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794078642301
       }
     ],
     "4.4 Author decor sprites and player frames": [
@@ -863,6 +901,16 @@
         "executionId": "a940afc4-d557-48ac-9cef-8f6b8238752d",
         "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
         "timestamp": 1794069421277
+      },
+      {
+        "executionId": "05f2f061-4620-4b11-a103-437cdcfafc3f",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794077968615
+      },
+      {
+        "executionId": "05f2f061-4620-4b11-a103-437cdcfafc3f",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794078643163
       }
     ],
     "4.5 Render pixel maps into Phaser textures at boot": [
@@ -870,6 +918,16 @@
         "executionId": "a940afc4-d557-48ac-9cef-8f6b8238752d",
         "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
         "timestamp": 1794069421388
+      },
+      {
+        "executionId": "05f2f061-4620-4b11-a103-437cdcfafc3f",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794077969228
+      },
+      {
+        "executionId": "05f2f061-4620-4b11-a103-437cdcfafc3f",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794078644149
       }
     ],
     "4.6 Switch monsters to spritesheets": [
@@ -877,6 +935,16 @@
         "executionId": "a940afc4-d557-48ac-9cef-8f6b8238752d",
         "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
         "timestamp": 1794069421488
+      },
+      {
+        "executionId": "05f2f061-4620-4b11-a103-437cdcfafc3f",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794077970427
+      },
+      {
+        "executionId": "05f2f061-4620-4b11-a103-437cdcfafc3f",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794078645274
       }
     ],
     "4.7 Switch the player to a sprite with idle and walk animation": [
@@ -884,6 +952,16 @@
         "executionId": "a940afc4-d557-48ac-9cef-8f6b8238752d",
         "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
         "timestamp": 1794069421655
+      },
+      {
+        "executionId": "05f2f061-4620-4b11-a103-437cdcfafc3f",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794077971606
+      },
+      {
+        "executionId": "05f2f061-4620-4b11-a103-437cdcfafc3f",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794078646129
       }
     ],
     "4.8 Add the room decorator and themed floors": [
@@ -891,6 +969,16 @@
         "executionId": "a940afc4-d557-48ac-9cef-8f6b8238752d",
         "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
         "timestamp": 1794069421819
+      },
+      {
+        "executionId": "05f2f061-4620-4b11-a103-437cdcfafc3f",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794077972523
+      },
+      {
+        "executionId": "05f2f061-4620-4b11-a103-437cdcfafc3f",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794078647042
       }
     ],
     "4.9 Write registry consistency test": [
@@ -898,6 +986,16 @@
         "executionId": "a940afc4-d557-48ac-9cef-8f6b8238752d",
         "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
         "timestamp": 1794069421990
+      },
+      {
+        "executionId": "05f2f061-4620-4b11-a103-437cdcfafc3f",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794077973343
+      },
+      {
+        "executionId": "05f2f061-4620-4b11-a103-437cdcfafc3f",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794078648105
       }
     ],
     "4.10 Boss visuals": [
@@ -905,6 +1003,16 @@
         "executionId": "a940afc4-d557-48ac-9cef-8f6b8238752d",
         "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
         "timestamp": 1794069422156
+      },
+      {
+        "executionId": "05f2f061-4620-4b11-a103-437cdcfafc3f",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794077974498
+      },
+      {
+        "executionId": "05f2f061-4620-4b11-a103-437cdcfafc3f",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794078648959
       }
     ],
     "4.11 Hook monster animations into the Effects_System": [
@@ -912,6 +1020,16 @@
         "executionId": "a940afc4-d557-48ac-9cef-8f6b8238752d",
         "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
         "timestamp": 1794069422294
+      },
+      {
+        "executionId": "05f2f061-4620-4b11-a103-437cdcfafc3f",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794077975399
+      },
+      {
+        "executionId": "05f2f061-4620-4b11-a103-437cdcfafc3f",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794078649837
       }
     ],
     "4.12 Checkpoint - Phase 4": [
@@ -919,6 +1037,16 @@
         "executionId": "a940afc4-d557-48ac-9cef-8f6b8238752d",
         "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
         "timestamp": 1794069422456
+      },
+      {
+        "executionId": "05f2f061-4620-4b11-a103-437cdcfafc3f",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794077976138
+      },
+      {
+        "executionId": "05f2f061-4620-4b11-a103-437cdcfafc3f",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794078650953
       }
     ],
     "5.1 Create a shared Overlay shell": [
@@ -1094,6 +1222,13 @@
         "executionId": "a3718a53-0d99-4086-bbed-9fc5f8adbb35",
         "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
         "timestamp": 1794076344117
+      }
+    ],
+    "4. Phase 4: Environments and monster visuals": [
+      {
+        "executionId": "05f2f061-4620-4b11-a103-437cdcfafc3f",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794078651205
       }
     ]
   }

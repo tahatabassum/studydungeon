@@ -186,43 +186,43 @@ Working rules for every task:
     - Run `npm run typecheck`, `npm run lint`, `npm test`, `npm run build`
     - Browser checklist at the three resolutions: HUD fits, panel docked, player and monster visible above the panel, level shows or is hidden, room progress states, keys 1 to 4
 
-- [ ] 4. Phase 4: Environments and monster visuals
-  - [~] 4.1 Create the theme selector
+- [x] 4. Phase 4: Environments and monster visuals
+  - [x] 4.1 Create the theme selector
     - `src/game/world/roomTheme.ts`: `ThemeId`, `RoomTheme`, `selectTheme(kind, isBoss)`, theme registry (floor palette, decor specs, particle spec within the global cap, light); the `entry` decor is layered onto `library` near the entrance (D1)
     - _Requirements: 15.1, 15.2, 15.3, 15.4_
-  - [~] 4.2 Write property test for theme selection
+  - [x] 4.2 Write property test for theme selection
     - Create `src/game/world/roomTheme.property.test.ts`
     - **Property 13: Theme selection is data-driven**
     - **Validates: Requirements 15.1, 15.2, 15.3**
-  - [~] 4.3 Add frame derivation
+  - [x] 4.3 Add frame derivation
     - `src/art/frames.ts`: `deriveFrames(base, kind)` for idle, attack, hit and death frames by offsets, recoloring and erosion; unit tests that every derived frame validates
     - _Requirements: 14.1, 14.4, 15.5_
-  - [~] 4.4 Author decor sprites and player frames
+  - [x] 4.4 Author decor sprites and player frames
     - `src/art/sprites/decor.ts` (bookshelf, floating book, cauldron, potion, puddle, gear, chain, tomb, rune, column, gate, cobweb, candle, painting, lantern, steam puff) and walk frames in `src/art/sprites/player.ts`
     - _Requirements: 14.1, 14.7, 15.4_
-  - [~] 4.5 Render pixel maps into Phaser textures at boot
+  - [x] 4.5 Render pixel maps into Phaser textures at boot
     - `src/game/textures/registerArt.ts` (uses `pixelMapToRgba`, adds spritesheets and frames, logs and uses a placeholder for invalid maps); call it from `src/game/scenes/BootScene.ts`, replacing the procedural monster and player textures; set `pixelArt: true` in `src/game/config.ts` (D18)
     - _Requirements: 14.4, 14.1_
-  - [~] 4.6 Switch monsters to spritesheets
+  - [x] 4.6 Switch monsters to spritesheets
     - `src/game/entities/monsterStyles.ts` (texture keys, animation names, scale per kind) and `src/game/entities/Monster.ts` (idle loop, `playAttack`, `playHit`, `playDeath`); update `src/game/entities/monsterStyles.test.ts`
     - _Requirements: 15.5_
-  - [~] 4.7 Switch the player to a sprite with idle and walk animation
+  - [x] 4.7 Switch the player to a sprite with idle and walk animation
     - `src/game/entities/Player.ts`; animation stops when movement stops; static frame under reduced motion
     - _Requirements: 14.4, 18.2_
-  - [~] 4.8 Add the room decorator and themed floors
+  - [x] 4.8 Add the room decorator and themed floors
     - `src/game/world/RoomDecorator.ts` draws decor from `selectTheme` in a non-colliding depth layer; update `src/game/scenes/GameScene.ts` to use theme floor palettes and the decorator; no hard-coded room ids or labels
     - _Requirements: 15.1, 15.4, 15.7_
-  - [~] 4.9 Write registry consistency test
+  - [x] 4.9 Write registry consistency test
     - Create `src/game/world/registries.test.ts`
     - **Property 14: Registries are consistent**
     - **Validates: Requirements 14.1, 15.4, 18.1**
-  - [~] 4.10 Boss visuals
+  - [x] 4.10 Boss visuals
     - Larger exam warden with glowing eyes using `getMonsterStyle`; keep the boss scale; update `monsterStyles.test.ts` if values change
     - _Requirements: 15.5, 15.6_
-  - [~] 4.11 Hook monster animations into the Effects_System
+  - [x] 4.11 Hook monster animations into the Effects_System
     - `src/game/systems/EffectsSystem.ts` and `combatPlan.ts` (step names only): call `playAttack` on a wrong answer, `playHit` on a correct answer, `playDeath` on defeat; `combatPlan.test.ts` keeps passing and gains cases for the new steps
     - _Requirements: 15.5, 18.5, 18.6_
-  - [~] 4.12 Checkpoint - Phase 4
+  - [x] 4.12 Checkpoint - Phase 4
     - Ensure all tests pass, ask the user if questions arise.
     - Run `npm run typecheck`, `npm run lint`, `npm test`, `npm run build`
     - Browser checklist: five visibly different rooms, crisp pixel art, monsters animate in idle, attack, hit and death, boss looks larger, movement still collides correctly

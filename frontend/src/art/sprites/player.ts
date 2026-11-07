@@ -1,4 +1,5 @@
 import type { PixelMap } from '../pixelMap';
+import { deriveFrames } from '../frames';
 import { artSym } from './build';
 
 /** Hooded mage in a magic robe with gold and accent trim. 20x21 (mirrored). */
@@ -39,7 +40,11 @@ const playerIdle = artSym(
   ],
 );
 
-/** Player base frames keyed by name. */
+/** Two-frame walking step derived from the idle sprite (padded +4x+2). */
+const walkFrames = deriveFrames(playerIdle, 'walk');
+
+/** Player base and walk frames keyed by name. */
 export const PLAYER_SPRITES: Record<string, PixelMap> = {
   player_idle: playerIdle,
+  ...Object.fromEntries(walkFrames.map((f) => [f.name, f])),
 };

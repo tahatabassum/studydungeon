@@ -9,8 +9,9 @@ const BAR_H = 8
 const BOSS_BAR_W = 128
 const BOSS_BAR_H = 12
 const HP_TWEEN_MS = 300
+const DEATH_FADE_MS = 400
 
-/** Procedural monster built from Room.monster data. Visual bob never moves the collision zone. */
+/** Pixel-art monster built from Room.monster data. Visual bob never moves the collision zone. */
 export class Monster {
   readonly id: string
   readonly name: string
@@ -27,11 +28,13 @@ export class Monster {
   private readonly barW: number
   private readonly barH: number
   private readonly barOffset: number
-  private readonly sprite: Phaser.GameObjects.Image
+  private readonly sprite: Phaser.GameObjects.Sprite
   private readonly aura: Phaser.GameObjects.Ellipse
   private readonly label: Phaser.GameObjects.Text
   private readonly bar: Phaser.GameObjects.Graphics
   private hpTween: Phaser.Tweens.Tween | null = null
+  private bobTween: Phaser.Tweens.Tween | null = null
+  private auraTween: Phaser.Tweens.Tween | null = null
   private readonly parts: Phaser.GameObjects.GameObject[]
 
   constructor(
@@ -51,18 +54,20 @@ export class Monster {
     this.style = getMonsterStyle(data.kind, isBoss)
     this.barW = isBoss ? BOSS_BAR_W : BAR_W
     this.barH = isBoss ? BOSS_BAR_H : BAR_H
-    this.barOffset = Math.round(50 * this.style.scale)
 
-    const auraSize = 64 * this.style.scale
-    this.aura = scene.add
-      .ellipse(at.x, at.y + 4, auraSize, auraSize, this.style.aura, 0.3)
-      .setBlendMode(Phaser.BlendModes.ADD)
-      .setDepth(7)
     this.sprite = scene.add
-      .image(at.x, at.y, this.style.texture)
-      .setTint(this.style.tint)
+      .sprite(at.x, at.y, this.style.texture)
       .setScale(this.style.scale)
       .setDepth(8)
+    if (this.style.tint !== 0xffffff) this.sprite.setTint(this.style.tint)
+    this.barOffset = Math.round(this.sprite.displayHeight / 2) + 10
+
+    // Boss gets a larger, stronger red glow (glowing eyes read through the aura).
+    const auraSize = Math.max(this.sprite.displayWidth, this.sprite.displayHeight) * (isBoss ? 1.1 : 0.9)
+    this.aura = scene.add
+      .ellipse(at.x, at.y + 4, auraSize, auraSize, this.style.aura, isBoss ? 0.4 : 0.3)
+      .setBlendMode(Phaser.BlendModes.ADD)
+      .setDepth(7)
     this.label = scene.add
       .text(at.x, at.y - this.barOffset - 6, data.name, {
         fontFamily: isBoss ? FONT_DISPLAY : FONT_LABEL,
@@ -80,7 +85,8 @@ export class Monster {
     this.parts = [this.aura, this.sprite, this.label, this.bar, this.zone]
 
     if (!reducedMotion) {
-      scene.tweens.add({
+      this.sprite.play(this.style.anims.idle)
+      this.bobTween = scene.tweens.add({
         targets: this.sprite,
         y: at.y - 6,
         duration: 900,
@@ -88,9 +94,9 @@ export class Monster {
         repeat: -1,
         ease: 'Sine.easeInOut',
       })
-      scene.tweens.add({
+      this.auraTween = scene.tweens.add({
         targets: this.aura,
-        alpha: { from: 0.18, to: 0.42 },
+        alpha: { from: isBoss ? 0.28 : 0.18, to: isBoss ? 0.55 : 0.42 },
         scale: { from: 0.9, to: 1.15 },
         duration: 1100,
         yoyo: true,
@@ -148,12 +154,36 @@ export class Monster {
     })
   }
 
+  /** Returns to the idle loop after a one-shot animation. */
+  private readonly backToIdle = (): void => {
+    if (this.alive && this.sprite.active) this.sprite.play(this.style.anims.idle)
+  }
+
+  private playOnce(key: string): void {
+    if (this.reducedMotion || !this.alive || !this.sprite.active) return
+    this.sprite.off(Phaser.Animations.Events.ANIMATION_COMPLETE, this.backToIdle)
+    this.sprite.play(key)
+    this.sprite.once(Phaser.Animations.Events.ANIMATION_COMPLETE, this.backToIdle)
+  }
+
+  /** Attack animation (lean with accent highlight). No-op under reduced motion. */
+  playAttack(): void {
+    this.playOnce(this.style.anims.attack)
+  }
+
+  /** Hit animation (bright flash frames). No-op under reduced motion. */
+  playHit(): void {
+    this.playOnce(this.style.anims.hit)
+  }
+
   /** Brief white hit flash (skipped for reduced motion). */
   flash(): void {
     if (this.reducedMotion) return
     this.sprite.setTintFill(0xffffff)
     this.scene.time.delayedCall(90, () => {
-      if (this.sprite.active) this.sprite.clearTint().setTint(this.style.tint)
+      if (!this.sprite.active) return
+      this.sprite.clearTint()
+      if (this.style.tint !== 0xffffff) this.sprite.setTint(this.style.tint)
     })
   }
 
@@ -169,7 +199,12 @@ export class Monster {
     })
   }
 
-  /** Fade out, then mark not alive and disable the collision body. */
+  /** Plays the erosion animation, then fades out. Same as defeat(). */
+  playDeath(): void {
+    this.defeat()
+  }
+
+  /** Erosion frames then fade out; marks not alive and disables the collision body. Idempotent. */
   defeat(): void {
     if (!this.alive) return
     this.alive = false
@@ -182,17 +217,30 @@ export class Monster {
       this.aura.setAlpha(0)
       return
     }
-    this.scene.tweens.add({
-      targets: [this.sprite, this.aura],
-      alpha: 0,
-      y: '-=16',
-      duration: 600,
-      ease: 'Sine.easeIn',
-    })
+    this.bobTween?.stop()
+    this.bobTween = null
+    this.auraTween?.stop()
+    this.auraTween = null
+    this.sprite.off(Phaser.Animations.Events.ANIMATION_COMPLETE, this.backToIdle)
+    this.sprite.clearTint()
+    const fade = (): void => {
+      if (!this.sprite.active) return
+      this.scene.tweens.add({
+        targets: [this.sprite, this.aura],
+        alpha: 0,
+        duration: DEATH_FADE_MS,
+        ease: 'Sine.easeIn',
+      })
+    }
+    this.sprite.play(this.style.anims.death)
+    this.sprite.once(Phaser.Animations.Events.ANIMATION_COMPLETE, fade)
+    this.scene.tweens.add({ targets: this.aura, alpha: 0.1, duration: 300 })
   }
 
   destroy(): void {
     this.hpTween?.stop()
+    this.bobTween?.stop()
+    this.auraTween?.stop()
     for (const p of this.parts) p.destroy()
   }
 }

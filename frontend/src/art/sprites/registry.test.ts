@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { validatePixelMap } from '../pixelMap';
-import { ICONS, MONSTER_SPRITES, PLAYER_SPRITES, SPRITE_REGISTRY, getSprite } from './index';
+import { DECOR_SPRITES, ICONS, MONSTER_SPRITES, PLAYER_SPRITES, SPRITE_REGISTRY, getSprite } from './index';
 
 describe('sprite registry', () => {
   it('every sprite passes validatePixelMap with no errors', () => {
@@ -15,7 +15,8 @@ describe('sprite registry', () => {
     const total =
       Object.keys(MONSTER_SPRITES).length +
       Object.keys(PLAYER_SPRITES).length +
-      Object.keys(ICONS).length;
+      Object.keys(ICONS).length +
+      Object.keys(DECOR_SPRITES).length;
     expect(entries.length).toBe(total);
   });
 

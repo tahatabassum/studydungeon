@@ -10,6 +10,8 @@ import { MovementSystem } from '../systems/MovementSystem'
 import { RoomTracker } from '../systems/RoomTracker'
 import type { FromGameEvent, GameBridge, GamePhase, ToGameEvent } from '../events'
 import { buildDungeonLayout, type DungeonLayout } from '../world/DungeonLayout'
+import { decorateRoom } from '../world/RoomDecorator'
+import { selectTheme, type RoomTheme } from '../world/roomTheme'
 import {
   MONSTER_SPAWN,
   TILE,
@@ -212,7 +214,11 @@ export class GameScene extends Phaser.Scene {
       const origin: Point = { x: b.rect.x, y: b.rect.y }
       const hasExit = k < layout.rooms.length - 1
       const opts = { origin, exitGap: hasExit, entryGap: k > 0 }
-      this.drawFloor(origin)
+      const room = roomById.get(b.id)
+      // Theme comes only from room data (monster kind and boss flag).
+      const theme = selectTheme(room?.monster.kind, room?.is_boss ?? b.isBoss)
+      this.drawFloor(origin, theme)
+      for (const o of decorateRoom(this, theme, origin)) this.track(o)
       for (const t of borderWallTiles(opts)) walls.create(t.x, t.y, 'wall-tile').setDepth(1)
       for (const p of pillarsFor(opts)) {
         for (let x = p.x; x < p.x + p.w; x += TILE) {
@@ -222,7 +228,6 @@ export class GameScene extends Phaser.Scene {
         }
       }
       this.drawTorches(torchesFor(opts))
-      const room = roomById.get(b.id)
       if (room) {
         this.track(
           this.add
@@ -289,13 +294,13 @@ export class GameScene extends Phaser.Scene {
     this.followTarget(player)
   }
 
-  private drawFloor(origin: Point): void {
+  private drawFloor(origin: Point, theme: RoomTheme): void {
     const g = this.track(this.add.graphics().setDepth(0))
     const cols = WORLD_W / TILE
     const rows = WORLD_H / TILE
     for (let c = 0; c < cols; c++) {
       for (let r = 0; r < rows; r++) {
-        const base = (c + r) % 2 === 0 ? 0x1a1424 : 0x211a2e
+        const base = (c + r) % 2 === 0 ? theme.floor[0] : theme.floor[1]
         // Deterministic subtle variation, no randomness so rebuilds look identical.
         const shade = ((c * 7 + r * 13) % 5) * 0x010101
         g.fillStyle(base + shade, 1)

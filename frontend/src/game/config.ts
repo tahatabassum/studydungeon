@@ -19,7 +19,7 @@ export function createGameConfig(
     width: GAME_WIDTH,
     height: GAME_HEIGHT,
     backgroundColor: CSS_COLORS.BG,
-    pixelArt: false,
+    pixelArt: true,
     physics: { default: 'arcade', arcade: { gravity: { x: 0, y: 0 }, debug: false } },
     scale: { mode: Phaser.Scale.FIT, autoCenter: Phaser.Scale.CENTER_BOTH },
     scene: [BootScene, GameScene],

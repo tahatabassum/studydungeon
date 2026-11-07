@@ -69,12 +69,14 @@ export class EffectsSystem {
       this.fireProjectile(player, monster)
       impact = PROJECTILE_MS
     } else if (has('monster-attack') && player && monster) {
+      monster.playAttack()
       monster.nudge(player.x < monster.position.x ? -28 : 28, LUNGE_MS)
       impact = reduced ? 0 : LUNGE_MS
     }
 
     this.later(impact, () => {
       if (has('hit-flash')) monster?.flash()
+      if (result.correct) monster?.playHit()
       if (result.correct && monster) {
         monster.nudge(player && player.x < monster.position.x ? 6 : -6, 60)
       }
@@ -92,7 +94,7 @@ export class EffectsSystem {
     let end = impact + (reduced ? 0 : 320)
     if (has('monster-defeat')) {
       this.later(impact + (reduced ? 0 : 120), () => {
-        monster?.defeat()
+        monster?.playDeath()
         if (monster && !reduced) this.burst(monster.position.x, monster.position.y)
       })
       end = impact + (reduced ? 0 : 420)
