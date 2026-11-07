@@ -1,0 +1,659 @@
+{
+  "pbtResults": {
+    "1.3 Write property test for room and boss damage values": {
+      "status": "passed",
+      "lastRunTimestamp": 1794058378157
+    },
+    "5.2 Write property test for layout structural invariants": {
+      "status": "passed",
+      "lastRunTimestamp": 1794058892304
+    },
+    "2.4 Write property test for clear succeeding only at zero HP": {
+      "status": "passed",
+      "lastRunTimestamp": 1794059586583
+    },
+    "4.6 Write property test for reducer value copying and victory gating": {
+      "status": "passed",
+      "lastRunTimestamp": 1794059915919
+    }
+  },
+  "executionHistory": {
+    "1.1 Extend API types and the Api_Client with finishRun": [
+      {
+        "executionId": "c5032948-0e08-452a-91b1-65f55ea722ae",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794057866254
+      },
+      {
+        "executionId": "c5032948-0e08-452a-91b1-65f55ea722ae",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794057892773
+      },
+      {
+        "executionId": "c5032948-0e08-452a-91b1-65f55ea722ae",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794058202234
+      },
+      {
+        "executionId": "c5032948-0e08-452a-91b1-65f55ea722ae",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794058570786
+      },
+      {
+        "executionId": "c5032948-0e08-452a-91b1-65f55ea722ae",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794058742942
+      },
+      {
+        "executionId": "c5032948-0e08-452a-91b1-65f55ea722ae",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794059301644
+      },
+      {
+        "executionId": "c5032948-0e08-452a-91b1-65f55ea722ae",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794059448969
+      }
+    ],
+    "1.2 Add room and boss profiles to Demo_Rules": [
+      {
+        "executionId": "c5032948-0e08-452a-91b1-65f55ea722ae",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794057866462
+      },
+      {
+        "executionId": "c5032948-0e08-452a-91b1-65f55ea722ae",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794057897238
+      },
+      {
+        "executionId": "c5032948-0e08-452a-91b1-65f55ea722ae",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794058202367
+      }
+    ],
+    "1.3 Write property test for room and boss damage values": [
+      {
+        "executionId": "c5032948-0e08-452a-91b1-65f55ea722ae",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794057866746
+      },
+      {
+        "executionId": "c5032948-0e08-452a-91b1-65f55ea722ae",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794058220078
+      },
+      {
+        "executionId": "c5032948-0e08-452a-91b1-65f55ea722ae",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794058569799
+      }
+    ],
+    "2.1 Update the Demo_Dungeon and answer key": [
+      {
+        "executionId": "c5032948-0e08-452a-91b1-65f55ea722ae",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794057867014
+      },
+      {
+        "executionId": "c5032948-0e08-452a-91b1-65f55ea722ae",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794058219501
+      },
+      {
+        "executionId": "c5032948-0e08-452a-91b1-65f55ea722ae",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794058569395
+      }
+    ],
+    "2.2 Make the Mock_Adapter multi-room and add finishRun": [
+      {
+        "executionId": "c5032948-0e08-452a-91b1-65f55ea722ae",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794057867278
+      },
+      {
+        "executionId": "c5032948-0e08-452a-91b1-65f55ea722ae",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794058925564
+      },
+      {
+        "executionId": "c5032948-0e08-452a-91b1-65f55ea722ae",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794059449221
+      }
+    ],
+    "2.3 Write property test for mock run invariants across rooms": [
+      {
+        "executionId": "c5032948-0e08-452a-91b1-65f55ea722ae",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794057867446
+      },
+      {
+        "executionId": "c5032948-0e08-452a-91b1-65f55ea722ae",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794059459620
+      },
+      {
+        "executionId": "c5032948-0e08-452a-91b1-65f55ea722ae",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794059741984
+      }
+    ],
+    "2.4 Write property test for clear succeeding only at zero HP": [
+      {
+        "executionId": "c5032948-0e08-452a-91b1-65f55ea722ae",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794057867620
+      },
+      {
+        "executionId": "c5032948-0e08-452a-91b1-65f55ea722ae",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794059460608
+      },
+      {
+        "executionId": "c5032948-0e08-452a-91b1-65f55ea722ae",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794059742978
+      }
+    ],
+    "2.5 Write property test for run summary consistency": [
+      {
+        "executionId": "c5032948-0e08-452a-91b1-65f55ea722ae",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794057867852
+      },
+      {
+        "executionId": "c5032948-0e08-452a-91b1-65f55ea722ae",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794059461421
+      },
+      {
+        "executionId": "c5032948-0e08-452a-91b1-65f55ea722ae",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794059743774
+      }
+    ],
+    "2.6 Write unit tests for finishRun, clear idempotence and boss balance": [
+      {
+        "executionId": "c5032948-0e08-452a-91b1-65f55ea722ae",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794057868047
+      },
+      {
+        "executionId": "c5032948-0e08-452a-91b1-65f55ea722ae",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794059753784
+      },
+      {
+        "executionId": "c5032948-0e08-452a-91b1-65f55ea722ae",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794060174909
+      }
+    ],
+    "2.7 Write property test for boss falling after exactly 6 correct answers": [
+      {
+        "executionId": "c5032948-0e08-452a-91b1-65f55ea722ae",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794057868209
+      },
+      {
+        "executionId": "c5032948-0e08-452a-91b1-65f55ea722ae",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794059462617
+      },
+      {
+        "executionId": "c5032948-0e08-452a-91b1-65f55ea722ae",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794059744527
+      }
+    ],
+    "3. Checkpoint - Ensure all tests pass": [
+      {
+        "executionId": "c5032948-0e08-452a-91b1-65f55ea722ae",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794057868410
+      },
+      {
+        "executionId": "c5032948-0e08-452a-91b1-65f55ea722ae",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794060187578
+      },
+      {
+        "executionId": "c5032948-0e08-452a-91b1-65f55ea722ae",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794060312228
+      }
+    ],
+    "4.1 Add the Question_Selector": [
+      {
+        "executionId": "c5032948-0e08-452a-91b1-65f55ea722ae",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794057868640
+      },
+      {
+        "executionId": "c5032948-0e08-452a-91b1-65f55ea722ae",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794057897708
+      },
+      {
+        "executionId": "c5032948-0e08-452a-91b1-65f55ea722ae",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794058202900
+      }
+    ],
+    "4.2 Write property test and routing unit test for the Question_Selector": [
+      {
+        "executionId": "c5032948-0e08-452a-91b1-65f55ea722ae",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794057868985
+      },
+      {
+        "executionId": "c5032948-0e08-452a-91b1-65f55ea722ae",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794058220904
+      },
+      {
+        "executionId": "c5032948-0e08-452a-91b1-65f55ea722ae",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794058743909
+      }
+    ],
+    "4.3 Update the Event_Bridge contract": [
+      {
+        "executionId": "c5032948-0e08-452a-91b1-65f55ea722ae",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794057869169
+      },
+      {
+        "executionId": "c5032948-0e08-452a-91b1-65f55ea722ae",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794058219655
+      },
+      {
+        "executionId": "c5032948-0e08-452a-91b1-65f55ea722ae",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794058569587
+      }
+    ],
+    "4.4 Make the Run_Reducer multi-room": [
+      {
+        "executionId": "c5032948-0e08-452a-91b1-65f55ea722ae",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794057869348
+      },
+      {
+        "executionId": "c5032948-0e08-452a-91b1-65f55ea722ae",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794058925728
+      },
+      {
+        "executionId": "c5032948-0e08-452a-91b1-65f55ea722ae",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794059449988
+      }
+    ],
+    "4.5 Write property test for reducer room ordering": [
+      {
+        "executionId": "c5032948-0e08-452a-91b1-65f55ea722ae",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794057869513
+      },
+      {
+        "executionId": "c5032948-0e08-452a-91b1-65f55ea722ae",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794059463276
+      },
+      {
+        "executionId": "c5032948-0e08-452a-91b1-65f55ea722ae",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794059745664
+      }
+    ],
+    "4.6 Write property test for reducer value copying and victory gating": [
+      {
+        "executionId": "c5032948-0e08-452a-91b1-65f55ea722ae",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794057869759
+      },
+      {
+        "executionId": "c5032948-0e08-452a-91b1-65f55ea722ae",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794059754807
+      },
+      {
+        "executionId": "c5032948-0e08-452a-91b1-65f55ea722ae",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794060175001
+      }
+    ],
+    "5.1 Implement the Layout_Builder and room-origin wall helpers": [
+      {
+        "executionId": "c5032948-0e08-452a-91b1-65f55ea722ae",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794057869945
+      },
+      {
+        "executionId": "c5032948-0e08-452a-91b1-65f55ea722ae",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794057898286
+      },
+      {
+        "executionId": "c5032948-0e08-452a-91b1-65f55ea722ae",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794058203726
+      }
+    ],
+    "5.2 Write property test for layout structural invariants": [
+      {
+        "executionId": "c5032948-0e08-452a-91b1-65f55ea722ae",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794057870164
+      },
+      {
+        "executionId": "c5032948-0e08-452a-91b1-65f55ea722ae",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794058762397
+      },
+      {
+        "executionId": "c5032948-0e08-452a-91b1-65f55ea722ae",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794058910928
+      }
+    ],
+    "5.3 Write property test for layout determinism": [
+      {
+        "executionId": "c5032948-0e08-452a-91b1-65f55ea722ae",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794057870353
+      },
+      {
+        "executionId": "c5032948-0e08-452a-91b1-65f55ea722ae",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794058763122
+      },
+      {
+        "executionId": "c5032948-0e08-452a-91b1-65f55ea722ae",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794058911739
+      }
+    ],
+    "5.4 Write property test for room lookup": [
+      {
+        "executionId": "c5032948-0e08-452a-91b1-65f55ea722ae",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794057870622
+      },
+      {
+        "executionId": "c5032948-0e08-452a-91b1-65f55ea722ae",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794058763998
+      },
+      {
+        "executionId": "c5032948-0e08-452a-91b1-65f55ea722ae",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794058912767
+      }
+    ],
+    "6.1 Add monster styles and update Monster": [
+      {
+        "executionId": "c5032948-0e08-452a-91b1-65f55ea722ae",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794057870844
+      },
+      {
+        "executionId": "c5032948-0e08-452a-91b1-65f55ea722ae",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794058219743
+      },
+      {
+        "executionId": "c5032948-0e08-452a-91b1-65f55ea722ae",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794058569704
+      }
+    ],
+    "6.2 Add per-room Gate, RoomTracker and current-room interaction": [
+      {
+        "executionId": "c5032948-0e08-452a-91b1-65f55ea722ae",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794057870985
+      },
+      {
+        "executionId": "c5032948-0e08-452a-91b1-65f55ea722ae",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794058926106
+      },
+      {
+        "executionId": "c5032948-0e08-452a-91b1-65f55ea722ae",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794059450983
+      }
+    ],
+    "6.3 Rebuild GameScene for the whole dungeon": [
+      {
+        "executionId": "c5032948-0e08-452a-91b1-65f55ea722ae",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794057871157
+      },
+      {
+        "executionId": "c5032948-0e08-452a-91b1-65f55ea722ae",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794059756051
+      },
+      {
+        "executionId": "c5032948-0e08-452a-91b1-65f55ea722ae",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794060176078
+      }
+    ],
+    "6.4 Write unit tests for monster styles and import boundary": [
+      {
+        "executionId": "c5032948-0e08-452a-91b1-65f55ea722ae",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794057871446
+      },
+      {
+        "executionId": "c5032948-0e08-452a-91b1-65f55ea722ae",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794059756982
+      },
+      {
+        "executionId": "c5032948-0e08-452a-91b1-65f55ea722ae",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794060176872
+      }
+    ],
+    "7. Checkpoint - Ensure all tests pass": [
+      {
+        "executionId": "c5032948-0e08-452a-91b1-65f55ea722ae",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794057871712
+      },
+      {
+        "executionId": "c5032948-0e08-452a-91b1-65f55ea722ae",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794060187969
+      },
+      {
+        "executionId": "c5032948-0e08-452a-91b1-65f55ea722ae",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794060313478
+      }
+    ],
+    "8.1 Add RoomProgress to the HUD": [
+      {
+        "executionId": "c5032948-0e08-452a-91b1-65f55ea722ae",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794057871886
+      },
+      {
+        "executionId": "c5032948-0e08-452a-91b1-65f55ea722ae",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794059757703
+      },
+      {
+        "executionId": "c5032948-0e08-452a-91b1-65f55ea722ae",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794060177835
+      }
+    ],
+    "8.2 Add VictoryOverlay, ConfirmDialog and the extended PauseMenu": [
+      {
+        "executionId": "c5032948-0e08-452a-91b1-65f55ea722ae",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794057872031
+      },
+      {
+        "executionId": "c5032948-0e08-452a-91b1-65f55ea722ae",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794060314798
+      },
+      {
+        "executionId": "c5032948-0e08-452a-91b1-65f55ea722ae",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794060817366
+      }
+    ],
+    "8.3 Extend usePlaySession for multi-room orchestration": [
+      {
+        "executionId": "c5032948-0e08-452a-91b1-65f55ea722ae",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794057872254
+      },
+      {
+        "executionId": "c5032948-0e08-452a-91b1-65f55ea722ae",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794060315234
+      },
+      {
+        "executionId": "c5032948-0e08-452a-91b1-65f55ea722ae",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794060817814
+      }
+    ],
+    "8.4 Wire PlayPage": [
+      {
+        "executionId": "c5032948-0e08-452a-91b1-65f55ea722ae",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794057872416
+      },
+      {
+        "executionId": "c5032948-0e08-452a-91b1-65f55ea722ae",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794060818289
+      },
+      {
+        "executionId": "c5032948-0e08-452a-91b1-65f55ea722ae",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794061059291
+      }
+    ],
+    "8.5 Update the integration smoke test": [
+      {
+        "executionId": "c5032948-0e08-452a-91b1-65f55ea722ae",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794057872556
+      },
+      {
+        "executionId": "c5032948-0e08-452a-91b1-65f55ea722ae",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794061060115
+      },
+      {
+        "executionId": "c5032948-0e08-452a-91b1-65f55ea722ae",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794061301734
+      }
+    ],
+    "9.1 Update docs/handoff/B-to-A.md": [
+      {
+        "executionId": "c5032948-0e08-452a-91b1-65f55ea722ae",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794057872693
+      },
+      {
+        "executionId": "c5032948-0e08-452a-91b1-65f55ea722ae",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794057898582
+      },
+      {
+        "executionId": "c5032948-0e08-452a-91b1-65f55ea722ae",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794058204619
+      }
+    ],
+    "10.1 Run the full verification and record results": [
+      {
+        "executionId": "c5032948-0e08-452a-91b1-65f55ea722ae",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794057872841
+      },
+      {
+        "executionId": "c5032948-0e08-452a-91b1-65f55ea722ae",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794061302423
+      },
+      {
+        "executionId": "909db9f0-1a07-46a0-bf1b-ec21fa989301",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794066480411
+      }
+    ],
+    "9. Document the contract changes for Person A": [
+      {
+        "executionId": "c5032948-0e08-452a-91b1-65f55ea722ae",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794058204763
+      }
+    ],
+    "1. Extend the contract and rules": [
+      {
+        "executionId": "c5032948-0e08-452a-91b1-65f55ea722ae",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794058569923
+      }
+    ],
+    "5. Build the pure dungeon layout": [
+      {
+        "executionId": "c5032948-0e08-452a-91b1-65f55ea722ae",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794058912861
+      }
+    ],
+    "2. Build the five-room mock dungeon and multi-room Mock_Adapter": [
+      {
+        "executionId": "c5032948-0e08-452a-91b1-65f55ea722ae",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794060175082
+      }
+    ],
+    "4. Build multi-room run state and the event contract": [
+      {
+        "executionId": "c5032948-0e08-452a-91b1-65f55ea722ae",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794060175238
+      }
+    ],
+    "6. Build the multi-room Phaser scene": [
+      {
+        "executionId": "c5032948-0e08-452a-91b1-65f55ea722ae",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794060176955
+      }
+    ],
+    "8. Wire the React UI": [
+      {
+        "executionId": "c5032948-0e08-452a-91b1-65f55ea722ae",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794061301833
+      }
+    ],
+    "10. Final verification": [
+      {
+        "executionId": "909db9f0-1a07-46a0-bf1b-ec21fa989301",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794066485156
+      }
+    ]
+  }
+}

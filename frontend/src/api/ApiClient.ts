@@ -5,6 +5,7 @@ import type {
   DemoSessionResponse,
   Dungeon,
   Run,
+  RunSummary,
 } from '../types/api'
 
 export interface ApiClient {
@@ -13,4 +14,5 @@ export interface ApiClient {
   startRun(dungeonId: string): Promise<Run>
   submitAttempt(runId: string, req: AttemptRequest): Promise<AnswerResult>
   clearRoom(runId: string, roomId: string): Promise<ClearRoomResponse>
+  finishRun(runId: string): Promise<RunSummary>
 }

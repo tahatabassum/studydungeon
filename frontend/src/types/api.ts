@@ -29,16 +29,22 @@ export interface Question {
   options: string[]
 }
 
+/** Plain string so the backend can add kinds without breaking the frontend. */
+export type MonsterKind = string
+
 export interface Monster {
   id: string
   name: string
   max_hp: number
   question_ids: string[]
+  kind: MonsterKind
 }
 
 export interface Room {
   id: string
   label: string
+  order: number
+  is_boss: boolean
   monster: Monster
 }
 
@@ -54,6 +60,7 @@ export interface Run {
   dungeon_id: string
   player_hp: number
   monster_hp: number
+  current_room_id: string
 }
 
 /** Request body for an attempt. Carries no correctness or damage fields. */
@@ -80,4 +87,13 @@ export interface AnswerResult {
 
 export interface ClearRoomResponse {
   xp_delta: number
+}
+
+export interface RunSummary {
+  score: number
+  xp: number
+  correct: number
+  total: number
+  /** Ratio from 0 to 1. */
+  accuracy: number
 }

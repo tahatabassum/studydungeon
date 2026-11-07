@@ -38,6 +38,14 @@ describe('createHttpClient', () => {
     for (const [, init] of f.mock.calls) expect(init?.credentials).toBe('include')
   })
 
+  it('sends finishRun without a body', async () => {
+    const f = fakeFetch(json({ score: 1, xp: 2, correct: 3, total: 4, accuracy: 0.75 }))
+    const api = createHttpClient('', f as unknown as typeof fetch)
+    const summary = await api.finishRun('r1')
+    expect(summary.accuracy).toBe(0.75)
+    expect(f.mock.calls[0][1]?.body).toBeUndefined()
+  })
+
   it('sends only attempt_id, question_id, selected_answer in the attempt body', async () => {
     const f = fakeFetch(json({}))
     const api = createHttpClient('', f as unknown as typeof fetch)

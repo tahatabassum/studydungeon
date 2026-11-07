@@ -15,6 +15,36 @@ describe('createGameBridge', () => {
     expect(got).toHaveLength(3)
   })
 
+  it('queues and delivers the new dungeon events in order', () => {
+    const bridge = createGameBridge()
+    const got: ToGameEvent[] = []
+    bridge.onToGame((e) => got.push(e))
+    bridge.send({ type: 'load-dungeon', rooms: [] })
+    bridge.send({ type: 'set-muted', value: true })
+    bridge.send({ type: 'gate-open', roomId: 'room-1' })
+    bridge.send({ type: 'set-phase', phase: 'victory' })
+    expect(got).toEqual([])
+    bridge.emit({ type: 'ready' })
+    expect(got).toEqual([
+      { type: 'load-dungeon', rooms: [] },
+      { type: 'set-muted', value: true },
+      { type: 'gate-open', roomId: 'room-1' },
+      { type: 'set-phase', phase: 'victory' },
+    ])
+  })
+
+  it('delivers room-entered and gate-opened to React', () => {
+    const bridge = createGameBridge()
+    const got: FromGameEvent[] = []
+    bridge.on((e) => got.push(e))
+    bridge.emit({ type: 'room-entered', roomId: 'room-2' })
+    bridge.emit({ type: 'gate-opened', roomId: 'room-1' })
+    expect(got).toEqual([
+      { type: 'room-entered', roomId: 'room-2' },
+      { type: 'gate-opened', roomId: 'room-1' },
+    ])
+  })
+
   it('flushes when a handler registers after markReady', () => {
     const bridge = createGameBridge()
     bridge.send({ type: 'reset' })

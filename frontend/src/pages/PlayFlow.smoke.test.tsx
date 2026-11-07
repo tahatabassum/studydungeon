@@ -12,7 +12,8 @@ import type { ApiClient } from '@/api'
 import { createMockAdapter } from '@/api/mock/mockAdapter'
 import { answerKey } from '@/api/mock/answerKey'
 import type { GameBridge, ToGameEvent } from '@/game/events'
-import type { AnswerResult } from '@/types/api'
+import demoDungeon from '@/demo/demoDungeon.json'
+import type { AnswerResult, Dungeon } from '@/types/api'
 
 const h = vi.hoisted(() => ({
   api: null as unknown,
@@ -64,7 +65,7 @@ async function startAndEncounter() {
   expect(await screen.findByText('100 / 100')).toBeTruthy()
   expect(screen.getByText('XP 0')).toBeTruthy()
 
-  await vi.waitFor(() => expect(sent().some((e) => e.type === 'load-room')).toBe(true))
+  await vi.waitFor(() => expect(sent().some((e) => e.type === 'load-dungeon')).toBe(true))
   await vi.waitFor(() => expect(gameBridge()).toBeTruthy())
 
   act(() => {
@@ -108,6 +109,62 @@ describe('play flow smoke test', () => {
       expect(screen.getByRole('progressbar', { name: 'Monster health' }).getAttribute('aria-valuenow')).toBe('40'),
     )
     expect(screen.getByText('XP 10')).toBeTruthy()
+  })
+
+  it('clears room 1, opens the gate, enters room 2 and asks room 2 questions', async () => {
+    const dungeon = demoDungeon as unknown as Dungeon
+    const rooms = [...dungeon.rooms].sort((a, b) => a.order - b.order)
+    const [room1, room2] = rooms
+    const user = userEvent.setup()
+    render(
+      <MemoryRouter initialEntries={['/']}>
+        <SessionProvider>
+          <App />
+        </SessionProvider>
+      </MemoryRouter>,
+    )
+    await user.click(screen.getByRole('button', { name: /try the demo/i }))
+    await vi.waitFor(() => expect(sent().some((e) => e.type === 'load-dungeon')).toBe(true))
+    await vi.waitFor(() => expect(gameBridge()).toBeTruthy())
+    const load = sent().find((e) => e.type === 'load-dungeon') as Extract<ToGameEvent, { type: 'load-dungeon' }>
+    expect(load.rooms).toHaveLength(5)
+
+    // Defeat room 1's monster with correct answers (60 HP, 20 damage each).
+    for (let i = 0; i < 3; i++) {
+      act(() => {
+        gameBridge().emit({ type: 'encounter-started', monsterId: room1.monster.id })
+      })
+      const dialog = await screen.findByRole('dialog')
+      const prompt = within(dialog).getByRole('heading').textContent
+      const q = dungeon.questions.find((x) => x.prompt === prompt)!
+      expect(room1.monster.question_ids).toContain(q.id)
+      await user.click(within(dialog).getByRole('button', { name: new RegExp(`${answerKey[q.id].correct}$`) }))
+      await vi.waitFor(() => expect(sent().filter((e) => e.type === 'apply-result')).toHaveLength(i + 1))
+      act(() => {
+        gameBridge().emit({ type: 'result-animation-done' })
+      })
+      await user.click(await screen.findByRole('button', { name: 'Continue' }))
+    }
+
+    await vi.waitFor(() =>
+      expect(sent().some((e) => e.type === 'gate-open' && e.roomId === room1.id)).toBe(true),
+    )
+    expect(await screen.findByText(/Room cleared/)).toBeTruthy()
+
+    act(() => {
+      gameBridge().emit({ type: 'gate-opened', roomId: room1.id })
+      gameBridge().emit({ type: 'room-entered', roomId: room2.id })
+    })
+    expect(await screen.findByText(`Room 2 of 5: ${room2.label}`)).toBeTruthy()
+
+    act(() => {
+      gameBridge().emit({ type: 'encounter-started', monsterId: room2.monster.id })
+    })
+    const dialog2 = await screen.findByRole('dialog')
+    const prompt2 = within(dialog2).getByRole('heading').textContent
+    const q2 = dungeon.questions.find((x) => x.prompt === prompt2)
+    expect(q2).toBeTruthy()
+    expect(room2.monster.question_ids).toContain(q2!.id)
   })
 
   it('wrong answer: player loses 10 HP, no XP, source line shown', async () => {

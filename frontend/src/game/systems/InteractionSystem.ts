@@ -11,22 +11,25 @@ export class InteractionSystem {
   private readonly prompt: Phaser.GameObjects.Text
   private pulse: Phaser.Tweens.Tween | null = null
   private armed = true
+  private readonly getMonster: () => Monster | null
 
   constructor(
     private readonly scene: Phaser.Scene,
     private readonly player: Player,
-    private readonly monster: Monster,
+    monster: Monster | (() => Monster | null),
     private readonly getPhase: () => GamePhase,
     private readonly bridge: GameBridge | undefined,
     reducedMotion: boolean,
   ) {
+    this.getMonster = typeof monster === 'function' ? monster : () => monster
+    const initial = this.getMonster()
     const kb = scene.input.keyboard
     // enableCapture=false so React inputs keep receiving these keys.
     this.keyE = kb ? kb.addKey(Phaser.Input.Keyboard.KeyCodes.E, false) : null
     this.keySpace = kb ? kb.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE, false) : null
 
     this.prompt = scene.add
-      .text(monster.position.x, monster.position.y - 76, 'Press E to fight', {
+      .text(initial?.position.x ?? 0, (initial?.position.y ?? 0) - 76, 'Press E to fight', {
         fontFamily: 'serif',
         fontSize: '14px',
         color: '#F2E8D5',
@@ -57,15 +60,17 @@ export class InteractionSystem {
       this.consumeKeys()
       return
     }
+    const monster = this.getMonster()
     const inRange =
-      this.monster.alive &&
-      isWithinRange({ x: this.player.x, y: this.player.y }, this.monster.position)
+      !!monster &&
+      monster.alive &&
+      isWithinRange({ x: this.player.x, y: this.player.y }, monster.position)
     this.prompt.setVisible(inRange)
     const pressed = this.consumeKeys()
-    if (inRange && pressed && this.armed) {
+    if (monster && inRange && pressed && this.armed) {
       // Stay disarmed until the phase changes away from exploring and back.
       this.armed = false
-      this.bridge?.emit({ type: 'encounter-started', monsterId: this.monster.id })
+      this.bridge?.emit({ type: 'encounter-started', monsterId: monster.id })
     }
   }
 

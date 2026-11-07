@@ -6,7 +6,7 @@ import { initialRunState, runReducer, type RunAction, type RunState } from './ru
 
 const runs = { numRuns: 100 }
 
-const run: Run = { id: 'r1', dungeon_id: 'd1', player_hp: 100, monster_hp: 60 }
+const run: Run = { id: 'r1', dungeon_id: 'd1', player_hp: 100, monster_hp: 60, current_room_id: 'room-1' }
 
 const reduce = (s: RunState, ...actions: RunAction[]): RunState => actions.reduce(runReducer, s)
 
@@ -158,9 +158,120 @@ describe('runReducer transition guards', () => {
     expect(runReducer(started(), { type: 'reset' })).toEqual(initialRunState)
   })
 
-  it('room-cleared adds xpDelta', () => {
-    const s = runReducer(started(), { type: 'room-cleared', xpDelta: 25 })
-    expect(s.xp).toBe(25)
+  it('room-cleared is ignored while the remembered room HP is above 0', () => {
+    const s = started()
+    expect(runReducer(s, { type: 'room-cleared', xpDelta: 25 })).toBe(s)
+  })
+
+  it('room-cleared adds xpDelta once when room HP is 0', () => {
+    const s = runReducer(settle(started(), mkResult({ monster_hp_remaining: 0, xp_delta: 5 })), {
+      type: 'room-cleared',
+      xpDelta: 25,
+    })
+    expect(s.xp).toBe(30)
     expect(s.phase).toBe('cleared')
+    expect(s.clearedRoomIds).toEqual(['room-1'])
+    expect(runReducer(s, { type: 'room-cleared', xpDelta: 25 })).toBe(s)
+    expect(runReducer(s, { type: 'gate-opened' }).phase).toBe('exploring')
+  })
+})
+
+const mkRoom = (id: string, order: number, boss = false) => ({
+  id,
+  order,
+  is_boss: boss,
+  monster: { max_hp: boss ? 120 : 60 },
+})
+const rooms = [mkRoom('a', 1), mkRoom('b', 2), mkRoom('c', 3, true)]
+const multi = (): RunState =>
+  runReducer(initialRunState, { type: 'run-started', run: { ...run, current_room_id: 'a' }, rooms: [...rooms].reverse() })
+
+/** Defeat the monster of the current room and clear it. */
+const clearCurrent = (s: RunState, xp = 25): RunState =>
+  runReducer(settle(s, mkResult({ monster_hp_remaining: 0 })), { type: 'room-cleared', xpDelta: xp })
+
+describe('runReducer multi-room', () => {
+  it('run-started stores order, boss and per-room HP', () => {
+    const s = multi()
+    expect(s.roomOrder).toEqual(['a', 'b', 'c'])
+    expect(s.currentRoomId).toBe('a')
+    expect(s.bossRoomId).toBe('c')
+    expect(s.roomMaxHp).toEqual({ a: 60, b: 60, c: 120 })
+    expect(s.roomHp).toEqual({ a: 60, b: 60, c: 120 })
+  })
+
+  it('Feature: frontend-03-phaser-core, Property 9: room-entered only after predecessor cleared', () => {
+    // **Validates: Requirements 12.1, 12.2, 12.3, 12.6**
+    const actionArb: fc.Arbitrary<RunAction> = fc.oneof(
+      fc.constantFrom('a', 'b', 'c', 'x').map((roomId): RunAction => ({ type: 'room-entered', roomId })),
+      fc.constantFrom('a', 'b', 'c').map((roomId): RunAction => ({ type: 'room-cleared', roomId, xpDelta: 1 })),
+      fc.constantFrom(0, 30, 60).map(
+        (hp): RunAction => ({ type: 'result-received', result: mkResult({ monster_hp_remaining: hp }) }),
+      ),
+      fc.constantFrom<RunAction>({ type: 'encounter-started' }, { type: 'result-settled' }, { type: 'gate-opened' }),
+    )
+    fc.assert(
+      fc.property(fc.array(actionArb, { maxLength: 40 }), (actions) => {
+        let s = multi()
+        for (const a of actions) {
+          const prev = s
+          s = runReducer(s, a)
+          if (s.currentRoomId !== prev.currentRoomId) {
+            expect(a.type).toBe('room-entered')
+            const idx = s.roomOrder.indexOf(s.currentRoomId as string)
+            expect(idx === 0 || s.clearedRoomIds.includes(s.roomOrder[idx - 1])).toBe(true)
+            expect(s.monsterHp).toBe(s.roomHp[s.currentRoomId as string])
+          }
+          for (const id of s.clearedRoomIds) expect(s.roomHp[id]).toBe(0)
+        }
+      }),
+      runs,
+    )
+  })
+
+  it('walks rooms in order and remembers HP', () => {
+    let s = multi()
+    expect(runReducer(s, { type: 'room-entered', roomId: 'b' })).toBe(s)
+    s = settle(s, mkResult({ monster_hp_remaining: 20 }))
+    expect(s.roomHp.a).toBe(20)
+    s = clearCurrent(s)
+    s = reduce(s, { type: 'gate-opened', roomId: 'a' }, { type: 'room-entered', roomId: 'b' })
+    expect(s.currentRoomId).toBe('b')
+    expect(s.monsterHp).toBe(60)
+    expect(s.maxMonsterHp).toBe(60)
+    expect(runReducer(s, { type: 'room-entered', roomId: 'c' })).toBe(s)
+  })
+
+  it('Feature: frontend-03-phaser-core, Property 10: victory only after boss cleared and summary stored', () => {
+    // **Validates: Requirements 12.4, 12.5, 12.7**
+    const summary = { score: 1, xp: 2, correct: 3, total: 4, accuracy: 0.75 }
+    let s = multi()
+    expect(runReducer(s, { type: 'run-finished', summary })).toBe(s)
+    s = reduce(clearCurrent(s), { type: 'gate-opened' }, { type: 'room-entered', roomId: 'b' })
+    s = reduce(clearCurrent(s), { type: 'gate-opened' }, { type: 'room-entered', roomId: 'c' })
+    expect(runReducer(s, { type: 'run-finished', summary })).toBe(s)
+    s = clearCurrent(s, 100)
+    expect(s.phase).toBe('cleared')
+    expect(s.summary).toBeNull()
+    s = runReducer(s, { type: 'run-finished', summary })
+    expect(s.phase).toBe('victory')
+    expect(s.summary).toEqual(summary)
+    expect(s.xp).toBe(150)
+  })
+
+  it('Feature: frontend-03-phaser-core, Property 10: result-received copies values', () => {
+    // **Validates: Requirements 12.4, 12.7**
+    fc.assert(
+      fc.property(resultArb, (result) => {
+        const s = reduce(multi(), { type: 'encounter-started' }, { type: 'result-received', result })
+        expect(s.playerHp).toBe(result.player_hp_remaining)
+        expect(s.monsterHp).toBe(result.monster_hp_remaining)
+        expect(s.streak).toBe(result.streak)
+        expect(s.xp).toBe(result.xp_delta)
+        expect(s.roomHp.a).toBe(result.monster_hp_remaining)
+        expect(s.phase).not.toBe('victory')
+      }),
+      runs,
+    )
   })
 })
