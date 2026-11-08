@@ -1,0 +1,11 @@
+{
+  "correct": false,
+  "damage_dealt": 0,
+  "monster_hp_remaining": 60,
+  "player_hp_remaining": 90,
+  "score_delta": 0,
+  "xp_delta": 0,
+  "streak": 0,
+  "source": { "page": 3, "chunk_id": "chunk-3" },
+  "review_status": "due"
+}

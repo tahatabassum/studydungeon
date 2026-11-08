@@ -1,0 +1,683 @@
+{
+  "pbtResults": {
+    "7.2 Write property test for weapons": {
+      "status": "passed",
+      "lastRunTimestamp": 1794148608756
+    },
+    "7.6 Write property tests for boss phase and lightning": {
+      "status": "passed",
+      "lastRunTimestamp": 1794148613302
+    },
+    "9.2 Write property test for mock due reviews": {
+      "status": "passed",
+      "lastRunTimestamp": 1794149248247
+    },
+    "9.6 Write property test for revenant counting": {
+      "status": "passed",
+      "lastRunTimestamp": 1794150080894
+    }
+  },
+  "executionHistory": {
+    "1.1 Create the lint, typecheck and test hook": [
+      {
+        "executionId": "781d54e7-4683-4424-9ca2-5630c5560774",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794139961427
+      },
+      {
+        "executionId": "781d54e7-4683-4424-9ca2-5630c5560774",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794140203486
+      }
+    ],
+    "1.2 Write honest entries in the frontend Kiro log": [
+      {
+        "executionId": "781d54e7-4683-4424-9ca2-5630c5560774",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794139961699
+      },
+      {
+        "executionId": "781d54e7-4683-4424-9ca2-5630c5560774",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794140203876
+      }
+    ],
+    "1.3 Draft the UI standards steering proposal": [
+      {
+        "executionId": "781d54e7-4683-4424-9ca2-5630c5560774",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794139961998
+      },
+      {
+        "executionId": "781d54e7-4683-4424-9ca2-5630c5560774",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794140204175
+      }
+    ],
+    "1.4 Write the PROPOSED CONTRACT section in B-to-A.md": [
+      {
+        "executionId": "781d54e7-4683-4424-9ca2-5630c5560774",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794139962695
+      },
+      {
+        "executionId": "781d54e7-4683-4424-9ca2-5630c5560774",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794140204715
+      }
+    ],
+    "1.5 Record the baseline and prepare the plan summary": [
+      {
+        "executionId": "781d54e7-4683-4424-9ca2-5630c5560774",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794139963564
+      },
+      {
+        "executionId": "781d54e7-4683-4424-9ca2-5630c5560774",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794140206017
+      }
+    ],
+    "1. Phase 0: Housekeeping (no gameplay change)": [
+      {
+        "executionId": "781d54e7-4683-4424-9ca2-5630c5560774",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794140206206
+      }
+    ],
+    "2. STOP: Phase 0 checkpoint, plan review": [
+      {
+        "executionId": "ec1e05be-e9cf-4065-acb8-b8d0ef65a5f2",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794140581956
+      },
+      {
+        "executionId": "ec1e05be-e9cf-4065-acb8-b8d0ef65a5f2",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794140588851
+      }
+    ],
+    "3.1 Implement the Viewport_Helper": [
+      {
+        "executionId": "ec1e05be-e9cf-4065-acb8-b8d0ef65a5f2",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794140616923
+      },
+      {
+        "executionId": "ec1e05be-e9cf-4065-acb8-b8d0ef65a5f2",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794141935970
+      }
+    ],
+    "3.2 Write property tests for viewport helpers": [
+      {
+        "executionId": "ec1e05be-e9cf-4065-acb8-b8d0ef65a5f2",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794140617177
+      },
+      {
+        "executionId": "ec1e05be-e9cf-4065-acb8-b8d0ef65a5f2",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794141936570
+      }
+    ],
+    "3.3 Switch the canvas to a viewport-filling transparent stage": [
+      {
+        "executionId": "ec1e05be-e9cf-4065-acb8-b8d0ef65a5f2",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794140618527
+      },
+      {
+        "executionId": "ec1e05be-e9cf-4065-acb8-b8d0ef65a5f2",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794141937515
+      }
+    ],
+    "3.4 Add design tokens and control states": [
+      {
+        "executionId": "ec1e05be-e9cf-4065-acb8-b8d0ef65a5f2",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794140619499
+      },
+      {
+        "executionId": "ec1e05be-e9cf-4065-acb8-b8d0ef65a5f2",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794141938518
+      }
+    ],
+    "3.5 Build the AppShell, Themed_Backdrop and fullscreen": [
+      {
+        "executionId": "ec1e05be-e9cf-4065-acb8-b8d0ef65a5f2",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794140620505
+      },
+      {
+        "executionId": "ec1e05be-e9cf-4065-acb8-b8d0ef65a5f2",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794141939497
+      }
+    ],
+    "3.6 Build the Floating_HUD": [
+      {
+        "executionId": "ec1e05be-e9cf-4065-acb8-b8d0ef65a5f2",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794140621489
+      },
+      {
+        "executionId": "ec1e05be-e9cf-4065-acb8-b8d0ef65a5f2",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794141940497
+      },
+      {
+        "executionId": "9549e78b-4e78-495c-86b1-7f991723f045",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794151564333
+      },
+      {
+        "executionId": "9549e78b-4e78-495c-86b1-7f991723f045",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794151991183
+      }
+    ],
+    "3.7 Add zod validation and the Contract_Error": [
+      {
+        "executionId": "ec1e05be-e9cf-4065-acb8-b8d0ef65a5f2",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794140622609
+      },
+      {
+        "executionId": "ec1e05be-e9cf-4065-acb8-b8d0ef65a5f2",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794141941497
+      }
+    ],
+    "3.8 Add fixtures and the Contract_Suite for existing endpoints": [
+      {
+        "executionId": "ec1e05be-e9cf-4065-acb8-b8d0ef65a5f2",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794140623787
+      },
+      {
+        "executionId": "ec1e05be-e9cf-4065-acb8-b8d0ef65a5f2",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794141942533
+      }
+    ],
+    "3.9 Write property test for schema validation": [
+      {
+        "executionId": "ec1e05be-e9cf-4065-acb8-b8d0ef65a5f2",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794140624755
+      },
+      {
+        "executionId": "ec1e05be-e9cf-4065-acb8-b8d0ef65a5f2",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794141943292
+      }
+    ],
+    "3.10 Add the viewport readout and per-size verification report": [
+      {
+        "executionId": "ec1e05be-e9cf-4065-acb8-b8d0ef65a5f2",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794140625715
+      },
+      {
+        "executionId": "ec1e05be-e9cf-4065-acb8-b8d0ef65a5f2",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794141944515
+      }
+    ],
+    "3.11 Verify and log Phase 1": [
+      {
+        "executionId": "ec1e05be-e9cf-4065-acb8-b8d0ef65a5f2",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794140626554
+      },
+      {
+        "executionId": "ec1e05be-e9cf-4065-acb8-b8d0ef65a5f2",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794141945049
+      }
+    ],
+    "3. Phase 1: Full-screen layout, premium shell and API foundation": [
+      {
+        "executionId": "ec1e05be-e9cf-4065-acb8-b8d0ef65a5f2",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794141945186
+      }
+    ],
+    "4. STOP: Phase 1 checkpoint, shell and layout review": [
+      {
+        "executionId": "ae1a5d8e-cdcc-40b1-97f2-466cb2c1727b",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794143255163
+      },
+      {
+        "executionId": "ae1a5d8e-cdcc-40b1-97f2-466cb2c1727b",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794143263188
+      }
+    ],
+    "5.1 Add pure encounter helpers and the lines data": [
+      {
+        "executionId": "ae1a5d8e-cdcc-40b1-97f2-466cb2c1727b",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794143288569
+      },
+      {
+        "executionId": "ae1a5d8e-cdcc-40b1-97f2-466cb2c1727b",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794145074972
+      }
+    ],
+    "5.2 Write property tests for encounter helpers": [
+      {
+        "executionId": "ae1a5d8e-cdcc-40b1-97f2-466cb2c1727b",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794143289520
+      },
+      {
+        "executionId": "ae1a5d8e-cdcc-40b1-97f2-466cb2c1727b",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794145075360
+      }
+    ],
+    "5.3 Implement the Typewriter": [
+      {
+        "executionId": "ae1a5d8e-cdcc-40b1-97f2-466cb2c1727b",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794143290536
+      },
+      {
+        "executionId": "ae1a5d8e-cdcc-40b1-97f2-466cb2c1727b",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794145076062
+      }
+    ],
+    "5.4 Write property test for the Typewriter": [
+      {
+        "executionId": "ae1a5d8e-cdcc-40b1-97f2-466cb2c1727b",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794143291503
+      },
+      {
+        "executionId": "ae1a5d8e-cdcc-40b1-97f2-466cb2c1727b",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794145077267
+      }
+    ],
+    "5.5 Draw the Ghost and Skeleton portraits": [
+      {
+        "executionId": "ae1a5d8e-cdcc-40b1-97f2-466cb2c1727b",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794143292534
+      },
+      {
+        "executionId": "ae1a5d8e-cdcc-40b1-97f2-466cb2c1727b",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794145078236
+      },
+      {
+        "executionId": "37938e68-d417-4067-9041-37afa83e2050",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794145634252
+      },
+      {
+        "executionId": "37938e68-d417-4067-9041-37afa83e2050",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794146879881
+      }
+    ],
+    "5.6 Draw the Vampire and Witch portraits": [
+      {
+        "executionId": "ae1a5d8e-cdcc-40b1-97f2-466cb2c1727b",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794143293520
+      },
+      {
+        "executionId": "ae1a5d8e-cdcc-40b1-97f2-466cb2c1727b",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794145079241
+      },
+      {
+        "executionId": "37938e68-d417-4067-9041-37afa83e2050",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794145635143
+      },
+      {
+        "executionId": "37938e68-d417-4067-9041-37afa83e2050",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794146880795
+      }
+    ],
+    "5.7 Draw the Clockwork Golem and Exam Warden portraits and the PortraitCanvas": [
+      {
+        "executionId": "ae1a5d8e-cdcc-40b1-97f2-466cb2c1727b",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794143294405
+      },
+      {
+        "executionId": "ae1a5d8e-cdcc-40b1-97f2-466cb2c1727b",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794145080137
+      },
+      {
+        "executionId": "37938e68-d417-4067-9041-37afa83e2050",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794145635625
+      },
+      {
+        "executionId": "37938e68-d417-4067-9041-37afa83e2050",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794146882120
+      }
+    ],
+    "5.8 Build the Speech_Panel and Answer_Grid": [
+      {
+        "executionId": "ae1a5d8e-cdcc-40b1-97f2-466cb2c1727b",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794143295558
+      },
+      {
+        "executionId": "ae1a5d8e-cdcc-40b1-97f2-466cb2c1727b",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794145081272
+      }
+    ],
+    "5.9 Build the EncounterPopup and replace the Question_Panel": [
+      {
+        "executionId": "ae1a5d8e-cdcc-40b1-97f2-466cb2c1727b",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794143296798
+      },
+      {
+        "executionId": "ae1a5d8e-cdcc-40b1-97f2-466cb2c1727b",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794145082497
+      },
+      {
+        "executionId": "37938e68-d417-4067-9041-37afa83e2050",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794145633524
+      },
+      {
+        "executionId": "37938e68-d417-4067-9041-37afa83e2050",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794146882818
+      }
+    ],
+    "5.10 Add the Phaser result feedback": [
+      {
+        "executionId": "ae1a5d8e-cdcc-40b1-97f2-466cb2c1727b",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794143298003
+      },
+      {
+        "executionId": "ae1a5d8e-cdcc-40b1-97f2-466cb2c1727b",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794145083394
+      }
+    ],
+    "5.11 Migrate and add tests": [
+      {
+        "executionId": "ae1a5d8e-cdcc-40b1-97f2-466cb2c1727b",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794143298593
+      },
+      {
+        "executionId": "ae1a5d8e-cdcc-40b1-97f2-466cb2c1727b",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794145084075
+      }
+    ],
+    "5.12 Verify and log Phase 2": [
+      {
+        "executionId": "ae1a5d8e-cdcc-40b1-97f2-466cb2c1727b",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794143299294
+      },
+      {
+        "executionId": "ae1a5d8e-cdcc-40b1-97f2-466cb2c1727b",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794145085093
+      }
+    ],
+    "5. Phase 2: Character-led encounter": [
+      {
+        "executionId": "ae1a5d8e-cdcc-40b1-97f2-466cb2c1727b",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794145085531
+      }
+    ],
+    "6. STOP: Phase 2 checkpoint, encounter review": [
+      {
+        "executionId": "fdbc56d6-1d78-4ea1-8f22-1be4619ef016",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794147598488
+      },
+      {
+        "executionId": "fdbc56d6-1d78-4ea1-8f22-1be4619ef016",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794147606827
+      }
+    ],
+    "7.1 Add weapon and critical data through the contract": [
+      {
+        "executionId": "fdbc56d6-1d78-4ea1-8f22-1be4619ef016",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794147637531
+      },
+      {
+        "executionId": "fdbc56d6-1d78-4ea1-8f22-1be4619ef016",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794148785350
+      }
+    ],
+    "7.2 Write property test for weapons": [
+      {
+        "executionId": "fdbc56d6-1d78-4ea1-8f22-1be4619ef016",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794147638757
+      },
+      {
+        "executionId": "fdbc56d6-1d78-4ea1-8f22-1be4619ef016",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794148786080
+      }
+    ],
+    "7.3 Implement the five weapon strike effects": [
+      {
+        "executionId": "fdbc56d6-1d78-4ea1-8f22-1be4619ef016",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794147639586
+      },
+      {
+        "executionId": "fdbc56d6-1d78-4ea1-8f22-1be4619ef016",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794148786873
+      }
+    ],
+    "7.4 Add the critical hit presentation": [
+      {
+        "executionId": "fdbc56d6-1d78-4ea1-8f22-1be4619ef016",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794147640299
+      },
+      {
+        "executionId": "fdbc56d6-1d78-4ea1-8f22-1be4619ef016",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794148787795
+      }
+    ],
+    "7.5 Implement boss phase and lightning logic": [
+      {
+        "executionId": "fdbc56d6-1d78-4ea1-8f22-1be4619ef016",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794147641510
+      },
+      {
+        "executionId": "fdbc56d6-1d78-4ea1-8f22-1be4619ef016",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794148788800
+      }
+    ],
+    "7.6 Write property tests for boss phase and lightning": [
+      {
+        "executionId": "fdbc56d6-1d78-4ea1-8f22-1be4619ef016",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794147642938
+      },
+      {
+        "executionId": "fdbc56d6-1d78-4ea1-8f22-1be4619ef016",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794148789805
+      }
+    ],
+    "7.7 Implement the enraged boss presentation": [
+      {
+        "executionId": "fdbc56d6-1d78-4ea1-8f22-1be4619ef016",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794147643505
+      },
+      {
+        "executionId": "fdbc56d6-1d78-4ea1-8f22-1be4619ef016",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794148790780
+      }
+    ],
+    "7.8 Build the Armory": [
+      {
+        "executionId": "fdbc56d6-1d78-4ea1-8f22-1be4619ef016",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794147644379
+      },
+      {
+        "executionId": "fdbc56d6-1d78-4ea1-8f22-1be4619ef016",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794148791768
+      }
+    ],
+    "7.9 Verify and log Phase 3": [
+      {
+        "executionId": "fdbc56d6-1d78-4ea1-8f22-1be4619ef016",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794147645408
+      },
+      {
+        "executionId": "fdbc56d6-1d78-4ea1-8f22-1be4619ef016",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794148792780
+      }
+    ],
+    "7. Phase 3: Weapons, criticals and boss phases (presentation only)": [
+      {
+        "executionId": "fdbc56d6-1d78-4ea1-8f22-1be4619ef016",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794148792871
+      }
+    ],
+    "8. STOP: Phase 3 checkpoint, weapons and boss review": [
+      {
+        "executionId": "fdbc56d6-1d78-4ea1-8f22-1be4619ef016",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794148793435
+      },
+      {
+        "executionId": "fdbc56d6-1d78-4ea1-8f22-1be4619ef016",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794148802378
+      }
+    ],
+    "9.1 Add due reviews through the contract": [
+      {
+        "executionId": "fdbc56d6-1d78-4ea1-8f22-1be4619ef016",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794148830022
+      },
+      {
+        "executionId": "fdbc56d6-1d78-4ea1-8f22-1be4619ef016",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794150616299
+      }
+    ],
+    "9.2 Write property test for mock due reviews": [
+      {
+        "executionId": "fdbc56d6-1d78-4ea1-8f22-1be4619ef016",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794148830863
+      },
+      {
+        "executionId": "fdbc56d6-1d78-4ea1-8f22-1be4619ef016",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794150617186
+      }
+    ],
+    "9.3 Implement the RevenantSystem": [
+      {
+        "executionId": "fdbc56d6-1d78-4ea1-8f22-1be4619ef016",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794148831806
+      },
+      {
+        "executionId": "fdbc56d6-1d78-4ea1-8f22-1be4619ef016",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794150619836
+      }
+    ],
+    "9.4 Wire revenants into the play session": [
+      {
+        "executionId": "fdbc56d6-1d78-4ea1-8f22-1be4619ef016",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794148832949
+      },
+      {
+        "executionId": "fdbc56d6-1d78-4ea1-8f22-1be4619ef016",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794150622541
+      }
+    ],
+    "9.5 Add the Haunted memories counter": [
+      {
+        "executionId": "fdbc56d6-1d78-4ea1-8f22-1be4619ef016",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794148833839
+      },
+      {
+        "executionId": "fdbc56d6-1d78-4ea1-8f22-1be4619ef016",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794150630547
+      }
+    ],
+    "9.6 Write property test for revenant counting": [
+      {
+        "executionId": "fdbc56d6-1d78-4ea1-8f22-1be4619ef016",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794148834764
+      },
+      {
+        "executionId": "fdbc56d6-1d78-4ea1-8f22-1be4619ef016",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794150632371
+      }
+    ],
+    "9.7 Verify and log Phase 4": [
+      {
+        "executionId": "fdbc56d6-1d78-4ea1-8f22-1be4619ef016",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794148835826
+      },
+      {
+        "executionId": "fdbc56d6-1d78-4ea1-8f22-1be4619ef016",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794150633252
+      }
+    ],
+    "9. Phase 4: Haunted memories (revenants)": [
+      {
+        "executionId": "fdbc56d6-1d78-4ea1-8f22-1be4619ef016",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794150633409
+      }
+    ]
+  }
+}

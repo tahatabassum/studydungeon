@@ -8,6 +8,7 @@ const CONTROLS: ReadonlyArray<{ keys: readonly string[]; label: string }> = [
   { keys: ['1-4'], label: 'Answer' },
   { keys: ['Enter'], label: 'Next' },
   { keys: ['Esc'], label: 'Pause' },
+  { keys: ['F'], label: 'Fullscreen' },
 ]
 
 export function ControlsHint({ className = '' }: ControlsHintProps) {
@@ -17,7 +18,7 @@ export function ControlsHint({ className = '' }: ControlsHintProps) {
       className={`m-0 flex list-none items-center gap-x-4 overflow-hidden whitespace-nowrap p-0 text-xs text-ink-muted ${className}`.trim()}
     >
       {CONTROLS.map(({ keys, label }) => (
-        <li key={label} className={`flex items-center gap-1 ${label === 'Engage' || label === 'Next' ? 'max-sm:hidden' : '' }`}>
+        <li key={label} className="flex items-center gap-1">
           {keys.map((k, i) => (
             <span key={k} className="flex items-center gap-1">
               {i > 0 && <span aria-hidden="true">/</span>}

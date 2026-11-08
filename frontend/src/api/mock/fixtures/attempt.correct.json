@@ -1,0 +1,14 @@
+{
+  "correct": true,
+  "damage_dealt": 20,
+  "monster_hp_remaining": 40,
+  "player_hp_remaining": 100,
+  "score_delta": 100,
+  "xp_delta": 10,
+  "streak": 1,
+  "source": { "page": 3, "chunk_id": "chunk-3" },
+  "review_status": "not_due",
+  "explanation": "The CPU executes instructions.",
+  "weapon_id": "rusty_dagger",
+  "is_critical": false
+}

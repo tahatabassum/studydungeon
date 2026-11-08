@@ -2,6 +2,7 @@ import type { ApiClient } from './ApiClient'
 import { createHttpClient } from './client'
 
 export { ApiError } from './errors'
+export { ContractError, describeError } from './ContractError'
 export type { ApiClient } from './ApiClient'
 
 export function shouldUseMocks(env: { VITE_USE_MOCKS?: string }): boolean {

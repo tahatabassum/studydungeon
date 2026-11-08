@@ -4,6 +4,7 @@
  * it only displays AnswerResult values it is sent.
  */
 import type { AnswerResult, Room } from '@/types/api'
+import type { BossPhase } from './bossPhase'
 
 export type GamePhase =
   | 'exploring'
@@ -13,6 +14,16 @@ export type GamePhase =
   | 'defeated'
   | 'paused'
   | 'victory'
+
+/**
+ * One Revenant (a haunted memory) to show in a room. Defined here, not imported from the API, so
+ * Phaser keeps its import boundary. `id` is the due-review id; `x` is an optional room-relative hint.
+ */
+export interface RevenantSpawn {
+  id: string
+  questionId: string
+  x?: number
+}
 
 export type ToGameEvent =
   | { type: 'load-dungeon'; rooms: Room[] }
@@ -27,6 +38,17 @@ export type ToGameEvent =
    * the docked question panel. No gameplay effect.
    */
   | { type: 'set-view-inset'; bottomFraction: number }
+  /** Display-only: the shell's measured stage size in CSS pixels (drives camera zoom). */
+  | { type: 'set-viewport'; width: number; height: number }
+  /** Display-only: the encounter pop-up opened for this monster; Phaser dims and acknowledges it. */
+  | { type: 'encounter-open'; monsterId: string; side: 'left' | 'right' }
+  /** Display-only: the encounter pop-up closed (retreat, monster defeated or player defeated). */
+  | { type: 'encounter-close' }
+  /**
+   * Additive, display-only: Revenants for a room. Shown only once that room's monster is defeated,
+   * at most 3, and never block the gate. An empty list clears any shown Revenants.
+   */
+  | { type: 'spawn-revenants'; roomId: string; revenants: RevenantSpawn[] }
 
 export type FromGameEvent =
   | { type: 'ready' }
@@ -35,6 +57,12 @@ export type FromGameEvent =
   | { type: 'pause-requested' }
   | { type: 'room-entered'; roomId: string }
   | { type: 'gate-opened'; roomId: string }
+  /** Additive, display-only: the boss phase derived from HP changed (React switches the ambient bed). */
+  | { type: 'boss-phase-changed'; phase: BossPhase }
+  /** Additive: the player engaged a Revenant (React opens the same encounter with its question). */
+  | { type: 'revenant-engaged'; revenantId: string }
+  /** Additive: a Revenant was laid to rest after a correct answer (the "memory laid to rest" effect played). */
+  | { type: 'revenant-rested'; revenantId: string }
 
 export interface GameBridge {
   /** React side: send an event to the game. Queued until the game is ready. */

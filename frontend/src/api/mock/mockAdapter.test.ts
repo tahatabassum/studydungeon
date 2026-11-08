@@ -277,7 +277,7 @@ describe('multi-room mock behaviour', () => {
 
   it('getProgress starts at level 1 with 100 xp to next, grows after a room clear, levels up at >=100 xp', async () => {
     const { api, run } = await freshRun()
-    await expect(api.getProgress()).resolves.toEqual({ level: 1, total_xp: 0, xp_to_next: 100 })
+    await expect(api.getProgress()).resolves.toMatchObject({ level: 1, total_xp: 0, xp_to_next: 100 })
     await killRoom(api, run.id, 'room-1')
     await api.clearRoom(run.id, 'room-1')
     const p1 = await api.getProgress()

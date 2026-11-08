@@ -1,5 +1,6 @@
 import Phaser from 'phaser'
-import { BRIDGE_KEY, CAMERA_ZOOM, GAME_HEIGHT } from '../config'
+import { BRIDGE_KEY } from '../config'
+import { hudMode, overlayRect, zoomForViewport } from '../viewport'
 import { hashString } from '@/art/room/rng'
 import { AnimatedPieces } from '../systems/AnimatedPieces'
 import { DebugOverlay } from '../systems/DebugOverlay'
@@ -14,6 +15,10 @@ import { Monster } from '../entities/Monster'
 import { Player } from '../entities/Player'
 import { AtmosphereSystem } from '../systems/AtmosphereSystem'
 import { EffectsSystem } from '../systems/EffectsSystem'
+import { EncounterFxSystem } from '../systems/EncounterFxSystem'
+import { WeaponFxSystem } from '../systems/WeaponFxSystem'
+import { BossPhaseSystem } from '../systems/BossPhaseSystem'
+import { RevenantSystem } from '../systems/RevenantSystem'
 import { InteractionSystem } from '../systems/InteractionSystem'
 import { MovementSystem } from '../systems/MovementSystem'
 import { RoomTracker } from '../systems/RoomTracker'
@@ -54,6 +59,10 @@ export class GameScene extends Phaser.Scene {
   private movement: MovementSystem | null = null
   private interaction: InteractionSystem | null = null
   private effects: EffectsSystem | null = null
+  private encounterFx: EncounterFxSystem | null = null
+  private weaponFx: WeaponFxSystem | null = null
+  private bossPhase: BossPhaseSystem | null = null
+  private revenants: RevenantSystem | null = null
   private tracker: RoomTracker | null = null
   private atmosphere: AtmosphereSystem | null = null
   private lighting: LightSystem | null = null
@@ -88,6 +97,12 @@ export class GameScene extends Phaser.Scene {
 
   create(): void {
     this.bridge = this.registry.get(BRIDGE_KEY) as GameBridge | undefined
+    this.encounterFx = new EncounterFxSystem(this, () => this.reducedMotion)
+    this.weaponFx = new WeaponFxSystem(this)
+    this.bossPhase = new BossPhaseSystem(this, this.bridge, () => this.reducedMotion, {
+      atmosphere: () => this.atmosphere,
+      pieces: () => this.pieces,
+    })
     this.effects = new EffectsSystem(
       this,
       this.bridge,
@@ -98,7 +113,17 @@ export class GameScene extends Phaser.Scene {
         gate: null,
       }),
       () => this.reducedMotion,
+      this.encounterFx,
+      { weapons: this.weaponFx, boss: this.bossPhase },
     )
+    this.revenants = new RevenantSystem(this, this.bridge, {
+      player: () => this.player,
+      phase: () => this.phase,
+      reduced: () => this.reducedMotion,
+      originOf: (id) => this.roomInfo.get(id)?.origin ?? null,
+      // Revenants wait until the room monster is defeated, so the gate-open flow is unchanged.
+      monsterDefeated: (id) => this.monsters.get(id)?.alive === false,
+    })
     this.atmosphere = new AtmosphereSystem(this, () => this.reducedMotion)
     this.lighting = new LightSystem(this, () => this.reducedMotion)
     this.pieces = new AnimatedPieces(this, () => this.reducedMotion)
@@ -107,13 +132,28 @@ export class GameScene extends Phaser.Scene {
     this.debug = new DebugOverlay(this, {
       ambientCount: () => this.atmosphere?.activeCount ?? 0,
       textureBytes: () => (this.baker?.estimatedBytes() ?? 0) + SHARED_TEXTURE_BYTES,
+      revenants: () => (this.revenants ? `${this.revenants.activeCount} ghosts, ${this.revenants.fxCount} fx` : '0'),
+      viewport: () => {
+        const { width, height } = this.scale
+        return `viewport ${width}x${height}  zoom ${this.cameras.main.zoom}  canvas ${this.game.canvas.width}x${this.game.canvas.height}  hud ${hudMode(width)}`
+      },
     })
-    this.cameras.main.setZoom(CAMERA_ZOOM)
+    this.scale.on(Phaser.Scale.Events.RESIZE, this.onScaleResize)
+    this.applyViewport()
 
     const off = this.bridge?.onToGame((e) => this.handle(e))
     const cleanup = (): void => {
       off?.()
+      this.scale.off(Phaser.Scale.Events.RESIZE, this.onScaleResize)
       this.effects?.destroy()
+      this.encounterFx?.destroy()
+      this.encounterFx = null
+      this.weaponFx?.destroy()
+      this.weaponFx = null
+      this.bossPhase?.destroy()
+      this.bossPhase = null
+      this.revenants?.destroy()
+      this.revenants = null
       this.atmosphere?.destroy()
       this.atmosphere = null
       this.lighting?.destroy()
@@ -134,6 +174,27 @@ export class GameScene extends Phaser.Scene {
     this.bridge?.emit({ type: 'ready' })
   }
 
+  private readonly onScaleResize = (): void => this.applyViewport()
+
+  /**
+   * RESIZE keeps the canvas equal to the viewport, so the camera size, zoom (D2) and the
+   * screen-space overlays are refit here. Runs on resize only; allocates nothing per frame.
+   */
+  private applyViewport(): void {
+    const { width: w, height: h } = this.scale
+    if (w <= 0 || h <= 0) return
+    const cam = this.cameras.main
+    const zoom = zoomForViewport(w, h)
+    cam.setSize(w, h)
+    cam.setZoom(zoom)
+    const rect = overlayRect(w, h, zoom)
+    this.lighting?.setScreenRect(rect)
+    this.pieces?.setScreenRect(rect)
+    this.transition?.setScreenRect(rect)
+    this.debug?.setScreenRect(rect, zoom)
+    this.applyViewInset(false)
+  }
+
   /** Camera follows the given object. */
   followTarget(target: Phaser.GameObjects.GameObject): void {
     this.cameras.main.startFollow(target, true, 0.1, 0.1)
@@ -149,7 +210,8 @@ export class GameScene extends Phaser.Scene {
    */
   private applyViewInset(animate: boolean): void {
     const cam = this.cameras.main
-    const targetY = -(this.viewInset * GAME_HEIGHT) / 2
+    // Visible world height at the current zoom (equals 540 at zoom 1 on a 960x540 viewport).
+    const targetY = -(this.viewInset * (cam.height / cam.zoom)) / 2
     this.insetTween?.stop()
     this.insetTween = null
     if (animate && !this.reducedMotion) {
@@ -175,6 +237,7 @@ export class GameScene extends Phaser.Scene {
     this.tracker?.update()
     this.lighting?.update(time)
     this.pieces?.update(time)
+    this.revenants?.update(time)
     for (const m of this.monsters.values()) m.tick(time)
     // A gate glows once its room's monster is defeated (derived from existing state only).
     const id = this.tracker?.currentRoomId
@@ -219,6 +282,13 @@ export class GameScene extends Phaser.Scene {
         this.viewInset = clampViewInset(e.bottomFraction)
         this.applyViewInset(true)
         break
+      case 'set-viewport':
+        // The shell measured a size the scale manager has not caught up with: re-read the parent.
+        if (Math.abs(this.scale.width - e.width) > 1 || Math.abs(this.scale.height - e.height) > 1) {
+          this.scale.refresh()
+        }
+        this.applyViewport()
+        break
       case 'reset':
         if (this.rooms.length > 0) this.build()
         break
@@ -226,7 +296,18 @@ export class GameScene extends Phaser.Scene {
         this.gates.get(e.roomId)?.open()
         break
       case 'apply-result':
-        this.effects?.apply(e.result)
+        // While a Revenant is engaged the result belongs to it: the room monster is left untouched.
+        if (!this.revenants?.handleResult(e.result)) this.effects?.apply(e.result)
+        break
+      case 'encounter-open':
+        this.encounterFx?.open()
+        break
+      case 'encounter-close':
+        this.encounterFx?.close()
+        this.revenants?.onEncounterClose()
+        break
+      case 'spawn-revenants':
+        this.revenants?.spawn(e.roomId, e.revenants)
         break
     }
   }
@@ -246,6 +327,7 @@ export class GameScene extends Phaser.Scene {
     this.lighting?.setRoom(info.theme, info.origin, torchesFor({ origin: info.origin }), extra)
     this.lighting?.setMonster(this.monsters.get(roomId) ?? null)
     this.pieces?.setRoom(info.theme, info.origin)
+    this.bossPhase?.reapply()
     const cam = this.cameras.main
     const intro = !this.introduced.has(roomId)
     if (!first && !this.reducedMotion && !(info.boss && intro)) this.transition?.play()
@@ -282,11 +364,16 @@ export class GameScene extends Phaser.Scene {
 
   private teardown(): void {
     this.effects?.reset()
+    this.encounterFx?.reset()
+    this.weaponFx?.reset()
+    this.revenants?.reset()
     this.transition?.end()
     this.atmosphere?.clearRoom()
     this.lighting?.clearRoom()
     this.lighting?.follow(null)
     this.pieces?.clearRoom()
+    // Back to the normal boss phase (announced once so React reverts the ambient bed).
+    this.bossPhase?.reset(true)
     this.baker?.releaseAll()
     this.roomOrder = []
     this.roomWalls.clear()

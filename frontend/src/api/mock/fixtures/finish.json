@@ -1,0 +1,16 @@
+{
+  "score": 600,
+  "xp": 190,
+  "correct": 6,
+  "total": 7,
+  "accuracy": 0.857,
+  "badges_earned": ["first_blood", "boss_slayer"],
+  "leaderboard_rank": 3,
+  "weapon_unlocked": "arcane_staff",
+  "level_up": { "from": 1, "to": 2 },
+  "topic_mastery": [
+    { "room_id": "room-1", "label": "Entry Hall", "percent": 100 },
+    { "room_id": "room-2", "label": "Boss Hall", "percent": 67 }
+  ],
+  "weak_concepts": [{ "text": "RAM is volatile memory.", "page": 4 }]
+}

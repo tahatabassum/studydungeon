@@ -1,0 +1,5 @@
+{
+  "user": { "id": "guest-ab12", "username": "guest-ab12", "is_guest": true },
+  "dungeon_id": "demo-dungeon",
+  "expires_at": "2026-01-02T00:00:00.000Z"
+}

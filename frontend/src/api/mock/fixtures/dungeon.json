@@ -1,0 +1,25 @@
+{
+  "id": "demo-dungeon",
+  "name": "Fixture Dungeon",
+  "rooms": [
+    {
+      "id": "room-1",
+      "label": "Entry Hall",
+      "order": 1,
+      "is_boss": false,
+      "monster": { "id": "monster-1", "name": "Paper Wraith", "max_hp": 60, "question_ids": ["q1", "q2"], "kind": "paper_wraith" }
+    },
+    {
+      "id": "room-2",
+      "label": "Boss Hall",
+      "order": 2,
+      "is_boss": true,
+      "monster": { "id": "monster-2", "name": "Exam Warden", "max_hp": 120, "question_ids": ["q3"], "kind": "exam_warden" }
+    }
+  ],
+  "questions": [
+    { "id": "q1", "type": "mcq", "prompt": "Which component executes program instructions?", "options": ["CPU", "RAM", "Disk", "Fan"] },
+    { "id": "q2", "type": "true_false", "prompt": "RAM keeps data when power is off.", "options": ["True", "False"] },
+    { "id": "q3", "type": "mcq", "prompt": "What does an OS manage?", "options": ["Hardware", "Fonts", "Paper", "Music"] }
+  ]
+}

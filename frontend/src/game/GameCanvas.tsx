@@ -23,8 +23,18 @@ export function GameCanvas({ bridge, className }: GameCanvasProps) {
       // eslint-disable-next-line react-hooks/set-state-in-effect
       setFailed(true)
     }
-    // Phaser polls parent size, but refresh immediately when the stage box changes.
-    const ro = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(() => gameRef.current?.scale.refresh())
+    // Phaser polls parent size, but refresh immediately when the stage box changes (well within 250 ms)
+    // and tell the scene the measured size so it can refit zoom and overlays.
+    const ro =
+      typeof ResizeObserver === 'undefined'
+        ? null
+        : new ResizeObserver((entries) => {
+            gameRef.current?.scale.refresh()
+            const box = entries[0]?.contentRect
+            const width = Math.round(box?.width ?? parent.clientWidth)
+            const height = Math.round(box?.height ?? parent.clientHeight)
+            if (width > 0 && height > 0) bridge.send({ type: 'set-viewport', width, height })
+          })
     ro?.observe(parent)
     return () => {
       ro?.disconnect()

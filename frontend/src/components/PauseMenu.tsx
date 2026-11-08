@@ -3,6 +3,7 @@ import { Button } from './Button'
 import { OverlayFrame } from './OverlayFrame'
 import { PixelSprite } from './PixelSprite'
 import { CHARACTER_SPRITES } from '@/art/sprites'
+import { Armory } from '@/weapons/Armory'
 
 export interface PauseMenuProps {
   onResume(): void
@@ -16,6 +17,9 @@ export interface PauseMenuProps {
   onExit?(): void
   /** When provided, a "Retreat from battle" button is rendered (paused mid-question). */
   onRetreat?(): void
+  /** `progress.weapons` and `progress.level`; the Armory is shown when both are present. */
+  weapons?: readonly { id: string; unlock_level: number }[]
+  level?: number
 }
 
 /**
@@ -30,6 +34,8 @@ export function PauseMenu({
   onToggleMute,
   onExit,
   onRetreat,
+  weapons,
+  level,
 }: PauseMenuProps) {
   return (
     <OverlayFrame
@@ -57,6 +63,7 @@ export function PauseMenu({
             {muted ? 'Sound on' : 'Mute'}
           </Button>
         )}
+        <Armory weapons={weapons} level={level} />
         <Button variant="secondary" onClick={onRestart}>
           Restart
         </Button>

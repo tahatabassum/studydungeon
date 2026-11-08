@@ -84,10 +84,80 @@ describe('Required text and UI pairs on component surfaces', () => {
     expect(contrastRatio(COLORS.BG, COLORS.BONE)).toBeGreaterThanOrEqual(4.5)
   })
 
+  // Phase 2 encounter: the speech panel is parchment (ink to bone, darkest corner tinted 22% ember).
+  it('encounter speech panel text meets 4.5:1 on every parchment tone', () => {
+    const tones = [COLORS.INK, COLORS.BONE, blend(COLORS.EMBER, COLORS.BONE, 22)]
+    const darkDanger = blend(COLORS.BG, COLORS.DANGER, 45)
+    const darkHealth = blend(COLORS.BG, COLORS.HEALTH, 70)
+    for (const tone of tones) {
+      expect(contrastRatio(COLORS.BG, tone), 'body text').toBeGreaterThanOrEqual(4.5)
+      expect(contrastRatio(COLORS.DEEP, tone), 'name plate and speaker line').toBeGreaterThanOrEqual(4.5)
+      expect(contrastRatio(darkDanger, tone), 'incorrect text').toBeGreaterThanOrEqual(4.5)
+      expect(contrastRatio(darkHealth, tone), 'correct text').toBeGreaterThanOrEqual(4.5)
+    }
+  })
+
+  it('encounter focus ring (deep) and number badge (ink on deep) meet their minimums on parchment', () => {
+    for (const tone of [COLORS.INK, COLORS.BONE]) {
+      expect(contrastRatio(COLORS.DEEP, tone)).toBeGreaterThanOrEqual(3)
+    }
+    expect(contrastRatio(COLORS.INK, COLORS.DEEP)).toBeGreaterThanOrEqual(4.5)
+  })
+
+  it('defines the encounter styles with a 55 percent scrim and a visible focus state', () => {
+    const encounter = nodeProcess
+      .getBuiltinModule('node:fs')
+      .readFileSync(`${nodeProcess.cwd()}/src/styles/encounter.css`, 'utf8')
+    expect(encounter).toMatch(/var\(--color-bg\) 55%/)
+    expect(encounter).toMatch(/\.sd-answer:focus-visible/)
+    expect(encounter).toMatch(/\.sd-speech:focus-visible/)
+  })
+
   it('UI borders and glows (magic, pumpkin, magenta) are at least 3:1 on panel', () => {
     for (const c of [COLORS.MAGIC, COLORS.PUMPKIN, COLORS.MAGENTA]) {
       expect(contrastRatio(c, COLORS.PANEL)).toBeGreaterThanOrEqual(3)
     }
+  })
+
+  // Phase 1 premium shell: new text and component pairs.
+  const blend = (fg: number, bg: number, fgPct: number): number => {
+    const ch = (shift: number) =>
+      Math.round(((fg >> shift) & 255) * (fgPct / 100) + ((bg >> shift) & 255) * (1 - fgPct / 100))
+    return (ch(16) << 16) | (ch(8) << 8) | ch(0)
+  }
+
+  it('floating HUD surface (panel at 92%) keeps ink and ink-muted text at 4.5:1 even over a bright stage', () => {
+    for (const stage of [COLORS.BG, COLORS.INK, 0xffffff]) {
+      const surface = blend(COLORS.PANEL, stage, 92)
+      expect(contrastRatio(COLORS.INK, surface), `ink over ${stage.toString(16)}`).toBeGreaterThanOrEqual(4.5)
+      expect(contrastRatio(COLORS.INK_MUTED, surface), `ink-muted over ${stage.toString(16)}`).toBeGreaterThanOrEqual(4.5)
+    }
+  })
+
+  it('pressed and hover primary button text (bg on accent, brightness 110%) is at least 4.5:1', () => {
+    const bright = (c: number): number => {
+      const ch = (shift: number) => Math.min(255, Math.round(((c >> shift) & 255) * 1.1))
+      return (ch(16) << 16) | (ch(8) << 8) | ch(0)
+    }
+    expect(contrastRatio(COLORS.BG, bright(COLORS.ACCENT))).toBeGreaterThanOrEqual(4.5)
+  })
+
+  it('focus ring (accent) is at least 3:1 on bg, panel, deep and the HUD surface', () => {
+    for (const bg of [COLORS.BG, COLORS.PANEL, COLORS.DEEP, blend(COLORS.PANEL, COLORS.BG, 92)]) {
+      expect(contrastRatio(COLORS.ACCENT, bg)).toBeGreaterThanOrEqual(3)
+    }
+  })
+
+  it('secondary button hover (ink on deep) is at least 4.5:1', () => {
+    expect(contrastRatio(COLORS.INK, COLORS.DEEP)).toBeGreaterThanOrEqual(4.5)
+  })
+
+  it('defines the layout tokens, HUD surface and shared control states', () => {
+    for (const name of ['--sd-space-4', '--sd-text-md', '--sd-glow-accent', '--sd-elev-2', '--sd-hud-surface', '--sd-dur-base']) {
+      expect(css, name).toContain(`${name}:`)
+    }
+    expect(css).toMatch(/\.sd-control:active/)
+    expect(css).toMatch(/\.sd-control:focus-visible/)
   })
 
   it('witch colour is never used as a text colour', () => {

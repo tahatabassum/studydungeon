@@ -1,0 +1,7 @@
+{
+  "id": "run-1",
+  "dungeon_id": "demo-dungeon",
+  "player_hp": 100,
+  "monster_hp": 60,
+  "current_room_id": "room-1"
+}

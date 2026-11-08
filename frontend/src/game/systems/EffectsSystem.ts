@@ -11,6 +11,10 @@ import { sfx } from '@/audio/sfx'
 import { feedbackPlan, type FeedbackPlan } from './feedback'
 import { ObjectPool } from './objectPool'
 import { ensureSparkTexture } from './sparkTexture'
+import type { EncounterFxSystem } from './EncounterFxSystem'
+import { createOnceLatch } from './onceLatch'
+import type { BossPhaseSystem } from './BossPhaseSystem'
+import type { WeaponFxSystem, StrikeTarget } from './WeaponFxSystem'
 
 const PROJECTILE_MS = 250
 const LUNGE_MS = 160
@@ -20,6 +24,12 @@ const TEXT_POOL = 4
 const TINT_POOL = 2
 /** Purple-red used for the curse tint. */
 const CURSE_COLOR = 0x8a2a5c
+
+/** Optional Phase 3 collaborators: weapon strikes (with critical flash) and the boss phase. */
+export interface EffectsExtras {
+  weapons?: WeaponFxSystem
+  boss?: BossPhaseSystem
+}
 
 export interface EffectsTargets {
   player: Player | null
@@ -40,6 +50,8 @@ export class EffectsSystem {
     private readonly bridge: GameBridge | undefined,
     private readonly targets: () => EffectsTargets,
     private readonly isReduced: () => boolean,
+    private readonly fx?: EncounterFxSystem,
+    private readonly extras: EffectsExtras = {},
   ) {
     this.sparks = new ObjectPool({
       create: () => scene.add.image(0, 0, 'spark'),
@@ -104,24 +116,36 @@ export class EffectsSystem {
     const has = (s: (typeof plan.steps)[number]): boolean => plan.steps.includes(s)
     const { player, monster, gate } = this.targets()
 
-    let finished = false
-    const finish = (): void => {
-      if (finished) return
-      finished = true
+    // Once-latch: result-animation-done is emitted exactly once per result, however many paths reach it.
+    const latch = createOnceLatch(() => {
       this.finishPending = null
       this.bridge?.emit({ type: 'result-animation-done' })
+    })
+    const finish = (): void => {
+      latch.fire()
     }
     this.finishPending = finish
 
+    const weapons = this.extras.weapons
+    const target: StrikeTarget | null = monster
+      ? { x: monster.position.x, y: monster.position.y, footY: monster.footY, unit: monster.isBoss ? 1.5 : 1 }
+      : null
+    const side: -1 | 1 = player && monster && player.x >= monster.position.x ? 1 : -1
+
     let impact = 0
     if (has('projectile') && player && monster && !reduced) {
-      this.fireProjectile(player, monster)
+      if (weapons && target) {
+        // The weapon named by the result (dagger when absent or unknown) strikes the monster.
+        impact = weapons.strike(result.weapon_id, target, side)
+      } else {
+        this.fireProjectile(player, monster)
+        impact = PROJECTILE_MS
+      }
       sfx.play('attack')
-      impact = PROJECTILE_MS
     } else if (has('monster-attack') && player && monster) {
       sfx.play('attack')
       monster.playAttack()
-      monster.nudge(player.x < monster.position.x ? -28 : 28, LUNGE_MS)
+      monster.nudge(player.x < monster.position.x ? (monster.enraged ? -44 : -28) : monster.enraged ? 44 : 28, LUNGE_MS)
       impact = reduced ? 0 : LUNGE_MS
     }
 
@@ -135,12 +159,23 @@ export class EffectsSystem {
       const fb = feedbackPlan(result.correct, reduced)
       if (fb.kind === 'wisp' && monster) this.wispBurst(monster.position.x, monster.position.y - 10, fb)
       if (fb.kind === 'curse') this.curseTint(fb)
+      // Reduced_Motion: static markers on the monster (weapon shape, verdict dot) instead of moving bursts.
+      if (reduced && monster) {
+        if (result.correct && weapons && target) weapons.marker(result.weapon_id, target)
+        this.fx?.hitMarker(monster.position.x, monster.position.y - 10, result.correct)
+      }
+      // Critical hit: pooled white flash at alpha 0.35 (static marker when reduced). Damage is unchanged.
+      if (result.correct && result.is_critical === true && weapons && target) weapons.critical(target, reduced)
       if (has('damage-number') && plan.damageText && monster) {
         this.floatText(monster.position.x, monster.position.y - 40, plan.damageText, CSS_COLORS.ACCENT, reduced)
       }
-      if (has('monster-hp')) monster?.setHp(result.monster_hp_remaining, true)
+      if (has('monster-hp') && monster) {
+        monster.setHp(result.monster_hp_remaining, true)
+        // Boss phase comes only from the HP the backend sent.
+        this.extras.boss?.onMonsterHp(monster, result.monster_hp_remaining)
+      }
       if (has('player-flash')) player?.flashHit()
-      if (has('camera-shake')) this.scene.cameras.main.shake(plan.shakeMs, 0.004)
+      if (has('camera-shake')) this.scene.cameras.main.shake(plan.shakeMs, monster?.enraged ? 0.007 : 0.004)
       if (!result.correct && player) {
         this.floatText(player.x, player.y - 30, 'Ouch!', CSS_COLORS.DANGER, reduced)
       }
