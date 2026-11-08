@@ -3,7 +3,7 @@
 ## Repository Requirements
 - [x] Person A Backend Domain completely implemented and tested (Owner: Person A)
 - [x] Person B Frontend Domain completely implemented (Owner: Person B)
-- [x] MIT License present in root with copyright holder preserved (Owner: Both)
+- [x] MIT License present in root with copyright holder preserved: "M Taha Tabassum" (Owner: Both)
 - [x] `.kiro/` directory fully tracked in git without exclusions (Owner: Both)
 - [x] Zero real secrets or database files committed in git tree (Owner: Both)
 - [x] `.env.example` templates provided with placeholders only (Owner: Person A)
@@ -12,12 +12,15 @@
 - [x] FastAPI production container entrypoint runs migrations before uvicorn startup (Owner: Person A)
 - [x] External PostgreSQL (Neon) compatibility with async SQLAlchemy (Owner: Person A)
 - [x] End-to-end smoke verification script passing 100% of scenarios (Owner: Person A)
+- [x] Frontend contract parity script and automated test passing (Owner: Person A)
 - [x] "Try the Demo" zero-AI guest session playable without sign-up or LLM keys (Owner: Both)
 - [x] Offline fallback demo JSON provided for frontend development (Owner: Person A)
 
-## Devpost & Documentation
-- [x] Kiro activity log documenting all specs, break-it rounds, and bug fixes (Owner: Person A)
-- [x] `docs/openapi.json` exported and up-to-date (Owner: Person A)
-- [ ] Devpost writeup filled with authentic project journey (Owner: Both)
-- [ ] Demo video recorded showcasing 2D dungeon combat and note generation (Owner: Person B)
-
+## Human Action Items (Only the Humans Can Do)
+- [ ] Merge PR `feature/backend-02-ingestion` into `main` on GitHub (Owner: Human)
+- [ ] Set up Neon PostgreSQL database and copy connection string (Owner: Human)
+- [ ] Deploy Render web service with Docker runtime and configured env vars (Owner: Human)
+- [ ] Deploy Vercel frontend with proxy rewrite rule and `VITE_USE_MOCKS=false` (Owner: Human)
+- [ ] Run `python backend/scripts/live_gemini_check.py` with real API key to verify live Gemini (Owner: Human)
+- [ ] Record 2-3 minute gameplay video showcasing retro dungeon combat and review (Owner: Human)
+- [ ] Submit on Devpost before deadline: Dec 4, 2026, 2:00 PM PT (Dec 5 3:00 AM PKT), target Dec 3 (Owner: Human)

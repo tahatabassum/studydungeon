@@ -51,3 +51,17 @@ alembic downgrade base
 # Verify schema synchronization
 alembic check
 ```
+
+
+### Supported Files & Limits
+- **File Types**: PDF, DOCX, PPTX, TXT, PNG, JPEG.
+- **Upload Constraints**: Maximum file size 15 MB (`MAX_UPLOAD_MB=15`), maximum 30 pages per document, minimum 500 extractable characters (`INGESTION_MIN_CHARS=500`).
+- **Quota**: Maximum 5 documents per registered user; guest accounts cannot upload or trigger generation.
+
+### Public Demo & Try-It-Out Experience
+- Guests can immediately test gameplay via `POST /demo/session`.
+- Includes a fully grounded, pre-seeded academic computer architecture dungeon with 3 rooms and a final boss.
+- Combat is 100% playable offline without requiring Gemini API quotas or credentials.
+
+### License
+- StudyDungeon is licensed under the MIT License. Copyright (c) 2026 M Taha Tabassum.
