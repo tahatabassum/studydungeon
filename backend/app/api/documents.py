@@ -139,7 +139,7 @@ async def upload_document(
     max_bytes = settings.MAX_UPLOAD_MB * 1024 * 1024
     if len(file_bytes) > max_bytes:
         raise HTTPException(
-            status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
+            status_code=status.HTTP_413_CONTENT_TOO_LARGE,
             detail={"code": "FILE_TOO_LARGE", "message": f"File exceeds maximum allowed size of {settings.MAX_UPLOAD_MB}MB."},
         )
 
