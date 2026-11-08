@@ -31,6 +31,11 @@ function expectAnswerInvariants(r: AnswerResult): void {
   expect(r.streak).toBeGreaterThanOrEqual(0)
   if (!r.correct) expect(r.damage_dealt).toBe(0)
   if (r.correct) expect(r.streak).toBeGreaterThan(0)
+  // PROPOSED presentation fields: optional, but well-formed when present.
+  if (r.weapon_id !== undefined) expect(r.weapon_id.length).toBeGreaterThan(0)
+  if (r.is_critical !== undefined) expect(typeof r.is_critical).toBe('boolean')
+  // A critical hit never changes damage, so it can only follow a correct answer.
+  if (r.is_critical === true) expect(r.correct).toBe(true)
 }
 
 export function defineContractSuite(opts: ContractSuiteOptions): void {
@@ -90,6 +95,8 @@ export function defineContractSuite(opts: ContractSuiteOptions): void {
       expect(p.level).toBeGreaterThanOrEqual(1)
       expect(p.xp_to_next).toBeGreaterThan(0)
       expect(p.total_xp).toBeGreaterThanOrEqual(0)
+      // PROPOSED: when the weapon list is present, every entry has a positive unlock level.
+      for (const w of p.weapons ?? []) expect(w.unlock_level).toBeGreaterThanOrEqual(1)
     })
 
     const answer = opts.correctAnswer

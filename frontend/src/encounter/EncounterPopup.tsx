@@ -15,6 +15,10 @@ import { poseFor } from './pose'
 import { SpeechPanel } from './SpeechPanel'
 import { Typewriter } from './Typewriter'
 
+/** Damage number size: 1.25rem, and 1.5x of that on a critical hit (Req 7.4). */
+export const BASE_FONT = '1.25rem'
+export const CRIT_FONT = '1.875rem'
+
 /** Slide-out time; the pop-up stays mounted this long after the encounter ends. */
 export const EXIT_MS = 300
 
@@ -110,6 +114,8 @@ function EncounterBody({
   const answerable = canAnswer(combat) && !closing
   const waiting = isWaiting(combat)
   const shownResult = showsResult(combat) ? (result ?? null) : null
+  // Presentation only: the backend's is_critical flag enlarges the damage number; damage is unchanged.
+  const critical = shownResult !== null && shownResult.correct && shownResult.is_critical === true
 
   const lines = linesFor(monsterKind)
   const seed = hashString(question.id) + (shownResult?.streak ?? 0)
@@ -310,6 +316,26 @@ function EncounterBody({
                   ? `You dealt ${shownResult.damage_dealt} damage`
                   : `You took ${damageReceived ?? 0} damage`}
               </p>
+              {shownResult.correct && (
+                <p className="m-0 inline-flex items-baseline gap-2 font-bold text-deep">
+                  {/* The number is the backend's damage_dealt; a critical hit only enlarges it (1.5x). */}
+                  <span
+                    data-testid="damage-number"
+                    data-critical={critical ? 'true' : undefined}
+                    style={{ fontSize: critical ? CRIT_FONT : BASE_FONT, lineHeight: 1 }}
+                  >
+                    {`-${shownResult.damage_dealt}`}
+                  </span>
+                  {critical && (
+                    <span
+                      data-testid="critical-marker"
+                      className="text-sm text-[color-mix(in_srgb,var(--color-danger),var(--color-bg)_45%)]"
+                    >
+                      Critical hit!
+                    </span>
+                  )}
+                </p>
+              )}
             </div>
             <SourceLine
               source={shownResult.source}

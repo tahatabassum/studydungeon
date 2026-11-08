@@ -3,11 +3,15 @@ import { ApiError } from '../errors'
 import demoDungeonJson from '../../demo/demoDungeon.json'
 import { BOSS_PROFILE, INITIAL_STATE, ROOM_PROFILE, applyAnswer } from '../../demo/rules'
 import type { AnswerResult, Dungeon, ProgressInfo, Room, RunSummary } from '../../types/api'
+import { WEAPONS, weaponForLevel } from '../../weapons/weapons'
 import { answerKey } from './answerKey'
+import { readMockLevel } from './mockLevel'
 
 export interface MockAdapterOptions {
   /** Artificial latency in ms. Default 0. */
   delayMs?: number
+  /** Dev override of the player level (from `?mockLevel=N`); otherwise derived from XP. */
+  level?: number
 }
 
 const ROOM_CLEAR_XP = 25
@@ -66,6 +70,14 @@ export function createMockAdapter(options: MockAdapterOptions = {}): ApiClient {
   const delayMs = options.delayMs ?? 0
   const runs = new Map<string, RunRecord>()
   let runCounter = 0
+
+  const totalXp = (): number => {
+    let sum = 0
+    for (const run of runs.values()) sum += run.xp
+    return sum
+  }
+  /** Player level: the dev override when given, else derived from cumulative XP. */
+  const playerLevel = (): number => options.level ?? progressFromXp(totalXp()).level
 
   const wait = async (): Promise<void> => {
     if (delayMs > 0) await new Promise((resolve) => setTimeout(resolve, delayMs))
@@ -148,6 +160,9 @@ export function createMockAdapter(options: MockAdapterOptions = {}): ApiClient {
         ...result,
         source: { page: entry.page, chunk_id: entry.chunk_id },
         ...(entry.explanation !== undefined ? { explanation: entry.explanation } : {}),
+        // PROPOSED, presentation only: best weapon for the level; crit on streak multiples of 3.
+        weapon_id: weaponForLevel(playerLevel()).id,
+        is_critical: isCorrect && next.streak > 0 && next.streak % 3 === 0,
       }
       run.playerHp = next.playerHp
       run.streak = next.streak
@@ -196,11 +211,16 @@ export function createMockAdapter(options: MockAdapterOptions = {}): ApiClient {
     async getProgress() {
       await wait()
       // Cumulative across all runs of this adapter instance (answer xp + clear xp, summed).
-      let totalXp = 0
-      for (const run of runs.values()) totalXp += run.xp
-      return progressFromXp(totalXp)
+      const base = progressFromXp(totalXp())
+      const level = options.level ?? base.level
+      return {
+        ...base,
+        level,
+        // PROPOSED: the weapon list the Armory reads.
+        weapons: WEAPONS.map((w) => ({ id: w.id, unlock_level: w.unlockLevel })),
+      }
     },
   }
 }
-export const mockAdapter: ApiClient = createMockAdapter()
+export const mockAdapter: ApiClient = createMockAdapter({ level: readMockLevel() })
 export default mockAdapter

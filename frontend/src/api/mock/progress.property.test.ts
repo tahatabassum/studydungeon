@@ -85,6 +85,6 @@ describe('Property 17: Mock progress is monotonic', () => {
 
   it('starts at level 1 with 0 XP and 100 XP to next', async () => {
     const p = await createMockAdapter().getProgress()
-    expect(p).toEqual({ level: 1, total_xp: 0, xp_to_next: 100 })
+    expect(p).toMatchObject({ level: 1, total_xp: 0, xp_to_next: 100 })
   })
 })

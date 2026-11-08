@@ -2,6 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import {
   AmbientEngine,
   BED_GAIN,
+  ENRAGED_DRONE_GAIN,
   FIRST_MAX_MS,
   FIRST_MIN_MS,
   MAX_INTERVAL_MS,
@@ -83,6 +84,34 @@ describe('AmbientEngine', () => {
     expect(f.gains[0].gain.value).toBe(MASTER_GAIN)
     expect(f.gains[1].gain.value).toBeLessThanOrEqual(0.05)
     expect(f.stats.bedStarted).toBe(1)
+  })
+
+  it('switches to a quiet enraged variant: sub-drone below the bed ceiling, darker bed, muted stays silent', () => {
+    const f = fakeContext()
+    const engine = new AmbientEngine(() => f.ctx, () => 0)
+    engine.start()
+    const oscBefore = f.stats.oneShots
+    engine.setEnraged(true)
+    expect(engine.isEnraged()).toBe(true)
+    // One extra oscillator (the sub-drone) started, with a gain under the 5 percent bed ceiling.
+    expect(f.stats.oneShots).toBe(oscBefore + 1)
+    expect(ENRAGED_DRONE_GAIN).toBeLessThanOrEqual(0.05)
+    expect(f.gains.at(-1)?.gain.value).toBe(ENRAGED_DRONE_GAIN)
+    // Enraged one-shots are creaks only (no sine owl hoots).
+    vi.advanceTimersByTime(FIRST_MAX_MS)
+    expect(f.stats.types.slice(oscBefore + 1)).not.toContain('sine')
+    engine.setEnraged(false)
+    expect(engine.isEnraged()).toBe(false)
+    engine.setMuted(true)
+    expect(f.gains[0].gain.value).toBe(0)
+  })
+
+  it('remembers enraged while stopped and applies it on start', () => {
+    const f = fakeContext()
+    const engine = new AmbientEngine(() => f.ctx, () => 0)
+    engine.setEnraged(true)
+    engine.start()
+    expect(f.stats.types).toContain('sine')
   })
 
   it('never ramps a one-shot above the gain ceiling', () => {

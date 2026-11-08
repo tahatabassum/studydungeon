@@ -138,6 +138,8 @@ export default function PlayPage() {
           muted={s.muted}
           onToggleMute={s.toggleMute}
           onExit={() => setConfirmingExit(true)}
+          weapons={s.progress?.weapons}
+          level={s.progress?.level}
         />
       )}
       {state.phase === 'paused' && confirmingExit && (

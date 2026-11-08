@@ -16,6 +16,8 @@ import { Player } from '../entities/Player'
 import { AtmosphereSystem } from '../systems/AtmosphereSystem'
 import { EffectsSystem } from '../systems/EffectsSystem'
 import { EncounterFxSystem } from '../systems/EncounterFxSystem'
+import { WeaponFxSystem } from '../systems/WeaponFxSystem'
+import { BossPhaseSystem } from '../systems/BossPhaseSystem'
 import { InteractionSystem } from '../systems/InteractionSystem'
 import { MovementSystem } from '../systems/MovementSystem'
 import { RoomTracker } from '../systems/RoomTracker'
@@ -57,6 +59,8 @@ export class GameScene extends Phaser.Scene {
   private interaction: InteractionSystem | null = null
   private effects: EffectsSystem | null = null
   private encounterFx: EncounterFxSystem | null = null
+  private weaponFx: WeaponFxSystem | null = null
+  private bossPhase: BossPhaseSystem | null = null
   private tracker: RoomTracker | null = null
   private atmosphere: AtmosphereSystem | null = null
   private lighting: LightSystem | null = null
@@ -92,6 +96,11 @@ export class GameScene extends Phaser.Scene {
   create(): void {
     this.bridge = this.registry.get(BRIDGE_KEY) as GameBridge | undefined
     this.encounterFx = new EncounterFxSystem(this, () => this.reducedMotion)
+    this.weaponFx = new WeaponFxSystem(this)
+    this.bossPhase = new BossPhaseSystem(this, this.bridge, () => this.reducedMotion, {
+      atmosphere: () => this.atmosphere,
+      pieces: () => this.pieces,
+    })
     this.effects = new EffectsSystem(
       this,
       this.bridge,
@@ -103,6 +112,7 @@ export class GameScene extends Phaser.Scene {
       }),
       () => this.reducedMotion,
       this.encounterFx,
+      { weapons: this.weaponFx, boss: this.bossPhase },
     )
     this.atmosphere = new AtmosphereSystem(this, () => this.reducedMotion)
     this.lighting = new LightSystem(this, () => this.reducedMotion)
@@ -127,6 +137,10 @@ export class GameScene extends Phaser.Scene {
       this.effects?.destroy()
       this.encounterFx?.destroy()
       this.encounterFx = null
+      this.weaponFx?.destroy()
+      this.weaponFx = null
+      this.bossPhase?.destroy()
+      this.bossPhase = null
       this.atmosphere?.destroy()
       this.atmosphere = null
       this.lighting?.destroy()
@@ -294,6 +308,7 @@ export class GameScene extends Phaser.Scene {
     this.lighting?.setRoom(info.theme, info.origin, torchesFor({ origin: info.origin }), extra)
     this.lighting?.setMonster(this.monsters.get(roomId) ?? null)
     this.pieces?.setRoom(info.theme, info.origin)
+    this.bossPhase?.reapply()
     const cam = this.cameras.main
     const intro = !this.introduced.has(roomId)
     if (!first && !this.reducedMotion && !(info.boss && intro)) this.transition?.play()
@@ -331,11 +346,14 @@ export class GameScene extends Phaser.Scene {
   private teardown(): void {
     this.effects?.reset()
     this.encounterFx?.reset()
+    this.weaponFx?.reset()
     this.transition?.end()
     this.atmosphere?.clearRoom()
     this.lighting?.clearRoom()
     this.lighting?.follow(null)
     this.pieces?.clearRoom()
+    // Back to the normal boss phase (announced once so React reverts the ambient bed).
+    this.bossPhase?.reset(true)
     this.baker?.releaseAll()
     this.roomOrder = []
     this.roomWalls.clear()

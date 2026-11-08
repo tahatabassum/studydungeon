@@ -114,9 +114,18 @@ export function usePlaySession() {
   }, [bridge, muted])
 
   // Ambient bed ends when leaving the page, and on victory or defeat.
-  useEffect(() => () => ambient.stop(), [])
+  useEffect(
+    () => () => {
+      ambient.setEnraged(false)
+      ambient.stop()
+    },
+    [],
+  )
   useEffect(() => {
-    if (state.phase === 'victory' || state.phase === 'defeated') ambient.stop()
+    if (state.phase === 'victory' || state.phase === 'defeated') {
+      ambient.setEnraged(false)
+      ambient.stop()
+    }
   }, [state.phase])
 
   // Audio may only start after a user gesture: unlock on the first key or pointer press.
@@ -185,6 +194,9 @@ export function usePlaySession() {
         dispatch({ type: 'room-entered', roomId: e.roomId })
       } else if (e.type === 'gate-opened') {
         dispatch({ type: 'gate-opened', roomId: e.roomId })
+      } else if (e.type === 'boss-phase-changed') {
+        // Enraged boss: switch the ambient bed to its enraged variant; any other phase reverts it.
+        ambient.setEnraged(e.phase === 'enraged')
       }
     })
   }, [bridge, dungeon])

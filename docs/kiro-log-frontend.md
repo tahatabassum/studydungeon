@@ -112,3 +112,27 @@ Zoom comes from `zoomForViewport` (run by `viewport.property.test.ts`). HUD mode
 - `EncounterFxSystem` (light dim ack, static hit marker under Reduced_Motion, pools of one each) and a once-latch for `result-animation-done`. The wisp burst, curse flash and strike stay in the existing pooled `EffectsSystem` (24 sparks, unchanged budget).
 - `QuestionPanel.tsx` and its test were deleted after the assertions moved to `EncounterPopup.test.tsx`.
 - Not measured here: fps and particle counts from `?debug=1` for the encounter-open and result states (no browser session was driven for gameplay). Portraits were rendered once in headless Edge to check the art.
+
+## Phase 3: weapons, criticals and boss phases (frontend-07)
+
+Presentation only. `combatMachine`, damage values and the Event_Bridge boundary are unchanged; Phaser still imports nothing from api, demo, state, offline or leaderboard.
+
+- 7.1 `src/weapons/weapons.ts` (`WEAPONS`, `resolveWeapon`, `weaponForLevel`, `armoryEntries`). `weapon_id` and `is_critical` were already on the schema, types and fixtures from Phase 1; the contract suite now checks them (well-formed, critical only after a correct answer) plus mock-specific checks (crit on streak 3, weapon by level, weapon list in progress). The mock sends the best weapon for the level (dagger L1, staff L2, crossbow L3, hammer L5, sigil L8), sets `is_critical` on streak multiples of 3 and keeps damage at 20. Dev-only `?mockLevel=N` (`src/api/mock/mockLevel.ts`) sets the mock level and is ignored outside dev builds.
+- 7.3 `src/game/fx/weapons.ts` (pure descriptors) and `WeaponFxSystem` (pool of 16 Graphics, drawn once per acquire, only transforms tweened, additive blend so the strike reads through the 55 percent scrim): dagger X slash, staff violet bolt with ring, crossbow arrow with impact star, hammer ground shockwave with cracks (and a 90 ms shake), sigil floor glyph with six flame tongues. Reduced_Motion shows a static weapon-shaped marker. `EffectsSystem` plays the strike on a correct answer in place of the old spark projectile when the system is present.
+- 7.4 Critical hit: the popup shows the backend `damage_dealt` as a damage number at 1.25rem, 1.875rem (1.5x) when critical, with a "Critical hit!" label (also the static marker for assistive tech). The scene adds a pooled white flash at alpha 0.35 plus a star pop, or a static star under Reduced_Motion.
+- 7.5 `src/game/bossPhase.ts` and `src/game/lightning.ts` (`nextLightningAt`, spacing 8000 ms, peak 0.25, Infinity under Reduced_Motion). The existing frontend-06 boss lightning overlay in `AnimatedPieces` now schedules through `nextLightningAt`; no second overlay was created.
+- 7.7 `BossPhaseSystem`: phase from the HP the backend sent, event `boss-phase-changed` (additive FromGameEvent). Enraged: red sprite tint, red aura and eyes, faint red screen tint, heavier lunge and roar (`Monster.roar`), two extra fog blobs and thicker base fog (not counted as particles), more frequent lightning (8 to 11 s apart instead of 8 to 20 s), stronger shake on a wrong answer. Reduced_Motion: tint only. `usePlaySession` switches `ambient.setEnraged` on that event: darker bed, quiet 55 Hz sub-drone at gain 0.03 (below the 0.05 bed ceiling), creaks only, still silenced by mute. Reverts on defeat, restart, victory or leaving the page.
+- 7.8 `src/weapons/Armory.tsx` mounted in `PauseMenu` (lucide icons, lock icon plus text for locked). Mock progress now returns `weapons`.
+
+### Phase 3 deviations
+
+- Two existing assertions on `getProgress` used strict `toEqual` on `{ level, total_xp, xp_to_next }`; they now use `toMatchObject` because progress also carries the PROPOSED `weapons` list.
+- The Exam Warden portrait intensity switch (optional) was not done.
+
+### Phase 3 performance notes (no browser was driven here)
+
+- Frame rate was not measured. Pooled object counts per effect, from the code: dagger 3, staff 3, crossbow 3, hammer 4, sigil 8 Graphics (pool max 16, plus 1 for a critical star, plus 1 flash rectangle). Enraged boss adds 2 fog ellipses and 1 tint rectangle, no sparks; ambient particles stay within `MAX_PARTICLES` 24. Read fps from `/play?debug=1` for each weapon with `?mockLevel=1,2,3,5,8` and for the enraged boss.
+
+### Phase 3 test counts
+
+- Typecheck, lint, build and `test:contract` pass. Full suite: 81 files, 541 tests (540 passed, 1 skipped).

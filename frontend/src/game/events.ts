@@ -4,6 +4,7 @@
  * it only displays AnswerResult values it is sent.
  */
 import type { AnswerResult, Room } from '@/types/api'
+import type { BossPhase } from './bossPhase'
 
 export type GamePhase =
   | 'exploring'
@@ -41,6 +42,8 @@ export type FromGameEvent =
   | { type: 'pause-requested' }
   | { type: 'room-entered'; roomId: string }
   | { type: 'gate-opened'; roomId: string }
+  /** Additive, display-only: the boss phase derived from HP changed (React switches the ambient bed). */
+  | { type: 'boss-phase-changed'; phase: BossPhase }
 
 export interface GameBridge {
   /** React side: send an event to the game. Queued until the game is ready. */

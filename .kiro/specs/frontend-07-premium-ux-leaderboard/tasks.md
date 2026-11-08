@@ -180,47 +180,47 @@ Rules for every task:
   - Summarize the changes. Tell the user to play `/play` against the mock, press E at a monster, test keys 1 to 4, Enter, Retreat, typewriter skip, correct and wrong results, the alternating side in the next room, and Reduced_Motion. Wait for approval, then commit Phase 2 separately.
   - _Requirements: 20.6, 20.8_
 
-- [ ] 7. Phase 3: Weapons, criticals and boss phases (presentation only)
-  - [ ] 7.1 Add weapon and critical data through the contract
+- [x] 7. Phase 3: Weapons, criticals and boss phases (presentation only)
+  - [x] 7.1 Add weapon and critical data through the contract
     - Create `src/weapons/weapons.ts` (`WEAPONS`, `resolveWeapon`); extend `AnswerResult` with PROPOSED `weapon_id` and `is_critical`, schemas, fixtures and the contract suite; teach the Mock_Adapter to unlock by level (D7) and set `is_critical` on streak multiples of 3 (D8) without changing damage; add the dev-only query `?mockLevel=N` that sets the mock player level
     - _Requirements: 7.2, 7.3, 7.5, 17.8, 17.9_
 
-  - [ ]* 7.2 Write property test for weapons
+  - [x]* 7.2 Write property test for weapons
     - **Property 9: Weapon resolution**
     - Create `src/weapons/weapons.property.test.ts`
     - **Validates: Requirements 7.2, 7.3, 7.5**
 
-  - [ ] 7.3 Implement the five weapon strike effects
+  - [x] 7.3 Implement the five weapon strike effects
     - Create `src/game/fx/weapons.ts` (pure descriptors) and `src/game/systems/WeaponFxSystem.ts` (pool of 16, slash, bolt, arrow, shockwave, fire burst, static marker under Reduced_Motion); `apply-result` passes the result so the scene reads `weapon_id`
     - _Requirements: 7.1, 7.2, 7.3, 7.6, 19.2, 19.3_
 
-  - [ ] 7.4 Add the critical hit presentation
+  - [x] 7.4 Add the critical hit presentation
     - In `EncounterPopup` show a 1.5x damage number when `is_critical`; in the scene add a pooled white flash at alpha 0.35 or a static marker under Reduced_Motion
     - _Requirements: 7.4, 7.6_
 
-  - [ ] 7.5 Implement boss phase and lightning logic
+  - [x] 7.5 Implement boss phase and lightning logic
     - Create `src/game/bossPhase.ts` (`bossPhase`) and `src/game/lightning.ts` (`nextLightningAt`, spacing 8000 ms, peak alpha 0.25, never under Reduced_Motion)
     - _Requirements: 8.1, 8.5, 8.6_
 
-  - [ ]* 7.6 Write property tests for boss phase and lightning
+  - [x]* 7.6 Write property tests for boss phase and lightning
     - **Property 3: Boss phase depends only on HP thresholds**
     - **Property 4: Lightning schedule respects spacing and reduced motion**
     - Create `src/game/bossPhase.property.test.ts`
     - **Validates: Requirements 8.1, 8.2, 8.3, 8.5, 8.6**
 
-  - [ ] 7.7 Implement the enraged boss presentation
+  - [x] 7.7 Implement the enraged boss presentation
     - Create `src/game/systems/BossPhaseSystem.ts`: on phase change to enraged apply a tint shift, a new attack animation, extra fog and pooled lightning within budget (none under Reduced_Motion, tint only); add the `boss-phase-changed` FromGameEvent (additive); in `src/audio/ambient.ts` add an enraged variant switched by the hook on that event
     - _Requirements: 8.2, 8.3, 8.4, 8.5, 8.6, 19.1, 19.3_
 
-  - [ ] 7.8 Build the Armory
+  - [x] 7.8 Build the Armory
     - Create `src/weapons/Armory.tsx` listing unlocked and locked weapons with unlock level from `progress.weapons`; mount it in `PauseMenu.tsx` now (the Dashboard mounts it in Phase 5); mock progress returns the weapon list
     - _Requirements: 7.5_
 
-  - [ ] 7.9 Verify and log Phase 3
+  - [x] 7.9 Verify and log Phase 3
     - Run typecheck, lint, tests, contract tests and build; record fps and particle counts for each weapon strike and the enraged boss; update kiro log and `ASSETS_LICENSES.md`
     - _Requirements: 20.1, 20.2, 20.7, 1.8_
 
-- [ ] 8. STOP: Phase 3 checkpoint, weapons and boss review
+- [x] 8. STOP: Phase 3 checkpoint, weapons and boss review
   - Summarize the changes. Tell the user how to see each weapon (mock unlocks by level; use the dev query `?mockLevel=8` added in 7.1), a critical hit on a 3-streak, the enraged boss below 60 of 120 HP, and the pause-menu Armory. Wait for approval, then commit Phase 3 separately.
   - _Requirements: 20.6, 20.8_
 

@@ -243,6 +243,15 @@ Badge ids: `perfect_room`, `no_damage`, `streak_5`, `boss_slayer`, `first_blood`
 
 The frontend only presents `weapon_id` and `is_critical`; it never computes damage.
 
+Phase 3 details (weapons, criticals, boss phase). Everything here is presentation only:
+
+- `weapon_id` (optional string): one of `rusty_dagger`, `arcane_staff`, `hunter_crossbow`, `spectral_hammer`, `flame_sigil`. An absent or unknown id plays the Rusty Dagger slash, so the backend may add weapons without breaking the client. The mock sends the best weapon for the player level (dagger L1, staff L2, crossbow L3, hammer L5, sigil L8; mock only).
+- `is_critical` (optional boolean): enlarges the damage number (1.5x) and plays a white flash. **`damage_dealt` is unchanged by a critical hit.** The mock sets it on every third correct answer in a row (streak 3, 6, 9...). A critical that deals bonus damage would be a scoring and balance change owned by the backend; the frontend would simply show the larger `damage_dealt` it receives.
+- `GET /progress` `weapons`: the full weapon list with `unlock_level`, so the Armory (pause menu now, Dashboard later) can mark each weapon unlocked or locked from `level`. If the field is absent the Armory is hidden.
+- Which weapon a result used, and when a weapon unlocks, are backend decisions. The frontend has no weapon choice.
+- Boss phase: the frontend derives `enraged` from HP only (`monster_hp_remaining / max_hp < 0.5`, so 59 of 120 is enraged and 60 is not). **Any difficulty increase in the boss phase (more damage, harder questions) is a backend concern**; the frontend only changes tint, attack animation, fog, lightning (at most one flash per 8 s, peak overlay alpha 0.25, none under Reduced Motion) and the ambient audio.
+- Dev only: `?mockLevel=N` (1 to 99) sets the mock player level so each weapon can be seen. It is ignored in production builds and has no effect on a real backend.
+
 ### Due review delivery (Person A chooses one)
 
 - Option 1: include `due_reviews` in the `POST /runs` response.

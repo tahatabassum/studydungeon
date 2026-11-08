@@ -110,6 +110,18 @@ describe('createGameBridge', () => {
     ])
   })
 
+  it('delivers the additive boss-phase-changed event to React', () => {
+    const bridge = createGameBridge()
+    const got: FromGameEvent[] = []
+    bridge.on((e) => got.push(e))
+    bridge.emit({ type: 'boss-phase-changed', phase: 'enraged' })
+    bridge.emit({ type: 'boss-phase-changed', phase: 'defeated' })
+    expect(got).toEqual([
+      { type: 'boss-phase-changed', phase: 'enraged' },
+      { type: 'boss-phase-changed', phase: 'defeated' },
+    ])
+  })
+
   it('delivers room-entered and gate-opened to React', () => {
     const bridge = createGameBridge()
     const got: FromGameEvent[] = []

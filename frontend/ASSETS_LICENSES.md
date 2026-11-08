@@ -27,3 +27,8 @@ The six encounter portraits (Paper Wraith, Skeleton, Vampire, Witch, Clockwork G
 artwork drawn in code with Canvas2D (`src/art/portraits/`), using only the project palette tokens. They are
 menacing Halloween characters without gore. No third-party or commercial game art, sprites, fonts or styles were
 copied or traced, and no image files are used. They carry the same license as the rest of the project source.
+
+## Weapon strikes and Armory icons (Phase 3)
+- The five weapon strike effects (dagger slash, staff bolt, crossbow arrow, hammer shockwave, flame sigil burst) and the critical-hit star are drawn in code with Phaser Graphics (`src/game/systems/WeaponFxSystem.ts`) from the project palette. No image, sprite or audio files were added.
+- The enraged boss ambient variant is synthesized at runtime with the Web Audio API (`src/audio/ambient.ts`).
+- Armory icons are `lucide-react` line icons (ISC licence, already a dependency). No emoji. No new dependencies.

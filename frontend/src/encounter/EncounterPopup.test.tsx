@@ -5,7 +5,7 @@ import type { EncounterPopupProps } from './EncounterPopup'
 const rm = vi.hoisted(() => ({ reduced: false }))
 vi.mock('@/state/useReducedMotion', () => ({ useReducedMotion: () => rm.reduced }))
 
-import { EncounterPopup, EXIT_MS } from './EncounterPopup'
+import { BASE_FONT, CRIT_FONT, EncounterPopup, EXIT_MS } from './EncounterPopup'
 import type { AnswerResult } from '@/types/api'
 
 const question = {
@@ -230,6 +230,24 @@ describe('EncounterPopup result view', () => {
     expect(screen.getByText('You dealt 37 damage')).toBeTruthy()
     expect(screen.getByText(/From your notes: page 3/)).toBeTruthy()
     expect(screen.getByText('Mitochondria make ATP.')).toBeTruthy()
+  })
+
+  it('shows a 1.5x damage number with a marker on a critical hit, and the normal size otherwise', () => {
+    const { unmount } = setup({ combat: 'next', result: result({ damage_dealt: 20, is_critical: true }) })
+    const crit = screen.getByTestId('damage-number')
+    expect(crit.textContent).toBe('-20')
+    expect(crit.getAttribute('data-critical')).toBe('true')
+    expect(crit.style.fontSize).toBe(CRIT_FONT)
+    expect(screen.getByTestId('critical-marker')).toBeTruthy()
+    unmount()
+
+    setup({ combat: 'next', result: result({ damage_dealt: 20, is_critical: false }) })
+    const plain = screen.getByTestId('damage-number')
+    expect(plain.textContent).toBe('-20')
+    expect(plain.getAttribute('data-critical')).toBeNull()
+    expect(plain.style.fontSize).toBe(BASE_FONT)
+    expect(screen.queryByTestId('critical-marker')).toBeNull()
+    expect(parseFloat(CRIT_FONT) / parseFloat(BASE_FONT)).toBeCloseTo(1.5)
   })
 
   it('omits the explanation when absent', () => {
