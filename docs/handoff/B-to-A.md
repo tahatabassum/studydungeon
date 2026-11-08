@@ -254,6 +254,8 @@ Phase 3 details (weapons, criticals, boss phase). Everything here is presentatio
 
 ### Due review delivery (Person A chooses one)
 
+> **SUPERSEDED (frontend-08):** the bare-array `GET /reviews/due?dungeon_id=` proposal below is replaced by the `{due_count, next_due_at, daily_streak, items}` shape in "frontend-08 campaign additions", item 6. Person A's `GET /reviews/due` already exists in a different shape (see item 6).
+
 - Option 1: include `due_reviews` in the `POST /runs` response.
 - Option 2: `GET /reviews/due`.
 - Item shape (the question never carries the answer):
@@ -291,3 +293,177 @@ Cookie session only; no token in the body.
 2. Is the leaderboard scoped per dungeon, global, or both?
 3. Who computes badges and weapon unlocks, and when (at finish)?
 4. Will guests appear on the leaderboard, or only read it?
+
+---
+
+### frontend-08 campaign additions
+
+Date: frontend-08-campaign-learning-loop, Phase 0. Branch `feature/frontend-campaign`.
+
+> **Status: nothing below is implemented by the backend.** Every shape is a frontend proposal, built against the mock (`VITE_USE_MOCKS=true`) and marked pending. All new fields are optional on the frontend: a backend that has not added them still works (real mode shows one legacy floor "The Crypt" and hides the campaign-only features). The backend stays authoritative for correctness, damage, HP, XP, score, streaks, ranks, mastery, review scheduling, question selection and badges. The frontend only displays.
+
+#### Reconciliation with Person A's real contract (what the frontend changes, no action for Person A)
+
+The frontend now maps your real shapes at the HTTP boundary: `title`, `rooms[].questions[]`, `room_number`, `topic_name`, `monster_name`, `monster_type` (kind derived from the name), `RunDetailResponse`, `is_correct`/`damage_taken`/`current_hp`/`current_score`/`current_streak`, `xp_earned`/`correct_count`/`total_attempts`, `unlocked_weapons` (names), the bare auth bodies, and `studydungeon_session`. Questions for Person A:
+
+1. `.kiro/steering/api-contract.md` Section 3 (`selected_option`, `correct`, `source{...}`, `review_status`, `{run_id, ...}`) disagrees with `docs/openapi.json` and the A-to-B Day 3 table. We build against openapi. Please refresh `api-contract.md`.
+2. Vercel rewrite destination: Day 1 keeps `/api` in the destination, Day 3 drops it. Which is final? The frontend reads `VITE_API_BASE` (falls back to `VITE_API_BASE_URL`).
+3. Attempts on a cleared room return 409 `ROOM_ALREADY_CLEARED`, so our earlier PROPOSED "answer a Revenant through `POST /attempts` after the monster is defeated" is **withdrawn**. See item 3 (`daily_haunt` run) for the replacement.
+4. `POST /runs` returns `RunDetailResponse`; we use `rooms[]` for per-room HP. Please keep `GET /runs/{id}` for resume.
+5. Weapons: the frontend sends `weapon_name` (validated by you) only if you accept the equipped-weapon item below. The earlier PROPOSED `weapon_id` stays optional on the attempt response (item 4) so the strike animation matches the weapon you used; without it the Rusty Dagger animation plays.
+6. `GET /documents/{id}/status` returns `chunks_count` while `api-contract.md` says `topic_count`. Please confirm.
+
+Status of the earlier PROPOSED items (also in `.kiro/specs/frontend-08-campaign-learning-loop/design.md`): `is_critical` implemented; `weapon_id` not as a response field; finish additions, progress additions and leaderboard not addressed; due reviews implemented in a different shape (item 6); auth implemented with different bodies (adopted); `POST /uploads` superseded by `POST /documents` (adopted); boss phase derived from HP (no backend change).
+
+#### 1. `GET /dungeons/{id}` gains floors and a final boss
+
+Rooms stay as today and get a `floor_id`. Floors can be a simple grouping field. A dungeon without `floors` is shown as one floor "The Crypt".
+
+```json
+{
+  "id": "d_1", "title": "Computer Systems", "is_public_demo": true,
+  "floors": [
+    { "id": "f_1", "index": 1, "title": "The Entry Crypt", "status": "cleared",
+      "topics": [ { "id": "t_1", "title": "CPU", "mastery": 82 }, { "id": "t_2", "title": "Storage", "mastery": 55 } ],
+      "boss": { "id": "m_2", "name": "Memory Wraith", "hp": 90 }, "rank": "A" },
+    { "id": "f_2", "index": 2, "title": "The Alchemy Wing", "status": "generating",
+      "topics": [], "boss": { "id": "m_4", "name": "Packet Spectre", "hp": 85 }, "rank": null }
+  ],
+  "final_boss": { "id": "m_5", "name": "The Exam Warden", "hp": 220, "unlocked": false },
+  "rooms": [ { "id": "r_1", "floor_id": "f_1", "room_number": 1, "topic_name": "CPU", "monster_name": "Silicon Golem", "monster_type": "Silicon Golem", "monster_hp": 80, "is_boss": false, "questions": [] } ]
+}
+```
+
+`status` is one of `locked`, `ready`, `generating`, `failed`, `cleared`. `rank` is `S|A|B|C|null`. `mastery` is 0 to 100. Please also add a `monster_kind` (visual id such as `paper_wraith`, `exam_warden`) so the client does not parse `monster_type`; until then the client derives it.
+
+#### 2. Question pool and backend selection
+
+Each topic has 15 to 20 questions in the database. **The backend picks 6 to 8 per run, seeded by run id, and returns only those.** The client never draws randomly in real mode. The client only draws (seeded by `run_seed`) inside the mock.
+
+#### 3. `POST /runs` body and response
+
+```json
+{ "dungeon_id": "d_1", "floor_id": "f_2", "mode": "floor" }
+```
+
+`mode` is one of `floor`, `daily_haunt`, `weak_topics`, `exam`, `replay_floor`; `floor_id` is `null` for `daily_haunt`, `weak_topics` and `exam`. The response keeps `RunDetailResponse` and adds the encounters, the revenants for the run and the seed:
+
+```json
+{
+  "id": "run_9", "dungeon_id": "d_1", "mode": "floor", "run_seed": "run_9", "current_hp": 100, "current_score": 0, "current_streak": 0, "xp_earned": 0, "status": "active", "started_at": "2026-11-20T12:00:00Z",
+  "rooms": [ { "room_id": "r_3", "floor_id": "f_2", "room_number": 1, "topic_name": "Networking", "monster_name": "Packet Spectre", "monster_max_hp": 85, "monster_current_hp": 85, "is_cleared": false, "is_boss": true } ],
+  "encounters": [ { "room_id": "r_3", "questions": [ { "id": "q_31", "prompt": "...", "options": ["...", "..."], "difficulty": "easy" } ] } ],
+  "revenants": [ { "question_id": "q_7", "prompt": "...", "options": ["...", "..."], "due_at": "2026-11-20T09:00:00Z" } ]
+}
+```
+
+For `daily_haunt` the run contains only due items (no room monster); answering them must be accepted by `POST /attempts` and must update the review schedule. Replaces the withdrawn "Revenant attempt after the monster is defeated" proposal.
+
+#### 4. Attempt response additions (all optional)
+
+```json
+{
+  "is_correct": false, "damage_dealt": 0, "damage_taken": 10, "is_critical": false, "current_hp": 90, "current_score": 200, "current_streak": 0, "monster_hp_remaining": 40,
+  "explanation": "The ALU performs arithmetic and logic.", "evidence_quote": "The Arithmetic Logic Unit (ALU) performs ...",
+  "requeue_after": 3, "is_retry": false, "retry_multiplier": 1.0, "combo": 0, "weapon_id": "rusty_dagger",
+  "correct_answer": "Arithmetic Logic Unit (ALU)", "source": { "page": 4, "chunk_id": "c_12" }
+}
+```
+
+- `requeue_after`: number of further questions before this one returns, or `null` when it is not requeued.
+- `is_retry` and `retry_multiplier`: set when the answered question is a returned miss; the frontend shows damage and reward as received and never computes them.
+- `combo`: derived from the streak by the backend (frontend tiers at 3, 5, 8, 12 are display only).
+- `is_critical`, `weapon_id`: presentation (`weapon_id` is the weapon the backend used; see "Equipped weapon").
+- `correct_answer`: **only after a wrong answer** (never in `GET /dungeons/{id}`). The real attempt response today reveals no correct answer, only `explanation` and `evidence_quote`, so the Memory Scroll cannot name the right option without this field. If absent, the scroll shows the explanation and quote only.
+- `source.page` and `source.chunk_id`: needed for "From your notes: page X" (today only `evidence_quote` is returned; `GET /documents/{id}/source-preview` exists but needs a chunk id).
+
+#### 5. `POST /runs/{id}/finish` additions (all optional)
+
+Extends the existing `RunSummaryResponse` and the earlier PROPOSED finish additions (not duplicated here: `badges_earned`, `leaderboard_rank`, `weapon_unlocked`, `level_up`).
+
+```json
+{
+  "id": "run_9", "score": 800, "xp_earned": 160, "correct_count": 7, "total_attempts": 9, "accuracy": 0.78, "mastery_band": "Learning", "status": "completed",
+  "floor_rank": "A",
+  "mastery_by_topic": [ { "topic_id": "t_3", "title": "Networking", "mastery": 71 } ],
+  "badges_earned": ["boss_slayer"], "leaderboard_rank": 7, "weapon_unlocked": "arcane_staff",
+  "level_up": { "from": 1, "to": 2 },
+  "chest_rewards": [ { "id": "cr_1", "kind": "xp", "label": "Bonus XP", "amount": 40 }, { "id": "cr_2", "kind": "coins", "label": "Coins", "amount": 25 } ]
+}
+```
+
+`floor_rank` is `S|A|B|C|null` (null for non-floor modes). `chest_rewards` may be empty. `mastery_by_topic` supersedes the earlier `topic_mastery` proposal.
+
+#### 6. Due reviews and Daily Haunt (REPLACES the earlier bare-array proposal)
+
+Your `GET /reviews/due` exists as a bare array of `{question_id, prompt, options, next_review_at, repetition_count}`. The frontend will use this shape instead (global across dungeons, which fits Daily Haunt across all floors):
+
+```json
+GET /reviews/due
+{
+  "due_count": 12,
+  "next_due_at": "2026-11-21T08:00:00Z",
+  "daily_streak": 4,
+  "items": [ { "question_id": "q_7", "prompt": "...", "options": ["...", "..."], "due_at": "2026-11-20T09:00:00Z", "repetition_count": 2, "topic_id": "t_1", "floor_id": "f_1" } ]
+}
+```
+
+`topic_id`/`floor_id` let the client place a Revenant in the right room (optional; unknown items still appear in Daily Haunt). `next_due_at` is `null` when nothing is scheduled. The `daily_haunt` run (item 3) is built by the backend from due items, about 5 minutes (our mock caps at 8 items), and `daily_streak` counts consecutive days with at least one completed Daily Haunt. The earlier `?dungeon_id=` filter is dropped.
+
+#### 7. `GET /progress` additions (all optional)
+
+```json
+{
+  "user_id": "u_42", "level": 2, "total_xp": 140, "unlocked_weapons": ["Rusty Dagger", "Arcane Staff"],
+  "xp_to_next": 60,
+  "notes_conquered_percent": 38,
+  "memory_strength": [ { "topic_id": "t_1", "title": "CPU", "strength": 82 } ],
+  "streak_calendar": [ { "date": "2026-11-19", "reviewed": true }, { "date": "2026-11-20", "reviewed": false } ],
+  "weak_concepts": [ { "text": "Definition of entropy", "page": 12, "source_ref": "chunk c_9" } ]
+}
+```
+
+`xp_to_next` is also requested (the frontend HUD uses it; today it is missing). `streak_calendar` covers the last 12 weeks. `notes_conquered_percent` is the share of topics at Strong mastery. Earlier PROPOSED progress fields (`badges`, `weapons`, `recent_runs`, `due_review_count`) are not duplicated here.
+
+#### 8. Generation status and lazy floors
+
+Floors are generated lazily one by one, so floor 1 is playable first. The client polls every 2.5 s while any floor is `generating`:
+
+```json
+GET /documents/{id}/status
+{ "id": "doc_1", "status": "accepted", "chunks_count": 24, "dungeon_id": "d_5", "floors": [ { "id": "f_1", "status": "ready" }, { "id": "f_2", "status": "generating" }, { "id": "f_3", "status": "locked" } ] }
+```
+
+Alternatively `GET /dungeons/{id}` `floors[].status` is polled. `POST /floors/{id}/retry` (new) re-runs a `failed` floor and returns `{"id": "f_2", "status": "generating"}`. There is a per-dungeon size cap with a friendly error: `422 {"detail": {"code": "DUNGEON_TOO_LARGE", "message": "These notes are very large. Upload a smaller section to get the best floors."}}`.
+
+#### 9. Backend scoring decisions needed from Person A
+
+The mock uses these placeholder values; please decide and tell us:
+
+| Topic | Mock default | Question |
+| --- | --- | --- |
+| Retry damage and XP | `retry_multiplier` 0.5 | Reduced, full or zero reward for a returned miss? Does a retry reset the streak? |
+| Floor rank thresholds | S >= 0.90 first-try accuracy with no retry, A >= 0.80, B >= 0.60, else C | Your thresholds, and does HP lost matter? |
+| Exam mode scoring | Same as floor, covers all topics | Different weighting, timer, no requeue? |
+| Boss-phase question difficulty | Frontend only changes presentation below 50 percent HP | Should enraged boss phase serve harder questions? |
+| Mastery formula | EMA alpha 0.3 per topic, bands 50 and 80 | Your per-topic formula (SM-2 related?) |
+| Requeue gap | 3 questions, at most 2 returns | Your gap and cap |
+
+#### Equipped weapon (optional item, PROPOSED)
+
+The attempt request already accepts `weapon_name` (default "Rusty Dagger", validated against unlocks). To let the Armory remember the player's choice, we propose:
+
+```json
+GET /progress  ->  { "...": "...", "equipped_weapon": "Arcane Staff" }
+PUT /progress/equipped-weapon   { "weapon": "Arcane Staff" }  ->  200 { "equipped_weapon": "Arcane Staff" }
+```
+
+`PUT` returns 403 `WEAPON_LOCKED` for a locked weapon. When `weapon_name` is omitted in an attempt, the backend uses `equipped_weapon`. Pending: the frontend builds the Armory selection against the mock only.
+
+#### Open questions for Person A (frontend-08)
+
+1. Will you add `floors[]`, `final_boss` and `floor_id` to `GET /dungeons/{id}`, and which phase of your work (so we can hide features until they exist)?
+2. Do you accept `mode` and `floor_id` on `POST /runs`, including the `daily_haunt` run that accepts attempts on due items?
+3. Can the attempt response include `correct_answer` (after wrong answers only) and `source.page`?
+4. Is `GET /reviews/due` going to carry `daily_streak` and `next_due_at`, or should the frontend call a separate daily-run endpoint?
+5. Who owns the dungeon size cap and its error code?

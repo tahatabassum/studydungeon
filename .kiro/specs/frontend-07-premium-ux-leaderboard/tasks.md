@@ -260,10 +260,12 @@ Rules for every task:
   - _Requirements: 20.6, 20.8_
 
 - [ ] 11. Phase 5: Scorecard, leaderboard and dashboard
+  - Dependency note: depends on frontend-08 P1-P2 (Floors, `floor_rank`, `mastery_by_topic`, `chest_rewards`, `Mastery_Band`). Build on the floor and mastery model; see frontend-08 design.md "Build order". Do not redefine those types here and do not duplicate frontend-08 work.
   - [ ] 11.1 Add leaderboard, run summary and progress additions through the contract
     - Add `LeaderboardEntry`, `LeaderboardResponse`, `ApiClient.getLeaderboard`, schemas, fixtures, contract cases; add PROPOSED `RunSummary` fields (`badges_earned`, `leaderboard_rank`, `weapon_unlocked`, `level_up`, `topic_mastery`, `weak_concepts`) and PROPOSED progress fields (`badges`, `recent_runs`)
     - Create `src/api/mock/mockLeaderboard.ts` with 8 seeded Ghost_Rivals and ranking of the player's finished runs
     - Create the badge catalog `src/badges/badges.ts` and `src/badges/BadgeGrid.tsx` (ids, labels, icons from lucide-react)
+    - Floors note: `mastery_by_topic` (frontend-08 P1) supersedes the PROPOSED `topic_mastery` shape; reuse the frontend-08 `RunSummary` additions (`floor_rank`, `chest_rewards`) instead of adding duplicates, and use the wire mappers from frontend-08 task 3.1
     - _Requirements: 11.9, 17.8, 17.9, 15.1_
 
   - [ ] 11.2 Implement ranking, provisional rank and board view
@@ -286,6 +288,7 @@ Rules for every task:
     - _Requirements: 11.1, 11.2, 11.3, 11.4, 11.6, 11.8, 11.9, 11.11_
 
   - [ ] 11.6 Implement mastery and count-up logic
+    - Floors note: `classifyMastery` must re-export or delegate to `masteryBand` from `src/learning/mastery.ts` (frontend-08 task 3.9) so there is one set of band boundaries
     - Create `src/scorecard/mastery.ts` (`classifyMastery`) and `src/scorecard/useCountUp.ts` with pure `countUpValue`
     - _Requirements: 10.1, 10.3, 10.9_
 
@@ -296,11 +299,13 @@ Rules for every task:
     - **Validates: Requirements 10.1, 10.3, 10.9**
 
   - [ ] 11.8 Build the Scorecard
+    - Floors note: scope the Scorecard to a Floor run; show `floor_rank` and `mastery_by_topic` bars (use `MasteryBar` from frontend-08 task 5.5) and leave a slot for the frontend-08 Chest (P5) and rank reveal; return to the Floor_Map after the run
     - Create `src/scorecard/Scorecard.tsx` replacing `VictoryOverlay`: score count-up, accuracy ring, XP bar with level-up effect, weapon unlocked, badges earned, topic mastery bars with Weak, Learning and Strong labels (text plus color), weak concepts with Source_Line, animated rank reveal, buttons Play again, View leaderboard, Share card (opens the Phase 7 dialog; disabled with a tooltip until then) and Create account for guests; finishRun failure shows an error with Retry; results and rank announced in the aria-live region
     - Update `usePlaySession.ts`, `PlayPage.tsx` and tests
     - _Requirements: 10.1, 10.2, 10.3, 10.4, 10.5, 10.6, 10.7, 10.8, 10.9, 10.10, 19.8_
 
   - [ ] 11.9 Build the Dashboard
+    - Floors note: Continue Dungeon opens the frontend-08 Floor_Map (`/campaign/:dungeonId`) and its Continue shortcut; show Mastery_Bars per Floor/Topic; reserve the Daily Haunt button area (added by frontend-08 P3, task 7.4)
     - Create `src/pages/DashboardPage.tsx` and `src/dashboard/*`: level and XP bar, Continue Dungeon, Play Demo (starts the demo session), top-5 preview with "you" highlighted, recent runs, `HauntedCounter`, `BadgeGrid`, `Armory`, links to upload and settings; skeletons while pending, error card with Retry; guest variant with demo card, provisional stats and call to action; add the `/dashboard` route and make `LandingPage` link to it
     - _Requirements: 12.1, 12.2, 12.3, 12.4, 12.5, 7.5, 9.4_
 
@@ -313,7 +318,9 @@ Rules for every task:
   - _Requirements: 20.6, 20.8_
 
 - [ ] 13. Phase 6: Auth and offline demo fallback
+  - Dependency note: depends on frontend-08 P1-P2 (floors data model, Floor_Map); build the offline demo with floors; see frontend-08 design.md "Build order". The real auth bodies are bare objects (not `{user: ...}`), logout is 200 `{success: true}`, and `/auth/me` returns `expires_at`; see frontend-08 design.md C22 to C24, C27.
   - [ ] 13.1 Add auth through the contract
+    - Reconciliation note: use the real Backend shapes (frontend-08 C22) in schemas, mock and fixtures; username 3 to 32 and password 8 to 128 (C23); handle the 422 array detail (C24)
     - Add `Credentials`, `ApiClient.register`, `login`, `logout`, `getMe`, schemas, fixtures, contract cases and `src/api/mock/mockAuth.ts` (in-memory table, 401/409/422/429 simulation); cookie session only, no token storage
     - _Requirements: 13.5, 17.8, 17.9_
 
@@ -332,10 +339,12 @@ Rules for every task:
     - _Requirements: 13.1, 13.2, 13.3, 13.4, 13.5, 13.6, 13.7_
 
   - [ ] 13.5 Build the Waking up loader
+    - Reconciliation note: the loader pings `GET /health` (`{status: "healthy"}`) with backoff, then calls `POST /demo/session` (A-to-B Day 3); copy reads "Waking up the dungeon..."
     - Create `src/pages/WakingUp.tsx` with rotating tips and `src/state/useDemoStart.ts` (8 s timer offers the Offline demo while the request continues; late success ignored after Offline is chosen); add `setApiOverride` to `src/api/index.ts`; use it from the Landing page demo start; add the dev-only `VITE_MOCK_DELAY_MS` option passed to the mock adapter's `delayMs` for `startDemoSession`; keep the guest banner text "Playing as guest. Progress is temporary. Create an account to save." in `GuestBanner.tsx`
     - _Requirements: 14.1, 14.2, 14.3, 14.8_
 
   - [ ] 13.6 Build the Offline_Module
+    - Floors note: serve 2 Floors plus the Final_Boss from `docs/handoff/demo_dungeon.sample.json` (Floor 1 = CPU and Storage, Floor 2 = Networking, Final_Boss = The Exam Warden; frontend-08 D13); the offline adapter implements the frontend-08 floors surface (`floors`, `startRun` with `floor_id`, `floor_rank`, `mastery_by_topic`) using the shared pure helpers (`drawQuestions`, `masteryBand`, `rankFor`) and is labeled offline; the sample bundles correct answers for offline play only
     - Create `src/offline/index.ts` (exports `createOfflineAdapter`), `adapter.ts`, `rules.ts` (wraps `src/demo/rules.ts` profiles and `applyAnswer`; injected clock and ids, no `Math.random`), `rivals.ts` (8 bundled Ghost_Rivals), `demoDungeon.json` (copy of the placeholder; note in B-to-A.md that `demo_dungeon.sample.json` will replace it when supplied); shell label "Offline demo - progress is not saved"; loaded only via dynamic `import('@/offline')` in the explicit choice handler
     - _Requirements: 14.3, 14.4, 14.5, 14.6, 14.7, 1.2_
 
@@ -358,7 +367,9 @@ Rules for every task:
   - _Requirements: 20.6, 20.8_
 
 - [ ] 15. Phase 7: Badges, lore and share card
+  - Dependency note: depends on frontend-08 P1-P5 (floors, mastery, ranks, `chest_rewards`); see frontend-08 design.md "Build order". The intro story built here is merged with the frontend-08 P6 tutorial into one first-run flow (flag keys `sd.introSeen` and `sd.tutorialSeen`); build the story as a reusable step so frontend-08 task 13.2 can compose it.
   - [ ] 15.1 Implement badge rules and wire them into mock and offline
+    - Floors note: badge rules may use floor data (floor clear, `floor_rank` S, mastery Strong); in the Http_Client path badges come only from `badges_earned`; chest badge rewards come from `chest_rewards`
     - Create `src/badges/rules.ts` (`evaluateBadges`, D19 flag for speed_reader); use it in the Mock_Adapter and the Offline_Module summaries (`badges_earned`, memory_keeper after 3 revenants); the Http_Client path displays only the backend list
     - _Requirements: 15.1, 15.2, 15.3_
 
@@ -372,6 +383,7 @@ Rules for every task:
     - _Requirements: 15.4_
 
   - [ ] 15.4 Build the share card
+    - Floors note: the card may show the Floor reached, `floor_rank` and the notes conquered percent (measured numbers only, no memorization claims)
     - Create `src/share/renderShareCard.ts` (1200x630 canvas with score, rank, badges, dungeon name; awaits `document.fonts.load` for the @fontsource families), `src/share/postText.ts` (`buildPostText` starting with `#KiroweenHackathon26`), `src/share/ShareDialog.tsx` (Download PNG, Copy post text, selectable fallback textarea on clipboard rejection, error on null blob); enable the Scorecard Share card button
     - _Requirements: 15.5, 15.6, 15.7, 15.8, 15.9_
 
@@ -393,6 +405,7 @@ Rules for every task:
   - _Requirements: 20.6, 20.8_
 
 - [ ] 17. Phase 8 (optional): Upload wizard
+  - Dependency note: depends on frontend-08 P1-P2; reuse the frontend-08 floor-generation status UI (`useGenerationStatus`, generating and failed node states) for progress. The real endpoints are `POST /documents`, `GET /documents/{id}/status`, `GET /documents/{id}/topics` and `POST /documents/{id}/generate-dungeon` (frontend-08 design.md C29); they supersede the PROPOSED `POST /uploads`.
   - [ ]* 17.1 Add the upload contract and mock
     - Add PROPOSED `uploadNotes` to the ApiClient, schemas, fixtures and mock steps (reading, extracting, relevance check, topic detection); accepted formats text read from one constant marked pending until `api-contract.md` is published
     - _Requirements: 16.2, 17.8, 17.9_
