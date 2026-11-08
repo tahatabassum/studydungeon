@@ -13,6 +13,7 @@ class Settings(BaseSettings):
     DATABASE_URL: str = "sqlite+aiosqlite:///./studydungeon.db"
 
     # Security & Proxies
+    DEBUG: bool = False
     SECRET_KEY: str = "studydungeon-default-insecure-secret-key-change-in-prod"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 1440
     SESSION_COOKIE_NAME: str = "studydungeon_session"

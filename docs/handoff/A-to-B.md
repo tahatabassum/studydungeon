@@ -119,3 +119,33 @@ Per the project protocol, `.kiro/steering/api-contract.md` is our immutable sour
      ```
 
 *Please review these answers in `docs/handoff/B-to-A.md`.*
+
+
+---
+
+## [Day 3] - Deploy and Proxy Runbook (Person B Frontend Action Items)
+
+### 1. `vercel.json` Rewrite Configuration
+To route frontend API requests seamlessly to the Render backend without CORS cookie issues or cross-site blocking, configure `vercel.json` in your frontend root:
+```json
+{
+  "rewrites": [
+    {
+      "source": "/api/:path*",
+      "destination": "https://studydungeon-api.onrender.com/:path*"
+    }
+  ]
+}
+```
+*(Replace `https://studydungeon-api.onrender.com` with the actual deployed Render backend URL).*
+
+### 2. Frontend Environment Variables
+Set the following environment variables in your Vercel deployment dashboard:
+- `VITE_API_BASE=/api` (or `/` if using direct proxy rewrites)
+- `VITE_USE_MOCKS=false` (switches from local mocks to real live backend calls)
+
+### 3. Free-Host Cold-Start Handling
+Render free-tier web services spin down after 15 minutes of inactivity:
+- When the player visits the app or clicks "Try Demo", ping `GET /health` with a lightweight 5-second polling retry loop and exponential backoff.
+- Display a gothic retro *"Waking the Dungeon..."* splash screen with a loading spinner.
+- As soon as `GET /health` returns `{ "status": "healthy" }`, call `POST /demo/session` to obtain a guest session cookie, then transition into the game view.

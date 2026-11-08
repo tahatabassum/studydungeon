@@ -1,3 +1,4 @@
+import logging
 from datetime import datetime, timedelta
 
 from fastapi import HTTPException, Request, status
@@ -6,6 +7,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import settings
 from app.models.all_models import RateLimitRecord
+
+logger = logging.getLogger("studydungeon.security.proxy")
 
 
 def get_client_ip(request: Request) -> str:
@@ -18,6 +21,9 @@ def get_client_ip(request: Request) -> str:
     if forwarded:
         parts = [p.strip() for p in forwarded.split(",") if p.strip()]
         proxy_count = getattr(settings, "TRUSTED_PROXY_COUNT", 1)
+        if getattr(settings, "DEBUG", False):
+            # Safe hop count logging without printing client IP or raw addresses
+            logger.debug("Proxy hop check: total_hops=%d, configured_trusted_hops=%d", len(parts), proxy_count)
         if len(parts) >= proxy_count:
             # Entry that many hops from the RIGHT
             return parts[-proxy_count]
