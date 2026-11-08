@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useReducer, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { getApi } from '@/api'
+import { describeError, getApi } from '@/api'
 import { ambient } from '@/audio/ambient'
 import { sfx } from '@/audio/sfx'
 import type { ApiClient } from '@/api'
@@ -93,8 +93,8 @@ export function usePlaySession() {
         setDungeon(d)
         dispatch({ type: 'run-started', run, rooms: d.rooms })
         void refreshProgress(api)
-      } catch {
-        if (!cancelled) setLoadError('The dungeon could not be loaded.')
+      } catch (err) {
+        if (!cancelled) setLoadError(describeError(err, 'The dungeon could not be loaded.'))
       }
     })()
     return () => {
@@ -208,9 +208,9 @@ export function usePlaySession() {
         // A wrong answer that costs no health is a "miss"; otherwise the wrong thud.
         sfx.play(result.correct ? 'correct' : result.player_hp_remaining >= hpBefore ? 'miss' : 'wrong')
         if (result.player_hp_remaining <= 0) setTimeout(() => sfx.play('defeat'), 450)
-      } catch {
+      } catch (err) {
         dispatch({ type: 'answer-failed' })
-        setAnswerError('Your answer could not be submitted. Please try again.')
+        setAnswerError(describeError(err, 'Your answer could not be submitted. Please try again.'))
       } finally {
         submittingRef.current = false
       }
@@ -227,8 +227,8 @@ export function usePlaySession() {
       const summary = await api.finishRun(runId)
       dispatch({ type: 'run-finished', summary })
       sfx.play('victory')
-    } catch {
-      setFinishError('Your results could not be loaded.')
+    } catch (err) {
+      setFinishError(describeError(err, 'Your results could not be loaded.'))
     }
   }, [])
 
@@ -247,8 +247,8 @@ export function usePlaySession() {
         void refreshProgress(api)
         if (dungeon.rooms.find((r) => r.id === roomId)?.is_boss) await finish()
         else bridge.send({ type: 'gate-open', roomId })
-      } catch {
-        setClearError('The room could not be cleared. Please try again.')
+      } catch (err) {
+        setClearError(describeError(err, 'The room could not be cleared. Please try again.'))
       }
     },
     [bridge, dungeon, finish, refreshProgress],
@@ -348,8 +348,8 @@ export function usePlaySession() {
       bridge.send({ type: 'set-view-inset', bottomFraction: 0 })
       bridge.send({ type: 'set-phase', phase: 'exploring' })
       setTimeout(focusGame, 0)
-    } catch {
-      setLoadError('A new run could not be started.')
+    } catch (err) {
+      setLoadError(describeError(err, 'A new run could not be started.'))
     }
   }, [bridge, dungeon, focusGame, refreshProgress])
 

@@ -27,6 +27,8 @@ export type ToGameEvent =
    * the docked question panel. No gameplay effect.
    */
   | { type: 'set-view-inset'; bottomFraction: number }
+  /** Display-only: the shell's measured stage size in CSS pixels (drives camera zoom). */
+  | { type: 'set-viewport'; width: number; height: number }
 
 export type FromGameEvent =
   | { type: 'ready' }

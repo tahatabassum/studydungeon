@@ -2,8 +2,10 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Button } from '@/components/Button'
 import { ConfirmDialog } from '@/components/ConfirmDialog'
-import { ControlsHint } from '@/components/ControlsHint'
+import { AppShell } from '@/components/AppShell'
+import { ControlsLegend } from '@/components/ControlsLegend'
 import { DefeatOverlay } from '@/components/DefeatOverlay'
+import { FullscreenButton } from '@/components/FullscreenButton'
 import { GuestBanner } from '@/components/GuestBanner'
 import { Hud } from '@/components/Hud'
 import { Panel } from '@/components/Panel'
@@ -12,6 +14,9 @@ import { QuestionPanel } from '@/components/QuestionPanel'
 import { Spinner } from '@/components/Spinner'
 import { VictoryOverlay } from '@/components/VictoryOverlay'
 import { GameCanvas } from '@/game/GameCanvas'
+import { hudMode } from '@/game/viewport'
+import { useFullscreen } from '@/shell/useFullscreen'
+import { useViewportWidth } from '@/shell/useViewportWidth'
 import { damageReceived, isCombatActive } from '@/state/combatMachine'
 import { useSession } from '@/state/SessionContext'
 import { usePlaySession } from './usePlaySession'
@@ -21,6 +26,8 @@ export default function PlayPage() {
   const [s, gameWrapRef] = usePlaySession()
   const { state, room } = s
   const [confirmingExit, setConfirmingExit] = useState(false)
+  const fullscreen = useFullscreen()
+  const compact = hudMode(useViewportWidth()) === 'compact'
 
   if (s.loadError) {
     return (
@@ -50,60 +57,66 @@ export default function PlayPage() {
   const panelVisible = combatActive && s.question !== null
 
   return (
-    <main className="grid h-screen h-dvh w-full grid-rows-[auto_minmax(0,1fr)_auto] overflow-hidden bg-bg px-3 py-1.5 text-ink">
-      <div className="mx-auto flex w-full max-w-[90rem] flex-col gap-1">
-        <GuestBanner isGuest={user?.is_guest ?? false} />
-        <Hud
-          playerHp={state.playerHp}
-          maxPlayerHp={state.maxPlayerHp}
-          monsterHp={state.monsterHp}
-          maxMonsterHp={state.maxMonsterHp}
-          monsterName={room.monster.name}
-          monsterKind={room.monster.kind}
-          isBoss={room.is_boss}
-          showMonster={combatActive || state.monsterHp > 0}
-          xp={state.xp}
-          streak={state.streak}
-          level={s.progress?.level}
-          xpToNext={s.progress?.xp_to_next}
-          totalXp={s.progress?.total_xp}
-          rooms={s.rooms}
-          currentRoomId={s.currentRoomId}
-          clearedRoomIds={s.clearedRoomIds}
-        />
+    <AppShell announcement={fullscreen.message}>
+      {/* The canvas fills the whole shell; the backdrop shows through its transparent clear colour. */}
+      <div ref={gameWrapRef} className="absolute inset-0 z-[1]">
+        <GameCanvas bridge={s.bridge} className="absolute inset-0 size-full" />
       </div>
 
-      <div className="relative mx-auto flex min-h-0 w-full max-w-[90rem] flex-col items-center gap-2 overflow-hidden pt-1 min-[900px]:flex-row min-[900px]:items-stretch">
-        {/* Definite-size slot: container-type:size makes cqw/cqh the real available space. */}
-        <div className="flex min-h-0 w-full min-w-0 flex-1 items-center justify-center [container-type:size]">
-          <div
-            ref={gameWrapRef}
-            className="relative aspect-video w-[min(100cqw,calc(100cqh*16/9))] max-h-full max-w-full overflow-hidden"
-          >
-            <GameCanvas bridge={s.bridge} className="absolute inset-0 size-full" />
-          {showTopicCleared && !s.clearError && (
-            <div className="pointer-events-none absolute inset-x-0 top-3 z-10 flex justify-center">
-              <Panel tone="gold" role="status" className="px-6 py-3 text-lg font-bold text-accent">
-                Room cleared! +{s.clearedXp} XP — the gate opens
-              </Panel>
-            </div>
-          )}
-
-          {s.clearError && (
-            <div className="absolute inset-x-0 top-3 z-10 flex justify-center">
-              <Panel tone="danger" role="alert" className="flex items-center gap-3 px-6 py-3">
-                <span>{s.clearError}</span>
-                <Button variant="secondary" onClick={() => void s.retryClear()}>
-                  Retry
-                </Button>
-              </Panel>
-            </div>
-          )}
-          </div>
+      {showTopicCleared && !s.clearError && (
+        <div className="pointer-events-none absolute inset-x-0 top-28 z-10 flex justify-center">
+          <Panel tone="gold" role="status" className="px-6 py-3 text-lg font-bold text-accent">
+            Room cleared! +{s.clearedXp} XP — the gate opens
+          </Panel>
         </div>
+      )}
 
-        {panelVisible && s.question && (
-          <div className="@container w-full max-w-3xl shrink-0 overflow-hidden min-[900px]:max-w-none min-[900px]:w-[clamp(300px,34vw,420px)] min-[900px]:min-h-0 min-[900px]:self-center min-[900px]:overflow-y-auto min-[900px]:overflow-x-hidden">
+      {s.clearError && (
+        <div className="absolute inset-x-0 top-28 z-10 flex justify-center">
+          <Panel tone="danger" role="alert" className="flex items-center gap-3 px-6 py-3">
+            <span>{s.clearError}</span>
+            <Button variant="secondary" onClick={() => void s.retryClear()}>
+              Retry
+            </Button>
+          </Panel>
+        </div>
+      )}
+
+      {/* Floating HUD: top bar over the stage, kept out of the hudSafeBand. */}
+      <div className="sd-hud-top">
+        <div className="flex items-start gap-2">
+          <div className="flex min-w-0 flex-1 flex-col gap-1">
+            <Hud
+              compact={compact}
+              playerHp={state.playerHp}
+              maxPlayerHp={state.maxPlayerHp}
+              monsterHp={state.monsterHp}
+              maxMonsterHp={state.maxMonsterHp}
+              monsterName={room.monster.name}
+              monsterKind={room.monster.kind}
+              isBoss={room.is_boss}
+              showMonster={combatActive || state.monsterHp > 0}
+              xp={state.xp}
+              streak={state.streak}
+              level={s.progress?.level}
+              xpToNext={s.progress?.xp_to_next}
+              totalXp={s.progress?.total_xp}
+              rooms={s.rooms}
+              currentRoomId={s.currentRoomId}
+              clearedRoomIds={s.clearedRoomIds}
+            />
+            {!compact && <GuestBanner isGuest={user?.is_guest ?? false} />}
+          </div>
+          <FullscreenButton isFullscreen={fullscreen.isFullscreen} onToggle={() => void fullscreen.toggle()} />
+        </div>
+      </div>
+
+      <ControlsLegend compact={compact} />
+
+      {/* Until the Phase 2 pop-up, the question panel is a bottom sheet over the stage. */}
+      {panelVisible && s.question && (
+        <div className="pointer-events-none absolute inset-x-0 bottom-[calc(var(--sd-hud-bottom)+0.5rem)] z-30 flex justify-center px-3">
+          <div className="@container pointer-events-auto max-h-[min(60dvh,32rem)] w-full max-w-3xl overflow-y-auto overflow-x-hidden">
             <QuestionPanel
               question={s.question}
               combat={state.combat}
@@ -119,10 +132,8 @@ export default function PlayPage() {
               keysEnabled={state.phase !== 'paused' && state.phase !== 'defeated' && !showVictory}
             />
           </div>
-        )}
-      </div>
-
-      <ControlsHint className="justify-center" />
+        </div>
+      )}
 
       {state.phase === 'paused' && !confirmingExit && (
         <PauseMenu
@@ -160,6 +171,6 @@ export default function PlayPage() {
           onExit={s.exit}
         />
       )}
-    </main>
+    </AppShell>
   )
 }

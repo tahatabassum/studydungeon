@@ -50,69 +50,69 @@ Rules for every task:
   - Show the user the plan: phases and task counts, decisions D1 to D26 with defaults, the hook file, the steering proposal and the PROPOSED CONTRACT section. Tell the user how to view them (open the four files). Wait for approval or changes to D1 to D26 before Phase 1. After approval commit Phase 0 separately.
   - _Requirements: 18.5, 20.6, 20.8_
 
-- [ ] 3. Phase 1: Full-screen layout, premium shell and API foundation
-  - [ ] 3.1 Implement the Viewport_Helper
+- [x] 3. Phase 1: Full-screen layout, premium shell and API foundation
+  - [x] 3.1 Implement the Viewport_Helper
     - Create `src/game/viewport.ts` with `zoomForViewport`, `layoutClass`, `hudMode` and `hudSafeBand` per design (D2: quarter-step zoom clamped to 0.75 to 3.0)
     - Pure, Phaser-free, no allocation beyond the returned rectangle
     - _Requirements: 2.5, 2.6, 3.2, 3.3_
 
-  - [ ]* 3.2 Write property tests for viewport helpers
+  - [x]* 3.2 Write property tests for viewport helpers
     - **Property 1: Viewport zoom is bounded and on the grid**
     - **Property 2: HUD mode and safe band**
     - Create `src/game/viewport.property.test.ts`
     - **Validates: Requirements 2.5, 2.6, 3.2, 3.3**
 
-  - [ ] 3.3 Switch the canvas to a viewport-filling transparent stage
+  - [x] 3.3 Switch the canvas to a viewport-filling transparent stage
     - Edit `src/game/config.ts`: a single `SCALE_MODE` constant set to `Phaser.Scale.RESIZE`, `transparent: true`, keep `autoCenter`; keep `GAME_WIDTH` and `GAME_HEIGHT` exports used by tests
     - Add the `set-viewport` ToGameEvent in `src/game/events.ts` (additive) and a compatibility test listing every old event shape
     - Edit `src/game/scenes/GameScene.ts` to listen for the scale `resize` event and apply `zoomForViewport`, camera size and bounds without allocating per frame; keep `set-view-inset` handling with value 0
     - Edit `src/game/GameCanvas.tsx` to send `set-viewport` from its ResizeObserver and refit within 250 ms
     - _Requirements: 2.2, 2.3, 2.6, 1.5_
 
-  - [ ] 3.4 Add design tokens and control states
+  - [x] 3.4 Add design tokens and control states
     - Edit `src/index.css` to add spacing, typography, glow and elevation tokens (keep every existing token name); add shared hover, focus-visible and pressed styles to `Button.tsx` and other controls
     - Extend `src/design/palette.test.ts` with contrast checks for the new text and component pairs (4.5:1 and 3:1)
     - _Requirements: 3.4, 3.5, 3.6, 3.7, 19.4, 19.7_
 
-  - [ ] 3.5 Build the AppShell, Themed_Backdrop and fullscreen
+  - [x] 3.5 Build the AppShell, Themed_Backdrop and fullscreen
     - Create `src/components/AppShell.tsx` (100dvh, 100dvw, safe-area insets), `src/components/ThemedBackdrop.tsx` (gradient, vignette, fog in CSS, respects Reduced_Motion), `src/shell/useFullscreen.ts`, `src/components/FullscreenButton.tsx`
     - F key and button toggle fullscreen; a rejected request keeps the layout and announces a short message through the aria-live region
     - Restructure `src/pages/PlayPage.tsx` so the canvas fills the shell; keep the existing QuestionPanel as a bottom overlay sheet only until Phase 2 replaces it; send `set-view-inset` 0
     - Add tests with `requestFullscreen` mocked to resolve and to reject
     - _Requirements: 2.1, 2.4, 2.7, 2.8, 19.8_
 
-  - [ ] 3.6 Build the Floating_HUD
+  - [x] 3.6 Build the Floating_HUD
     - Edit `src/components/Hud.tsx` and create `src/components/ControlsLegend.tsx`: a top bar and bottom legend that float over the stage, stay inside the bands from `hudSafeBand`, collapse to a compact bar with a legend toggle below 640 px, and use instant state changes under Reduced_Motion
     - Update `Hud.test.tsx`, `ControlsHint.test.tsx` and `PlayFlow.smoke.test.tsx`
     - _Requirements: 3.1, 3.2, 3.3, 3.5, 3.7_
 
-  - [ ] 3.7 Add zod validation and the Contract_Error
+  - [x] 3.7 Add zod validation and the Contract_Error
     - Install `zod` at the exact version 4.6.7 (`npm install --save-exact zod@4.6.7`)
     - Create `src/config/flags.ts`, `src/api/ContractError.ts`, `src/api/schemas.ts` for the seven existing endpoints, and edit `src/api/client.ts` so every response is parsed with its schema and failures throw `ContractError` naming the endpoint and field path; make `usePlaySession` and the pages show a clear error for it
     - Add `PROPOSED` markers in `src/types/api.ts` conventions (comment style from design Data Models) and keep `src/api/client.test.ts` passing
     - _Requirements: 17.1, 17.2, 17.3, 17.4_
 
-  - [ ] 3.8 Add fixtures and the Contract_Suite for existing endpoints
+  - [x] 3.8 Add fixtures and the Contract_Suite for existing endpoints
     - Create `src/api/mock/fixtures/*.json` for demo session, dungeon, run, attempt (correct and wrong), clear, finish and progress; add a test that validates each fixture against `schemas.ts`
     - Create `src/contract/suite.ts`, `src/contract/mock.contract.test.ts` and `src/contract/http.contract.test.ts` (skipped with a clear message unless `VITE_API_BASE_URL` is set and mocks are off); add script `"test:contract": "vitest --run src/contract"` to `package.json`
     - Update `frontend/.env.example` with the new flags
     - _Requirements: 17.5, 17.6, 17.7, 17.8, 17.10_
 
-  - [ ]* 3.9 Write property test for schema validation
+  - [x]* 3.9 Write property test for schema validation
     - **Property 22: Schema validation round trip and loud failure**
     - Create `src/api/schemas.property.test.ts` with hand-written arbitraries per schema, valid round trip and one-field mutation producing `ContractError` with the path
     - **Validates: Requirements 17.3, 17.4, 17.7**
 
-  - [ ] 3.10 Add the viewport readout and per-size verification report
+  - [x] 3.10 Add the viewport readout and per-size verification report
     - Extend the existing `?debug=1` overlay to show viewport size, zoom, canvas size and HUD mode
     - Add a "Phase 1 viewport verification" table to `docs/kiro-log-frontend.md` with one row each for 1366x768, 1536x864, 1920x1080, 2560x1440 and 390x844: zoom (computed from `zoomForViewport`), HUD mode, bars visible, fps (leave "to be read by the user" where it cannot be measured here and say so)
     - _Requirements: 2.9, 20.2_
 
-  - [ ] 3.11 Verify and log Phase 1
+  - [x] 3.11 Verify and log Phase 1
     - Run typecheck, lint, the full tests, `npm run test:contract` and the build; fix failures; confirm `importBoundary.test.ts` passes; update `docs/kiro-log-frontend.md`
     - _Requirements: 20.1, 20.7, 1.8_
 
-- [ ] 4. STOP: Phase 1 checkpoint, shell and layout review
+- [x] 4. STOP: Phase 1 checkpoint, shell and layout review
   - Summarize the changes. Tell the user to run `npm run dev` in `frontend/`, open `/play?debug=1` and check each of the five sizes (browser devtools device toolbar), the F key and button, resize, and the compact HUD below 640 px. Wait for approval, then commit Phase 1 separately.
   - _Requirements: 20.6, 20.8_
 

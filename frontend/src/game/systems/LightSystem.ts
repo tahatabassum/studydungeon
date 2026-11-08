@@ -4,6 +4,7 @@ import { GLOW_SIZE, SHADOW_KEY, VIGNETTE_KEY, glowKey } from '../textures/regist
 import type { GlowKey, LightSpec, RoomTheme } from '../world/roomTheme'
 import { WORLD_H, WORLD_W, type Point } from '../world/RoomLayout'
 import { flicker } from './flicker'
+import type { Rect } from '../viewport'
 
 /** Most additive light pools shown at once: 12 on WebGL, 6 on the Canvas renderer. */
 export const MAX_LIGHTS_WEBGL = 12
@@ -97,6 +98,11 @@ export class LightSystem {
       .setScrollFactor(0)
       .setAlpha(VIGNETTE_ALPHA)
       .setDepth(DEPTH_VIGNETTE)
+  }
+
+  /** Re-fit the screen-space vignette to the viewport (called on resize; no allocation). */
+  setScreenRect(r: Rect): void {
+    this.vignette.setPosition(r.x, r.y).setDisplaySize(r.w, r.h)
   }
 
   private makeShadow(): Phaser.GameObjects.Image {

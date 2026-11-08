@@ -1,5 +1,4 @@
 import Phaser from 'phaser'
-import { GAME_HEIGHT, GAME_WIDTH } from '../config'
 import { COLORS } from '../colors'
 import { ensureFontsLoaded, waitForFonts } from '../fonts'
 import { registerArt } from '../textures/registerArt'
@@ -19,8 +18,9 @@ export class BootScene extends Phaser.Scene {
   }
 
   create(): void {
-    const x = (GAME_WIDTH - BAR_W) / 2
-    const y = GAME_HEIGHT / 2
+    // RESIZE: the canvas is the viewport, so centre on the live scale size.
+    const x = (this.scale.width - BAR_W) / 2
+    const y = this.scale.height / 2
     const frame = this.add.graphics()
     frame.lineStyle(2, COLORS.INK_MUTED, 1)
     frame.strokeRect(x - 2, y - 2, BAR_W + 4, BAR_H + 4)

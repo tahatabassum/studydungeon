@@ -8,6 +8,6 @@ describe('ControlsHint', () => {
     const list = screen.getByRole('list', { name: 'Controls' })
     expect(list.className).toContain('extra')
     const keys = Array.from(list.querySelectorAll('kbd')).map((k) => k.textContent)
-    expect(keys).toEqual(['WASD', 'Arrows', 'E', '1-4', 'Enter', 'Esc'])
+    expect(keys).toEqual(['WASD', 'Arrows', 'E', '1-4', 'Enter', 'Esc', 'F'])
   })
 })

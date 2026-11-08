@@ -1,0 +1,14 @@
+{
+  "level": 2,
+  "total_xp": 120,
+  "xp_to_next": 80,
+  "badges": ["first_blood"],
+  "weapons": [
+    { "id": "rusty_dagger", "unlock_level": 1 },
+    { "id": "arcane_staff", "unlock_level": 2 }
+  ],
+  "recent_runs": [
+    { "id": "run-1", "dungeon_name": "Fixture Dungeon", "score": 600, "accuracy": 0.857, "finished_at": "2026-01-01T12:00:00.000Z" }
+  ],
+  "due_review_count": 2
+}

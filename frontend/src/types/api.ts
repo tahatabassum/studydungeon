@@ -83,6 +83,10 @@ export interface AnswerResult {
   review_status: 'due' | 'not_due'
   /** Optional; when absent the Source_Line shows only the page. */
   explanation?: string
+  /** PROPOSED (pending Person A): weapon used for the strike. Absent means Rusty Dagger. */
+  weapon_id?: string
+  /** PROPOSED (pending Person A): presentation-only critical flag; damage is unchanged. */
+  is_critical?: boolean
 }
 
 export interface ClearRoomResponse {
@@ -96,10 +100,49 @@ export interface RunSummary {
   total: number
   /** Ratio from 0 to 1. */
   accuracy: number
+  /** PROPOSED (pending Person A): badges earned this run. */
+  badges_earned?: BadgeId[]
+  /** PROPOSED (pending Person A): rank on the dungeon leaderboard after this run. */
+  leaderboard_rank?: number
+  /** PROPOSED (pending Person A): weapon unlocked by this run, if any. */
+  weapon_unlocked?: WeaponId | null
+  /** PROPOSED (pending Person A): level change caused by this run, if any. */
+  level_up?: { from: number; to: number } | null
+  /** PROPOSED (pending Person A): per-topic mastery for the Scorecard. */
+  topic_mastery?: { room_id: string; label: string; percent: number }[]
+  /** PROPOSED (pending Person A): concepts answered wrongly, with source page. */
+  weak_concepts?: { text: string; page: number }[]
 }
 
 export interface ProgressInfo {
   level: number
   total_xp: number
   xp_to_next: number
+  /** PROPOSED (pending Person A) */
+  badges?: BadgeId[]
+  /** PROPOSED (pending Person A) */
+  weapons?: { id: WeaponId; unlock_level: number }[]
+  /** PROPOSED (pending Person A) */
+  recent_runs?: { id: string; dungeon_name: string; score: number; accuracy: number; finished_at: string }[]
+  /** PROPOSED (pending Person A) */
+  due_review_count?: number
 }
+
+/** PROPOSED (pending Person A) */
+export type WeaponId =
+  | 'rusty_dagger'
+  | 'arcane_staff'
+  | 'hunter_crossbow'
+  | 'spectral_hammer'
+  | 'flame_sigil'
+
+/** PROPOSED (pending Person A) */
+export type BadgeId =
+  | 'perfect_room'
+  | 'no_damage'
+  | 'streak_5'
+  | 'boss_slayer'
+  | 'first_blood'
+  | 'memory_keeper'
+  | 'speed_reader'
+  | 'dungeon_master'

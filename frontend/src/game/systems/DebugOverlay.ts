@@ -1,6 +1,7 @@
 import Phaser from 'phaser'
 import { CSS_COLORS } from '../colors'
 import { debugRequested } from '../rendererQuery'
+import type { Rect } from '../viewport'
 
 const REFRESH_MS = 500
 const MIB = 1024 * 1024
@@ -10,6 +11,8 @@ export const TEXTURE_CAP_MIB = 32
 export interface DebugSources {
   ambientCount: () => number
   textureBytes: () => number
+  /** Optional readout line: viewport size, zoom, canvas size, HUD mode. */
+  viewport?: () => string
 }
 
 /**
@@ -19,6 +22,8 @@ export interface DebugSources {
 export class DebugOverlay {
   private text: Phaser.GameObjects.Text | null = null
   private enabled = false
+  private rect: Rect = { x: 0, y: 0, w: 960, h: 540 }
+  private zoom = 1
   private nextRefresh = 0
   private readonly onKey: () => void
 
@@ -46,6 +51,19 @@ export class DebugOverlay {
     }
     this.text?.setVisible(on)
     this.nextRefresh = 0
+    this.place()
+  }
+
+  /** Keep the readout pinned to the screen corner at any camera zoom (set on resize). */
+  setScreenRect(r: Rect, zoom: number): void {
+    this.rect = r
+    this.zoom = zoom > 0 ? zoom : 1
+    this.place()
+  }
+
+  private place(): void {
+    this.text?.setPosition(this.rect.x + 8 / this.zoom, this.rect.y + 8 / this.zoom).setScale(1 / this.zoom)
+    this.nextRefresh = 0
   }
 
   update(time: number): void {
@@ -56,7 +74,8 @@ export class DebugOverlay {
     const renderer = game.renderer.type === Phaser.WEBGL ? 'WebGL' : 'Canvas'
     this.text.setText(
       `fps ${Math.round(game.loop.actualFps)}  ambient ${this.sources.ambientCount()}  tweens ${this.scene.tweens.getTweens().length}\n` +
-        `renderer ${renderer}  texture ${mib.toFixed(1)} MiB / ${TEXTURE_CAP_MIB}`,
+        `renderer ${renderer}  texture ${mib.toFixed(1)} MiB / ${TEXTURE_CAP_MIB}` +
+        (this.sources.viewport ? `\n${this.sources.viewport()}` : ''),
     )
     this.text.setColor(mib > TEXTURE_CAP_MIB ? CSS_COLORS.DANGER : CSS_COLORS.GHOST)
   }

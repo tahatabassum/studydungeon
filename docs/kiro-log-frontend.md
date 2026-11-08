@@ -87,3 +87,20 @@ fast-check property test files that exist (11):
 - `npm test`: first run 64 files, 402 tests, 1 failed: `src/audio/sfx.property.test.ts` "Property 16: Sound mute gating" (seed -2109931452, counterexample ops unlock, play boss, play boss). Re-running that file alone passed (5 of 5), so the property test is flaky, with a rare random sequence failing (probably the boss cue under a random mute state). Not fixed here (no application or test code changes in Phase 0). Baseline: 402 tests in 64 files, 401 pass on the first run and 402 on a re-run of the file.
 - `npm run build`: pass (tsc and vite build; main chunk 552 kB, phaser chunk 1194 kB).
 - Other Phase 0 files: `.kiro/steering/frontend-ui-standards.md` (proposal, `inclusion: fileMatch` on `frontend/**`), and the PROPOSED CONTRACT section appended to `docs/handoff/B-to-A.md`.
+
+## frontend-07 Phase 1: full-screen layout, premium shell and API foundation
+- Flaky test fixed: `src/audio/sfx.property.test.ts` Property 16 stepped its fake clock by 1000 ms per play, but the `boss` cue has a 1500 ms rate limit, so two back-to-back boss plays were rate limited (seed -2109931452). The clock now steps 2000 ms (above every per-cue gap) and the counterexample is pinned as a fast-check `examples` regression. Mute gating assertions are unchanged.
+- D1 RESIZE with a transparent canvas, D2 quarter-step zoom (`src/game/viewport.ts`), D3 full-viewport canvas with `set-view-inset` 0, D16 `zod@4.6.7` (exact, the only new runtime dependency), D17 shared contract suite, D25 API foundation in this phase.
+- New `set-viewport` ToGameEvent is additive; `events.test.ts` lists every pre-existing event shape.
+- Screen-space overlays (vignette, lightning, mist wipe, debug text) are refit on resize with `overlayRect` so they cover the viewport at any zoom.
+
+### Phase 1 viewport verification
+Zoom comes from `zoomForViewport` (run by `viewport.property.test.ts`). HUD mode is `hudMode(width)`. Frame rate, "bars visible" and visual checks were not measured here (no browser was driven); those cells are left for the user to read from `/play?debug=1`, which now shows viewport size, zoom, canvas size and HUD mode.
+
+| Viewport | Zoom | World shown (w/zoom x h/zoom) | HUD mode | Letterbox bars | fps |
+|----------|------|-------------------------------|----------|----------------|-----|
+| 1366x768 | 1.5 | 911x512 | full | none (canvas = viewport) | to be read by the user |
+| 1536x864 | 1.5 | 1024x576 | full | none | to be read by the user |
+| 1920x1080 | 2.0 | 960x540 | full | none | to be read by the user |
+| 2560x1440 | 2.75 | 931x524 | full | none | to be read by the user |
+| 390x844 | 0.75 | 520x1125 | compact | none | to be read by the user |

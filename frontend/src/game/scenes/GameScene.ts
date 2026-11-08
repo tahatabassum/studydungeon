@@ -1,5 +1,6 @@
 import Phaser from 'phaser'
-import { BRIDGE_KEY, CAMERA_ZOOM, GAME_HEIGHT } from '../config'
+import { BRIDGE_KEY } from '../config'
+import { hudMode, overlayRect, zoomForViewport } from '../viewport'
 import { hashString } from '@/art/room/rng'
 import { AnimatedPieces } from '../systems/AnimatedPieces'
 import { DebugOverlay } from '../systems/DebugOverlay'
@@ -107,12 +108,18 @@ export class GameScene extends Phaser.Scene {
     this.debug = new DebugOverlay(this, {
       ambientCount: () => this.atmosphere?.activeCount ?? 0,
       textureBytes: () => (this.baker?.estimatedBytes() ?? 0) + SHARED_TEXTURE_BYTES,
+      viewport: () => {
+        const { width, height } = this.scale
+        return `viewport ${width}x${height}  zoom ${this.cameras.main.zoom}  canvas ${this.game.canvas.width}x${this.game.canvas.height}  hud ${hudMode(width)}`
+      },
     })
-    this.cameras.main.setZoom(CAMERA_ZOOM)
+    this.scale.on(Phaser.Scale.Events.RESIZE, this.onScaleResize)
+    this.applyViewport()
 
     const off = this.bridge?.onToGame((e) => this.handle(e))
     const cleanup = (): void => {
       off?.()
+      this.scale.off(Phaser.Scale.Events.RESIZE, this.onScaleResize)
       this.effects?.destroy()
       this.atmosphere?.destroy()
       this.atmosphere = null
@@ -134,6 +141,27 @@ export class GameScene extends Phaser.Scene {
     this.bridge?.emit({ type: 'ready' })
   }
 
+  private readonly onScaleResize = (): void => this.applyViewport()
+
+  /**
+   * RESIZE keeps the canvas equal to the viewport, so the camera size, zoom (D2) and the
+   * screen-space overlays are refit here. Runs on resize only; allocates nothing per frame.
+   */
+  private applyViewport(): void {
+    const { width: w, height: h } = this.scale
+    if (w <= 0 || h <= 0) return
+    const cam = this.cameras.main
+    const zoom = zoomForViewport(w, h)
+    cam.setSize(w, h)
+    cam.setZoom(zoom)
+    const rect = overlayRect(w, h, zoom)
+    this.lighting?.setScreenRect(rect)
+    this.pieces?.setScreenRect(rect)
+    this.transition?.setScreenRect(rect)
+    this.debug?.setScreenRect(rect, zoom)
+    this.applyViewInset(false)
+  }
+
   /** Camera follows the given object. */
   followTarget(target: Phaser.GameObjects.GameObject): void {
     this.cameras.main.startFollow(target, true, 0.1, 0.1)
@@ -149,7 +177,8 @@ export class GameScene extends Phaser.Scene {
    */
   private applyViewInset(animate: boolean): void {
     const cam = this.cameras.main
-    const targetY = -(this.viewInset * GAME_HEIGHT) / 2
+    // Visible world height at the current zoom (equals 540 at zoom 1 on a 960x540 viewport).
+    const targetY = -(this.viewInset * (cam.height / cam.zoom)) / 2
     this.insetTween?.stop()
     this.insetTween = null
     if (animate && !this.reducedMotion) {
@@ -218,6 +247,13 @@ export class GameScene extends Phaser.Scene {
       case 'set-view-inset':
         this.viewInset = clampViewInset(e.bottomFraction)
         this.applyViewInset(true)
+        break
+      case 'set-viewport':
+        // The shell measured a size the scale manager has not caught up with: re-read the parent.
+        if (Math.abs(this.scale.width - e.width) > 1 || Math.abs(this.scale.height - e.height) > 1) {
+          this.scale.refresh()
+        }
+        this.applyViewport()
         break
       case 'reset':
         if (this.rooms.length > 0) this.build()

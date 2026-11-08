@@ -3,7 +3,7 @@ import { useReducedMotion } from 'framer-motion';
 import '../styles/landing.css';
 import { useNavigate } from 'react-router-dom';
 import { BookOpen, Flame, Ghost, Skull, Sword } from 'lucide-react';
-import { ApiError, getApi } from '../api';
+import { ApiError, describeError, getApi } from '../api';
 import { Button } from '../components/Button';
 import { Panel } from '../components/Panel';
 import { PixelSprite } from '../components/PixelSprite';
@@ -20,7 +20,7 @@ function errorMessage(err: unknown): string {
   if (err instanceof ApiError && err.status === 429) {
     return 'Too many demo starts, try again soon.';
   }
-  return 'Could not start the demo. Please try again.';
+  return describeError(err, 'Could not start the demo. Please try again.');
 }
 
 /** Inline SVG bat silhouette (decorative). */

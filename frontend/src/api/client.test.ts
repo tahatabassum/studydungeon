@@ -1,6 +1,8 @@
 import { describe, expect, it, vi } from 'vitest'
 import { createHttpClient } from './client'
+import { ContractError, describeError } from './ContractError'
 import { ApiError } from './errors'
+import { fixtures } from './mock/fixtures'
 import type { AttemptRequest } from '../types/api'
 
 type FetchArgs = [url: string | URL | Request, init?: RequestInit]
@@ -18,7 +20,9 @@ const json = (body: unknown, status = 200) => () =>
 
 describe('createHttpClient', () => {
   it('uses credentials include and the right URL/method for each call', async () => {
-    const f = fakeFetch(json({}))
+    const bodies = [fixtures.demoSession, fixtures.dungeon, fixtures.run, fixtures.attemptCorrect, fixtures.clear]
+    let i = 0
+    const f = fakeFetch(() => json(bodies[i++])())
     const api = createHttpClient('http://api.test/', f as unknown as typeof fetch)
 
     await api.startDemoSession()
@@ -59,6 +63,7 @@ describe('createHttpClient', () => {
 
   it('sends finishRun without a body', async () => {
     const f = fakeFetch(json({ score: 1, xp: 2, correct: 3, total: 4, accuracy: 0.75 }))
+    // (legacy shape without PROPOSED fields still validates)
     const api = createHttpClient('', f as unknown as typeof fetch)
     const summary = await api.finishRun('r1')
     expect(summary.accuracy).toBe(0.75)
@@ -66,7 +71,7 @@ describe('createHttpClient', () => {
   })
 
   it('sends only attempt_id, question_id, selected_answer in the attempt body', async () => {
-    const f = fakeFetch(json({}))
+    const f = fakeFetch(json(fixtures.attemptWrong))
     const api = createHttpClient('', f as unknown as typeof fetch)
     const req = {
       question_id: 'q1',
@@ -81,12 +86,34 @@ describe('createHttpClient', () => {
   })
 
   it('throws ApiError with the HTTP status on non-2xx', async () => {
+    // (error bodies are never schema-checked)
     const f = fakeFetch(json({ detail: 'nope' }, 429))
     const api = createHttpClient('', f as unknown as typeof fetch)
     const err = await api.startRun('d').catch((e: unknown) => e)
     expect(err).toBeInstanceOf(ApiError)
     expect((err as ApiError).status).toBe(429)
     expect((err as ApiError).message).toBe('nope')
+  })
+
+  it('throws ContractError naming the endpoint and field when a response does not match', async () => {
+    const f = fakeFetch(json({ level: 2, total_xp: '120', xp_to_next: 80 }))
+    const api = createHttpClient('', f as unknown as typeof fetch)
+    const err = await api.getProgress().catch((e: unknown) => e)
+    expect(err).toBeInstanceOf(ContractError)
+    expect((err as ContractError).message).toContain('GET /progress')
+    expect((err as ContractError).message).toContain('total_xp')
+    expect(describeError(err, 'fallback')).toContain('total_xp')
+    expect(describeError(new Error('x'), 'fallback')).toBe('fallback')
+  })
+
+  it('reports nested paths such as rooms[0].monster.kind', async () => {
+    const bad = structuredClone(fixtures.dungeon) as { rooms: Array<{ monster: Record<string, unknown> }> }
+    delete bad.rooms[0].monster.kind
+    const f = fakeFetch(json(bad))
+    const api = createHttpClient('', f as unknown as typeof fetch)
+    const err = await api.getDungeon('demo-dungeon').catch((e: unknown) => e)
+    expect(err).toBeInstanceOf(ContractError)
+    expect((err as ContractError).path).toBe('rooms[0].monster.kind')
   })
 
   it('maps network failure to ApiError status 0', async () => {

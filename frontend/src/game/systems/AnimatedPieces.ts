@@ -19,6 +19,7 @@ import {
   type ClockAngles,
 } from './pieceMotion'
 import { ObjectPool } from './objectPool'
+import type { Rect } from '../viewport'
 
 const DEPTH_PIECE = 9
 const STEAM_LIFE_MS = 1200
@@ -69,6 +70,7 @@ export class AnimatedPieces {
   private readonly floaters: Floater[] = []
   private readonly drift = { x: 0, y: 0, rot: 0 }
   private overlay: Phaser.GameObjects.Rectangle | null = null
+  private screenRect: Rect = { x: 0, y: 0, w: 960, h: 540 }
   private nextStrike = 0
   private strikeAt = -1e9
   private jars = 0
@@ -111,13 +113,19 @@ export class AnimatedPieces {
   /** Lightning overlay for the boss hall: created once, hidden until a strike. */
   private ensureOverlay(): void {
     if (this.overlay) return
-    const { width, height } = this.scene.scale
+    const r = this.screenRect
     this.overlay = this.scene.add
-      .rectangle(0, 0, width, height, 0xcfe0ff, 0)
+      .rectangle(r.x, r.y, r.w, r.h, 0xcfe0ff, 0)
       .setOrigin(0, 0)
       .setScrollFactor(0)
       .setDepth(DEPTH_LIGHTNING)
       .setVisible(false)
+  }
+
+  /** Re-fit the screen-space lightning overlay to the viewport (called on resize). */
+  setScreenRect(r: Rect): void {
+    this.screenRect = r
+    this.overlay?.setPosition(r.x, r.y).setSize(r.w, r.h)
   }
 
   /** Number of piece objects currently in use. */

@@ -33,10 +33,65 @@
   --font-body: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
 }
 
+/* Layout tokens (premium shell). Plain custom properties; colors stay in @theme above. */
+:root {
+  /* Spacing scale */
+  --sd-space-1: 0.25rem;
+  --sd-space-2: 0.5rem;
+  --sd-space-3: 0.75rem;
+  --sd-space-4: 1rem;
+  --sd-space-5: 1.5rem;
+  --sd-space-6: 2rem;
+
+  /* Type scale */
+  --sd-text-xs: 0.75rem;
+  --sd-text-sm: 0.875rem;
+  --sd-text-md: 1rem;
+  --sd-text-lg: 1.25rem;
+  --sd-text-xl: 1.75rem;
+
+  /* Motion durations (instant under Reduced_Motion via the global rule below) */
+  --sd-dur-fast: 120ms;
+  --sd-dur-base: 200ms;
+  --sd-dur-slow: 300ms;
+
+  /* Glow and elevation */
+  --sd-glow-accent: 0 0 10px color-mix(in srgb, var(--color-accent) 55%, transparent);
+  --sd-glow-magic: 0 0 14px color-mix(in srgb, var(--color-magic) 60%, transparent);
+  --sd-elev-1: 0 1px 2px rgb(0 0 0 / 0.5);
+  --sd-elev-2: 0 4px 12px rgb(0 0 0 / 0.55);
+  --sd-elev-3: 0 12px 32px rgb(0 0 0 / 0.65);
+
+  /* Floating HUD surface: panel at 92 percent so the stage shows faintly behind it. */
+  --sd-hud-surface: color-mix(in srgb, var(--color-panel) 92%, transparent);
+  --sd-hud-top: 56px;
+  --sd-hud-bottom: 40px;
+}
+
 html,
 body,
 #root {
   min-height: 100%;
+}
+
+/* Shared control states: hover, pressed and keyboard focus for buttons and icon controls. */
+.sd-control {
+  transition:
+    background-color var(--sd-dur-fast) ease,
+    border-color var(--sd-dur-fast) ease,
+    box-shadow var(--sd-dur-fast) ease,
+    transform var(--sd-dur-fast) ease;
+}
+.sd-control:hover:enabled {
+  box-shadow: var(--sd-glow-accent);
+}
+.sd-control:active:enabled {
+  transform: translateY(1px) scale(0.98);
+  box-shadow: none;
+}
+.sd-control:focus-visible {
+  outline: 3px solid var(--color-accent);
+  outline-offset: 2px;
 }
 
 body {

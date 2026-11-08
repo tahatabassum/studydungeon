@@ -90,6 +90,47 @@ describe('Required text and UI pairs on component surfaces', () => {
     }
   })
 
+  // Phase 1 premium shell: new text and component pairs.
+  const blend = (fg: number, bg: number, fgPct: number): number => {
+    const ch = (shift: number) =>
+      Math.round(((fg >> shift) & 255) * (fgPct / 100) + ((bg >> shift) & 255) * (1 - fgPct / 100))
+    return (ch(16) << 16) | (ch(8) << 8) | ch(0)
+  }
+
+  it('floating HUD surface (panel at 92%) keeps ink and ink-muted text at 4.5:1 even over a bright stage', () => {
+    for (const stage of [COLORS.BG, COLORS.INK, 0xffffff]) {
+      const surface = blend(COLORS.PANEL, stage, 92)
+      expect(contrastRatio(COLORS.INK, surface), `ink over ${stage.toString(16)}`).toBeGreaterThanOrEqual(4.5)
+      expect(contrastRatio(COLORS.INK_MUTED, surface), `ink-muted over ${stage.toString(16)}`).toBeGreaterThanOrEqual(4.5)
+    }
+  })
+
+  it('pressed and hover primary button text (bg on accent, brightness 110%) is at least 4.5:1', () => {
+    const bright = (c: number): number => {
+      const ch = (shift: number) => Math.min(255, Math.round(((c >> shift) & 255) * 1.1))
+      return (ch(16) << 16) | (ch(8) << 8) | ch(0)
+    }
+    expect(contrastRatio(COLORS.BG, bright(COLORS.ACCENT))).toBeGreaterThanOrEqual(4.5)
+  })
+
+  it('focus ring (accent) is at least 3:1 on bg, panel, deep and the HUD surface', () => {
+    for (const bg of [COLORS.BG, COLORS.PANEL, COLORS.DEEP, blend(COLORS.PANEL, COLORS.BG, 92)]) {
+      expect(contrastRatio(COLORS.ACCENT, bg)).toBeGreaterThanOrEqual(3)
+    }
+  })
+
+  it('secondary button hover (ink on deep) is at least 4.5:1', () => {
+    expect(contrastRatio(COLORS.INK, COLORS.DEEP)).toBeGreaterThanOrEqual(4.5)
+  })
+
+  it('defines the layout tokens, HUD surface and shared control states', () => {
+    for (const name of ['--sd-space-4', '--sd-text-md', '--sd-glow-accent', '--sd-elev-2', '--sd-hud-surface', '--sd-dur-base']) {
+      expect(css, name).toContain(`${name}:`)
+    }
+    expect(css).toMatch(/\.sd-control:active/)
+    expect(css).toMatch(/\.sd-control:focus-visible/)
+  })
+
   it('witch colour is never used as a text colour', () => {
     const fs = nodeProcess.getBuiltinModule('node:fs') as unknown as {
       readFileSync(path: string, enc: string): string
