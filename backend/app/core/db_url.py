@@ -55,3 +55,4 @@ def normalize_database_url(url: str, is_alembic_sync: bool = False) -> str:
         parsed.fragment
     ))
     return normalized
+

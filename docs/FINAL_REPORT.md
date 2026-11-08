@@ -5,7 +5,7 @@ This document records the comprehensive architectural implementation, test verif
 ---
 
 ## 1. Executive Summary
-StudyDungeon's backend is a production-ready, asynchronous API engineered for deterministic educational RPG gameplay. The platform authoritatively computes all combat damage, streak multipliers, weapon unlocks, XP progression, and fixed-ladder spaced repetition intervals on the Python backend, ensuring the AI never decides game balance or review dates. Comprehensive test automation (96 pytest integration, unit, and Hypothesis property tests) confirms 100% test passing with zero warnings and zero schema drift across SQLite and PostgreSQL migration cycles. The entire codebase is strictly scoped to Person A boundaries, leaving `frontend/**` and `.kiro/steering/**` completely untouched.
+StudyDungeon's backend is an asynchronous API engineered for deterministic educational RPG gameplay. The platform authoritatively computes all combat damage, streak multipliers, weapon unlocks, XP progression, and fixed-ladder spaced repetition intervals on the Python backend, ensuring the AI never decides game balance or review dates. Comprehensive test automation (96 tests as of commit fd78b92 — pytest integration, unit, and Hypothesis property tests) confirms 100% test passing with zero warnings and zero schema drift across SQLite migration cycles. **Migrations and tests have been verified on SQLite only; PostgreSQL/Neon has NOT been verified locally** (see Section 8 for full list of unverified items). The entire codebase is strictly scoped to Person A boundaries, leaving `frontend/**` and `.kiro/steering/**` completely untouched.
 
 ---
 
@@ -146,3 +146,4 @@ StudyDungeon's backend is a production-ready, asynchronous API engineered for de
 4. **Vercel Frontend Configuration**: Set `VITE_USE_MOCKS=false` and confirm `/api/*` rewrite points to the live Render backend.
 5. **Live AI Verification**: Run `python backend/scripts/live_gemini_check.py` with your `GEMINI_API_KEY` to confirm Google Gemini 2.0 connectivity.
 6. **Video & Devpost**: Record a 2.5-minute gameplay walkthrough following `docs/DEMO_VIDEO_SCRIPT.md` and submit on Devpost before deadline.
+

@@ -30,3 +30,4 @@ services:
         value: "15"
       - key: OPENROUTER_ENABLED
         value: "false"
+

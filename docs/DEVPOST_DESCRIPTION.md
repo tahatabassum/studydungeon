@@ -29,3 +29,4 @@ Studying dense academic notes with traditional flashcard apps feels tedious and 
 ## Honest Limitations
 - Free-tier cloud hosts (Render) take 30–50 seconds to wake from cold sleep.
 - OCR on low-contrast or illegible handwriting may require manual verification.
+
