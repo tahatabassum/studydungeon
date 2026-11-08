@@ -6,7 +6,7 @@ import { AppShell } from '@/components/AppShell'
 import { ControlsLegend } from '@/components/ControlsLegend'
 import { DefeatOverlay } from '@/components/DefeatOverlay'
 import { FullscreenButton } from '@/components/FullscreenButton'
-import { GuestBanner } from '@/components/GuestBanner'
+import { GuestBanner, GUEST_BANNER_MS } from '@/components/GuestBanner'
 import { Hud } from '@/components/Hud'
 import { Panel } from '@/components/Panel'
 import { PauseMenu } from '@/components/PauseMenu'
@@ -27,6 +27,8 @@ export default function PlayPage() {
   const [s, gameWrapRef] = usePlaySession()
   const { state, room } = s
   const [confirmingExit, setConfirmingExit] = useState(false)
+  // Lives here (not in the banner) so it survives restart / Play again within one page visit.
+  const [guestBannerDone, setGuestBannerDone] = useState(false)
   const fullscreen = useFullscreen()
   const compact = hudMode(useViewportWidth()) === 'compact'
 
@@ -108,7 +110,13 @@ export default function PlayPage() {
               clearedRoomIds={s.clearedRoomIds}
               hauntedDue={s.hauntedDue}
             />
-            {!compact && <GuestBanner isGuest={user?.is_guest ?? false} />}
+            {!compact && !guestBannerDone && (
+              <GuestBanner
+                isGuest={user?.is_guest ?? false}
+                autoHideMs={GUEST_BANNER_MS}
+                onDone={() => setGuestBannerDone(true)}
+              />
+            )}
           </div>
           <FullscreenButton isFullscreen={fullscreen.isFullscreen} onToggle={() => void fullscreen.toggle()} />
         </div>

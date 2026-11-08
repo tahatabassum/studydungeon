@@ -276,6 +276,21 @@ describe('play flow smoke test', () => {
     await vi.waitFor(() => expect(sent().some((e) => e.type === 'encounter-close')).toBe(true))
   })
 
+  it('guest banner shows at the start, hides after 6 s and does not return after restart', async () => {
+    const text = 'Playing as guest. Progress is temporary. Create an account to save.'
+    await startDemo()
+    expect(await screen.findByText(text)).toBeTruthy()
+    advance(6000)
+    advance(500)
+    await vi.waitFor(() => expect(screen.queryByText(text)).toBeNull())
+
+    await user.keyboard('{Escape}')
+    const pause = await screen.findByRole('dialog', { name: 'Paused' })
+    await user.click(within(pause).getByRole('button', { name: 'Restart' }))
+    await screen.findByRole('progressbar', { name: 'Player health' })
+    expect(screen.queryByText(text)).toBeNull()
+  })
+
   it('clears room 1, opens the gate, enters room 2 and asks room 2 questions', async () => {
     await startDemo()
     const load = sent().find((e) => e.type === 'load-dungeon') as Extract<ToGameEvent, { type: 'load-dungeon' }>
