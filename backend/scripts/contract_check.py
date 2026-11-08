@@ -60,10 +60,11 @@ async def main():
         # 4. Check Attempt
         first_room = dungeon_data["rooms"][0]
         q_id = first_room["questions"][0]["id"]
+        import uuid
         res = await client.post(
             f"/runs/{run_id}/attempts",
             json={
-                "attempt_id": "contract-check-attempt-001",
+                "attempt_id": str(uuid.uuid4()),
                 "question_id": q_id,
                 "selected_answer": "Arbitrary Test Answer",
                 "weapon_name": "Rusty Dagger",
