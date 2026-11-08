@@ -31,6 +31,7 @@ class User(Base):
     username: Mapped[str] = mapped_column(String(64), unique=True, index=True, nullable=False)
     password_hash: Mapped[Optional[str]] = mapped_column(String(256), nullable=True)
     is_guest: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    is_system: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     session_version: Mapped[int] = mapped_column(Integer, default=1, nullable=False)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, nullable=False)
     last_login_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, nullable=False)
@@ -145,6 +146,7 @@ class DungeonRoom(Base):
     monster_hp: Mapped[int] = mapped_column(Integer, nullable=False)
 
     dungeon: Mapped["Dungeon"] = relationship("Dungeon", back_populates="rooms")
+    topic: Mapped["Topic"] = relationship("Topic")
 
 
 class GameRun(Base):
@@ -162,6 +164,7 @@ class GameRun(Base):
     finished_at: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
 
     user: Mapped["User"] = relationship("User", back_populates="runs")
+    dungeon: Mapped["Dungeon"] = relationship("Dungeon")
     attempts: Mapped[List["Attempt"]] = relationship("Attempt", back_populates="run", cascade="all, delete-orphan")
 
 
@@ -172,15 +175,18 @@ class Attempt(Base):
     user_id: Mapped[str] = mapped_column(String(36), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
     run_id: Mapped[str] = mapped_column(String(36), ForeignKey("game_runs.id", ondelete="CASCADE"), nullable=False, index=True)
     question_id: Mapped[str] = mapped_column(String(36), ForeignKey("questions.id", ondelete="CASCADE"), nullable=False)
-    selected_option: Mapped[int] = mapped_column(Integer, nullable=False)
+    selected_option: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    selected_answer: Mapped[str] = mapped_column(String(255), nullable=False, default="")
     is_correct: Mapped[bool] = mapped_column(Boolean, nullable=False)
     damage_dealt: Mapped[int] = mapped_column(Integer, default=0)
+    damage_taken: Mapped[int] = mapped_column(Integer, default=0)
     player_hp_snapshot: Mapped[int] = mapped_column(Integer, default=100)
     duration_ms: Mapped[int] = mapped_column(Integer, default=0)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
 
     user: Mapped["User"] = relationship("User", back_populates="attempts")
     run: Mapped["GameRun"] = relationship("GameRun", back_populates="attempts")
+    question: Mapped["Question"] = relationship("Question")
 
 
 class ReviewItem(Base):

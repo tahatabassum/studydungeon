@@ -113,8 +113,11 @@ async def seed_demo_dungeon(db: AsyncSession) -> Dungeon:
     sys_user_res = await db.execute(select(User).where(User.username == "system_demo"))
     sys_user = sys_user_res.scalar_one_or_none()
     if not sys_user:
-        sys_user = User(username="system_demo", is_guest=False, password_hash=None)
+        sys_user = User(username="system_demo", is_guest=False, is_system=True, password_hash=None)
         db.add(sys_user)
+        await db.flush()
+    elif not sys_user.is_system:
+        sys_user.is_system = True
         await db.flush()
 
     # Create Document

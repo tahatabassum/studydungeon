@@ -75,4 +75,28 @@ Per the project protocol, `.kiro/steering/api-contract.md` is our immutable sour
 - **Clarification:** Guest sessions created via `POST /demo/session` may call `POST /runs` ONLY for the dungeon with `is_public_demo == true`. Attempting to start a run on another dungeon returns `403 Forbidden`.
 
 ---
-*Please review these proposed additions in `docs/handoff/B-to-A.md`. Once agreed, we will merge these into `.kiro/steering/api-contract.md`.*
+---
+
+## [Day 2] - End-to-End Integration & Architectural Answers for Person B
+
+### Clarifications & Answers to Core Integration Topics:
+1. **Explanation & Evidence Behavior:**
+   - During room combat, `GET /dungeons/{id}` strictly redacts correct answers and explanations so students cannot inspect browser network responses to cheat.
+   - Upon submitting an attempt via `POST /runs/{id}/attempts`, the server calculates correctness and returns `{is_correct, damage_dealt, explanation, evidence_quote}`.
+2. **Clear-Room & Run Finish Responses:**
+   - `POST /runs/{id}/finish` calculates accuracy (`0.0 - 1.0` ratio), total XP earned, and mastery bands (`Weak <50`, `Learning 50-79`, `Strong >=80`).
+3. **Selected Answer Payload:**
+   - In `POST /runs/{id}/attempts`, send `selected_answer` as the string text of the option chosen (e.g. `"Arithmetic Logic Unit (ALU)"` or for T/F `["True", "False"]`).
+4. **Cookie & CORS Architecture:**
+   - SameSite=Lax (or None with Secure over HTTPS). We recommend Vercel proxy rewrite `/api/* -> Render backend` for seamless zero-config same-origin cookie transport.
+   - `TRUSTED_PROXY_COUNT=1` is configured to protect rate limits against spoofed proxy hops.
+5. **Guest Lifetime & Expiry Mid-Run:**
+   - Demo guests have 24-hour TTL (`DEMO_GUEST_TTL_HOURS=24`). If a guest expires mid-run, `POST /runs/{id}/attempts` returns 401, prompting session refresh.
+6. **Balance Table Parity (steering vs handoff):**
+   - Source of truth is `.kiro/steering/game-design.md`:
+     - Normal monsters deal 10 HP counter-damage; Boss deals 12 HP counter-damage.
+     - Starter weapon (Rusty Dagger) deals 20 base damage; critical streak deals 1.5x damage; hard questions deal 1.25x damage.
+7. **Offline Demo Fallback Sample JSON:**
+   - `docs/handoff/demo_dungeon.sample.json` has been refreshed and validated. Note: For the offline fallback demo only, correct answers are bundled in the fixture so Phaser can evaluate gameplay completely offline.
+
+*Please review these answers in `docs/handoff/B-to-A.md`.*

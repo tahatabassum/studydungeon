@@ -18,6 +18,8 @@ class UserRegisterRequest(BaseModel):
             raise ValueError("Username must be between 3 and 32 characters after normalization")
         if normalized.startswith("guest_"):
             raise ValueError("Usernames starting with 'guest_' are reserved for demo guest accounts")
+        if normalized in ("system", "system_demo") or normalized.startswith("system_"):
+            raise ValueError("Usernames starting with 'system' or 'system_' are reserved for system services")
         if not normalized.replace("_", "").isalnum():
             raise ValueError("Username must contain only alphanumeric characters and underscores")
         return normalized
