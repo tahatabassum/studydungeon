@@ -1,0 +1,19 @@
+[project]
+name = "studydungeon-backend"
+version = "1.0.0"
+description = "StudyDungeon Backend API"
+requires-python = ">=3.11"
+
+[tool.ruff]
+line-length = 120
+target-version = "py311"
+extend-exclude = ["migrations", "venv", ".venv"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I"]
+ignore = ["E501", "E712", "E402"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+pythonpath = ["."]

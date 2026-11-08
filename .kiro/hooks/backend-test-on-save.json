@@ -1,0 +1,9 @@
+{
+  "version": "1.0",
+  "name": "backend-test-on-save",
+  "description": "Trigger pytest when backend files are saved",
+  "events": ["file_save"],
+  "pattern": "backend/**/*.py",
+  "command": "pytest backend/tests"
+}
+
