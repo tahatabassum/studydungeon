@@ -87,7 +87,7 @@ export function Hud({
           tone={lowHealth ? 'danger' : 'health'}
         />
         {lowHealth && (
-          <p role="status" className="mt-0.5 flex items-center gap-1 text-xs font-semibold text-danger">
+          <p role="status" className="mt-0.5 flex items-center gap-1 text-xs font-semibold text-[color-mix(in_srgb,var(--color-danger),var(--color-ink)_45%)]">
             <AlertTriangle aria-hidden="true" className="size-3.5" />
             Low health
           </p>
@@ -115,7 +115,7 @@ export function Hud({
           <PixelSprite map={ICONS.star} scale={1} />
           <span className="text-gold">{`XP ${xp}`}</span>
         </span>
-        {level !== undefined && <span className="font-label text-magic">{`Lv ${level}`}</span>}
+        {level !== undefined && <span className="font-label text-[color-mix(in_srgb,var(--color-magic),var(--color-ink)_40%)]">{`Lv ${level}`}</span>}
         {level !== undefined && totalXp !== undefined && xpToNext !== undefined && (
           <span className="text-xs text-ink/80">{`Total ${totalXp} XP · ${xpToNext} to next`}</span>
         )}

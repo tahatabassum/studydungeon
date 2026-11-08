@@ -479,6 +479,54 @@
         "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
         "timestamp": 1794135524748
       }
+    ],
+    "10.1 Contrast and reduced-motion verification": [
+      {
+        "executionId": "026ed7e0-7f94-4fff-9182-72c000999e60",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794135938193
+      },
+      {
+        "executionId": "d36935ff-4221-46f2-8549-8cc7233c1e29",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794137009110
+      }
+    ],
+    "10.2 Licences and log": [
+      {
+        "executionId": "026ed7e0-7f94-4fff-9182-72c000999e60",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794135938470
+      },
+      {
+        "executionId": "d36935ff-4221-46f2-8549-8cc7233c1e29",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794136616354
+      },
+      {
+        "executionId": "d36935ff-4221-46f2-8549-8cc7233c1e29",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794137009465
+      }
+    ],
+    "10.3 Full verification run": [
+      {
+        "executionId": "026ed7e0-7f94-4fff-9182-72c000999e60",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794135938733
+      },
+      {
+        "executionId": "d36935ff-4221-46f2-8549-8cc7233c1e29",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794137009975
+      }
+    ],
+    "10. Phase 6: Verification and documentation": [
+      {
+        "executionId": "d36935ff-4221-46f2-8549-8cc7233c1e29",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794137010164
+      }
     ]
   }
 }

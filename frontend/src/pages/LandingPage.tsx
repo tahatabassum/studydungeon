@@ -103,7 +103,7 @@ export default function LandingPage() {
               {pending ? 'Waking up the dungeon...' : ''}
             </p>
             {error && (
-              <p role="alert" className="text-danger">
+              <p role="alert" className="text-[color-mix(in_srgb,var(--color-danger),var(--color-ink)_45%)]">
                 {error}
               </p>
             )}

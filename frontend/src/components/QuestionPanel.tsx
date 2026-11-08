@@ -194,7 +194,7 @@ export function QuestionPanel({
           </p>
         )}
         {error && (
-          <p role="alert" className="mt-2 text-sm font-semibold text-danger">
+          <p role="alert" className="mt-2 text-sm font-semibold text-[color-mix(in_srgb,var(--color-danger),var(--color-ink)_45%)]">
             {error}
           </p>
         )}
@@ -216,7 +216,7 @@ export function QuestionPanel({
             <div className="flex flex-wrap items-center gap-2">
               <p
                 role="status"
-                className={`inline-flex items-center gap-2 rounded-md border-2 px-2 py-0.5 text-base font-bold ${shownResult.correct ? 'border-health bg-health/20 text-[color-mix(in_srgb,var(--color-health),var(--color-bg)_70%)]' : 'border-danger bg-danger/10 text-danger'}`}
+                className={`inline-flex items-center gap-2 rounded-md border-2 px-2 py-0.5 text-base font-bold ${shownResult.correct ? 'border-health bg-health/20 text-[color-mix(in_srgb,var(--color-health),var(--color-bg)_70%)]' : 'border-danger bg-danger/10 text-[color-mix(in_srgb,var(--color-danger),var(--color-ink)_45%)]'}`}
               >
                 {shownResult.correct ? (
                   <Check aria-hidden="true" className="size-5" />

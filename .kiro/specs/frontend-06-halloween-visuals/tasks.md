@@ -195,17 +195,17 @@ Rules for every task:
 - [x] 9. STOP: Phase 5 checkpoint, sound review
   - Ensure all tests pass. Ask the user to listen with sound on and off and approve before Phase 6.
 
-- [ ] 10. Phase 6: Verification and documentation
-  - [ ] 10.1 Contrast and reduced-motion verification
+- [x] 10. Phase 6: Verification and documentation
+  - [x] 10.1 Contrast and reduced-motion verification
     - Add example tests for the required text pairs in `src/design/palette.test.ts`; fix any failing token use in changed components
     - Create `.kiro/specs/frontend-06-halloween-visuals/verification-report.md` with a contrast and reduced-motion row for each changed screen
     - _Requirements: 16.4, 4.6_
 
-  - [ ] 10.2 Licences and log
+  - [x] 10.2 Licences and log
     - Update `ASSETS_LICENSES.md` (all art code-drawn, fonts unchanged, any pack if D4 changes) and `docs/kiro-log-frontend.md`
     - _Requirements: 16.5, 1.6_
 
-  - [ ] 10.3 Full verification run
+  - [x] 10.3 Full verification run
     - Run `npm run typecheck`, lint, the full test suite and the production build in `frontend/`; fix failures; confirm `importBoundary.test.ts` passes and the test count is at least 267 plus the new tests
     - _Requirements: 16.1, 16.2, 1.3, 1.4, 1.8_
 
