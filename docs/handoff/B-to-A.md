@@ -176,3 +176,103 @@ The Phaser/React Event_Bridge events changed (`load-room` replaced by `load-dung
 5. Which `Monster.kind` values will exist? The frontend currently knows `paper_wraith`, `toxic_slime`, `gear_golem`, `memory_eater`, `exam_warden`.
 6. Do the boss values (120 HP, wrong-answer damage 12, clear XP 100) and room clear XP (25) match `game-design.md`?
 7. Is `finishRun` idempotent, and what happens if it is called twice?
+
+---
+
+## PROPOSED CONTRACT (pending Person A)
+
+Date: frontend-07-premium-ux-leaderboard, Phase 0.
+
+> **Status: nothing below is implemented by the backend.** Every shape is a frontend proposal, built against the mock (`VITE_USE_MOCKS=true`) and marked pending. New fields are optional on the frontend, so a backend that has not added them still works. The backend stays authoritative for correctness, damage, HP, XP, score, streak, rank and badges. The session cookie (`credentials: "include"`) is the only credential; the frontend stores no token.
+
+### Files requested from Person A
+
+Please publish `.kiro/steering/api-contract.md`, `.kiro/steering/game-design.md` and `docs/handoff/demo_dungeon.sample.json`. They do not exist yet and the shapes below replace them until they do.
+
+### GET /leaderboard
+
+- Query: `?dungeon_id=<id>&period=all|week&limit=20`
+- Guests can read it. Rivals (seeded demo entries) are flagged `is_seeded_rival`.
+- Response:
+  ```json
+  {
+    "entries": [
+      { "id": "u_17", "rank": 1, "display_name": "Mira", "is_guest": false, "is_seeded_rival": false,
+        "level": 4, "score": 2400, "accuracy": 0.92, "best_streak": 9, "badge_ids": ["boss_slayer", "streak_5"] },
+      { "id": "rival_3", "rank": 2, "display_name": "Ghost Rival", "is_guest": false, "is_seeded_rival": true,
+        "level": 3, "score": 2100, "accuracy": 0.8, "best_streak": 6, "badge_ids": [] }
+    ],
+    "me": { "rank": 7, "is_provisional": false, "entry": { "id": "u_42", "rank": 7, "display_name": "Sam", "is_guest": false, "is_seeded_rival": false, "level": 2, "score": 900, "accuracy": 0.7, "best_streak": 3, "badge_ids": ["first_blood"] } },
+    "updated_at": "2026-11-20T12:00:00Z"
+  }
+  ```
+- `me.rank` is `null` and `me.entry` is `null` when the caller has no finished run. Ties: score desc, accuracy desc, best_streak desc, display_name asc, id asc.
+
+### POST /runs/{id}/finish additions (all optional)
+
+```json
+{
+  "score": 500, "xp": 160, "correct": 5, "total": 6, "accuracy": 0.83,
+  "badges_earned": ["first_blood", "boss_slayer"],
+  "leaderboard_rank": 7,
+  "weapon_unlocked": "arcane_staff",
+  "level_up": { "from": 1, "to": 2 },
+  "topic_mastery": [{ "room_id": "room-1", "label": "Chamber of Basics", "percent": 75 }],
+  "weak_concepts": [{ "text": "Definition of entropy", "page": 12 }]
+}
+```
+
+Badge ids: `perfect_room`, `no_damage`, `streak_5`, `boss_slayer`, `first_blood`, `memory_keeper`, `speed_reader`, `dungeon_master`. Weapon ids: `rusty_dagger`, `arcane_staff`, `hunter_crossbow`, `spectral_hammer`, `flame_sigil`.
+
+### GET /progress additions (all optional)
+
+```json
+{
+  "badges": ["first_blood"],
+  "weapons": [{ "id": "rusty_dagger", "unlock_level": 1 }, { "id": "arcane_staff", "unlock_level": 2 }],
+  "recent_runs": [{ "id": "run_9", "dungeon_name": "Demo Dungeon", "score": 500, "accuracy": 0.83, "finished_at": "2026-11-20T11:55:00Z" }],
+  "due_review_count": 3
+}
+```
+
+### POST /runs/{id}/attempts response additions (all optional)
+
+```json
+{ "correct": true, "damage_dealt": 20, "weapon_id": "arcane_staff", "is_critical": false }
+```
+
+The frontend only presents `weapon_id` and `is_critical`; it never computes damage.
+
+### Due review delivery (Person A chooses one)
+
+- Option 1: include `due_reviews` in the `POST /runs` response.
+- Option 2: `GET /reviews/due`.
+- Item shape (the question never carries the answer):
+  ```json
+  { "id": "rev_1", "question": { "id": "q2", "type": "mcq", "prompt": "...", "options": ["...", "..."] }, "room_id": "room-1", "times_missed": 2 }
+  ```
+
+### Auth endpoints
+
+Cookie session only; no token in the body.
+
+- `POST /auth/register` body `{ "username": "sam", "password": "..." }` returns `201 { "user": { "id": "u_42", "username": "sam", "is_guest": false } }`. Errors: `409` taken, `422` invalid.
+- `POST /auth/login` same body, returns `200 { "user": { ... } }`. Errors: `401`, `429` with `Retry-After`.
+- `POST /auth/logout` returns `204`.
+- `GET /auth/me` returns `200 { "user": { ... } }` or `401`.
+
+### Upload endpoint (pending)
+
+`POST /uploads` multipart (`file`, optional `title`) returns `202 { "upload_id": "up_1", "status": "processing" }`; `GET /uploads/{id}` returns `{ "status": "processing|ready|failed", "dungeon_id": "d_5" }`. Hidden for guests. Optional feature; the frontend mocks it.
+
+### Backend notes
+
+- Boss phase (normal or enraged) is derived by the frontend from monster HP (below 50 percent is enraged). **No backend change needed.**
+- Boss difficulty (HP, wrong-answer damage, question mix) and any speed bonus are **backend scoring and balance changes**. The frontend does not compute them. Please confirm the values in `game-design.md`.
+
+### Open questions for Person A
+
+1. Which due review delivery option do you prefer?
+2. Is the leaderboard scoped per dungeon, global, or both?
+3. Who computes badges and weapon unlocks, and when (at finish)?
+4. Will guests appear on the leaderboard, or only read it?

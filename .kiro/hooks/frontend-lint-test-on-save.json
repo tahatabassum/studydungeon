@@ -1,0 +1,15 @@
+{
+  "version": "v1",
+  "hooks": [
+    {
+      "name": "frontend-lint-typecheck-test-on-save",
+      "trigger": "PostFileSave",
+      "matcher": "^(.*[\\\\/])?frontend[\\\\/]src[\\\\/].*\\.(ts|tsx)$",
+      "action": {
+        "type": "command",
+        "command": "cd frontend && npm run lint && npm run typecheck && npm test"
+      },
+      "timeout": 300
+    }
+  ]
+}

@@ -209,7 +209,7 @@ Rules for every task:
     - Run `npm run typecheck`, lint, the full test suite and the production build in `frontend/`; fix failures; confirm `importBoundary.test.ts` passes and the test count is at least 267 plus the new tests
     - _Requirements: 16.1, 16.2, 1.3, 1.4, 1.8_
 
-- [ ] 11. Final checkpoint: performance readings by the user
+- [x] 11. Final checkpoint: performance readings by the user
   - Ensure all tests pass. Give the user the exact steps to open each room with `?debug=1`, ask for fps, ambient particle count and texture MiB per room (and one pass with `?renderer=canvas`), record the readings in the verification report, and ask the user to approve the merge.
   - _Requirements: 16.3, 2.1, 2.9_
 
