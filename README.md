@@ -3,7 +3,7 @@ AI-powered gamified learning RPG built for Kiroween 2026
 
 ## Backend Architecture & Operations
 
-StudyDungeon's backend is a high-performance asynchronous API designed for deterministic, verifiable educational RPG gameplay powered by FastAPI, SQLAlchemy (asyncio), PostgreSQL / SQLite, and Gemini 2.0 multimodal AI.
+StudyDungeon's backend is a high-performance asynchronous API designed for deterministic, verifiable educational RPG gameplay powered by FastAPI, SQLAlchemy (asyncio), PostgreSQL / SQLite, and a configurable AI provider (model selected via the `GEMINI_MODEL` environment variable; a Google AI Studio API key — free tier works).
 
 ### Core Architecture & Guarantees
 - **Deterministic RPG Authority**: The AI strictly extracts study chunks and proposes candidate questions with verbatim evidence citations. The backend Python engine authoritatively computes all combat damage, streak multipliers, weapon unlocks, XP progression, and SRS review intervals. The AI never decides HP, XP, damage, or review intervals.

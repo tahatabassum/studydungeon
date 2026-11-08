@@ -17,7 +17,7 @@
 - [x] Offline fallback demo JSON provided for frontend development (Owner: Person A)
 
 ## Human Action Items (Only the Humans Can Do)
-- [ ] Merge PR `feature/backend-02-ingestion` into `main` on GitHub (Owner: Human)
+- [x] Merge PR `feature/backend-02-ingestion` into `main` on GitHub (Owner: Human) — PR #8 & PR #9 merged
 - [ ] Set up Neon PostgreSQL database and copy connection string (Owner: Human)
 - [ ] Deploy Render web service with Docker runtime and configured env vars (Owner: Human)
 - [ ] Deploy Vercel frontend with proxy rewrite rule and `VITE_USE_MOCKS=false` (Owner: Human)
