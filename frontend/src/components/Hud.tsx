@@ -6,6 +6,8 @@ import { ICONS } from '../art/sprites/icons'
 import { PixelSprite } from './PixelSprite'
 import { isLowHealth } from './hudHelpers'
 import { ProgressBar } from './ProgressBar'
+import { StoneFrame } from './StoneFrame'
+import '../styles/hud.css'
 import { RoomProgress, type RoomProgressRoom } from './RoomProgress'
 
 export interface HudProps {
@@ -63,8 +65,10 @@ export function Hud({
           />
         </div>
       )}
-      <div
-        className={`min-w-44 flex-1 rounded-md border-2 bg-panel/95 px-2 py-1 shadow-[inset_0_0_0_1px_var(--color-deep)] ${lowHealth ? 'border-danger' : 'border-gold/70'}`}
+      <StoneFrame
+        tone={lowHealth ? 'danger' : 'default'}
+        className={`min-w-44 flex-1 px-2 py-1 ${lowHealth && !reduceMotion ? 'sd-lowhp' : ''}`}
+        data-low-health={lowHealth ? 'true' : undefined}
       >
         <div className="mb-0.5 flex items-center justify-between gap-2 text-sm font-semibold">
           <span className="flex items-center gap-1.5 font-label tracking-wide">
@@ -75,6 +79,7 @@ export function Hud({
             {playerHp} / {maxPlayerHp}
           </span>
         </div>
+        <span aria-hidden="true" className="sd-bone-divider mb-0.5" style={{ height: '0.3rem' }} />
         <ProgressBar
           value={playerHp}
           max={maxPlayerHp}
@@ -82,15 +87,12 @@ export function Hud({
           tone={lowHealth ? 'danger' : 'health'}
         />
         {lowHealth && (
-          <p
-            role="status"
-            className="mt-0.5 flex items-center gap-1 text-xs font-semibold text-danger motion-safe:animate-pulse"
-          >
+          <p role="status" className="mt-0.5 flex items-center gap-1 text-xs font-semibold text-danger">
             <AlertTriangle aria-hidden="true" className="size-3.5" />
             Low health
           </p>
         )}
-      </div>
+      </StoneFrame>
       {showMonster && (
         <MonsterBlock
           monsterHp={monsterHp}
@@ -107,7 +109,7 @@ export function Hud({
         initial={reduceMotion ? false : { scale: 1.12 }}
         animate={{ scale: 1 }}
         transition={{ duration: 0.35 }}
-        className="flex flex-wrap items-center gap-x-3 gap-y-0 rounded-md border-2 border-gold/70 bg-panel/95 px-2 py-1 text-sm font-semibold shadow-[inset_0_0_0_1px_var(--color-deep)]"
+        className="sd-stone flex flex-wrap items-center gap-x-3 gap-y-0 px-2 py-1 text-sm font-semibold"
       >
         <span className="flex items-center gap-1.5">
           <PixelSprite map={ICONS.star} scale={1} />
@@ -157,7 +159,7 @@ function MonsterBlock({
   const portrait = (kind ? getSprite(kind) : undefined) ?? ICONS.skull
 
   return (
-    <div className="relative min-w-52 flex-1 overflow-hidden rounded-lg border-2 border-danger bg-panel/90 px-2 py-1 shadow-[0_0_12px_var(--color-danger),inset_0_0_0_1px_var(--color-deep)]">
+    <StoneFrame tone="danger" className="min-w-52 flex-1 overflow-hidden px-2 py-1">
       {hitCount > 0 && !reduceMotion && (
         <motion.div
           key={hitCount}
@@ -200,6 +202,6 @@ function MonsterBlock({
           />
         </div>
       </div>
-    </div>
+    </StoneFrame>
   )
 }

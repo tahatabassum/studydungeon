@@ -145,37 +145,37 @@ Rules for every task:
   - Ensure all tests pass. Ask the user to review each room with `?debug=1` and approve before Phase 4.
   - _Requirements: 11.8_
 
-- [ ] 6. Phase 4: UI and screens
-  - [ ] 6.1 HUD and stone frame
+- [x] 6. Phase 4: UI and screens
+  - [x] 6.1 HUD and stone frame
     - Create `src/components/StoneFrame.tsx` and `src/styles/hud.css`; edit `src/components/Hud.tsx`, `src/components/RoomProgress.tsx`, `src/components/hudHelpers.ts` (low-health state helper at 25 percent)
     - Low-health pulse disabled under reduced motion
     - _Requirements: 12.1, 12.2, 4.4, 4.6_
 
-  - [ ] 6.2 Spellbook question panel
+  - [x] 6.2 Spellbook question panel
     - Edit `src/components/QuestionPanel.tsx`; create `src/styles/spellbook.css` (parchment, corner candle, ink options with hover glow); keep behaviour and keyboard handling unchanged
     - _Requirements: 12.3, 12.4, 12.5, 4.6_
 
-  - [ ] 6.3 Answer feedback effects
+  - [x] 6.3 Answer feedback effects
     - Edit `src/game/systems/EffectsSystem.ts` (ghost-wisp burst on correct, curse flash on wrong with non-flashing tint under reduced motion, pooled floating damage numbers)
     - _Requirements: 13.1, 13.2, 13.3, 13.4, 13.5, 2.4_
 
-  - [ ] 6.4 Landing page
+  - [x] 6.4 Landing page
     - Edit `src/pages/LandingPage.tsx`; create `src/styles/landing.css` and inline SVG bats (CSS-only sky, moon, fog, flickering title, pumpkin button); static under prefers-reduced-motion
     - _Requirements: 14.1, 14.2, 4.5_
 
-  - [ ] 6.5 Victory, defeat and pause screens
+  - [x] 6.5 Victory, defeat and pause screens
     - Edit `src/components/VictoryOverlay.tsx` (embers, bat confetti at most 24 elements, XP counter), `src/components/DefeatOverlay.tsx` (fading candles), `src/components/PauseMenu.tsx` and `src/components/OverlayFrame.tsx` (stone frame)
     - _Requirements: 14.3, 14.4, 14.5, 4.5_
 
-  - [ ] 6.6 Room transitions
+  - [x] 6.6 Room transitions
     - Create `src/game/systems/TransitionSystem.ts` (mist wipe or bat swarm, at most 600 ms, skippable by any key or pointer, off under reduced motion); edit `src/game/scenes/GameScene.ts` `onRoomChange`
     - _Requirements: 14.6, 14.7, 4.1_
 
-  - [ ] 6.7 Component tests for screens
+  - [x] 6.7 Component tests for screens
     - Edit `src/components/hudHelpers.test.ts`, `src/components/QuestionPanel.test.tsx`, `src/components/OverlayFrame.test.tsx`; create `src/components/VictoryOverlay.test.tsx`, `src/components/DefeatOverlay.test.tsx`, `src/pages/LandingPage.test.tsx` covering reduced-motion variants, low-health threshold and unchanged question behaviour
     - _Requirements: 12.2, 12.4, 12.5, 14.3, 14.4, 4.4, 4.5_
 
-- [ ] 7. STOP: Phase 4 checkpoint, UI review
+- [x] 7. STOP: Phase 4 checkpoint, UI review
   - Ensure all tests pass. Ask the user to review HUD, panel, landing, victory, defeat, pause and transitions in normal and reduced motion. Do not start Phase 5 until approved.
 
 - [ ] 8. Phase 5: Sound

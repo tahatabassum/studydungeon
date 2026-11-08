@@ -1,7 +1,8 @@
 import { useEffect, useRef } from 'react'
 import type { KeyboardEvent, ReactNode, RefObject } from 'react'
 import { motion, useReducedMotion } from 'framer-motion'
-import { Frame } from './Frame'
+import { StoneFrame } from './StoneFrame'
+import '../styles/hud.css'
 
 export interface OverlayFrameProps {
   /** Heading text; rendered as an h2 with id `titleId`. */
@@ -22,6 +23,8 @@ export interface OverlayFrameProps {
   zClass?: string
   /** Frame width class. */
   widthClass?: string
+  /** Optional decorative layer (aria-hidden) rendered behind the frame. */
+  backdrop?: ReactNode
   children: ReactNode
 }
 
@@ -40,6 +43,7 @@ export function OverlayFrame({
   onEscape,
   zClass = 'z-50',
   widthClass = 'max-w-md',
+  backdrop,
   children,
 }: OverlayFrameProps) {
   const reduced = useReducedMotion()
@@ -100,33 +104,37 @@ export function OverlayFrame({
       aria-labelledby={titleId}
       aria-describedby={describedBy}
       onKeyDown={onKeyDown}
+      data-reduced={reduced ? 'true' : undefined}
       className={`fixed inset-0 ${zClass} flex items-center justify-center overflow-y-auto bg-bg/85 p-4`}
       initial={reduced ? false : { opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={reduced ? { duration: 0 } : { duration: 0.25 }}
     >
+      {backdrop}
       <motion.div
         className={`w-full ${widthClass}`}
         initial={reduced ? false : { scale: 0.95 }}
         animate={{ scale: 1 }}
         transition={reduced ? { duration: 0 } : { duration: 0.25 }}
       >
-        <Frame
-          title={
-            <h2 id={titleId} className="font-(family-name:--font-display) text-3xl text-gold">
-              {title}
-            </h2>
-          }
-        >
-          <div className="flex flex-col items-center gap-4 text-center">
-            {character && (
-              <div aria-hidden="true" className="flex items-end justify-center gap-3">
-                {character}
-              </div>
-            )}
-            {children}
+        <StoneFrame className="p-1">
+          <div className="rounded-md border border-deep px-6 py-5">
+            <div className="mb-3 text-center">
+              <h2 id={titleId} className="font-(family-name:--font-display) text-3xl text-gold">
+                {title}
+              </h2>
+            </div>
+            <span aria-hidden="true" className="sd-bone-divider mb-3" />
+            <div className="flex flex-col items-center gap-4 text-center">
+              {character && (
+                <div aria-hidden="true" className="flex items-end justify-center gap-3">
+                  {character}
+                </div>
+              )}
+              {children}
+            </div>
           </div>
-        </Frame>
+        </StoneFrame>
       </motion.div>
     </motion.div>
   )

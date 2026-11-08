@@ -1,4 +1,7 @@
 import { AlertTriangle } from 'lucide-react'
+import { useReducedMotion } from 'framer-motion'
+import { useCountUp } from './useCountUp'
+import { VictoryFx } from './VictoryFx'
 import { Button } from './Button'
 import { OverlayFrame } from './OverlayFrame'
 import { PixelSprite } from './PixelSprite'
@@ -28,6 +31,8 @@ export function VictoryOverlay({
   onExit,
 }: VictoryOverlayProps) {
   const showError = !summary && !pending && !!error
+  const reduced = !!useReducedMotion()
+  const xpShown = useCountUp(summary?.xp ?? 0, reduced)
 
   const stats: Array<[string, string]> = summary
     ? [
@@ -43,10 +48,11 @@ export function VictoryOverlay({
       title="The Exam Warden falls!"
       titleId="victory-title"
       initialFocus="button[data-play-again]"
+      backdrop={<VictoryFx />}
       character={
         <>
           <PixelSprite map={CHARACTER_SPRITES.skeleton_companion} scale={3} />
-          <PixelSprite map={ICONS.crown} scale={5} className="motion-safe:animate-bounce" />
+          <PixelSprite map={ICONS.crown} scale={5} className={reduced ? '' : 'motion-safe:animate-bounce'} />
           <PixelSprite map={CHARACTER_SPRITES.friendly_ghost} scale={3} />
         </>
       }
@@ -77,7 +83,18 @@ export function VictoryOverlay({
           {stats.map(([label, value]) => (
             <div key={label} className="rounded-lg border border-deep bg-panel p-3">
               <dt className="font-(family-name:--font-label) text-sm text-ink-muted">{label}</dt>
-              <dd className="text-xl font-bold text-gold">{value}</dd>
+              <dd className="text-xl font-bold text-gold">
+                {label === 'XP' ? (
+                  <>
+                    <span aria-hidden="true" data-testid="xp-counter">
+                      {xpShown}
+                    </span>
+                    <span className="sr-only">{value}</span>
+                  </>
+                ) : (
+                  value
+                )}
+              </dd>
             </div>
           ))}
         </dl>

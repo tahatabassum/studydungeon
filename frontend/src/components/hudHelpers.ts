@@ -5,12 +5,14 @@
 
 /**
  * Whether a health bar should show the low-health state.
- * True exactly when `max > 0` and `hp` is at or below 30% of `max`
- * (integer arithmetic: `hp * 100 <= 30 * max`). False when `max <= 0`.
+ * True exactly when `max > 0` and `hp` is at or below 25% of `max`
+ * (integer arithmetic: `hp * 100 <= 25 * max`). False when `max <= 0`.
  */
+export const LOW_HEALTH_PERCENT = 25
+
 export function isLowHealth(hp: number, max: number): boolean {
   if (!(max > 0)) return false
-  return hp * 100 <= 30 * max
+  return hp * 100 <= LOW_HEALTH_PERCENT * max
 }
 
 /** Visual state of a room marker in the room progress strip. */

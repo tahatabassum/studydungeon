@@ -4,13 +4,13 @@ import { isLowHealth, roomMarkerState } from './hudHelpers'
 
 // Feature: frontend-04-rpg-ui-combat-flow, Property 10: Low-health predicate
 describe('Feature: frontend-04-rpg-ui-combat-flow, Property 10: Low-health predicate', () => {
-  it('**Validates: Requirements 11.2** isLowHealth(hp, max) === (hp * 100 <= 30 * max)', () => {
+  it('**Validates: Requirements 12.2** isLowHealth(hp, max) === (hp * 100 <= 25 * max)', () => {
     fc.assert(
       fc.property(
         fc.integer({ min: -10, max: 10_000 }),
         fc.integer({ min: 1, max: 10_000 }),
         (hp, max) => {
-          expect(isLowHealth(hp, max)).toBe(hp * 100 <= 30 * max)
+          expect(isLowHealth(hp, max)).toBe(hp * 100 <= 25 * max)
         },
       ),
       { numRuns: 200 },
@@ -18,8 +18,8 @@ describe('Feature: frontend-04-rpg-ui-combat-flow, Property 10: Low-health predi
   })
 
   it('matches boundary examples', () => {
-    expect(isLowHealth(30, 100)).toBe(true)
-    expect(isLowHealth(31, 100)).toBe(false)
+    expect(isLowHealth(25, 100)).toBe(true)
+    expect(isLowHealth(26, 100)).toBe(false)
     expect(isLowHealth(0, 100)).toBe(true)
     expect(isLowHealth(100, 100)).toBe(false)
   })

@@ -2,6 +2,7 @@ import { motion, useReducedMotion } from 'framer-motion'
 import { check, crown, lock } from '../art/sprites/icons'
 import { PixelSprite } from './PixelSprite'
 import { roomMarkerState, type RoomMarker } from './hudHelpers'
+import { StoneFrame } from './StoneFrame'
 
 export interface RoomProgressRoom {
   id: string
@@ -25,7 +26,7 @@ const STATE_TEXT: Record<RoomMarker, string> = {
 const STATE_STYLE: Record<RoomMarker, string> = {
   cleared: 'border-health text-health bg-surface-2 opacity-80',
   current:
-    'border-2 border-magic text-accent bg-deep shadow-[0_0_8px_2px_var(--color-magic)] motion-safe:animate-pulse',
+    'border-2 border-magic text-accent bg-deep shadow-[0_0_8px_2px_var(--color-magic)]',
   locked: 'border-dashed border-ink-muted text-ink-muted bg-bg opacity-70',
 }
 
@@ -35,7 +36,7 @@ export function RoomProgress({ rooms, currentRoomId, clearedRoomIds }: RoomProgr
   const current = currentIndex >= 0 ? rooms[currentIndex] : undefined
 
   return (
-    <div className="flex h-full flex-wrap items-center gap-x-3 gap-y-0.5 rounded-lg border border-deep bg-panel/90 px-2 py-1 text-sm text-ink">
+    <StoneFrame className="flex h-full flex-wrap items-center gap-x-3 gap-y-0.5 px-2 py-1 pt-2 text-sm text-ink">
       <p className="font-semibold">
         {current ? `Room ${currentIndex + 1} of ${rooms.length}: ${current.label}` : `${rooms.length} rooms`}
       </p>
@@ -52,7 +53,7 @@ export function RoomProgress({ rooms, currentRoomId, clearedRoomIds }: RoomProgr
               initial={false}
               animate={reduce ? undefined : { scale: state === 'current' ? 1.1 : 1 }}
               transition={reduce ? { duration: 0 } : { duration: 0.25 }}
-              className={`flex size-6 items-center justify-center border transition-colors motion-reduce:transition-none ${
+              className={`relative flex size-6 items-center justify-center border transition-colors motion-reduce:transition-none ${
                 isBoss ? 'rounded-md' : 'rounded-full'
               } ${STATE_STYLE[state]}`}
             >
@@ -61,6 +62,9 @@ export function RoomProgress({ rooms, currentRoomId, clearedRoomIds }: RoomProgr
               ) : (
                 <span aria-hidden="true" className="size-2 rounded-full bg-accent" />
               )}
+              {state === 'current' && (
+                <span aria-hidden="true" data-testid="room-flame" className="sd-flame -top-2.5 left-1/2 -ml-[0.2rem]" />
+              )}
               <span className="sr-only">
                 {`${room.label}: ${STATE_TEXT[state]}${isBoss ? ', boss' : ''}`}
               </span>
@@ -68,6 +72,6 @@ export function RoomProgress({ rooms, currentRoomId, clearedRoomIds }: RoomProgr
           )
         })}
       </ol>
-    </div>
+    </StoneFrame>
   )
 }

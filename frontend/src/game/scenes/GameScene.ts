@@ -5,6 +5,7 @@ import { AnimatedPieces } from '../systems/AnimatedPieces'
 import { DebugOverlay } from '../systems/DebugOverlay'
 import { LightSystem } from '../systems/LightSystem'
 import { RoomBaker } from '../systems/RoomBaker'
+import { TransitionSystem } from '../systems/TransitionSystem'
 import { roomCandleLights } from '../world/roomProps'
 import { GLOW_COLORS } from '../textures/registerGlow'
 import { clampViewInset } from '../world/viewInset'
@@ -57,6 +58,7 @@ export class GameScene extends Phaser.Scene {
   private atmosphere: AtmosphereSystem | null = null
   private lighting: LightSystem | null = null
   private pieces: AnimatedPieces | null = null
+  private transition: TransitionSystem | null = null
   private baker: RoomBaker | null = null
   private debug: DebugOverlay | null = null
   /** Room ids in dungeon order (for lazy baking of the current and adjacent rooms). */
@@ -101,6 +103,7 @@ export class GameScene extends Phaser.Scene {
     this.lighting = new LightSystem(this, () => this.reducedMotion)
     this.pieces = new AnimatedPieces(this, () => this.reducedMotion)
     this.baker = new RoomBaker(this)
+    this.transition = new TransitionSystem(this, () => this.reducedMotion)
     this.debug = new DebugOverlay(this, {
       ambientCount: () => this.atmosphere?.activeCount ?? 0,
       textureBytes: () => (this.baker?.estimatedBytes() ?? 0) + SHARED_TEXTURE_BYTES,
@@ -117,6 +120,8 @@ export class GameScene extends Phaser.Scene {
       this.lighting = null
       this.pieces?.destroy()
       this.pieces = null
+      this.transition?.destroy()
+      this.transition = null
       this.baker?.releaseAll()
       this.baker = null
       this.debug?.destroy()
@@ -243,7 +248,7 @@ export class GameScene extends Phaser.Scene {
     this.pieces?.setRoom(info.theme, info.origin)
     const cam = this.cameras.main
     const intro = !this.introduced.has(roomId)
-    if (!first && !this.reducedMotion && !(info.boss && intro)) cam.fadeIn(180, 0, 0, 0)
+    if (!first && !this.reducedMotion && !(info.boss && intro)) this.transition?.play()
     if (!intro) return
     this.introduced.add(roomId)
     this.monsters.get(roomId)?.playIntro()
@@ -277,6 +282,7 @@ export class GameScene extends Phaser.Scene {
 
   private teardown(): void {
     this.effects?.reset()
+    this.transition?.end()
     this.atmosphere?.clearRoom()
     this.lighting?.clearRoom()
     this.lighting?.follow(null)

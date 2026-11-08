@@ -1,4 +1,5 @@
 import { Button } from './Button'
+import { DefeatCandles } from './DefeatCandles'
 import { OverlayFrame } from './OverlayFrame'
 import { PixelSprite } from './PixelSprite'
 import { CHARACTER_SPRITES, ICONS } from '@/art/sprites'
@@ -30,6 +31,7 @@ export function DefeatOverlay({ onRetry, xp, score }: DefeatOverlayProps) {
         {xp !== undefined && <span className="block text-ink-muted">XP earned: {xp}</span>}
         {score !== undefined && <span className="block text-ink-muted">Score: {score}</span>}
       </p>
+      <DefeatCandles />
       <div className="font-(family-name:--font-label)">
         <Button onClick={onRetry}>Retry</Button>
       </div>

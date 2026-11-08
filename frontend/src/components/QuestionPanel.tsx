@@ -5,6 +5,8 @@ import { canAnswer, type CombatState } from '../state/combatMachine'
 import type { AnswerResult, Question } from '../types/api'
 import { Button } from './Button'
 import { SourceLine } from './SourceLine'
+import '../styles/hud.css'
+import '../styles/spellbook.css'
 
 /**
  * Mostly presentational. The parent (PlayPage) owns attempt_id generation,
@@ -120,7 +122,8 @@ export function QuestionPanel({
       aria-modal="true"
       aria-labelledby={headingId}
       tabIndex={-1}
-      className="relative w-full max-w-3xl outline-none focus:outline-none rounded-xl border-4 border-deep bg-surface-2 p-1 shadow-[0_0_16px_var(--color-deep)]"
+      data-reduced={reduceMotion ? 'true' : undefined}
+      className="sd-stone relative w-full max-w-3xl outline-none focus:outline-none rounded-xl border-4 p-1"
     >
       <span aria-hidden="true" className="pointer-events-none absolute left-1 top-1 h-4 w-4 rounded-tl border-l-4 border-t-4 border-gold" />
       <span aria-hidden="true" className="pointer-events-none absolute right-1 top-1 h-4 w-4 rounded-tr border-r-4 border-t-4 border-gold" />
@@ -131,14 +134,18 @@ export function QuestionPanel({
         initial={reduceMotion ? false : { opacity: 0, y: 16, scale: 0.97 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
         transition={{ duration: reduceMotion ? 0 : 0.2 }}
-        className="rounded-lg border border-deep/60 bg-ink p-3 text-bg sm:p-4"
+        className="sd-parchment rounded-lg border border-deep/60 p-3 text-bg sm:p-4"
       >
+        <span aria-hidden="true" data-testid="spellbook-candle" className="sd-candle">
+          <span className="sd-candle__body" />
+          <span className="sd-flame" />
+        </span>
         {monsterName && (
-          <p className="mb-1 border-b border-deep/30 pb-0.5 font-[family-name:var(--font-display)] text-sm text-deep">
+          <p className="mb-1 border-b border-deep/30 pb-0.5 pr-5 font-[family-name:var(--font-display)] text-sm text-deep">
             {monsterName} blocks your way
           </p>
         )}
-        <h2 id={headingId} className="font-[family-name:var(--font-body)] text-base font-semibold leading-snug sm:text-lg">
+        <h2 id={headingId} className="pr-5 font-[family-name:var(--font-body)] text-base font-semibold leading-snug sm:text-lg">
           {question.prompt}
         </h2>
 
@@ -160,7 +167,7 @@ export function QuestionPanel({
                   disabled={!answerable}
                   aria-pressed={shownResult ? isSelected : undefined}
                   onClick={() => submit(opt)}
-                  className={`flex h-full w-full items-center gap-2 rounded-lg border-2 px-2 py-1.5 text-left text-base leading-snug transition-colors focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-accent disabled:cursor-not-allowed disabled:opacity-80 ${tone}`}
+                  className={`sd-ink-option flex h-full w-full items-center gap-2 rounded-lg border-2 px-2 py-1.5 text-left text-base leading-snug transition-colors focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-accent disabled:cursor-not-allowed disabled:opacity-80 ${tone}`}
                 >
                   <span
                     aria-hidden="true"

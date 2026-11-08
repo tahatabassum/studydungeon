@@ -1,6 +1,14 @@
 import { cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { QuestionPanel, type QuestionPanelProps } from './QuestionPanel'
+import type { QuestionPanelProps } from './QuestionPanel'
+
+const rm = vi.hoisted(() => ({ reduced: false }))
+vi.mock('framer-motion', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('framer-motion')>()
+  return { ...actual, useReducedMotion: () => rm.reduced }
+})
+
+import { QuestionPanel } from './QuestionPanel'
 import type { AnswerResult } from '../types/api'
 
 const question = {
@@ -38,7 +46,29 @@ function setup(over: Partial<QuestionPanelProps> = {}) {
   return props
 }
 
-afterEach(cleanup)
+afterEach(() => {
+  cleanup()
+  rm.reduced = false
+})
+
+describe('QuestionPanel spellbook', () => {
+  it('shows the corner candle and focuses the panel container, not an option', () => {
+    setup()
+    expect(screen.getByTestId('spellbook-candle')).toBeTruthy()
+    expect(document.activeElement).toBe(screen.getByRole('dialog'))
+  })
+
+  it('marks the panel reduced so the candle and glow stay static', () => {
+    rm.reduced = true
+    setup()
+    expect(screen.getByRole('dialog').getAttribute('data-reduced')).toBe('true')
+  })
+
+  it('leaves the panel animated by default', () => {
+    setup()
+    expect(screen.getByRole('dialog').getAttribute('data-reduced')).toBeNull()
+  })
+})
 
 describe('QuestionPanel', () => {
   it('number keys 1-4 answer with the matching option', () => {

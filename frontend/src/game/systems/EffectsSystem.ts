@@ -8,6 +8,7 @@ import { planCombat } from './combatPlan'
 import { COLORS, CSS_COLORS } from '../colors'
 import { FONT_DISPLAY } from '../fonts'
 import { sfx } from '@/audio/sfx'
+import { feedbackPlan, type FeedbackPlan } from './feedback'
 import { ObjectPool } from './objectPool'
 import { ensureSparkTexture } from './sparkTexture'
 
@@ -16,6 +17,9 @@ const LUNGE_MS = 160
 const FALLBACK_MS = 1200
 const SPARK_POOL = 24
 const TEXT_POOL = 4
+const TINT_POOL = 2
+/** Purple-red used for the curse tint. */
+const CURSE_COLOR = 0x8a2a5c
 
 export interface EffectsTargets {
   player: Player | null
@@ -29,6 +33,7 @@ export class EffectsSystem {
   private finishPending: (() => void) | null = null
   private readonly sparks: ObjectPool<Phaser.GameObjects.Image>
   private readonly texts: ObjectPool<Phaser.GameObjects.Text>
+  private readonly tints: ObjectPool<Phaser.GameObjects.Rectangle>
 
   constructor(
     private readonly scene: Phaser.Scene,
@@ -62,6 +67,15 @@ export class EffectsSystem {
           .setOrigin(0.5),
       reset: (t) => t.setAlpha(1).setVisible(true).setActive(true),
       max: TEXT_POOL,
+    })
+    this.tints = new ObjectPool({
+      create: () =>
+        scene.add
+          .rectangle(0, 0, 4000, 4000, CURSE_COLOR, 1)
+          .setScrollFactor(0)
+          .setDepth(95),
+      reset: (r) => r.setAlpha(0).setVisible(true).setActive(true),
+      max: TINT_POOL,
     })
   }
 
@@ -118,6 +132,9 @@ export class EffectsSystem {
       if (result.correct && monster) {
         monster.nudge(player && player.x < monster.position.x ? 6 : -6, 60)
       }
+      const fb = feedbackPlan(result.correct, reduced)
+      if (fb.kind === 'wisp' && monster) this.wispBurst(monster.position.x, monster.position.y - 10, fb)
+      if (fb.kind === 'curse') this.curseTint(fb)
       if (has('damage-number') && plan.damageText && monster) {
         this.floatText(monster.position.x, monster.position.y - 40, plan.damageText, CSS_COLORS.ACCENT, reduced)
       }
@@ -154,14 +171,67 @@ export class EffectsSystem {
     this.cancel()
     for (const o of this.sparks.active()) this.scene.tweens.killTweensOf(o)
     for (const o of this.texts.active()) this.scene.tweens.killTweensOf(o)
+    for (const o of this.tints.active()) {
+      this.scene.tweens.killTweensOf(o)
+      o.setVisible(false)
+    }
     this.sparks.releaseAll()
     this.texts.releaseAll()
+    this.tints.releaseAll()
   }
 
   destroy(): void {
     this.cancel()
     this.sparks.clear((o) => o.destroy())
     this.texts.clear((o) => o.destroy())
+    this.tints.clear((o) => o.destroy())
+  }
+
+  /** Green ghost wisps rising from the monster (correct answer). Pooled sparks. */
+  private wispBurst(x: number, y: number, fb: FeedbackPlan): void {
+    for (let i = 0; i < fb.wisps; i++) {
+      const w = this.acquireSpark()
+      if (!w) return
+      const dx = (i - (fb.wisps - 1) / 2) * 14
+      w.setPosition(x + dx, y)
+        .setTint(COLORS.GHOST)
+        .setBlendMode(Phaser.BlendModes.ADD)
+        .setScale(0.9)
+        .setAlpha(0.85)
+        .setDepth(21)
+      if (!fb.animated) {
+        this.scene.time.delayedCall(500, () => this.sparks.release(w))
+        continue
+      }
+      this.releaseOnComplete(w, {
+        x: x + dx * 1.6,
+        y: y - 34 - (i % 3) * 8,
+        alpha: 0,
+        scale: 0.3,
+        delay: i * 30,
+        duration: 560,
+        ease: 'Sine.easeOut',
+      })
+    }
+  }
+
+  /** Purple-red curse tint (wrong answer). A single quick flash, or a static fading tint when reduced. */
+  private curseTint(fb: FeedbackPlan): void {
+    const r = this.tints.acquire()
+    if (!r) return
+    const cam = this.scene.cameras.main
+    r.setPosition(cam.width / 2, cam.height / 2).setAlpha(fb.tintAlpha)
+    this.scene.tweens.add({
+      targets: r,
+      alpha: 0,
+      delay: fb.holdMs,
+      duration: fb.fadeMs,
+      ease: fb.flash ? 'Quad.easeOut' : 'Linear',
+      onComplete: () => {
+        r.setVisible(false)
+        this.tints.release(r)
+      },
+    })
   }
 
   /** Small dust puff (gate opening). Skipped under reduced motion. */

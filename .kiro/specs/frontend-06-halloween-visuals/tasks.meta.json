@@ -321,6 +321,109 @@
         "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
         "timestamp": 1794132711885
       }
+    ],
+    "6.1 HUD and stone frame": [
+      {
+        "executionId": "73b328b4-1c11-4f56-8317-71e818bc73a1",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794133004617
+      },
+      {
+        "executionId": "73b328b4-1c11-4f56-8317-71e818bc73a1",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794134150774
+      }
+    ],
+    "6.2 Spellbook question panel": [
+      {
+        "executionId": "73b328b4-1c11-4f56-8317-71e818bc73a1",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794133005949
+      },
+      {
+        "executionId": "73b328b4-1c11-4f56-8317-71e818bc73a1",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794134151045
+      }
+    ],
+    "6.3 Answer feedback effects": [
+      {
+        "executionId": "73b328b4-1c11-4f56-8317-71e818bc73a1",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794133006828
+      },
+      {
+        "executionId": "73b328b4-1c11-4f56-8317-71e818bc73a1",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794134151292
+      }
+    ],
+    "6.4 Landing page": [
+      {
+        "executionId": "73b328b4-1c11-4f56-8317-71e818bc73a1",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794133007594
+      },
+      {
+        "executionId": "73b328b4-1c11-4f56-8317-71e818bc73a1",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794134151798
+      }
+    ],
+    "6.5 Victory, defeat and pause screens": [
+      {
+        "executionId": "73b328b4-1c11-4f56-8317-71e818bc73a1",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794133008329
+      },
+      {
+        "executionId": "73b328b4-1c11-4f56-8317-71e818bc73a1",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794134152836
+      }
+    ],
+    "6.6 Room transitions": [
+      {
+        "executionId": "73b328b4-1c11-4f56-8317-71e818bc73a1",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794133009219
+      },
+      {
+        "executionId": "73b328b4-1c11-4f56-8317-71e818bc73a1",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794134153874
+      }
+    ],
+    "6.7 Component tests for screens": [
+      {
+        "executionId": "73b328b4-1c11-4f56-8317-71e818bc73a1",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794133010055
+      },
+      {
+        "executionId": "73b328b4-1c11-4f56-8317-71e818bc73a1",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794134154694
+      }
+    ],
+    "7. STOP: Phase 4 checkpoint, UI review": [
+      {
+        "executionId": "73b328b4-1c11-4f56-8317-71e818bc73a1",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794133011054
+      },
+      {
+        "executionId": "73b328b4-1c11-4f56-8317-71e818bc73a1",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794134155629
+      }
+    ],
+    "6. Phase 4: UI and screens": [
+      {
+        "executionId": "73b328b4-1c11-4f56-8317-71e818bc73a1",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794134154836
+      }
     ]
   }
 }
