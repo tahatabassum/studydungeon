@@ -34,3 +34,4 @@ Target Duration: 2 minutes 45 seconds (Under 3-minute hard ceiling).
 - [x] **Music**: Original chiptune soundtrack or royalty-free licensed music. No copyrighted music.
 - [x] **Brand Logos**: No commercial university or corporate logos used.
 - [x] **Audio Level Sanity**: Checked audio mix before upload to ensure narration is loud and clear over background music.
+

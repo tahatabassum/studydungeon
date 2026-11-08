@@ -146,3 +146,4 @@ StudyDungeon's backend is a production-ready, asynchronous API engineered for de
 4. **Vercel Frontend Configuration**: Set `VITE_USE_MOCKS=false` and confirm `/api/*` rewrite points to the live Render backend.
 5. **Live AI Verification**: Run `python backend/scripts/live_gemini_check.py` with your `GEMINI_API_KEY` to confirm Google Gemini 2.0 connectivity.
 6. **Video & Devpost**: Record a 2.5-minute gameplay walkthrough following `docs/DEMO_VIDEO_SCRIPT.md` and submit on Devpost before deadline.
+
