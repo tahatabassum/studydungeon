@@ -7,6 +7,7 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from app.api.auth import auth_router, demo_router
 from app.api.documents import documents_router
+from app.api.dungeons import dungeons_router
 from app.api.health import health_router
 from app.core.config import settings
 from app.core.errors import (
@@ -50,6 +51,7 @@ def create_app() -> FastAPI:
     app.include_router(auth_router)
     app.include_router(demo_router)
     app.include_router(documents_router)
+    app.include_router(dungeons_router)
 
     return app
 

@@ -86,3 +86,28 @@ This log records dated facts, steering documents, feature specifications, automa
 - **Pytest:** 56 passed in 6.81s (0 failures, 0 regressions).
 - **Ruff:** All checks passed (0 errors, 0 warnings).
 - **Alembic:** Migrations up to date; 0 schema drift.
+
+---
+
+## [2026-11-08] - Step 3: AI Topic Clustering & Grounded Question Generation (Break-It Round)
+**Objective:** Deterministic question bank grounding, verbatim evidence-quote verification, dungeon generation with exactly one boss room last, and gameplay security audit (answer hiding).
+
+### What I Tried to Break
+- **Answer & Explanation Leakage in Gameplay:** Called `GET /dungeons/{id}` and inspected every room question payload. Asserted that `correct_option`, `explanation`, and `evidence_quote` are strictly excluded from the gameplay response view.
+- **Hypothesis PBT on Evidence Quote Substring:** Generated hundreds of synthetic quote-text pairs. Proved that only genuine verbatim substrings pass validation, while fabricated or hallucinated strings are rejected.
+- **Tenant Isolation on Generation:** User B attempted to call `POST /documents/{doc_id_a}/generate-dungeon` on User A's document. Verified HTTP 404 `DOCUMENT_NOT_FOUND`.
+- **Empty Chunk Generation:** Attempted generating dungeon from document without chunks. Verified HTTP 400 `NO_CHUNKS_AVAILABLE`.
+- **Guest Restriction:** Guests attempted dungeon generation. Verified HTTP 403 `GUEST_FORBIDDEN`.
+
+### Bugs Found & Fixed
+- `DungeonRoom` constructor was passed `room_number` instead of `room_order`; aligned model attributes.
+- Added relationship on `DungeonRoom.topic` to support clean room topic eager loading.
+- Corrected Ruff imports across question test files.
+
+### Bugs Found, Not Fixed
+- None.
+
+### Final Verification Counts
+- **Pytest:** 61 passed in 7.70s (0 failures, 0 regressions).
+- **Ruff:** All checks passed (0 errors, 0 warnings).
+- **Alembic:** Clean migrations, zero schema drift.

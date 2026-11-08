@@ -146,6 +146,7 @@ class DungeonRoom(Base):
     monster_hp: Mapped[int] = mapped_column(Integer, nullable=False)
 
     dungeon: Mapped["Dungeon"] = relationship("Dungeon", back_populates="rooms")
+    topic: Mapped["Topic"] = relationship("Topic")
 
 
 class GameRun(Base):
