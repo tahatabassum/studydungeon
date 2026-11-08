@@ -7,7 +7,6 @@
 - [x] 5. Build `POST /auth/login` and `POST /auth/logout` endpoints <!-- owner: backend; files: backend/app/api/auth.py; test: tests/test_auth.py -->
 - [x] 6. Implement `GET /auth/me` with session extraction dependency <!-- owner: backend; files: backend/app/api/auth.py, backend/app/core/deps.py; test: tests/test_auth.py -->
 - [x] 7. Build `POST /demo/session` creating temporary guest user with 24h TTL <!-- owner: backend; files: backend/app/api/auth.py; test: tests/test_demo.py -->
-- [ ] 8. Implement `DELETE /auth/me` cascading account deletion <!-- owner: backend; files: backend/app/api/auth.py; test: tests/test_auth.py -->
-- [ ] 9. Implement database-backed IP rate limiting reading `X-Forwarded-For` behind proxy <!-- owner: backend; files: backend/app/core/security.py, backend/app/api/auth.py; test: tests/test_auth.py -->
-- [ ] 10. Implement lazy expired-guest purging on `POST /demo/session` <!-- owner: backend; files: backend/app/api/auth.py; test: tests/test_demo.py -->
-
+- [x] 8. Implement `DELETE /auth/me` cascading account deletion <!-- owner: backend; files: backend/app/api/auth.py; test: tests/test_auth_remaining.py -->
+- [x] 9. Implement database-backed IP rate limiting reading `X-Forwarded-For` behind proxy <!-- owner: backend; files: backend/app/core/rate_limit.py, backend/app/api/auth.py; test: tests/test_auth_remaining.py -->
+- [x] 10. Implement lazy expired-guest purging on `POST /demo/session` and CLI command <!-- owner: backend; files: backend/app/api/auth.py, backend/app/demo/purge.py; test: tests/test_auth_remaining.py -->
