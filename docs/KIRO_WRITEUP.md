@@ -39,3 +39,4 @@ StudyDungeon ingests student lecture notes (PDFs, DOCX, PPTX, TXT, images) and u
 - Python 3.11
 - TypeScript
 - Docker
+

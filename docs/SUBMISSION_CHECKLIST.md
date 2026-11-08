@@ -20,3 +20,4 @@
 - [x] `docs/openapi.json` exported and up-to-date (Owner: Person A)
 - [ ] Devpost writeup filled with authentic project journey (Owner: Both)
 - [ ] Demo video recorded showcasing 2D dungeon combat and note generation (Owner: Person B)
+

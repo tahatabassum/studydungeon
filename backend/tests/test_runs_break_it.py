@@ -66,3 +66,4 @@ async def test_break_run_finish_after_defeat(async_client: AsyncClient, db_sessi
     )
     assert resp.status_code == 409
     assert resp.json()["detail"]["code"] == "RUN_FINISHED"
+

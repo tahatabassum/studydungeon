@@ -22,3 +22,4 @@ def set_ai_provider(provider: AIProvider):
     """Used in tests to override AIProvider."""
     global _provider_instance
     _provider_instance = provider
+
