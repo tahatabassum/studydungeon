@@ -12,10 +12,10 @@ StudyDungeon's backend is an asynchronous API engineered for deterministic educa
 ## 2. Test & Verification Summary
 
 ### Pytest & Coverage
-- **Total Tests Collected & Passed**: 96 tests (0 failures, 0 skipped, 0 regressions, 0 warnings).
-- **Execution Time**: 9.71s.
+- **Total Tests Collected & Passed**: 97 tests (0 failures, 0 skipped, 0 regressions, 0 warnings).
+- **Execution Time**: ~10s.
 - **Ruff Linting**: Clean across all backend modules (`All checks passed!`).
-- **Alembic Schema Sync**: Verified via `alembic check` (`No new upgrade operations detected`).
+- **Alembic Schema Sync**: Verified via `alembic check` (`No new upgrade operations detected`) on SQLite.
 
 ### Test Inventory by Area
 1. **Authentication & Session Security (15 tests)**:
@@ -144,6 +144,39 @@ StudyDungeon's backend is an asynchronous API engineered for deterministic educa
 2. **Database Provisioning**: Create free PostgreSQL instance on [Neon](https://console.neon.tech) and copy connection string into Render `DATABASE_URL`.
 3. **Render Deployment**: Deploy `studydungeon-api` Web Service from `backend/render.yaml`.
 4. **Vercel Frontend Configuration**: Set `VITE_USE_MOCKS=false` and confirm `/api/*` rewrite points to the live Render backend.
-5. **Live AI Verification**: Run `python backend/scripts/live_gemini_check.py` with your `GEMINI_API_KEY` to confirm Google Gemini 2.0 connectivity.
+5. **Live AI Verification**: Run `python backend/scripts/live_gemini_check.py` with your `GEMINI_API_KEY` to confirm connectivity to the model named in the `GEMINI_MODEL` environment variable.
 6. **Video & Devpost**: Record a 2.5-minute gameplay walkthrough following `docs/DEMO_VIDEO_SCRIPT.md` and submit on Devpost before deadline.
+
+---
+
+## 8. Unverified Items (Honest Disclosure)
+
+The following items have **not** been verified in this repository. They require human action and real credentials.
+
+| Item | Status | Notes |
+|---|---|---|
+| PostgreSQL / Neon live run | **NOT VERIFIED** | All pytest runs use `sqlite+aiosqlite`. No Postgres run output exists in repo history. |
+| `alembic check` on Postgres | **NOT VERIFIED** | Only verified against SQLite. |
+| Docker container build | **NOT VERIFIED** | No local Docker daemon during development; Dockerfile authored but not built/run. |
+| Render deployment | **NOT VERIFIED** | `render.yaml` authored; no live deployment log in repo. |
+| Vercel proxy rewrite | **NOT VERIFIED** | Frontend proxy config described in docs; not tested against live Render URL. |
+| Live Gemini API call | **NOT VERIFIED** | All tests use mock provider (`AI_PROVIDER=mock`). Opt-in script: `backend/scripts/live_gemini_check.py`. A Google AI Studio API key (free tier works) is required. |
+
+---
+
+## 9. Hypothesis Property-Based Test Audit
+
+All `@given` tests as of commit fd78b92. Six tests across four files.
+
+| File | Test name | `@given` count | Areas covered |
+|---|---|---|---|
+| `tests/test_break_baseline.py` | `test_pbt_combat_damage_safety_and_invariants` | 1 | Damage/streak/score math — any input, any weapon name, any streak |
+| `tests/test_break_baseline.py` | `test_pbt_srs_intervals_safety` | 1 | SRS ladder — negative/arbitrary repetition states do not crash; interval always positive |
+| `tests/test_ingestion_jobs_and_hypothesis.py` | `test_hypothesis_attempt_idempotency_structure` | 1 | attempt_id idempotency — UUID string representation is deterministic |
+| `tests/test_prestep_fixes.py` | `test_pbt_srs_ladder_monotonicity` | 1 | SRS ladder — correct answers always land on {1.0, 3.0, 7.0, 14.0, 30.0} days |
+| `tests/test_questions_pipeline.py` | `test_pbt_evidence_quote_invariant` | 1 | Evidence-quote validation — only verbatim substrings pass; fabricated strings are rejected |
+| `tests/test_weapon_security.py` | `test_hypothesis_damage_math_over_every_weapon` | 1 | Damage/streak/score math — all real weapon names, all difficulty levels, all streak values |
+| `tests/test_weapon_security.py` | `test_hypothesis_weapon_unlock_invariants` | 1 | Weapon lock rules — all weapons, arbitrary level, xp, cleared rooms, boss kills |
+
+All 4 required Hypothesis property testing areas (damage/streak/score math, SRS ladder, attempt_id idempotency, evidence-quote validation) + weapon unlock rules are 100% covered.
 

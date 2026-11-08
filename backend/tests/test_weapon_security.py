@@ -10,7 +10,7 @@ from app.core.config import settings
 from app.core.security import create_session_token
 from app.demo.seed import seed_demo_dungeon
 from app.models.all_models import User, UserProgress
-from app.services.combat import WEAPON_BASE_DAMAGE, calculate_combat_damage
+from app.services.combat import WEAPON_BASE_DAMAGE, WEAPON_UNLOCK_RULES, calculate_combat_damage, is_weapon_unlocked
 
 
 @pytest.mark.asyncio
@@ -108,3 +108,34 @@ def test_hypothesis_damage_math_over_every_weapon(weapon, difficulty, streak, is
         if streak >= 2:
             assert is_crit is True
             assert dmg_monster >= round(base * 1.5)
+
+
+@given(
+    weapon=st.text(min_size=0, max_size=50),
+    level=st.integers(min_value=-10, max_value=100),
+    xp=st.integers(min_value=-1000, max_value=100000),
+    cleared_rooms=st.integers(min_value=-5, max_value=100),
+    boss_cleared=st.integers(min_value=-5, max_value=50),
+)
+def test_hypothesis_weapon_unlock_invariants(weapon, level, xp, cleared_rooms, boss_cleared):
+    """Hypothesis PBT: Verifies weapon unlock logic invariants over arbitrary game state inputs."""
+    unlocked = is_weapon_unlocked(
+        weapon_name=weapon,
+        level=level,
+        xp=xp,
+        cleared_rooms=cleared_rooms,
+        boss_cleared=boss_cleared,
+    )
+    if weapon not in WEAPON_UNLOCK_RULES:
+        assert unlocked is False
+    elif weapon == "Rusty Dagger":
+        assert unlocked is True
+    elif weapon == "Arcane Staff":
+        assert unlocked == (xp >= 100)
+    elif weapon == "Hunter Crossbow":
+        assert unlocked == (cleared_rooms >= 2)
+    elif weapon == "Spectral Hammer":
+        assert unlocked == (level >= 3)
+    elif weapon == "Flame Sigil":
+        assert unlocked == (boss_cleared >= 1)
+
