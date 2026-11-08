@@ -65,7 +65,7 @@ async def test_is_system_flag_blocks_account_deletion(async_client: AsyncClient,
     # Attempt to delete the system user
     del_resp = await async_client.delete("/auth/me")
     assert del_resp.status_code == 403
-    err_body = del_resp.json()
+    err_body = del_resp.json()["detail"]
     assert err_body["code"] == "SYSTEM_USER_PROTECTED"
 
     # Confirm user still exists in DB
