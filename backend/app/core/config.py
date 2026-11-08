@@ -21,9 +21,9 @@ class Settings(BaseSettings):
     TRUSTED_PROXY_COUNT: int = 1  # 1 hop from the right for Vercel edge rewrite proxy
 
     # AI Settings
-    AI_PROVIDER: str = "gemini"
+    AI_PROVIDER: str = "mock"
     GEMINI_API_KEY: Optional[str] = None
-    GEMINI_MODEL: Optional[str] = "gemini-1.5-flash"  # Defaults for dev, validated if empty
+    GEMINI_MODEL: Optional[str] = None
     OPENROUTER_API_KEY: Optional[str] = None
     OPENROUTER_ENABLED: bool = False
 
