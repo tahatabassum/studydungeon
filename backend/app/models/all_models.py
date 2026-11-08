@@ -29,21 +29,28 @@ class User(Base):
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     username: Mapped[str] = mapped_column(String(64), unique=True, index=True, nullable=False)
-    password_hash: Mapped[Optional[str]] = mapped_column(String(256), nullable=True)  # Nullable ONLY for guests
+    password_hash: Mapped[Optional[str]] = mapped_column(String(256), nullable=True)
     is_guest: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
-    session_version: Mapped[int] = mapped_column(Integer, default=1, nullable=False)  # Incremented to revoke sessions
+    session_version: Mapped[int] = mapped_column(Integer, default=1, nullable=False)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, nullable=False)
     last_login_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, nullable=False)
-    expires_at: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)  # Set ~24h for guests
+    expires_at: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
 
-    # Relationships
     documents: Mapped[List["Document"]] = relationship("Document", back_populates="user", cascade="all, delete-orphan")
     dungeons: Mapped[List["Dungeon"]] = relationship("Dungeon", back_populates="user", cascade="all, delete-orphan")
     runs: Mapped[List["GameRun"]] = relationship("GameRun", back_populates="user", cascade="all, delete-orphan")
     attempts: Mapped[List["Attempt"]] = relationship("Attempt", back_populates="user", cascade="all, delete-orphan")
     review_items: Mapped[List["ReviewItem"]] = relationship("ReviewItem", back_populates="user", cascade="all, delete-orphan")
     progress: Mapped[Optional["UserProgress"]] = relationship("UserProgress", back_populates="user", uselist=False, cascade="all, delete-orphan")
+
+
+class RateLimitRecord(Base):
+    __tablename__ = "rate_limit_records"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    key: Mapped[str] = mapped_column(String(128), index=True, nullable=False)  # e.g., "login:203.0.113.195"
+    timestamp: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, index=True, nullable=False)
 
 
 class Document(Base):
@@ -53,8 +60,8 @@ class Document(Base):
     user_id: Mapped[str] = mapped_column(String(36), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
     title: Mapped[str] = mapped_column(String(255), nullable=False)
     original_filename: Mapped[str] = mapped_column(String(255), nullable=False)
-    file_type: Mapped[str] = mapped_column(String(20), nullable=False)  # pdf, txt, docx, pptx, image
-    status: Mapped[str] = mapped_column(String(30), default="processing")  # processing, accepted, rejected
+    file_type: Mapped[str] = mapped_column(String(20), nullable=False)
+    status: Mapped[str] = mapped_column(String(30), default="processing")
     rejection_reason: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     relevance_score: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
     readability_score: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
@@ -101,12 +108,12 @@ class Question(Base):
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     topic_id: Mapped[str] = mapped_column(String(36), ForeignKey("topics.id", ondelete="CASCADE"), nullable=False, index=True)
     source_chunk_id: Mapped[Optional[str]] = mapped_column(String(36), ForeignKey("document_chunks.id", ondelete="SET NULL"), nullable=True)
-    question_type: Mapped[str] = mapped_column(String(20), default="mcq")  # mcq, tf
-    difficulty: Mapped[str] = mapped_column(String(20), default="medium")  # easy, medium, hard
+    question_type: Mapped[str] = mapped_column(String(20), default="mcq")
+    difficulty: Mapped[str] = mapped_column(String(20), default="medium")
     prompt: Mapped[str] = mapped_column(Text, nullable=False)
-    options: Mapped[list] = mapped_column(JSON, nullable=False)  # list of strings
-    correct_option: Mapped[int] = mapped_column(Integer, nullable=False)  # 0-indexed
-    evidence_quote: Mapped[str] = mapped_column(Text, nullable=False)  # exact quote in chunk
+    options: Mapped[list] = mapped_column(JSON, nullable=False)
+    correct_option: Mapped[int] = mapped_column(Integer, nullable=False)
+    evidence_quote: Mapped[str] = mapped_column(Text, nullable=False)
     explanation: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
 
     topic: Mapped["Topic"] = relationship("Topic", back_populates="questions")
@@ -150,7 +157,7 @@ class GameRun(Base):
     current_score: Mapped[int] = mapped_column(Integer, default=0)
     current_streak: Mapped[int] = mapped_column(Integer, default=0)
     xp_earned: Mapped[int] = mapped_column(Integer, default=0)
-    status: Mapped[str] = mapped_column(String(30), default="active")  # active, completed, defeated
+    status: Mapped[str] = mapped_column(String(30), default="active")
     started_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
     finished_at: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
 
@@ -161,7 +168,7 @@ class GameRun(Base):
 class Attempt(Base):
     __tablename__ = "attempts"
 
-    id: Mapped[str] = mapped_column(String(36), primary_key=True)  # client passes uuid for idempotency
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
     user_id: Mapped[str] = mapped_column(String(36), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
     run_id: Mapped[str] = mapped_column(String(36), ForeignKey("game_runs.id", ondelete="CASCADE"), nullable=False, index=True)
     question_id: Mapped[str] = mapped_column(String(36), ForeignKey("questions.id", ondelete="CASCADE"), nullable=False)

@@ -25,48 +25,36 @@ This log records dated facts, steering documents, feature specifications, automa
 - `backend-05-demo-seed`: `requirements.md`, `design.md`, `tasks.md`.
 - `backend-06-deploy-hardening`: `requirements.md`, `design.md`, `tasks.md`.
 
-### Automated Hooks Created (`.kiro/hooks/`)
-- `backend-test-on-save.json`: Triggers `pytest backend/tests` automatically whenever backend Python files are saved.
-
-### Code & Infrastructure Milestones Completed
-- **FastAPI Core Skeleton:** `app/main.py` with app factory, CORS middleware, and unified JSON error handling.
-- **SQLAlchemy 2.0 Async Models:** `app/models/all_models.py` defining 11 entities.
-- **Alembic Database Migrations:** `alembic.ini`, `migrations/env.py`, initial migration `6355c67fe08b_initial_migration.py`.
-- **Authentication & Guest Demo Endpoints:** `POST /auth/register`, `POST /auth/login`, `POST /auth/logout`, `GET /auth/me`, `POST /demo/session`.
-- **Combat & SRS Service:** `app/services/combat.py` implementing exact damage multipliers and SM-2 intervals.
-- **Demo Seed & Export:** `app/demo/seed.py` and `scripts/export_sample.py` exporting `docs/handoff/demo_dungeon.sample.json`.
-
 ---
 
 ## [2026-11-08] - Step 0: Baseline BREAK IT Round
 **Objective:** Hostile testing and property-based verification on baseline authentication, combat calculations, demo guest sessions, and error handling.
+- Bugs resolved: Clamped negative repetition in SRS; fixed whitespace username bypass; handled Starlette JSON error serialization.
+
+---
+
+## [2026-11-08] - Step 1: Pre-Step 2 Hardening & Security Audit
+**Objective:** Address client-controlled IP spoofing, model validation, Argon2 hash parameter parity, strict fixed-ladder SRS verification, SQLite PRAGMA foreign keys, and system user protections.
 
 ### What I Tried to Break
-- **Combat & SRS Math Invariants:** Fuzzing with `Hypothesis` passing negative streaks, unknown weapons, and arbitrary/negative repetition states to `calculate_combat_damage` and `calculate_next_review_interval`.
-- **Username Malformations:** Whitespace-only usernames (`"   "`), non-alphanumeric unicode payloads, and boundary string lengths.
-- **Credential & Timing Leakage:** Asserting identical status (401) and error structure (`INVALID_CREDENTIALS`) on non-existent usernames vs bad passwords.
-- **Session Cookie Tampering:** Altering base64 payload bytes and HMAC signatures; passing expired tokens.
-- **Guest Impersonation:** Calling `POST /auth/login` using an auto-generated guest username.
-- **Exception Serialization:** Triggering custom Pydantic validator failures and observing the JSON response renderer.
+- **IP Spoofing:** Passed spoofed comma-separated `X-Forwarded-For` chains (`"198.51.100.99, 203.0.113.50"`). Verified client IP is determined by taking `TRUSTED_PROXY_COUNT` (default 1) hops from the right, preventing leftmost client-controlled forgery.
+- **Model Configuration Omission:** Configured `AI_PROVIDER="gemini"` with empty or `None` `GEMINI_MODEL`. Verified startup model validator raises descriptive `ValueError`.
+- **Argon2 Hash Rehash Parity:** Asserted `DUMMY_ARGON2_HASH` parameters match `ph.check_needs_rehash() == False`.
+- **SRS Ladder Monotonicity & Resets:** Tested exact ladder values across streak range `[0, 25]`: wrong strictly gives 10 minutes and resets streak to 0; difficult correct gives 1.0 day; normal progression gives 3d, 7d, 14d, 30d.
+- **System Demo Protection:** Attempted calling `DELETE /auth/me` with `system_demo` token. Verified 403 `SYSTEM_USER_PROTECTED` and confirmed system user & demo dungeon remain intact.
+- **RateLimitRecord Stale Pruning:** Inserted 2-hour-old rate limit logs and confirmed `purge_expired_guests()` cleans records older than 1 hour without impacting fresh records or system data.
+- **Real Foreign Key Enforcement:** Enabled SQLite PRAGMA `foreign_keys=ON` across engines to guarantee cascade integrity in local tests.
 
-### Bugs Found and Fixed (Root Cause)
-1. **SRS Interval Negative Repetition Bug:**
-   - *Root Cause:* Passing negative `current_repetition` (e.g. `-2`) returned negative new repetition (`-1`), violating the non-negative invariant.
-   - *Fix:* Clamped repetition input in `app/services/combat.py` with `safe_rep = max(0, current_repetition)`.
-2. **Whitespace Username Acceptance:**
-   - *Root Cause:* Pydantic `min_length=3` counted raw whitespace characters; `"   "` passed validation and registered an empty-named user.
-   - *Fix:* Added `@field_validator("username")` in `app/schemas/auth.py` to strip and enforce at least 3 alphanumeric/underscore characters.
-3. **500 Server Error on Validation Exception Serialization:**
-   - *Root Cause:* Starlette's `JSONResponse` raised `TypeError: Object of type ValueError is not JSON serializable` when custom validator exceptions were embedded inside Pydantic's `exc.errors()`.
-   - *Fix:* Sanitized `ctx["error"]` in `app/core/errors.py` `validation_exception_handler` to convert raw exception objects to strings.
+### Bugs Found & Fixed
+- Client IP extraction was previously vulnerable to leftmost spoofing; fixed by slicing from the right using `TRUSTED_PROXY_COUNT`.
+- `GEMINI_MODEL` had a fallback default; removed and made strictly required under `AI_PROVIDER="gemini"`.
+- `DELETE /auth/me` had no safeguard for `system_demo`; added explicit 403 protection.
+- `purge_expired_guests()` did not clean up stale `RateLimitRecord` logs; added threshold cleanup.
 
 ### Bugs Found, Not Fixed
-- None. All discovered issues have been resolved.
-
-### Remaining Risks
-- In-memory rate limiting is not yet active (scheduled for Step 1).
-- Guest cleanup is currently manual until `purge_guests` background task is hooked up.
+- None.
 
 ### Final Verification Counts
-- **Pytest:** 18 passed in 2.31s (including 2 Hypothesis property-based test suites).
+- **Pytest:** 47 passed in 4.90s.
 - **Ruff:** All checks passed (0 errors, 0 warnings).
+- **Alembic:** Migrations clean, zero schema drift.

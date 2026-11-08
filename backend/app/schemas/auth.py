@@ -16,6 +16,8 @@ class UserRegisterRequest(BaseModel):
         normalized = unicodedata.normalize("NFKC", v).strip().lower()
         if len(normalized) < 3 or len(normalized) > 32:
             raise ValueError("Username must be between 3 and 32 characters after normalization")
+        if normalized.startswith("guest_"):
+            raise ValueError("Usernames starting with 'guest_' are reserved for demo guest accounts")
         if not normalized.replace("_", "").isalnum():
             raise ValueError("Username must contain only alphanumeric characters and underscores")
         return normalized

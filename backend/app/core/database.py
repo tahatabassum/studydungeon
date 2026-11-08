@@ -1,5 +1,7 @@
 from typing import AsyncGenerator
 
+from sqlalchemy import event
+from sqlalchemy.engine import Engine
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
 from app.core.config import settings
@@ -11,6 +13,16 @@ engine = create_async_engine(
     echo=False,
     future=True,
 )
+
+
+# Enforce SQLite foreign key constraints
+@event.listens_for(Engine, "connect")
+def set_sqlite_pragma(dbapi_connection, connection_record):
+    if "sqlite" in settings.DATABASE_URL:
+        cursor = dbapi_connection.cursor()
+        cursor.execute("PRAGMA foreign_keys=ON")
+        cursor.close()
+
 
 async_session_maker = async_sessionmaker(
     engine,
@@ -30,4 +42,3 @@ async def get_db() -> AsyncGenerator[AsyncSession, None]:
             yield session
         finally:
             await session.close()
-
