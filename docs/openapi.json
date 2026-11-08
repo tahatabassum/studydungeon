@@ -11,7 +11,28 @@
           "Health"
         ],
         "summary": "Health Check",
+        "description": "Fast, DB-free health ping for reverse proxies, Docker healthchecks,\nand cold-start pollers.",
         "operationId": "health_check_health_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/health/ready": {
+      "get": {
+        "tags": [
+          "Health"
+        ],
+        "summary": "Readiness Check",
+        "description": "Readiness probe that checks database connectivity.",
+        "operationId": "readiness_check_health_ready_get",
         "responses": {
           "200": {
             "description": "Successful Response",
@@ -273,6 +294,88 @@
                 "schema": {
                   "$ref": "#/components/schemas/DocumentStatusResponse"
                 }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/documents/{id}/retry": {
+      "post": {
+        "tags": [
+          "documents"
+        ],
+        "summary": "Retry Document Processing",
+        "description": "Retries processing for a failed or interrupted document.",
+        "operationId": "retry_document_processing_documents__id__retry_post",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/documents/{id}/source-preview": {
+      "get": {
+        "tags": [
+          "documents"
+        ],
+        "summary": "Get Source Preview",
+        "description": "Source preview citations: scoped to owner or public demo document.\nReturns 1-based page numbers and stable chunk IDs.",
+        "operationId": "get_source_preview_documents__id__source_preview_get",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
               }
             }
           },
@@ -597,6 +700,55 @@
                 "schema": {
                   "$ref": "#/components/schemas/AttemptResponse"
                 }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/runs/{id}/rooms/{room_id}/clear": {
+      "post": {
+        "tags": [
+          "runs"
+        ],
+        "summary": "Clear Room",
+        "operationId": "clear_room_runs__id__rooms__room_id__clear_post",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Id"
+            }
+          },
+          {
+            "name": "room_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Room Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
               }
             }
           },

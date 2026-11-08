@@ -99,4 +99,73 @@ Per the project protocol, `.kiro/steering/api-contract.md` is our immutable sour
 7. **Offline Demo Fallback Sample JSON:**
    - `docs/handoff/demo_dungeon.sample.json` has been refreshed and validated. Note: For the offline fallback demo only, correct answers are bundled in the fixture so Phaser can evaluate gameplay completely offline.
 
+8. **Source Preview Endpoint (`GET /documents/{id}/source-preview`):**
+   - **Purpose:** Surfaces citations ("From your notes: page N") for questions during run review.
+   - **Access:** Owner-scoped; demo guests may access preview only for the seeded public demo document.
+   - **Response Format:**
+     ```json
+     {
+       "document_id": "doc-uuid",
+       "title": "Operating Systems Lecture",
+       "chunks": [
+         {
+           "chunk_id": "chunk-uuid",
+           "chunk_index": 0,
+           "page_number": 1,
+           "text": "Verbatim text extracted from page 1..."
+         }
+       ]
+     }
+     ```
+
 *Please review these answers in `docs/handoff/B-to-A.md`.*
+
+
+---
+
+## [Day 3] - Deploy and Proxy Runbook (Person B Frontend Action Items)
+
+### 1. `vercel.json` Rewrite Configuration
+To route frontend API requests seamlessly to the Render backend without CORS cookie issues or cross-site blocking, configure `vercel.json` in your frontend root:
+```json
+{
+  "rewrites": [
+    {
+      "source": "/api/:path*",
+      "destination": "https://studydungeon-api.onrender.com/:path*"
+    }
+  ]
+}
+```
+*(Replace `https://studydungeon-api.onrender.com` with the actual deployed Render backend URL).*
+
+### 2. Frontend Environment Variables
+Set the following environment variables in your Vercel deployment dashboard:
+- `VITE_API_BASE=/api` (or `/` if using direct proxy rewrites)
+- `VITE_USE_MOCKS=false` (switches from local mocks to real live backend calls)
+
+### 3. Free-Host Cold-Start Handling
+Render free-tier web services spin down after 15 minutes of inactivity:
+- When the player visits the app or clicks "Try Demo", ping `GET /health` with a lightweight 5-second polling retry loop and exponential backoff.
+- Display a gothic retro *"Waking the Dungeon..."* splash screen with a loading spinner.
+- As soon as `GET /health` returns `{ "status": "healthy" }`, call `POST /demo/session` to obtain a guest session cookie, then transition into the game view.
+
+
+---
+
+## [Day 3] - Comprehensive API Contract & Type Mismatch Table
+
+Below is the authoritative reconciliation table comparing frontend expectations (from `docs/handoff/B-to-A.md`) with the live backend implementation (`docs/openapi.json`):
+
+| Type / Endpoint | B Expects (TypeScript) | Backend Implementation | Who Changes | Proposed Alignment & Status |
+| :--- | :--- | :--- | :--- | :--- |
+| `User` | `{ id, username, is_guest }` | `{ id, username, is_guest, created_at, expires_at }` | Person B | Frontend ignores extra metadata; backend fields are fully superset compatible. |
+| `Question` (in Dungeon View) | `{ id, prompt, options, difficulty }` | `{ id, prompt, options, difficulty }` (correct_option, quote, explanation strictly omitted) | Both Agreed | **Zero answer leakage verified**. Explanations and evidence quotes only revealed on attempt submit. |
+| `Monster` | `{ name, kind, hp, max_hp }` | `{ monster_name, monster_type, monster_hp }` flattened in Room view | Person B | Frontend accesses `room.monster_name`, `room.monster_hp`. Fully documented in sample JSON. |
+| `Room` | `{ id, room_number, is_boss, questions }` | `{ id, room_number, topic_name, monster_name, monster_type, monster_hp, is_boss, questions }` | Person B | Superset compatible. |
+| `Run` & Resume | `{ id, dungeon_id, current_hp, current_score, current_streak, status }` | `GET /runs/{id}` returns `{ id, dungeon_id, current_hp, current_score, current_streak, xp_earned, status, rooms }` | Person B | Complete state returned on resume to rehydrate Phaser after reload. |
+| `POST /runs/{id}/attempts` | `{ attempt_id, question_id, selected_answer }` | `{ attempt_id, question_id, selected_answer, weapon_name: Optional[str] = "Rusty Dagger" }` | Person B | Backend defaults to `"Rusty Dagger"`. Person B may send equipped weapon from player inventory. |
+| `AnswerResult` | `{ is_correct, damage_dealt, damage_taken, is_critical, current_hp, current_score, current_streak, monster_hp_remaining, explanation, evidence_quote }` | Exact match | Both Agreed | Fully aligned. |
+| `POST /rooms/{id}/clear` | `{ xp_delta }` | `{ room_id, is_cleared, xp_delta }` | Person B | Returns 409 `MONSTER_ALIVE` if monster HP > 0; 25 XP for topic room, 100 XP for boss. |
+| `POST /runs/{id}/finish` | `RunSummary` | `{ run_id, status, total_score, xp_earned, rooms_cleared, accuracy (0.0-1.0), mastery_band }` | Both Agreed | Idempotent on repeat call; 409 `BOSS_NOT_CLEARED` before boss defeat. |
+| Errors (`4xx`/`5xx`) | `{"detail": {"code": str, "message": str}}` | `{"detail": {"code": str, "message": str}}` across all status codes | Both Agreed | Uniform JSON error structure across entire API. |

@@ -15,6 +15,7 @@ from app.models.all_models import (
     Question,
     ReviewItem,
     User,
+    UserProgress,
 )
 from app.schemas.runs import (
     AttemptRequest,
@@ -224,6 +225,55 @@ async def submit_attempt(
             detail={"code": "QUESTION_NOT_FOUND", "message": "Question does not exist."},
         )
 
+    # Validate weapon exists and user has unlocked it
+    from app.services.combat import WEAPON_BASE_DAMAGE, is_weapon_unlocked
+    if req.weapon_name not in WEAPON_BASE_DAMAGE:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail={"code": "UNKNOWN_WEAPON", "message": f"Weapon '{req.weapon_name}' is not recognized."},
+        )
+
+    # Fetch user progress for weapon validation
+    prog_res = await db.execute(select(UserProgress).where(UserProgress.user_id == user.id))
+    user_prog = prog_res.scalar_one_or_none()
+    user_unlocked = user_prog.unlocked_weapons if user_prog and user_prog.unlocked_weapons else ["Rusty Dagger"]
+
+    # Also check dynamic level/xp unlock
+    level = user_prog.level if user_prog else 1
+    total_xp = user_prog.total_xp if user_prog else 0
+    if req.weapon_name not in user_unlocked and not is_weapon_unlocked(req.weapon_name, level=level, xp=total_xp):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail={"code": "WEAPON_LOCKED", "message": f"Weapon '{req.weapon_name}' is locked. Meet unlock requirements first."},
+        )
+
+    # Validate room progression and order
+    # Determine the target room for this question
+    target_room = None
+    for r in run.dungeon.rooms:
+        if r.topic_id == question.topic_id:
+            target_room = r
+            break
+
+    if target_room:
+        # Check all preceding rooms are cleared
+        for r in sorted(run.dungeon.rooms, key=lambda x: x.room_order):
+            if r.room_order < target_room.room_order:
+                dmg = sum(a.damage_dealt for a in run.attempts if a.question and a.question.topic_id == r.topic_id)
+                if dmg < r.monster_hp:
+                    raise HTTPException(
+                        status_code=status.HTTP_409_CONFLICT,
+                        detail={"code": "OUT_OF_ORDER_ROOM", "message": f"Must defeat room {r.room_order + 1} before challenging room {target_room.room_order + 1}."},
+                    )
+            elif r.room_order == target_room.room_order:
+                # Check if this room was already cleared
+                dmg = sum(a.damage_dealt for a in run.attempts if a.question and a.question.topic_id == r.topic_id)
+                if dmg >= r.monster_hp:
+                    raise HTTPException(
+                        status_code=status.HTTP_409_CONFLICT,
+                        detail={"code": "ROOM_ALREADY_CLEARED", "message": "This room's monster has already been defeated."},
+                    )
+
     # Determine correctness
     # If selected_answer matches exact text or index
     correct_text = question.options[question.correct_option] if question.correct_option < len(question.options) else ""
@@ -307,6 +357,46 @@ async def submit_attempt(
     )
 
 
+@runs_router.post("/{id}/rooms/{room_id}/clear")
+async def clear_room(
+    id: str,
+    room_id: str,
+    user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    run_res = await db.execute(
+        select(GameRun)
+        .options(
+            selectinload(GameRun.attempts).selectinload(Attempt.question),
+            selectinload(GameRun.dungeon).selectinload(Dungeon.rooms),
+        )
+        .where(GameRun.id == id, GameRun.user_id == user.id)
+    )
+    run = run_res.scalar_one_or_none()
+    if not run:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail={"code": "RUN_NOT_FOUND", "message": "Run not found."})
+
+    # Find room
+    room = next((r for r in run.dungeon.rooms if r.id == room_id), None)
+    if not room:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail={"code": "ROOM_NOT_FOUND", "message": "Room not found."})
+
+    # Calculate damage dealt to this room monster
+    dmg_dealt = sum(a.damage_dealt for a in run.attempts if a.question and a.question.topic_id == room.topic_id)
+    if dmg_dealt < room.monster_hp:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail={"code": "MONSTER_ALIVE", "message": f"Monster is still alive ({room.monster_hp - dmg_dealt} HP remaining)."},
+        )
+
+    # Award XP: 25 for normal topic room, 100 for boss room
+    total_rooms = len(run.dungeon.rooms)
+    is_boss = (room.room_order == total_rooms - 1)
+    xp_delta = 100 if is_boss else 25
+
+    return {"success": True, "room_id": room.id, "xp_delta": xp_delta, "is_boss": is_boss}
+
+
 @runs_router.post("/{id}/finish", response_model=RunSummaryResponse)
 async def finish_run(
     id: str,
@@ -315,7 +405,10 @@ async def finish_run(
 ):
     run_res = await db.execute(
         select(GameRun)
-        .options(selectinload(GameRun.attempts))
+        .options(
+            selectinload(GameRun.attempts).selectinload(Attempt.question),
+            selectinload(GameRun.dungeon).selectinload(Dungeon.rooms),
+        )
         .where(GameRun.id == id, GameRun.user_id == user.id)
     )
     run = run_res.scalar_one_or_none()
@@ -324,6 +417,17 @@ async def finish_run(
             status_code=status.HTTP_404_NOT_FOUND,
             detail={"code": "RUN_NOT_FOUND", "message": "Run not found."},
         )
+
+    # Check boss room cleared
+    total_rooms = len(run.dungeon.rooms)
+    boss_room = next((r for r in run.dungeon.rooms if r.room_order == total_rooms - 1), None)
+    if boss_room:
+        boss_dmg = sum(a.damage_dealt for a in run.attempts if a.question and a.question.topic_id == boss_room.topic_id)
+        if boss_dmg < boss_room.monster_hp:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail={"code": "BOSS_NOT_CLEARED", "message": "Cannot finish run until boss monster is defeated."},
+            )
 
     if run.status == "active":
         run.status = "completed"

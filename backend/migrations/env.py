@@ -11,6 +11,7 @@ if str(BACKEND_DIR) not in sys.path:
     sys.path.insert(0, str(BACKEND_DIR))
 
 from app.core.config import settings
+from app.core.db_url import normalize_database_url
 from app.models.all_models import Base
 
 # this is the Alembic Config object, which provides
@@ -27,13 +28,9 @@ if config.config_file_name is not None:
 target_metadata = Base.metadata
 
 # Convert async driver string to standard sync driver for Alembic migrations
-db_url = settings.DATABASE_URL
-if "+aiosqlite" in db_url:
-    db_url = db_url.replace("+aiosqlite", "")
-elif "+asyncpg" in db_url:
-    db_url = db_url.replace("+asyncpg", "+psycopg")
-
-config.set_main_option("sqlalchemy.url", db_url)
+if not config.get_main_option("sqlalchemy.url") or config.get_main_option("sqlalchemy.url") == "driver://user:pass@localhost/dbname":
+    db_url = normalize_database_url(settings.DATABASE_URL, is_alembic_sync=True)
+    config.set_main_option("sqlalchemy.url", db_url)
 
 
 def run_migrations_offline() -> None:

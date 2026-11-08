@@ -13,6 +13,7 @@ class Settings(BaseSettings):
     DATABASE_URL: str = "sqlite+aiosqlite:///./studydungeon.db"
 
     # Security & Proxies
+    DEBUG: bool = False
     SECRET_KEY: str = "studydungeon-default-insecure-secret-key-change-in-prod"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 1440
     SESSION_COOKIE_NAME: str = "studydungeon_session"
@@ -21,15 +22,20 @@ class Settings(BaseSettings):
     TRUSTED_PROXY_COUNT: int = 1  # 1 hop from the right for Vercel edge rewrite proxy
 
     # AI Settings
-    AI_PROVIDER: str = "gemini"
+    AI_PROVIDER: str = "mock"
     GEMINI_API_KEY: Optional[str] = None
-    GEMINI_MODEL: Optional[str] = "gemini-1.5-flash"  # Defaults for dev, validated if empty
+    GEMINI_MODEL: Optional[str] = None
     OPENROUTER_API_KEY: Optional[str] = None
     OPENROUTER_ENABLED: bool = False
 
-    # Uploads
+    # Uploads & Quality Thresholds
     MAX_UPLOAD_MB: int = 15
     TEMP_UPLOAD_DIR: str = "./temp_uploads"
+    INGESTION_MIN_CHARS: int = 500
+    INGESTION_MIN_READABLE_RATIO: float = 0.70
+    INGESTION_MIN_RELEVANCE: float = 0.70
+    INGESTION_MIN_READABILITY: float = 0.65
+    INGESTION_TIMEOUT_SECONDS: int = 30
 
     # Demo
     DEMO_GUEST_TTL_HOURS: int = 24

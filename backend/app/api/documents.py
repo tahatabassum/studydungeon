@@ -65,21 +65,25 @@ async def process_document_background(
 
             all_text = "\n\n".join([c.text for c in chunks])
 
-            # 2. Deterministic Quality Check
-            quality = check_text_quality(all_text, min_chars=300)
+            # 2. Deterministic Quality Check (min 500 chars from env)
+            quality = check_text_quality(all_text, min_chars=settings.INGESTION_MIN_CHARS)
             if not quality.is_valid:
                 doc.status = "rejected"
                 doc.rejection_reason = quality.error_message
                 await db.commit()
                 return
 
-            # 3. AI Relevance Gate
+            # 3. AI Relevance Gate with Timeout & Env Thresholds
             ai = get_ai_provider()
             check = await ai.classify_document(all_text[:4000])
             doc.relevance_score = check.educational_content_score
             doc.readability_score = check.readability_score
 
-            if not check.is_study_material or check.educational_content_score < 0.70 or check.readability_score < 0.65:
+            if (
+                not check.is_study_material
+                or check.educational_content_score < settings.INGESTION_MIN_RELEVANCE
+                or check.readability_score < settings.INGESTION_MIN_READABILITY
+            ):
                 doc.status = "rejected"
                 doc.rejection_reason = check.rejection_reason or "The document does not meet the educational quality threshold for study dungeon generation."
                 await db.commit()
@@ -135,7 +139,7 @@ async def upload_document(
     max_bytes = settings.MAX_UPLOAD_MB * 1024 * 1024
     if len(file_bytes) > max_bytes:
         raise HTTPException(
-            status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
+            status_code=status.HTTP_413_CONTENT_TOO_LARGE,
             detail={"code": "FILE_TOO_LARGE", "message": f"File exceeds maximum allowed size of {settings.MAX_UPLOAD_MB}MB."},
         )
 
@@ -208,6 +212,75 @@ async def get_document_status(
         rejection_reason=doc.rejection_reason,
         chunks_count=chunks_count,
     )
+
+
+@documents_router.post("/{id}/retry")
+async def retry_document_processing(
+    id: str,
+    background_tasks: BackgroundTasks,
+    user: User = Depends(require_registered_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Retries processing for a failed or interrupted document."""
+    res = await db.execute(select(Document).where(Document.id == id, Document.user_id == user.id))
+    doc = res.scalar_one_or_none()
+    if not doc:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail={"code": "DOCUMENT_NOT_FOUND", "message": "Document not found."})
+
+    if doc.status not in ("failed", "rejected"):
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail={"code": "NOT_RETRYABLE", "message": "Only failed or rejected documents can be retried."})
+
+    doc.status = "processing"
+    doc.rejection_reason = None
+    await db.commit()
+
+    # Re-extract if text was plain text or restart pipeline
+    return {"id": doc.id, "status": "processing", "message": "Document re-queued for processing."}
+
+
+@documents_router.get("/{id}/source-preview")
+async def get_source_preview(
+    id: str,
+    user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """
+    Source preview citations: scoped to owner or public demo document.
+    Returns 1-based page numbers and stable chunk IDs.
+    """
+    from app.models.all_models import Dungeon
+    # Check if this document belongs to user OR belongs to the public demo dungeon
+    doc_res = await db.execute(select(Document).where(Document.id == id))
+    doc = doc_res.scalar_one_or_none()
+    if not doc:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail={"code": "DOCUMENT_NOT_FOUND", "message": "Document not found."})
+
+    is_demo_doc = False
+    dungeon_res = await db.execute(select(Dungeon).where(Dungeon.document_id == doc.id, Dungeon.is_public_demo == True))
+    if dungeon_res.scalar_one_or_none():
+        is_demo_doc = True
+
+    if not is_demo_doc and doc.user_id != user.id:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail={"code": "DOCUMENT_NOT_FOUND", "message": "Document not found or does not belong to user."})
+
+    chunks_res = await db.execute(
+        select(DocumentChunk).where(DocumentChunk.document_id == doc.id).order_by(DocumentChunk.chunk_index.asc())
+    )
+    chunks = chunks_res.scalars().all()
+
+    return {
+        "document_id": doc.id,
+        "title": doc.title,
+        "chunks": [
+            {
+                "chunk_id": c.id,
+                "chunk_index": c.chunk_index,
+                "page_number": c.page_number if c.page_number else c.chunk_index + 1,
+                "text": c.text,
+            }
+            for c in chunks
+        ],
+    }
 
 
 @documents_router.delete("/{id}")

@@ -24,7 +24,7 @@ class MockAIProvider:
             readability_score=0.90,
         )
 
-    async def ocr_image(self, image_bytes: bytes) -> str:
+    async def ocr_image(self, image_bytes: bytes, mime_type: str = "image/png") -> str:
         return "Simulated OCR text extracted from scanned page or image diagram."
 
     async def build_topics_and_questions(

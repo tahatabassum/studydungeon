@@ -41,7 +41,7 @@ class AIProvider(Protocol):
         """Classify document relevance, readability, and educational value."""
         ...
 
-    async def ocr_image(self, image_bytes: bytes) -> str:
+    async def ocr_image(self, image_bytes: bytes, mime_type: str = "image/png") -> str:
         """Extract text from an image or scanned page via multimodal vision."""
         ...
 
