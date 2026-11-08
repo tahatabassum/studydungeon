@@ -27,9 +27,14 @@ class Settings(BaseSettings):
     OPENROUTER_API_KEY: Optional[str] = None
     OPENROUTER_ENABLED: bool = False
 
-    # Uploads
+    # Uploads & Quality Thresholds
     MAX_UPLOAD_MB: int = 15
     TEMP_UPLOAD_DIR: str = "./temp_uploads"
+    INGESTION_MIN_CHARS: int = 500
+    INGESTION_MIN_READABLE_RATIO: float = 0.70
+    INGESTION_MIN_RELEVANCE: float = 0.70
+    INGESTION_MIN_READABILITY: float = 0.65
+    INGESTION_TIMEOUT_SECONDS: int = 30
 
     # Demo
     DEMO_GUEST_TTL_HOURS: int = 24
