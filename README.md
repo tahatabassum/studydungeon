@@ -1,3 +1,6 @@
+# studydungeon
+AI-powered gamified learning RPG built for Kiroween 2026
+
 # 🏰 StudyDungeon
 
 > **An Adaptive Learning RPG that transforms students' notes into a playable haunted 2D dungeon crawl.**  
@@ -344,3 +347,4 @@ docker run -p 8000:8000 --env-file backend/.env studydungeon-backend
 This project is licensed under the terms of the **MIT License**.  
 See the [`LICENSE`](file:///D:/dev-stuff/studydungeon/LICENSE) file for complete details.  
 Copyright (c) 2026 StudyDungeon contributors.
+

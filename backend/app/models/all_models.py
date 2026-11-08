@@ -31,6 +31,7 @@ class User(Base):
     username: Mapped[str] = mapped_column(String(64), unique=True, index=True, nullable=False)
     password_hash: Mapped[Optional[str]] = mapped_column(String(256), nullable=True)
     is_guest: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    is_system: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     session_version: Mapped[int] = mapped_column(Integer, default=1, nullable=False)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, nullable=False)
     last_login_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, nullable=False)

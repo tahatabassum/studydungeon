@@ -150,9 +150,9 @@ async def delete_me(
     """
     Deletes user account and cascades deletion of all documents, chunks, topics,
     questions, dungeons, runs, attempts, and progress.
-    Protected: The system user ('system_demo') cannot be deleted.
+    Protected: Any user with is_system=True (or username 'system_demo') cannot be deleted.
     """
-    if user.username == "system_demo":
+    if user.is_system or user.username == "system_demo":
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail={"code": "SYSTEM_USER_PROTECTED", "message": "The system user cannot be deleted."},
