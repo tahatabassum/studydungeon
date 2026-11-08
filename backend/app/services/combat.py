@@ -12,6 +12,21 @@ WEAPON_BASE_DAMAGE = {
 MONSTER_COUNTER_DAMAGE = 10
 BOSS_COUNTER_DAMAGE = 12
 
+WEAPON_UNLOCK_RULES = {
+    "Rusty Dagger": lambda level, xp, cleared_rooms, boss_cleared: True,
+    "Arcane Staff": lambda level, xp, cleared_rooms, boss_cleared: xp >= 100,
+    "Hunter Crossbow": lambda level, xp, cleared_rooms, boss_cleared: cleared_rooms >= 2,
+    "Spectral Hammer": lambda level, xp, cleared_rooms, boss_cleared: level >= 3,
+    "Flame Sigil": lambda level, xp, cleared_rooms, boss_cleared: boss_cleared >= 1,
+}
+
+
+def is_weapon_unlocked(weapon_name: str, level: int = 1, xp: int = 0, cleared_rooms: int = 0, boss_cleared: int = 0) -> bool:
+    if weapon_name not in WEAPON_UNLOCK_RULES:
+        return False
+    rule = WEAPON_UNLOCK_RULES[weapon_name]
+    return rule(level, xp, cleared_rooms, boss_cleared)
+
 
 def calculate_combat_damage(
     weapon_name: str,

@@ -15,6 +15,7 @@ from app.models.all_models import (
     Question,
     ReviewItem,
     User,
+    UserProgress,
 )
 from app.schemas.runs import (
     AttemptRequest,
@@ -222,6 +223,28 @@ async def submit_attempt(
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail={"code": "QUESTION_NOT_FOUND", "message": "Question does not exist."},
+        )
+
+    # Validate weapon exists and user has unlocked it
+    from app.services.combat import WEAPON_BASE_DAMAGE, is_weapon_unlocked
+    if req.weapon_name not in WEAPON_BASE_DAMAGE:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail={"code": "UNKNOWN_WEAPON", "message": f"Weapon '{req.weapon_name}' is not recognized."},
+        )
+
+    # Fetch user progress for weapon validation
+    prog_res = await db.execute(select(UserProgress).where(UserProgress.user_id == user.id))
+    user_prog = prog_res.scalar_one_or_none()
+    user_unlocked = user_prog.unlocked_weapons if user_prog and user_prog.unlocked_weapons else ["Rusty Dagger"]
+
+    # Also check dynamic level/xp unlock
+    level = user_prog.level if user_prog else 1
+    total_xp = user_prog.total_xp if user_prog else 0
+    if req.weapon_name not in user_unlocked and not is_weapon_unlocked(req.weapon_name, level=level, xp=total_xp):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail={"code": "WEAPON_LOCKED", "message": f"Weapon '{req.weapon_name}' is locked. Meet unlock requirements first."},
         )
 
     # Determine correctness
