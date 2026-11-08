@@ -2,8 +2,8 @@ import pytest
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.demo.seed import DEMO_DATA, seed_demo_dungeon
-from app.models.all_models import DocumentChunk, Dungeon, Question, Topic, User
+from app.demo.seed import seed_demo_dungeon
+from app.models.all_models import DocumentChunk, Question, Topic, User
 
 
 @pytest.mark.asyncio

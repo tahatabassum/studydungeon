@@ -192,3 +192,27 @@ This log records dated facts, steering documents, feature specifications, automa
 - **Pytest:** 67 passed in 6.52s.
 - **Ruff:** All checks passed (0 errors, 0 warnings).
 - **Alembic:** Clean schema, zero drift.
+
+---
+
+## [2026-11-08] - Step 7 & 8: Production Deployment Hardening & Submission Artifacts
+**Objective:** Hardened containerization, database auto-migration on deployment startup, Devpost writeup, and submission verification checklist.
+
+### Accomplishments
+- **Production Container Entrypoint:** Configured `Dockerfile` to automatically execute `alembic upgrade head && python -m app.demo.seed` prior to spinning up `uvicorn` on the dynamic `$PORT`.
+- **Submission Artifacts:** Created [`docs/SUBMISSION_CHECKLIST.md`](file:///D:/dev-stuff/studydungeon/docs/SUBMISSION_CHECKLIST.md) and populated the authentic hackathon journey in [`docs/KIRO_WRITEUP.md`](file:///D:/dev-stuff/studydungeon/docs/KIRO_WRITEUP.md).
+- **Static Contract Generation:** Built and verified `backend/scripts/export_openapi.py` with static generation of `docs/openapi.json`.
+- **Automated Smoke Testing:** End-to-end multi-stage smoke script `backend/scripts/smoke.py` passes all 11 lifecycle scenarios.
+
+### Bugs Found & Fixed
+- Added `python-multipart`, `pymupdf`, `python-docx`, `python-pptx`, and `pillow` to `requirements.txt`.
+- Resolved unused imports and formatting across scripts and test fixtures.
+
+### Bugs Found, Not Fixed
+- None.
+
+### Final Verification Counts
+- **Pytest:** 67 passed in 6.01s (0 failures, 0 regressions).
+- **Ruff:** All checks passed (0 errors, 0 warnings).
+- **Smoke Test:** 11 of 11 lifecycle steps passed.
+- **Alembic:** Fully synced with SQLite/Postgres schemas; 0 schema drift detected.

@@ -3,14 +3,15 @@ import io
 import os
 import sys
 import uuid
+
 import httpx
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
-from app.core.config import settings
-from app.main import create_app
 from app.ai.factory import set_ai_provider
 from app.ai.mock_provider import MockAIProvider
+from app.core.config import settings
+from app.main import create_app
 
 # In automated smoke test script, use deterministic MockAIProvider
 set_ai_provider(MockAIProvider())

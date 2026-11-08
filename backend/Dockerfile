@@ -20,8 +20,8 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy application source code
 COPY . /app/
 
-# Expose port and run uvicorn server
+# Expose port and run migrations before uvicorn server
 EXPOSE $PORT
 
-CMD ["sh", "-c", "uvicorn app.main:app --host 0.0.0.0 --port ${PORT}"]
+CMD ["sh", "-c", "alembic upgrade head && python -m app.demo.seed && uvicorn app.main:app --host 0.0.0.0 --port ${PORT}"]
 
