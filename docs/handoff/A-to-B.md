@@ -149,3 +149,23 @@ Render free-tier web services spin down after 15 minutes of inactivity:
 - When the player visits the app or clicks "Try Demo", ping `GET /health` with a lightweight 5-second polling retry loop and exponential backoff.
 - Display a gothic retro *"Waking the Dungeon..."* splash screen with a loading spinner.
 - As soon as `GET /health` returns `{ "status": "healthy" }`, call `POST /demo/session` to obtain a guest session cookie, then transition into the game view.
+
+
+---
+
+## [Day 3] - Comprehensive API Contract & Type Mismatch Table
+
+Below is the authoritative reconciliation table comparing frontend expectations (from `docs/handoff/B-to-A.md`) with the live backend implementation (`docs/openapi.json`):
+
+| Type / Endpoint | B Expects (TypeScript) | Backend Implementation | Who Changes | Proposed Alignment & Status |
+| :--- | :--- | :--- | :--- | :--- |
+| `User` | `{ id, username, is_guest }` | `{ id, username, is_guest, created_at, expires_at }` | Person B | Frontend ignores extra metadata; backend fields are fully superset compatible. |
+| `Question` (in Dungeon View) | `{ id, prompt, options, difficulty }` | `{ id, prompt, options, difficulty }` (correct_option, quote, explanation strictly omitted) | Both Agreed | **Zero answer leakage verified**. Explanations and evidence quotes only revealed on attempt submit. |
+| `Monster` | `{ name, kind, hp, max_hp }` | `{ monster_name, monster_type, monster_hp }` flattened in Room view | Person B | Frontend accesses `room.monster_name`, `room.monster_hp`. Fully documented in sample JSON. |
+| `Room` | `{ id, room_number, is_boss, questions }` | `{ id, room_number, topic_name, monster_name, monster_type, monster_hp, is_boss, questions }` | Person B | Superset compatible. |
+| `Run` & Resume | `{ id, dungeon_id, current_hp, current_score, current_streak, status }` | `GET /runs/{id}` returns `{ id, dungeon_id, current_hp, current_score, current_streak, xp_earned, status, rooms }` | Person B | Complete state returned on resume to rehydrate Phaser after reload. |
+| `POST /runs/{id}/attempts` | `{ attempt_id, question_id, selected_answer }` | `{ attempt_id, question_id, selected_answer, weapon_name: Optional[str] = "Rusty Dagger" }` | Person B | Backend defaults to `"Rusty Dagger"`. Person B may send equipped weapon from player inventory. |
+| `AnswerResult` | `{ is_correct, damage_dealt, damage_taken, is_critical, current_hp, current_score, current_streak, monster_hp_remaining, explanation, evidence_quote }` | Exact match | Both Agreed | Fully aligned. |
+| `POST /rooms/{id}/clear` | `{ xp_delta }` | `{ room_id, is_cleared, xp_delta }` | Person B | Returns 409 `MONSTER_ALIVE` if monster HP > 0; 25 XP for topic room, 100 XP for boss. |
+| `POST /runs/{id}/finish` | `RunSummary` | `{ run_id, status, total_score, xp_earned, rooms_cleared, accuracy (0.0-1.0), mastery_band }` | Both Agreed | Idempotent on repeat call; 409 `BOSS_NOT_CLEARED` before boss defeat. |
+| Errors (`4xx`/`5xx`) | `{"detail": {"code": str, "message": str}}` | `{"detail": {"code": str, "message": str}}` across all status codes | Both Agreed | Uniform JSON error structure across entire API. |
