@@ -11,6 +11,7 @@ export class RoomTracker {
     private layout: DungeonLayout,
     private readonly getPosition: () => Point,
     private readonly bridge: GameBridge | undefined,
+    private readonly onRoomChange?: (roomId: string, first: boolean) => void,
   ) {}
 
   get currentRoomId(): string | null {
@@ -26,7 +27,9 @@ export class RoomTracker {
   update(): void {
     const id = nextRoomEvent(this.current, this.getPosition(), this.layout)
     if (id === null) return
+    const first = this.current === null
     this.current = id
+    this.onRoomChange?.(id, first)
     this.bridge?.emit({ type: 'room-entered', roomId: id })
   }
 }

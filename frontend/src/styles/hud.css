@@ -1,0 +1,93 @@
+/*
+ * Halloween HUD: dark stone frames with pumpkin and witch glow edges, cobwebs,
+ * candle flames and bone dividers. Pure CSS, no assets. Animations stop under
+ * prefers-reduced-motion (global rule) and under data-reduced="true" (in-app flag).
+ */
+
+.sd-stone {
+  position: relative;
+  border: 2px solid var(--color-deep);
+  border-radius: 0.5rem;
+  background:
+    repeating-linear-gradient(
+      90deg,
+      transparent 0 23px,
+      color-mix(in srgb, var(--color-bg) 55%, transparent) 23px 24px
+    ),
+    repeating-linear-gradient(
+      0deg,
+      transparent 0 15px,
+      color-mix(in srgb, var(--color-bg) 45%, transparent) 15px 16px
+    ),
+    linear-gradient(180deg, var(--color-panel), var(--color-surface-2));
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--color-pumpkin) 45%, transparent),
+    0 0 10px color-mix(in srgb, var(--color-witch) 70%, transparent),
+    inset 0 0 8px color-mix(in srgb, var(--color-pumpkin) 14%, transparent);
+  color: var(--color-ink);
+}
+
+.sd-stone--danger {
+  border-color: var(--color-danger);
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--color-danger) 60%, transparent),
+    0 0 12px color-mix(in srgb, var(--color-danger) 55%, transparent),
+    inset 0 0 8px color-mix(in srgb, var(--color-blood-red) 20%, transparent);
+}
+
+.sd-web {
+  position: absolute;
+  width: 1.5rem;
+  height: 1.5rem;
+  pointer-events: none;
+  color: var(--color-ink-muted);
+  opacity: 0.55;
+}
+.sd-web--tl { top: 0; left: 0; }
+.sd-web--tr { top: 0; right: 0; transform: scaleX(-1); }
+
+.sd-bone-divider {
+  display: block;
+  height: 0.5rem;
+  width: 100%;
+  border: 0;
+  background:
+    radial-gradient(circle at 0.25rem 50%, var(--color-bone) 0 0.2rem, transparent 0.22rem),
+    radial-gradient(circle at calc(100% - 0.25rem) 50%, var(--color-bone) 0 0.2rem, transparent 0.22rem),
+    linear-gradient(var(--color-bone), var(--color-bone)) center / calc(100% - 1rem) 2px no-repeat;
+  opacity: 0.7;
+}
+
+/* Candle flame accent (current room pip, spellbook corner candle). */
+.sd-flame {
+  position: absolute;
+  width: 0.4rem;
+  height: 0.65rem;
+  border-radius: 50% 50% 50% 50% / 65% 65% 35% 35%;
+  background: radial-gradient(circle at 50% 70%, var(--color-bone) 0 20%, var(--color-pumpkin) 45%, var(--color-ember) 100%);
+  box-shadow: 0 0 6px 1px color-mix(in srgb, var(--color-pumpkin) 80%, transparent);
+  transform-origin: 50% 100%;
+  animation: sd-flame-flicker 1.6s ease-in-out infinite;
+}
+
+@keyframes sd-flame-flicker {
+  0%, 100% { transform: scale(1, 1) rotate(0deg); opacity: 1; }
+  30% { transform: scale(0.92, 1.08) rotate(-3deg); opacity: 0.9; }
+  60% { transform: scale(1.05, 0.94) rotate(2deg); opacity: 1; }
+}
+
+/* Low health: slow red glow pulse (about 0.6 Hz, well under 3 flashes per second). */
+.sd-lowhp {
+  animation: sd-lowhp-pulse 1.6s ease-in-out infinite;
+}
+@keyframes sd-lowhp-pulse {
+  0%, 100% { box-shadow: 0 0 6px color-mix(in srgb, var(--color-danger) 50%, transparent); }
+  50% { box-shadow: 0 0 16px 2px color-mix(in srgb, var(--color-danger) 90%, transparent); }
+}
+
+[data-reduced='true'] .sd-flame,
+[data-reduced='true'].sd-flame,
+[data-reduced='true'] .sd-lowhp,
+[data-reduced='true'].sd-lowhp {
+  animation: none;
+}

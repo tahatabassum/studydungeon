@@ -1,3 +1,13 @@
+/*
+ * Deliberate changes for frontend-04 (combat state machine):
+ * - Sequences now go encounter-started -> question-presented -> answer-submitted
+ *   -> result-received -> result-settled -> advance (result-received needs combat 'submitting').
+ * - result-settled no longer sets defeated/cleared/exploring; it sets combat
+ *   player_defeated / monster_defeated / next. `advance` then yields phase defeated / cleared,
+ *   or (from 'next') phase 'encounter' with combat 'question' instead of 'exploring'.
+ * - pause is also accepted from encounter + combat 'question'.
+ * - room-cleared still works after advance from monster_defeated (phase 'cleared').
+ */
 import { describe, expect, it } from 'vitest'
 import fc from 'fast-check'
 import { applyAnswer, INITIAL_STATE, type RulesState } from '@/demo/rules'
@@ -25,9 +35,22 @@ const mkResult = (o: Partial<AnswerResult> = {}): AnswerResult => ({
   ...o,
 })
 
-/** Drive one result through encounter -> received -> settled. */
+/** Bring combat to 'question' (start encounter / advance from 'next' as needed). */
+const present = (s: RunState): RunState => {
+  if (s.combat === null || s.combat === 'exited') {
+    return reduce(s, { type: 'encounter-started' }, { type: 'question-presented' })
+  }
+  if (s.combat === 'next') return runReducer(s, { type: 'advance' })
+  return s
+}
+
+/** question -> submitting -> result. */
+const receive = (s: RunState, result: AnswerResult): RunState =>
+  reduce(present(s), { type: 'answer-submitted' }, { type: 'result-received', result })
+
+/** Drive one result through the full flow, ending after `advance`. */
 const settle = (s: RunState, result: AnswerResult): RunState =>
-  reduce(s, { type: 'encounter-started' }, { type: 'result-received', result }, { type: 'result-settled' })
+  reduce(receive(s, result), { type: 'result-settled' }, { type: 'advance' })
 
 const resultArb: fc.Arbitrary<AnswerResult> = fc.record({
   correct: fc.boolean(),
@@ -50,8 +73,14 @@ describe('runReducer properties', () => {
         fc.integer({ min: 0, max: 10_000 }),
         fc.integer({ min: 0, max: 10_000 }),
         (result, xp, score) => {
-          const before = reduce({ ...started(), xp, score }, { type: 'encounter-started' })
+          const before = reduce(
+            { ...started(), xp, score },
+            { type: 'encounter-started' },
+            { type: 'question-presented' },
+            { type: 'answer-submitted' },
+          )
           expect(before.phase).toBe('encounter')
+          expect(before.combat).toBe('submitting')
           const after = runReducer(before, { type: 'result-received', result })
           expect(after.playerHp).toBe(result.player_hp_remaining)
           expect(after.monsterHp).toBe(result.monster_hp_remaining)
@@ -59,6 +88,8 @@ describe('runReducer properties', () => {
           expect(after.xp).toBe(xp + result.xp_delta)
           expect(after.score).toBe(score + result.score_delta)
           expect(after.phase).toBe('resolving')
+          expect(after.combat).toBe('result')
+          expect(after.prevPlayerHp).toBe(before.playerHp)
         },
       ),
       runs,
@@ -76,16 +107,23 @@ describe('runReducer properties', () => {
           rules = next
           const prevMonster = state.monsterHp
           const full: AnswerResult = { ...result, source: { page: 1, chunk_id: 'c' } }
-          state = reduce(state, { type: 'encounter-started' }, { type: 'result-received', result: full })
+          state = receive(state, full)
           expect(state.monsterHp).toBeLessThanOrEqual(prevMonster)
           state = runReducer(state, { type: 'result-settled' })
           expect(state.playerHp).toBeGreaterThanOrEqual(0)
           expect(state.playerHp).toBeLessThanOrEqual(100)
           expect(state.monsterHp).toBeGreaterThanOrEqual(0)
           expect(state.monsterHp).toBeLessThanOrEqual(60)
+          expect(state.combat === 'player_defeated').toBe(state.playerHp === 0)
+          expect(state.combat === 'monster_defeated').toBe(state.playerHp > 0 && state.monsterHp === 0)
+          if (state.playerHp > 0 && state.monsterHp > 0) expect(state.combat).toBe('next')
+          state = runReducer(state, { type: 'advance' })
           expect(state.phase === 'defeated').toBe(state.playerHp === 0)
           expect(state.phase === 'cleared').toBe(state.playerHp > 0 && state.monsterHp === 0)
-          if (state.playerHp > 0 && state.monsterHp > 0) expect(state.phase).toBe('exploring')
+          if (state.playerHp > 0 && state.monsterHp > 0) {
+            expect(state.phase).toBe('encounter')
+            expect(state.combat).toBe('question')
+          }
           if (state.phase === 'defeated' || state.phase === 'cleared') break
         }
       }),
@@ -114,7 +152,7 @@ describe('runReducer HP boundaries', () => {
       const { next, result } = applyAnswer(rules, false)
       rules = next
       state = settle(state, mkResult(result))
-      if (i < 9) expect(state.phase).toBe('exploring')
+      if (i < 9) expect(state.phase).toBe('encounter')
     }
     expect(state.playerHp).toBe(0)
     expect(state.phase).toBe('defeated')
@@ -132,8 +170,10 @@ describe('runReducer HP boundaries', () => {
     expect(state.phase).toBe('cleared')
   })
 
-  it('result leaving HP at 1 -> exploring', () => {
-    expect(settle(started(), mkResult({ player_hp_remaining: 1, monster_hp_remaining: 1 })).phase).toBe('exploring')
+  it('result leaving HP at 1 -> next question (encounter / question)', () => {
+    const s = settle(started(), mkResult({ player_hp_remaining: 1, monster_hp_remaining: 1 }))
+    expect(s.phase).toBe('encounter')
+    expect(s.combat).toBe('question')
   })
 })
 
@@ -152,6 +192,63 @@ describe('runReducer transition guards', () => {
     const enc = runReducer(s, { type: 'encounter-started' })
     expect(runReducer(enc, { type: 'pause' })).toBe(enc)
     expect(runReducer(s, { type: 'resume' })).toBe(s)
+
+    const q = present(s)
+    const pausedQ = runReducer(q, { type: 'pause' })
+    expect(pausedQ.phase).toBe('paused')
+    expect(pausedQ.combat).toBe('question')
+    const resumed = runReducer(pausedQ, { type: 'resume' })
+    expect(resumed.phase).toBe('encounter')
+    expect(resumed.combat).toBe('question')
+    const submitting = runReducer(q, { type: 'answer-submitted' })
+    expect(runReducer(submitting, { type: 'pause' })).toBe(submitting)
+  })
+
+  it('combat transitions are guarded', () => {
+    const s = started()
+    expect(s.combat).toBeNull()
+    for (const type of ['question-presented', 'answer-submitted', 'answer-failed', 'advance', 'retreat'] as const) {
+      expect(runReducer(s, { type })).toBe(s)
+    }
+    const starting = runReducer(s, { type: 'encounter-started' })
+    expect(starting.combat).toBe('starting')
+    expect(runReducer(starting, { type: 'encounter-started' })).toBe(starting)
+    const q = runReducer(starting, { type: 'question-presented' })
+    expect(q.combat).toBe('question')
+    expect(runReducer(q, { type: 'question-presented' })).toBe(q)
+    const sub = runReducer(q, { type: 'answer-submitted' })
+    expect(sub.combat).toBe('submitting')
+    expect(runReducer(sub, { type: 'answer-submitted' })).toBe(sub)
+    expect(runReducer(sub, { type: 'retreat' })).toBe(sub)
+    expect(runReducer(sub, { type: 'answer-failed' }).combat).toBe('question')
+    expect(runReducer(q, { type: 'result-received', result: mkResult() })).toBe(q)
+    expect(runReducer(sub, { type: 'result-settled' })).toBe(sub)
+  })
+
+  it('retreat leaves HP unchanged and allows a new encounter', () => {
+    const q = present(started())
+    const out = runReducer(q, { type: 'retreat' })
+    expect(out.phase).toBe('exploring')
+    expect(out.combat).toBe('exited')
+    expect(out.playerHp).toBe(q.playerHp)
+    expect(out.monsterHp).toBe(q.monsterHp)
+    expect(runReducer(out, { type: 'encounter-started' }).combat).toBe('starting')
+  })
+
+  it('result-received stores prevPlayerHp and run-started/reset clear combat', () => {
+    const r = receive(started(), mkResult({ player_hp_remaining: 80 }))
+    expect(r.prevPlayerHp).toBe(100)
+    expect(r.playerHp).toBe(80)
+    expect(runReducer(r, { type: 'reset' }).combat).toBeNull()
+    expect(runReducer(r, { type: 'run-started', run }).combat).toBeNull()
+  })
+
+  it('player 0 wins ties at result-settled', () => {
+    const r = reduce(receive(started(), mkResult({ player_hp_remaining: 0, monster_hp_remaining: 0 })), {
+      type: 'result-settled',
+    })
+    expect(r.combat).toBe('player_defeated')
+    expect(r.phase).toBe('resolving')
   })
 
   it('reset returns initialRunState', () => {
@@ -208,7 +305,14 @@ describe('runReducer multi-room', () => {
       fc.constantFrom(0, 30, 60).map(
         (hp): RunAction => ({ type: 'result-received', result: mkResult({ monster_hp_remaining: hp }) }),
       ),
-      fc.constantFrom<RunAction>({ type: 'encounter-started' }, { type: 'result-settled' }, { type: 'gate-opened' }),
+      fc.constantFrom<RunAction>(
+        { type: 'encounter-started' },
+        { type: 'question-presented' },
+        { type: 'answer-submitted' },
+        { type: 'advance' },
+        { type: 'result-settled' },
+        { type: 'gate-opened' },
+      ),
     )
     fc.assert(
       fc.property(fc.array(actionArb, { maxLength: 40 }), (actions) => {
@@ -263,7 +367,7 @@ describe('runReducer multi-room', () => {
     // **Validates: Requirements 12.4, 12.7**
     fc.assert(
       fc.property(resultArb, (result) => {
-        const s = reduce(multi(), { type: 'encounter-started' }, { type: 'result-received', result })
+        const s = receive(multi(), result)
         expect(s.playerHp).toBe(result.player_hp_remaining)
         expect(s.monsterHp).toBe(result.monster_hp_remaining)
         expect(s.streak).toBe(result.streak)

@@ -2,14 +2,35 @@
 
 /* Design_Tokens: @theme emits these as CSS variables on :root and as Tailwind colors. */
 @theme {
-  --color-background: #100d18;
-  --color-panel: #1d1728;
-  --color-parchment: #f2e8d5;
-  --color-purple: #7546a8;
-  --color-blood: #b83d4a;
-  --color-amber: #e9a23b;
-  --color-mint: #68c9a5;
-  --color-muted: #a79cb5;
+  /* Approved palette (semantic names). */
+  --color-bg: #100b18;
+  --color-surface-2: #1c1427;
+  --color-panel: #251a32;
+  --color-deep: #39244f;
+  --color-magic: #9b5de5;
+  --color-accent: #ff9f1c;
+  --color-ink: #f5ebdd;
+  --color-danger: #c83e4d;
+  --color-health: #59c9a5;
+  --color-gold: #e9b44c;
+
+  /* Halloween accents. Witch purple is for fills and glows only (about 2.9:1 on bg). */
+  --color-pumpkin: #f28a1e;
+  --color-ember: #e9a23b;
+  --color-ghost: #68c9a5;
+  --color-toxic: #8be04e;
+  --color-witch: #7546a8;
+  --color-magenta: #c04bd6;
+  --color-indigo: #1a1638;
+  --color-bone: #f2e8d5;
+  --color-blood-red: #b83d4a;
+
+  /* Semantic extra token (permanent): readable secondary text; no palette entry. */
+  --color-ink-muted: #b9aec9;
+
+  --font-display: "Pirata One", "Cinzel", Georgia, serif;
+  --font-label: "Cinzel", Georgia, serif;
+  --font-body: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
 }
 
 html,
@@ -21,10 +42,11 @@ body,
 body {
   margin: 0;
   overflow-x: hidden;
+  font-family: var(--font-body);
 }
 
 :focus-visible {
-  outline: 3px solid var(--color-amber);
+  outline: 3px solid var(--color-accent);
   outline-offset: 2px;
 }
 

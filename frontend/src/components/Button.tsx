@@ -8,16 +8,18 @@ export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 
 const base =
   'inline-flex items-center justify-center gap-2 rounded-lg font-semibold transition-colors ' +
-  'focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-amber ' +
+  'focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-accent ' +
   'disabled:cursor-not-allowed disabled:opacity-50'
 
 const variants = {
   primary:
-    'bg-purple text-parchment px-8 py-4 text-xl shadow-[0_0_24px_var(--color-purple)] ' +
-    'hover:enabled:brightness-125 disabled:shadow-none',
+    // accent (#ff9f1c) on bg (#100b18) = ~9.4:1 (WCAG AA 4.5:1 met)
+    'border-2 border-accent bg-accent text-bg px-8 py-4 text-xl ' +
+    'hover:enabled:brightness-110',
   secondary:
-    'border-2 border-muted bg-transparent text-muted px-5 py-2 text-base ' +
-    'hover:enabled:border-parchment hover:enabled:text-parchment',
+    // ink on panel/bg >= 11:1
+    'border-2 border-magic bg-transparent text-ink px-5 py-2 text-base ' +
+    'hover:enabled:border-accent hover:enabled:bg-deep',
 } as const
 
 export function Button({

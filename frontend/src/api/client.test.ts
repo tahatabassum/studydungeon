@@ -38,6 +38,25 @@ describe('createHttpClient', () => {
     for (const [, init] of f.mock.calls) expect(init?.credentials).toBe('include')
   })
 
+  it('getProgress is GET /progress with credentials include and no body', async () => {
+    const f = fakeFetch(json({ level: 2, total_xp: 120, xp_to_next: 80 }))
+    const api = createHttpClient('http://api.test/', f as unknown as typeof fetch)
+    const p = await api.getProgress()
+    expect(p).toEqual({ level: 2, total_xp: 120, xp_to_next: 80 })
+    expect(String(f.mock.calls[0][0])).toBe('http://api.test/progress')
+    expect(f.mock.calls[0][1]?.method).toBe('GET')
+    expect(f.mock.calls[0][1]?.credentials).toBe('include')
+    expect(f.mock.calls[0][1]?.body).toBeUndefined()
+  })
+
+  it('maps getProgress errors to ApiError', async () => {
+    const f = fakeFetch(json({ detail: 'no session' }, 401))
+    const api = createHttpClient('', f as unknown as typeof fetch)
+    const err = await api.getProgress().catch((e: unknown) => e)
+    expect(err).toBeInstanceOf(ApiError)
+    expect((err as ApiError).status).toBe(401)
+  })
+
   it('sends finishRun without a body', async () => {
     const f = fakeFetch(json({ score: 1, xp: 2, correct: 3, total: 4, accuracy: 0.75 }))
     const api = createHttpClient('', f as unknown as typeof fetch)

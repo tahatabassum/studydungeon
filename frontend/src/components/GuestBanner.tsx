@@ -10,11 +10,11 @@ export function GuestBanner({ isGuest, onCreateAccount }: GuestBannerProps) {
   return (
     <aside
       aria-label="Guest notice"
-      className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-amber bg-panel px-4 py-2 text-sm text-parchment"
+      className="flex flex-wrap items-center justify-between gap-x-2 rounded-md border border-deep bg-surface-2/80 px-2 py-0.5 text-xs leading-tight text-ink-muted"
     >
-      <p role="status">Playing as guest. Progress is temporary. Create an account to save.</p>
+      <p role="status" className="min-w-0 truncate">Playing as guest. Progress is temporary. Create an account to save.</p>
       {onCreateAccount ? (
-        <Button variant="secondary" onClick={onCreateAccount}>
+        <Button variant="secondary" onClick={onCreateAccount} className="border-gold! px-3! py-0.5! text-xs! text-gold!">
           Create account
         </Button>
       ) : (
@@ -22,7 +22,7 @@ export function GuestBanner({ isGuest, onCreateAccount }: GuestBannerProps) {
           href="/login"
           target="_blank"
           rel="noopener noreferrer"
-          className="rounded-lg border-2 border-muted px-5 py-2 text-base font-semibold text-muted hover:border-parchment hover:text-parchment"
+          className="shrink-0 rounded-md border border-gold px-2 text-xs font-semibold leading-tight text-gold hover:border-accent hover:text-accent"
         >
           Create account
         </a>

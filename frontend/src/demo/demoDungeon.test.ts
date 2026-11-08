@@ -32,7 +32,7 @@ describe('demo dungeon', () => {
       'Entry Hall',
       "Alchemist's Lab",
       'Clockwork Crypt',
-      'Forgotten Wing',
+      'Pumpkin Workshop',
       'Boss Room',
     ])
     expect(rooms.map((r) => [r.monster.name, r.monster.kind])).toEqual([

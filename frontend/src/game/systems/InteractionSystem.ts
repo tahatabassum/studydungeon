@@ -2,9 +2,12 @@ import Phaser from 'phaser'
 import type { Monster } from '../entities/Monster'
 import type { Player } from '../entities/Player'
 import type { GameBridge, GamePhase } from '../events'
-import { isWithinRange } from './interaction'
+import { isWithinRange, shouldEngage } from './interaction'
+import { sfx } from '@/audio/sfx'
+import { CSS_COLORS } from '../colors'
+import { FONT_LABEL } from '../fonts'
 
-/** Shows "Press E to fight" near a living monster and emits encounter-started once. */
+/** Shows "Press E to engage" near a living monster and emits encounter-started once. */
 export class InteractionSystem {
   private readonly keyE: Phaser.Input.Keyboard.Key | null
   private readonly keySpace: Phaser.Input.Keyboard.Key | null
@@ -29,11 +32,11 @@ export class InteractionSystem {
     this.keySpace = kb ? kb.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE, false) : null
 
     this.prompt = scene.add
-      .text(initial?.position.x ?? 0, (initial?.position.y ?? 0) - 76, 'Press E to fight', {
-        fontFamily: 'serif',
+      .text(initial?.position.x ?? 0, (initial?.position.y ?? 0) - 76, 'Press E to engage', {
+        fontFamily: FONT_LABEL,
         fontSize: '14px',
-        color: '#F2E8D5',
-        backgroundColor: '#100D18',
+        color: CSS_COLORS.INK,
+        backgroundColor: CSS_COLORS.BG,
         padding: { x: 8, y: 4 },
       })
       .setOrigin(0.5, 1)
@@ -53,25 +56,29 @@ export class InteractionSystem {
   }
 
   update(): void {
-    const exploring = this.getPhase() === 'exploring'
-    if (!exploring) {
-      this.armed = true // re-arm once the phase leaves exploring
+    const phase = this.getPhase()
+    const pressed = this.consumeKeys()
+    const held = this.engageKeyHeld()
+    // Re-arm when not exploring or no engage key is held (a key held through combat must not re-engage).
+    if (phase !== 'exploring' || !held) this.armed = true
+    if (phase !== 'exploring') {
       this.prompt.setVisible(false)
-      this.consumeKeys()
       return
     }
     const monster = this.getMonster()
+    const alive = !!monster && monster.alive
     const inRange =
-      !!monster &&
-      monster.alive &&
-      isWithinRange({ x: this.player.x, y: this.player.y }, monster.position)
-    this.prompt.setVisible(inRange)
-    const pressed = this.consumeKeys()
-    if (monster && inRange && pressed && this.armed) {
-      // Stay disarmed until the phase changes away from exploring and back.
+      !!monster && isWithinRange({ x: this.player.x, y: this.player.y }, monster.position)
+    this.prompt.setVisible(alive && inRange)
+    if (monster && shouldEngage({ phase, inRange, alive, pressed, armed: this.armed })) {
       this.armed = false
+      sfx.play('growl')
       this.bridge?.emit({ type: 'encounter-started', monsterId: monster.id })
     }
+  }
+
+  private engageKeyHeld(): boolean {
+    return !!(this.keyE?.isDown || this.keySpace?.isDown)
   }
 
   /** Reads JustDown on both keys (so stale presses don't linger). */

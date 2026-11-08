@@ -15,17 +15,18 @@ export type GamePhase =
   | 'victory'
 
 export type ToGameEvent =
-  /** @deprecated removed in tasks 6.3/8.3 */
-  | { type: 'load-room'; room: Room }
   | { type: 'load-dungeon'; rooms: Room[] }
   | { type: 'set-phase'; phase: GamePhase }
   | { type: 'apply-result'; result: AnswerResult }
-  /** @deprecated removed in tasks 6.3/8.3 */
-  | { type: 'room-cleared' }
   | { type: 'gate-open'; roomId: string }
   | { type: 'reset' }
   | { type: 'set-reduced-motion'; value: boolean }
   | { type: 'set-muted'; value: boolean }
+  /**
+   * Display-only: shifts the camera so the player/monster stay visible above
+   * the docked question panel. No gameplay effect.
+   */
+  | { type: 'set-view-inset'; bottomFraction: number }
 
 export type FromGameEvent =
   | { type: 'ready' }

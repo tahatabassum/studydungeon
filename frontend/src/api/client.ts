@@ -53,5 +53,6 @@ export function createHttpClient(baseUrl: string, fetchImpl: typeof fetch = fetc
     clearRoom: (runId, roomId) =>
       request('POST', `/runs/${enc(runId)}/rooms/${enc(roomId)}/clear`),
     finishRun: (runId) => request('POST', `/runs/${enc(runId)}/finish`),
+    getProgress: () => request('GET', '/progress'),
   }
 }

@@ -1,6 +1,29 @@
 import { describe, expect, it } from 'vitest'
 import fc from 'fast-check'
-import { INTERACTION_RANGE, isWithinRange } from './interaction'
+import { INTERACTION_RANGE, isWithinRange, shouldEngage } from './interaction'
+import type { GamePhase } from '../events'
+
+describe('shouldEngage', () => {
+  const full = { phase: 'exploring' as GamePhase, inRange: true, alive: true, pressed: true, armed: true }
+
+  it('is true only in the full condition', () => {
+    expect(shouldEngage(full)).toBe(true)
+  })
+
+  it.each(['encounter', 'resolving', 'paused', 'cleared', 'defeated', 'victory'] as GamePhase[])(
+    'ignores E while phase is %s',
+    (phase) => {
+      expect(shouldEngage({ ...full, phase })).toBe(false)
+    },
+  )
+
+  it('is false when not armed, out of range, dead, or not pressed', () => {
+    expect(shouldEngage({ ...full, armed: false })).toBe(false)
+    expect(shouldEngage({ ...full, inRange: false })).toBe(false)
+    expect(shouldEngage({ ...full, alive: false })).toBe(false)
+    expect(shouldEngage({ ...full, pressed: false })).toBe(false)
+  })
+})
 
 describe('isWithinRange', () => {
   it('uses range 64 by default', () => {

@@ -1,6 +1,7 @@
 import Phaser from 'phaser'
 import type { Player } from '../entities/Player'
 import { movementVector } from './movementVector'
+import { sfx } from '@/audio/sfx'
 
 export const PLAYER_SPEED = 180
 
@@ -66,6 +67,7 @@ export class MovementSystem {
       dx = v.x
       dy = v.y
     }
+    if (dx !== 0 || dy !== 0) sfx.play('footstep') // rate-limited inside the engine
     this.player.setVelocity(dx * PLAYER_SPEED, dy * PLAYER_SPEED)
     this.player.tick(time, dx, dy)
   }

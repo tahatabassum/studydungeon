@@ -1,0 +1,100 @@
+/* Landing page night sky. CSS and inline SVG only; no raster images, no Phaser. */
+
+.sd-sky {
+  background:
+    radial-gradient(1px 1px at 12% 18%, var(--color-bone) 50%, transparent 51%),
+    radial-gradient(1px 1px at 27% 8%, var(--color-bone) 50%, transparent 51%),
+    radial-gradient(1.5px 1.5px at 44% 22%, var(--color-bone) 50%, transparent 51%),
+    radial-gradient(1px 1px at 63% 12%, var(--color-bone) 50%, transparent 51%),
+    radial-gradient(1.5px 1.5px at 78% 28%, var(--color-bone) 50%, transparent 51%),
+    radial-gradient(1px 1px at 91% 9%, var(--color-bone) 50%, transparent 51%),
+    radial-gradient(1px 1px at 35% 38%, var(--color-bone) 50%, transparent 51%),
+    radial-gradient(1px 1px at 86% 44%, var(--color-bone) 50%, transparent 51%),
+    linear-gradient(180deg, var(--color-bg) 0%, var(--color-indigo) 55%, var(--color-surface-2) 100%);
+}
+
+.sd-moon {
+  position: absolute;
+  top: 8%;
+  right: 12%;
+  width: clamp(7rem, 18vw, 12rem);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 34% 36%, color-mix(in srgb, var(--color-deep) 25%, transparent) 0 9%, transparent 10%),
+    radial-gradient(circle at 62% 58%, color-mix(in srgb, var(--color-deep) 20%, transparent) 0 12%, transparent 13%),
+    radial-gradient(circle at 45% 72%, color-mix(in srgb, var(--color-deep) 18%, transparent) 0 6%, transparent 7%),
+    radial-gradient(circle at 40% 40%, var(--color-bone), var(--color-ink) 70%, var(--color-ember) 100%);
+  box-shadow:
+    0 0 40px 10px color-mix(in srgb, var(--color-bone) 28%, transparent),
+    0 0 120px 40px color-mix(in srgb, var(--color-magic) 22%, transparent);
+}
+
+.sd-fog {
+  position: absolute;
+  left: -10%;
+  width: 120%;
+  height: 22%;
+  border-radius: 50%;
+  filter: blur(24px);
+  background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--color-ink-muted) 30%, transparent), transparent);
+}
+.sd-fog--a { bottom: 6%; animation: sd-fog-drift 22s ease-in-out infinite alternate; }
+.sd-fog--b { bottom: 0; opacity: 0.7; animation: sd-fog-drift 31s ease-in-out infinite alternate-reverse; }
+
+@keyframes sd-fog-drift {
+  from { transform: translateX(-6%); }
+  to { transform: translateX(6%); }
+}
+
+.sd-bat {
+  position: absolute;
+  color: var(--color-witch);
+  filter: drop-shadow(0 0 2px var(--color-magic));
+  left: 8%;
+  animation: sd-bat-cross 16s linear infinite;
+}
+.sd-bat--1 { top: 14%; width: 2.2rem; animation-duration: 15s; }
+.sd-bat--2 { top: 26%; width: 1.6rem; animation-duration: 21s; animation-delay: -7s; }
+.sd-bat--3 { top: 36%; width: 1.9rem; animation-duration: 18s; animation-delay: -12s; }
+
+@keyframes sd-bat-cross {
+  0% { transform: translate(-10vw, 0) scaleY(1); }
+  25% { transform: translate(25vw, -2vh) scaleY(0.8); }
+  50% { transform: translate(55vw, 1vh) scaleY(1); }
+  75% { transform: translate(85vw, -3vh) scaleY(0.8); }
+  100% { transform: translate(115vw, 0) scaleY(1); }
+}
+
+/* Gentle flicker only (opacity stays above 0.8, no strobing). */
+.sd-title-flicker {
+  text-shadow: 0 0 14px color-mix(in srgb, var(--color-pumpkin) 60%, transparent);
+  animation: sd-title-flicker 5s ease-in-out infinite;
+}
+@keyframes sd-title-flicker {
+  0%, 100% { opacity: 1; }
+  42% { opacity: 0.88; }
+  46% { opacity: 1; }
+  80% { opacity: 0.92; }
+}
+
+.sd-pumpkin-btn {
+  background: linear-gradient(180deg, var(--color-pumpkin), var(--color-ember));
+  border-color: var(--color-pumpkin);
+  color: var(--color-bg);
+  box-shadow:
+    0 0 14px 2px color-mix(in srgb, var(--color-pumpkin) 60%, transparent),
+    inset 0 0 8px color-mix(in srgb, var(--color-bone) 35%, transparent);
+  animation: sd-pumpkin-glow 3s ease-in-out infinite;
+}
+@keyframes sd-pumpkin-glow {
+  0%, 100% { box-shadow: 0 0 10px 1px color-mix(in srgb, var(--color-pumpkin) 45%, transparent), inset 0 0 8px color-mix(in srgb, var(--color-bone) 35%, transparent); }
+  50% { box-shadow: 0 0 22px 4px color-mix(in srgb, var(--color-pumpkin) 75%, transparent), inset 0 0 8px color-mix(in srgb, var(--color-bone) 35%, transparent); }
+}
+
+[data-reduced='true'] .sd-fog,
+[data-reduced='true'] .sd-bat,
+[data-reduced='true'] .sd-title-flicker,
+[data-reduced='true'] .sd-pumpkin-btn {
+  animation: none;
+}

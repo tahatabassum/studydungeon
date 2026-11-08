@@ -1,13 +1,16 @@
 import { useCallback, useEffect, useReducer, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { getApi } from '@/api'
+import { ambient } from '@/audio/ambient'
+import { sfx } from '@/audio/sfx'
 import type { ApiClient } from '@/api'
 import { createGameBridge } from '@/game/events'
+import { canAnswer, canRetreat, readDelayMs } from '@/state/combatMachine'
 import { pickQuestionId } from '@/state/questionSelector'
 import { initialRunState, runReducer } from '@/state/runReducer'
 import { useReducedMotion } from '@/state/useReducedMotion'
 import { useSession } from '@/state/SessionContext'
-import type { Dungeon, Question, Room } from '@/types/api'
+import type { Dungeon, ProgressInfo, Question, Room } from '@/types/api'
 
 function newAttemptId(): string {
   return typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function'
@@ -24,22 +27,25 @@ export function usePlaySession() {
   const [dungeon, setDungeon] = useState<Dungeon | null>(null)
   const [loadError, setLoadError] = useState<string | null>(null)
   const [question, setQuestion] = useState<Question | null>(null)
-  const [pending, setPending] = useState(false)
   const [answerError, setAnswerError] = useState<string | null>(null)
   const [animDone, setAnimDone] = useState(false)
   const [clearedXp, setClearedXp] = useState<number | null>(null)
   const [muted, setMuted] = useState(false)
   const [clearError, setClearError] = useState<string | null>(null)
   const [finishError, setFinishError] = useState<string | null>(null)
+  const [progress, setProgress] = useState<ProgressInfo | null>(null)
   const navigate = useNavigate()
 
   const apiRef = useRef<ApiClient | null>(null)
   const attemptIdRef = useRef<string>('')
   const askCountsRef = useRef<Map<string, number>>(new Map())
   const pendingClearRoomRef = useRef<string | null>(null)
+  const submittingRef = useRef(false)
+  const clearStartedRoomsRef = useRef<Set<string>>(new Set())
   const stateRef = useRef(state)
   const questionRef = useRef(question)
   const gameWrapRef = useRef<HTMLDivElement>(null)
+  const mountedRef = useRef(true)
 
   useEffect(() => {
     stateRef.current = state
@@ -51,6 +57,23 @@ export function usePlaySession() {
 
   const focusGame = useCallback(() => {
     gameWrapRef.current?.querySelector<HTMLElement>('[role="application"]')?.focus()
+  }, [])
+
+  useEffect(() => {
+    mountedRef.current = true
+    return () => {
+      mountedRef.current = false
+    }
+  }, [])
+
+  /** Fetches Level/XP display data. Never throws or blocks gameplay; errors clear it. */
+  const refreshProgress = useCallback(async (api: ApiClient) => {
+    try {
+      const p = await api.getProgress()
+      if (mountedRef.current) setProgress(p)
+    } catch {
+      if (mountedRef.current) setProgress(null)
+    }
   }, [])
 
   // Destroy the bridge on unmount. Declared first so it runs before re-sending effects on remount.
@@ -69,6 +92,7 @@ export function usePlaySession() {
         apiRef.current = api
         setDungeon(d)
         dispatch({ type: 'run-started', run, rooms: d.rooms })
+        void refreshProgress(api)
       } catch {
         if (!cancelled) setLoadError('The dungeon could not be loaded.')
       }
@@ -76,7 +100,7 @@ export function usePlaySession() {
     return () => {
       cancelled = true
     }
-  }, [dungeonId])
+  }, [dungeonId, refreshProgress])
 
   // Push data to Phaser. Effects re-run on StrictMode remount, so these are idempotent.
   useEffect(() => {
@@ -84,7 +108,32 @@ export function usePlaySession() {
   }, [bridge, dungeon])
   useEffect(() => {
     bridge.send({ type: 'set-muted', value: muted })
+    sfx.setMuted(muted)
+    ambient.setMuted(muted)
   }, [bridge, muted])
+
+  // Ambient bed ends when leaving the page, and on victory or defeat.
+  useEffect(() => () => ambient.stop(), [])
+  useEffect(() => {
+    if (state.phase === 'victory' || state.phase === 'defeated') ambient.stop()
+  }, [state.phase])
+
+  // Audio may only start after a user gesture: unlock on the first key or pointer press.
+  useEffect(() => {
+    const unlock = () => {
+      sfx.unlock()
+      const p = stateRef.current.phase
+      if (p !== 'victory' && p !== 'defeated') ambient.start()
+      window.removeEventListener('keydown', unlock)
+      window.removeEventListener('pointerdown', unlock)
+    }
+    window.addEventListener('keydown', unlock)
+    window.addEventListener('pointerdown', unlock)
+    return () => {
+      window.removeEventListener('keydown', unlock)
+      window.removeEventListener('pointerdown', unlock)
+    }
+  }, [])
   useEffect(() => {
     bridge.send({ type: 'set-reduced-motion', value: reducedMotion })
   }, [bridge, reducedMotion])
@@ -92,11 +141,17 @@ export function usePlaySession() {
     if (dungeon) bridge.send({ type: 'set-phase', phase: state.phase })
   }, [bridge, dungeon, state.phase])
 
+  // The question panel sits below the stage (no overlap), so the arena view needs no inset.
+  useEffect(() => {
+    bridge.send({ type: 'set-view-inset', bottomFraction: 0 })
+  }, [bridge])
+
   // Phaser -> React events.
   useEffect(() => {
     return bridge.on((e) => {
       if (e.type === 'encounter-started') {
-        if (stateRef.current.phase !== 'exploring' || !dungeon) return
+        const cur = stateRef.current
+        if (cur.phase !== 'exploring' || (cur.combat !== null && cur.combat !== 'exited') || !dungeon) return
         const monsterRoom = dungeon.rooms.find((r) => r.monster.id === e.monsterId)
         if (!monsterRoom) return
         const count = askCountsRef.current.get(e.monsterId) ?? 0
@@ -106,15 +161,18 @@ export function usePlaySession() {
           setLoadError('This monster has no questions to ask.')
           return
         }
+        // The counter advances when a question is presented.
         askCountsRef.current.set(e.monsterId, count + 1)
         attemptIdRef.current = newAttemptId()
         setAnswerError(null)
-        setPending(false)
         setAnimDone(false)
         setQuestion(q)
+        if (monsterRoom.is_boss) sfx.play('boss')
         dispatch({ type: 'encounter-started' })
+        dispatch({ type: 'question-presented' })
       } else if (e.type === 'result-animation-done') {
         setAnimDone(true)
+        dispatch({ type: 'result-settled' })
       } else if (e.type === 'pause-requested') {
         dispatch({ type: 'pause' })
       } else if (e.type === 'room-entered') {
@@ -131,21 +189,30 @@ export function usePlaySession() {
       const q = questionRef.current
       const runId = stateRef.current.runId
       if (!api || !q || !runId) return
-      setPending(true)
+      if (stateRef.current.phase === 'paused') return
+      if (!canAnswer(stateRef.current.combat) || submittingRef.current) return
+      submittingRef.current = true
       setAnswerError(null)
+      dispatch({ type: 'answer-submitted' })
+      const hpBefore = stateRef.current.playerHp
       try {
         const result = await api.submitAttempt(runId, {
           question_id: q.id,
           selected_answer: selected,
+          // Same attempt_id is reused on retry until a new question is presented.
           attempt_id: attemptIdRef.current,
         })
         setAnimDone(false)
         dispatch({ type: 'result-received', result })
         bridge.send({ type: 'apply-result', result })
-        // pending stays true until the animation completes, keeping options locked.
+        // A wrong answer that costs no health is a "miss"; otherwise the wrong thud.
+        sfx.play(result.correct ? 'correct' : result.player_hp_remaining >= hpBefore ? 'miss' : 'wrong')
+        if (result.player_hp_remaining <= 0) setTimeout(() => sfx.play('defeat'), 450)
       } catch {
-        setPending(false)
+        dispatch({ type: 'answer-failed' })
         setAnswerError('Your answer could not be submitted. Please try again.')
+      } finally {
+        submittingRef.current = false
       }
     },
     [bridge],
@@ -159,6 +226,7 @@ export function usePlaySession() {
     try {
       const summary = await api.finishRun(runId)
       dispatch({ type: 'run-finished', summary })
+      sfx.play('victory')
     } catch {
       setFinishError('Your results could not be loaded.')
     }
@@ -176,26 +244,82 @@ export function usePlaySession() {
         pendingClearRoomRef.current = null
         dispatch({ type: 'room-cleared', roomId, xpDelta: res.xp_delta })
         setClearedXp(res.xp_delta)
+        void refreshProgress(api)
         if (dungeon.rooms.find((r) => r.id === roomId)?.is_boss) await finish()
         else bridge.send({ type: 'gate-open', roomId })
       } catch {
         setClearError('The room could not be cleared. Please try again.')
       }
     },
-    [bridge, dungeon, finish],
+    [bridge, dungeon, finish, refreshProgress],
   )
 
-  const onContinue = useCallback(async () => {
+  /** Leaves the current result: next question, room clear, or defeat. */
+  const advanceCombat = useCallback(() => {
     const s = stateRef.current
-    dispatch({ type: 'result-settled' })
-    setQuestion(null)
-    setPending(false)
-    if (s.phase === 'resolving' && s.playerHp > 0 && s.monsterHp <= 0 && s.currentRoomId) {
-      await clear(s.currentRoomId)
+    const c = s.combat
+    if (c !== 'next' && c !== 'monster_defeated' && c !== 'player_defeated') return
+    dispatch({ type: 'advance' })
+    if (c === 'next') {
+      const monsterRoom = dungeon?.rooms.find((r) => r.id === s.currentRoomId)
+      const monsterId = monsterRoom?.monster.id
+      const count = monsterId ? (askCountsRef.current.get(monsterId) ?? 0) : 0
+      const qid = monsterRoom ? pickQuestionId(monsterRoom.monster.question_ids, count) : undefined
+      const q = qid ? dungeon?.questions.find((x) => x.id === qid) : undefined
+      if (!monsterId || !q) {
+        setLoadError('This monster has no questions to ask.')
+        return
+      }
+      askCountsRef.current.set(monsterId, count + 1)
+      attemptIdRef.current = newAttemptId()
+      setAnswerError(null)
+      setAnimDone(false)
+      setQuestion(q)
+      dispatch({ type: 'question-presented' })
+    } else if (c === 'monster_defeated') {
+      setQuestion(null)
+      const roomId = s.currentRoomId
+      if (roomId && !clearStartedRoomsRef.current.has(roomId)) {
+        clearStartedRoomsRef.current.add(roomId)
+        void clear(roomId)
+      }
     } else {
-      focusGame()
+      setQuestion(null)
     }
-  }, [clear, focusGame])
+  }, [clear, dungeon])
+
+  const advanceRef = useRef(advanceCombat)
+  const waitTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  useEffect(() => {
+    advanceRef.current = advanceCombat
+  })
+
+  const clearWaitTimer = useCallback(() => {
+    if (waitTimerRef.current !== null) {
+      clearTimeout(waitTimerRef.current)
+      waitTimerRef.current = null
+    }
+  }, [])
+
+  // Auto-advance after the read delay while a result is being shown.
+  const combat = state.combat
+  const lastCorrect = state.lastResult?.correct ?? true
+  useEffect(() => {
+    if (combat !== 'next' && combat !== 'monster_defeated' && combat !== 'player_defeated') return
+    waitTimerRef.current = setTimeout(() => {
+      waitTimerRef.current = null
+      advanceRef.current()
+    }, readDelayMs(lastCorrect))
+    return clearWaitTimer
+  }, [combat, lastCorrect, clearWaitTimer])
+
+  /** Skips the read delay (Next button / Enter). No-op outside a waiting state. */
+  const skipWait = useCallback(() => {
+    const c = stateRef.current.combat
+    if (c !== 'next' && c !== 'monster_defeated' && c !== 'player_defeated') return
+    clearWaitTimer()
+    advanceRef.current()
+  }, [clearWaitTimer])
 
   const retryClear = useCallback(async () => {
     if (pendingClearRoomRef.current) await clear(pendingClearRoomRef.current)
@@ -210,21 +334,24 @@ export function usePlaySession() {
       const run = await api.startRun(dungeon.id)
       askCountsRef.current = new Map()
       pendingClearRoomRef.current = null
+      clearStartedRoomsRef.current = new Set()
       setQuestion(null)
-      setPending(false)
       setAnswerError(null)
       setAnimDone(false)
       setClearedXp(null)
       setClearError(null)
       setFinishError(null)
       dispatch({ type: 'run-started', run, rooms: dungeon.rooms })
+      void refreshProgress(api)
+      if (sfx.unlocked) ambient.start()
       bridge.send({ type: 'reset' })
+      bridge.send({ type: 'set-view-inset', bottomFraction: 0 })
       bridge.send({ type: 'set-phase', phase: 'exploring' })
       setTimeout(focusGame, 0)
     } catch {
       setLoadError('A new run could not be started.')
     }
-  }, [bridge, dungeon, focusGame])
+  }, [bridge, dungeon, focusGame, refreshProgress])
 
   const toggleMute = useCallback(() => setMuted((m) => !m), [])
   const exit = useCallback(() => navigate('/'), [navigate])
@@ -232,15 +359,29 @@ export function usePlaySession() {
     dispatch({ type: 'resume' })
   }, [])
 
+  /** Abandons the current encounter (only from an unanswered question). Monster HP is kept. */
+  const retreat = useCallback(() => {
+    const cur = stateRef.current
+    if (!canRetreat(cur.combat)) return
+    // Paused-from-question: resume first so the final phase is 'exploring'.
+    if (cur.phase === 'paused') dispatch({ type: 'resume' })
+    dispatch({ type: 'retreat' })
+    setQuestion(null)
+    setAnswerError(null)
+    setTimeout(focusGame, 0)
+  }, [focusGame])
+
   // Esc toggles pause while exploring/paused.
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key !== 'Escape' || e.repeat) return
       // The exit confirmation owns Esc while open (it cancels back to the pause menu).
       if (document.querySelector('[role="alertdialog"]')) return
-      const phase = stateRef.current.phase
-      if (phase === 'exploring') dispatch({ type: 'pause' })
-      else if (phase === 'paused') dispatch({ type: 'resume' })
+      const { phase, combat: c } = stateRef.current
+      if (phase === 'paused') dispatch({ type: 'resume' })
+      else if (phase === 'exploring' || (phase === 'encounter' && c === 'question')) {
+        dispatch({ type: 'pause' })
+      }
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
@@ -252,6 +393,8 @@ export function usePlaySession() {
     if (prevPhase.current === 'paused' && state.phase !== 'paused') focusGame()
     prevPhase.current = state.phase
   }, [state.phase, focusGame])
+
+  const pending = state.combat === 'submitting' || state.combat === 'result'
 
   const session = {
     bridge,
@@ -276,10 +419,12 @@ export function usePlaySession() {
     answerError,
     animDone,
     clearedXp,
+    progress,
     onAnswer,
-    onContinue,
+    skipWait,
     restart,
     resume,
+    retreat,
   }
   return [session, gameWrapRef] as const
 }

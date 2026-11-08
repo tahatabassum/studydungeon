@@ -23,7 +23,11 @@ export function GameCanvas({ bridge, className }: GameCanvasProps) {
       // eslint-disable-next-line react-hooks/set-state-in-effect
       setFailed(true)
     }
+    // Phaser polls parent size, but refresh immediately when the stage box changes.
+    const ro = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(() => gameRef.current?.scale.refresh())
+    ro?.observe(parent)
     return () => {
+      ro?.disconnect()
       gameRef.current?.destroy(true)
       gameRef.current = null
     }
@@ -35,10 +39,10 @@ export function GameCanvas({ bridge, className }: GameCanvasProps) {
       aria-label="Dungeon game"
       role="application"
       tabIndex={0}
-      className={`outline-none focus-visible:ring-2 focus-visible:ring-amber ${className ?? ''}`}
+      className={`overflow-hidden outline-none focus-visible:ring-2 focus-visible:ring-accent ${className ?? ''}`}
     >
       {failed && (
-        <p role="alert" className="p-4 text-parchment">
+        <p role="alert" className="p-4 text-ink">
           The game could not start in this browser. Try a browser with WebGL or canvas support.
         </p>
       )}

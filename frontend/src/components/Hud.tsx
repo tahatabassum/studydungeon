@@ -1,5 +1,13 @@
-import { Heart, Skull, Sparkles } from 'lucide-react'
+import { useState } from 'react'
+import { AlertTriangle, Flame } from 'lucide-react'
+import { motion, useReducedMotion } from 'framer-motion'
+import { getSprite } from '../art/sprites'
+import { ICONS } from '../art/sprites/icons'
+import { PixelSprite } from './PixelSprite'
+import { isLowHealth } from './hudHelpers'
 import { ProgressBar } from './ProgressBar'
+import { StoneFrame } from './StoneFrame'
+import '../styles/hud.css'
 import { RoomProgress, type RoomProgressRoom } from './RoomProgress'
 
 export interface HudProps {
@@ -10,10 +18,20 @@ export interface HudProps {
   monsterName?: string
   xp: number
   streak?: number
+  /** Optional level display (wired by a later task); rendered only when provided. */
+  level?: number
+  xpToNext?: number
+  totalXp?: number
   /** Rooms in ascending order; RoomProgress renders only when provided. */
   rooms?: readonly RoomProgressRoom[]
   currentRoomId?: string | null
   clearedRoomIds?: readonly string[]
+  /** Monster sprite kind (e.g. paper_wraith); unknown kinds fall back to a skull. */
+  monsterKind?: string
+  /** Boss encounter: uses the exam_warden portrait with a crown badge. */
+  isBoss?: boolean
+  /** Render the monster block (default true). */
+  showMonster?: boolean
 }
 
 export function Hud({
@@ -24,14 +42,22 @@ export function Hud({
   monsterName,
   xp,
   streak,
+  level,
+  xpToNext,
+  totalXp,
   rooms,
   currentRoomId,
   clearedRoomIds,
+  monsterKind,
+  isBoss = false,
+  showMonster = true,
 }: HudProps) {
+  const reduceMotion = useReducedMotion()
+  const lowHealth = isLowHealth(playerHp, maxPlayerHp)
   return (
-    <div className="pointer-events-none flex w-full flex-wrap items-start justify-between gap-3 text-parchment">
+    <div className="pointer-events-none flex w-full flex-wrap items-stretch gap-2 text-ink">
       {rooms && currentRoomId !== undefined && (
-        <div className="w-full">
+        <div className="shrink-0">
           <RoomProgress
             rooms={rooms}
             currentRoomId={currentRoomId}
@@ -39,49 +65,143 @@ export function Hud({
           />
         </div>
       )}
-      <div className="min-w-48 flex-1 rounded-lg border border-mint bg-panel/90 px-3 py-2 shadow-[0_0_12px_var(--color-mint)]">
-        <div className="mb-1 flex items-center justify-between gap-2 text-sm font-semibold">
-          <span className="flex items-center gap-1.5">
-            <Heart aria-hidden="true" className="size-4 text-mint" />
-            Player
+      <StoneFrame
+        tone={lowHealth ? 'danger' : 'default'}
+        className={`min-w-44 flex-1 px-2 py-1 ${lowHealth && !reduceMotion ? 'sd-lowhp' : ''}`}
+        data-low-health={lowHealth ? 'true' : undefined}
+      >
+        <div className="mb-0.5 flex items-center justify-between gap-2 text-sm font-semibold">
+          <span className="flex items-center gap-1.5 font-label tracking-wide">
+            <PixelSprite map={ICONS.heart} scale={1} />
+            Hero
           </span>
-          <span>
+          <span className="tabular-nums">
             {playerHp} / {maxPlayerHp}
           </span>
         </div>
+        <span aria-hidden="true" className="sd-bone-divider mb-0.5" style={{ height: '0.3rem' }} />
         <ProgressBar
           value={playerHp}
           max={maxPlayerHp}
           label="Player health"
-          fillClassName="bg-mint"
+          tone={lowHealth ? 'danger' : 'health'}
         />
-      </div>
-
-      <div className="min-w-48 flex-1 rounded-lg border border-blood bg-panel/90 px-3 py-2 shadow-[0_0_12px_var(--color-blood)]">
-        <div className="mb-1 flex items-center justify-between gap-2 text-sm font-semibold">
-          <span className="flex items-center gap-1.5">
-            <Skull aria-hidden="true" className="size-4 text-blood" />
-            {monsterName ?? 'Monster'}
-          </span>
-          <span>
-            {monsterHp} / {maxMonsterHp}
-          </span>
-        </div>
-        <ProgressBar
-          value={monsterHp}
-          max={maxMonsterHp}
-          label="Monster health"
-          fillClassName="bg-blood"
+        {lowHealth && (
+          <p role="status" className="mt-0.5 flex items-center gap-1 text-xs font-semibold text-[color-mix(in_srgb,var(--color-danger),var(--color-ink)_45%)]">
+            <AlertTriangle aria-hidden="true" className="size-3.5" />
+            Low health
+          </p>
+        )}
+      </StoneFrame>
+      {showMonster && (
+        <MonsterBlock
+          monsterHp={monsterHp}
+          maxMonsterHp={maxMonsterHp}
+          monsterName={monsterName}
+          monsterKind={monsterKind}
+          isBoss={isBoss}
+          reduceMotion={!!reduceMotion}
         />
-      </div>
+      )}
 
-      <div className="flex items-center gap-3 rounded-lg border border-amber bg-panel/90 px-3 py-2 text-sm font-semibold shadow-[0_0_12px_var(--color-amber)]">
+      <motion.div
+        key={xp}
+        initial={reduceMotion ? false : { scale: 1.12 }}
+        animate={{ scale: 1 }}
+        transition={{ duration: 0.35 }}
+        className="sd-stone flex flex-wrap items-center gap-x-3 gap-y-0 px-2 py-1 text-sm font-semibold"
+      >
         <span className="flex items-center gap-1.5">
-          <Sparkles aria-hidden="true" className="size-4 text-amber" />
-          <span className="text-amber">XP {xp}</span>
+          <PixelSprite map={ICONS.star} scale={1} />
+          <span className="text-gold">{`XP ${xp}`}</span>
         </span>
-        {streak !== undefined && <span className="text-muted">Streak {streak}</span>}
-      </div>
+        {level !== undefined && <span className="font-label text-[color-mix(in_srgb,var(--color-magic),var(--color-ink)_40%)]">{`Lv ${level}`}</span>}
+        {level !== undefined && totalXp !== undefined && xpToNext !== undefined && (
+          <span className="text-xs text-ink/80">{`Total ${totalXp} XP · ${xpToNext} to next`}</span>
+        )}
+        {streak !== undefined && streak > 0 && (
+          <span className="flex items-center gap-1 text-accent">
+            <Flame aria-hidden="true" className="size-4" />
+            {`Streak ${streak}`}
+          </span>
+        )}
+      </motion.div>
     </div>
+  )
+}
+
+interface MonsterBlockProps {
+  monsterHp: number
+  maxMonsterHp: number
+  monsterName?: string
+  monsterKind?: string
+  isBoss: boolean
+  reduceMotion: boolean
+}
+
+function MonsterBlock({
+  monsterHp,
+  maxMonsterHp,
+  monsterName,
+  monsterKind,
+  isBoss,
+  reduceMotion,
+}: MonsterBlockProps) {
+  // Derived during render: counts HP decreases so the hit flash can re-trigger.
+  const [prevHp, setPrevHp] = useState(monsterHp)
+  const [hitCount, setHitCount] = useState(0)
+  if (prevHp !== monsterHp) {
+    setPrevHp(monsterHp)
+    if (monsterHp < prevHp) setHitCount(hitCount + 1)
+  }
+
+  const kind = isBoss ? 'exam_warden' : monsterKind
+  const portrait = (kind ? getSprite(kind) : undefined) ?? ICONS.skull
+
+  return (
+    <StoneFrame tone="danger" className="min-w-52 flex-1 overflow-hidden px-2 py-1">
+      {hitCount > 0 && !reduceMotion && (
+        <motion.div
+          key={hitCount}
+          aria-hidden="true"
+          initial={{ opacity: 0.6 }}
+          animate={{ opacity: 0 }}
+          transition={{ duration: 0.3 }}
+          className="pointer-events-none absolute inset-0 bg-danger"
+        />
+      )}
+      <div className="flex items-center gap-2">
+        <div className="relative shrink-0 rounded-sm border border-deep bg-bg p-0.5">
+          <PixelSprite map={portrait} scale={1.5} />
+          {isBoss && (
+            <span className="absolute -right-2 -top-2 rounded-sm bg-panel p-0.5">
+              <PixelSprite map={ICONS.crown} scale={1} />
+            </span>
+          )}
+        </div>
+        <div className="min-w-0 flex-1">
+          <div className="mb-0.5 flex items-center justify-between gap-2 text-sm font-semibold">
+            <span className="flex min-w-0 items-center gap-1.5 font-display text-sm tracking-wide">
+              <span className="truncate">{monsterName ?? 'Monster'}</span>
+              {isBoss && (
+                <span className="flex items-center gap-1 rounded-sm border border-gold/70 px-1 font-label text-xs text-gold">
+                  <PixelSprite map={ICONS.skull} scale={1} />
+                  Boss
+                </span>
+              )}
+            </span>
+            <span className="tabular-nums">
+              {monsterHp} / {maxMonsterHp}
+            </span>
+          </div>
+          <ProgressBar
+            value={monsterHp}
+            max={maxMonsterHp}
+            label="Monster health"
+            tone="danger"
+          />
+        </div>
+      </div>
+    </StoneFrame>
   )
 }

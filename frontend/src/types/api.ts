@@ -97,3 +97,9 @@ export interface RunSummary {
   /** Ratio from 0 to 1. */
   accuracy: number
 }
+
+export interface ProgressInfo {
+  level: number
+  total_xp: number
+  xp_to_next: number
+}

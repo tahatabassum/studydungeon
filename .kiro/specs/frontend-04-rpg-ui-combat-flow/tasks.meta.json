@@ -1,0 +1,1409 @@
+{
+  "pbtResults": {
+    "1.4 Write property test for one encounter per engagement": {
+      "status": "passed",
+      "lastRunTimestamp": 1794070404274
+    },
+    "1.5 Write property test for continuous question flow": {
+      "status": "passed",
+      "lastRunTimestamp": 1794071028461
+    },
+    "1.7 Write property test for next question never before the result settles": {
+      "status": "passed",
+      "lastRunTimestamp": 1794071276627
+    },
+    "1.8 Write property test for encounter ends exactly at zero HP": {
+      "status": "passed",
+      "lastRunTimestamp": 1794071443479
+    },
+    "1.9 Write property test for retreat and pause only from the question state": {
+      "status": "passed",
+      "lastRunTimestamp": 1794071670535
+    },
+    "1.10 Write property test for reducer copies values from the result": {
+      "status": "passed",
+      "lastRunTimestamp": 1794071756272
+    },
+    "3.2 Write property test for pixel map validation and rendering": {
+      "status": "passed",
+      "lastRunTimestamp": 1794074825637
+    },
+    "3.8 Write property test for the low-health predicate": {
+      "status": "passed",
+      "lastRunTimestamp": 1794074855371
+    },
+    "3.6 Write property test for mock progress": {
+      "status": "passed",
+      "lastRunTimestamp": 1794074881071
+    },
+    "3.9 Write property test for room marker state": {
+      "status": "passed",
+      "lastRunTimestamp": 1794075129189
+    },
+    "4.2 Write property test for theme selection": {
+      "status": "passed",
+      "lastRunTimestamp": 1794078504450
+    },
+    "4.9 Write registry consistency test": {
+      "status": "passed",
+      "lastRunTimestamp": 1794078504967
+    }
+  },
+  "executionHistory": {
+    "1.1 Remove deprecated bridge events and the legacy scene path": [
+      {
+        "executionId": "a940afc4-d557-48ac-9cef-8f6b8238752d",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794069412965
+      },
+      {
+        "executionId": "a940afc4-d557-48ac-9cef-8f6b8238752d",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794069436473
+      },
+      {
+        "executionId": "a940afc4-d557-48ac-9cef-8f6b8238752d",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794069864703
+      }
+    ],
+    "1.2 Create combat helpers `src/state/combatMachine.ts`": [
+      {
+        "executionId": "a940afc4-d557-48ac-9cef-8f6b8238752d",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794069413261
+      },
+      {
+        "executionId": "a940afc4-d557-48ac-9cef-8f6b8238752d",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794069437480
+      },
+      {
+        "executionId": "a940afc4-d557-48ac-9cef-8f6b8238752d",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794069865344
+      }
+    ],
+    "1.3 Add the combat sub-state to `src/state/runReducer.ts`": [
+      {
+        "executionId": "a940afc4-d557-48ac-9cef-8f6b8238752d",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794069413476
+      },
+      {
+        "executionId": "a940afc4-d557-48ac-9cef-8f6b8238752d",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794069874378
+      },
+      {
+        "executionId": "a940afc4-d557-48ac-9cef-8f6b8238752d",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794070311536
+      }
+    ],
+    "1.4 Write property test for one encounter per engagement": [
+      {
+        "executionId": "a940afc4-d557-48ac-9cef-8f6b8238752d",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794069413649
+      },
+      {
+        "executionId": "a940afc4-d557-48ac-9cef-8f6b8238752d",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794070322006
+      },
+      {
+        "executionId": "a940afc4-d557-48ac-9cef-8f6b8238752d",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794070436813
+      }
+    ],
+    "1.5 Write property test for continuous question flow": [
+      {
+        "executionId": "a940afc4-d557-48ac-9cef-8f6b8238752d",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794069413824
+      },
+      {
+        "executionId": "a940afc4-d557-48ac-9cef-8f6b8238752d",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794070895070
+      },
+      {
+        "executionId": "a940afc4-d557-48ac-9cef-8f6b8238752d",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794071045578
+      }
+    ],
+    "1.6 Write property test for at most one submission in flight": [
+      {
+        "executionId": "a940afc4-d557-48ac-9cef-8f6b8238752d",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794069414068
+      },
+      {
+        "executionId": "a940afc4-d557-48ac-9cef-8f6b8238752d",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794071055538
+      },
+      {
+        "executionId": "a940afc4-d557-48ac-9cef-8f6b8238752d",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794071202957
+      }
+    ],
+    "1.7 Write property test for next question never before the result settles": [
+      {
+        "executionId": "a940afc4-d557-48ac-9cef-8f6b8238752d",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794069414246
+      },
+      {
+        "executionId": "a940afc4-d557-48ac-9cef-8f6b8238752d",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794071214884
+      },
+      {
+        "executionId": "a940afc4-d557-48ac-9cef-8f6b8238752d",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794071366104
+      }
+    ],
+    "1.8 Write property test for encounter ends exactly at zero HP": [
+      {
+        "executionId": "a940afc4-d557-48ac-9cef-8f6b8238752d",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794069414499
+      },
+      {
+        "executionId": "a940afc4-d557-48ac-9cef-8f6b8238752d",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794071376948
+      },
+      {
+        "executionId": "a940afc4-d557-48ac-9cef-8f6b8238752d",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794071602489
+      }
+    ],
+    "1.9 Write property test for retreat and pause only from the question state": [
+      {
+        "executionId": "a940afc4-d557-48ac-9cef-8f6b8238752d",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794069414641
+      },
+      {
+        "executionId": "a940afc4-d557-48ac-9cef-8f6b8238752d",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794071614020
+      },
+      {
+        "executionId": "a940afc4-d557-48ac-9cef-8f6b8238752d",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794071630512
+      }
+    ],
+    "1.10 Write property test for reducer copies values from the result": [
+      {
+        "executionId": "a940afc4-d557-48ac-9cef-8f6b8238752d",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794069414834
+      },
+      {
+        "executionId": "a940afc4-d557-48ac-9cef-8f6b8238752d",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794071630990
+      },
+      {
+        "executionId": "a940afc4-d557-48ac-9cef-8f6b8238752d",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794071692510
+      }
+    ],
+    "1.11 Add the pure engage rule and update the Interaction_System": [
+      {
+        "executionId": "a940afc4-d557-48ac-9cef-8f6b8238752d",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794069415011
+      },
+      {
+        "executionId": "a940afc4-d557-48ac-9cef-8f6b8238752d",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794069875231
+      },
+      {
+        "executionId": "a940afc4-d557-48ac-9cef-8f6b8238752d",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794070311702
+      }
+    ],
+    "1.12 Write property test for the engage rule": [
+      {
+        "executionId": "a940afc4-d557-48ac-9cef-8f6b8238752d",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794069415275
+      },
+      {
+        "executionId": "a940afc4-d557-48ac-9cef-8f6b8238752d",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794070322447
+      },
+      {
+        "executionId": "a940afc4-d557-48ac-9cef-8f6b8238752d",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794070437506
+      }
+    ],
+    "1.13 Rework encounter start and submission in `src/pages/usePlaySession.ts`": [
+      {
+        "executionId": "a940afc4-d557-48ac-9cef-8f6b8238752d",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794069415439
+      },
+      {
+        "executionId": "a940afc4-d557-48ac-9cef-8f6b8238752d",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794070323332
+      },
+      {
+        "executionId": "a940afc4-d557-48ac-9cef-8f6b8238752d",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794070882916
+      }
+    ],
+    "1.14 Add auto-advance to `src/pages/usePlaySession.ts`": [
+      {
+        "executionId": "a940afc4-d557-48ac-9cef-8f6b8238752d",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794069415600
+      },
+      {
+        "executionId": "a940afc4-d557-48ac-9cef-8f6b8238752d",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794070895513
+      },
+      {
+        "executionId": "a940afc4-d557-48ac-9cef-8f6b8238752d",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794071045945
+      }
+    ],
+    "1.15 Add retreat and pause rules and the pause-menu retreat action": [
+      {
+        "executionId": "a940afc4-d557-48ac-9cef-8f6b8238752d",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794069415736
+      },
+      {
+        "executionId": "a940afc4-d557-48ac-9cef-8f6b8238752d",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794071056686
+      },
+      {
+        "executionId": "a940afc4-d557-48ac-9cef-8f6b8238752d",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794071203120
+      }
+    ],
+    "1.16 Keep the Question_Panel open through the encounter": [
+      {
+        "executionId": "a940afc4-d557-48ac-9cef-8f6b8238752d",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794069415978
+      },
+      {
+        "executionId": "a940afc4-d557-48ac-9cef-8f6b8238752d",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794071215748
+      },
+      {
+        "executionId": "a940afc4-d557-48ac-9cef-8f6b8238752d",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794071365751
+      }
+    ],
+    "1.17 Update and extend `src/pages/PlayFlow.smoke.test.tsx`": [
+      {
+        "executionId": "a940afc4-d557-48ac-9cef-8f6b8238752d",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794069416122
+      },
+      {
+        "executionId": "a940afc4-d557-48ac-9cef-8f6b8238752d",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794071377158
+      },
+      {
+        "executionId": "a940afc4-d557-48ac-9cef-8f6b8238752d",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794071602352
+      }
+    ],
+    "1.18 Checkpoint - Phase 1": [
+      {
+        "executionId": "a940afc4-d557-48ac-9cef-8f6b8238752d",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794069416282
+      },
+      {
+        "executionId": "a940afc4-d557-48ac-9cef-8f6b8238752d",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794071693211
+      },
+      {
+        "executionId": "a940afc4-d557-48ac-9cef-8f6b8238752d",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794071865065
+      }
+    ],
+    "2.1 Install and wire self-hosted fonts": [
+      {
+        "executionId": "a940afc4-d557-48ac-9cef-8f6b8238752d",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794069416470
+      },
+      {
+        "executionId": "1cd105b0-c5ba-47f3-882c-73bf36624127",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794072452242
+      },
+      {
+        "executionId": "1cd105b0-c5ba-47f3-882c-73bf36624127",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794072554961
+      }
+    ],
+    "2.2 Replace color tokens in `src/index.css` and add token tests": [
+      {
+        "executionId": "a940afc4-d557-48ac-9cef-8f6b8238752d",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794069416667
+      },
+      {
+        "executionId": "1cd105b0-c5ba-47f3-882c-73bf36624127",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794072555728
+      },
+      {
+        "executionId": "1cd105b0-c5ba-47f3-882c-73bf36624127",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794072581758
+      }
+    ],
+    "2.3 Migrate component class names to the new tokens": [
+      {
+        "executionId": "a940afc4-d557-48ac-9cef-8f6b8238752d",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794069416818
+      },
+      {
+        "executionId": "1cd105b0-c5ba-47f3-882c-73bf36624127",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794072582626
+      },
+      {
+        "executionId": "1cd105b0-c5ba-47f3-882c-73bf36624127",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794073357600
+      }
+    ],
+    "2.4 Migrate pages and app shell to the new tokens": [
+      {
+        "executionId": "a940afc4-d557-48ac-9cef-8f6b8238752d",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794069417000
+      },
+      {
+        "executionId": "1cd105b0-c5ba-47f3-882c-73bf36624127",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794072583771
+      },
+      {
+        "executionId": "1cd105b0-c5ba-47f3-882c-73bf36624127",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794073358741
+      }
+    ],
+    "2.5 Share palette colors with Phaser code": [
+      {
+        "executionId": "a940afc4-d557-48ac-9cef-8f6b8238752d",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794069417150
+      },
+      {
+        "executionId": "1cd105b0-c5ba-47f3-882c-73bf36624127",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794072584485
+      },
+      {
+        "executionId": "1cd105b0-c5ba-47f3-882c-73bf36624127",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794073359585
+      },
+      {
+        "executionId": "1cd105b0-c5ba-47f3-882c-73bf36624127",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794073375206
+      },
+      {
+        "executionId": "1cd105b0-c5ba-47f3-882c-73bf36624127",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794073454521
+      }
+    ],
+    "2.6 Create shared UI primitives": [
+      {
+        "executionId": "a940afc4-d557-48ac-9cef-8f6b8238752d",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794069417281
+      },
+      {
+        "executionId": "1cd105b0-c5ba-47f3-882c-73bf36624127",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794073470170
+      },
+      {
+        "executionId": "1cd105b0-c5ba-47f3-882c-73bf36624127",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794073665058
+      }
+    ],
+    "2.7 Add source scan tests": [
+      {
+        "executionId": "a940afc4-d557-48ac-9cef-8f6b8238752d",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794069417531
+      },
+      {
+        "executionId": "1cd105b0-c5ba-47f3-882c-73bf36624127",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794073470312
+      },
+      {
+        "executionId": "1cd105b0-c5ba-47f3-882c-73bf36624127",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794073666010
+      }
+    ],
+    "2.8 Make Phaser text wait for fonts": [
+      {
+        "executionId": "a940afc4-d557-48ac-9cef-8f6b8238752d",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794069417715
+      },
+      {
+        "executionId": "1cd105b0-c5ba-47f3-882c-73bf36624127",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794073470484
+      },
+      {
+        "executionId": "1cd105b0-c5ba-47f3-882c-73bf36624127",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794073666889
+      }
+    ],
+    "2.9 Checkpoint - Phase 2": [
+      {
+        "executionId": "a940afc4-d557-48ac-9cef-8f6b8238752d",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794069417847
+      },
+      {
+        "executionId": "1cd105b0-c5ba-47f3-882c-73bf36624127",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794073676797
+      },
+      {
+        "executionId": "1cd105b0-c5ba-47f3-882c-73bf36624127",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794073817996
+      }
+    ],
+    "3.1 Create the pixel-art core in `src/art/`": [
+      {
+        "executionId": "a940afc4-d557-48ac-9cef-8f6b8238752d",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794069417982
+      },
+      {
+        "executionId": "a3718a53-0d99-4086-bbed-9fc5f8adbb35",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794074603093
+      },
+      {
+        "executionId": "a3718a53-0d99-4086-bbed-9fc5f8adbb35",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794074643959
+      }
+    ],
+    "3.2 Write property test for pixel map validation and rendering": [
+      {
+        "executionId": "a940afc4-d557-48ac-9cef-8f6b8238752d",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794069418146
+      },
+      {
+        "executionId": "a3718a53-0d99-4086-bbed-9fc5f8adbb35",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794074750225
+      },
+      {
+        "executionId": "a3718a53-0d99-4086-bbed-9fc5f8adbb35",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794074998603
+      }
+    ],
+    "3.3 Create the React `PixelSprite` and HUD icon maps": [
+      {
+        "executionId": "a940afc4-d557-48ac-9cef-8f6b8238752d",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794069418302
+      },
+      {
+        "executionId": "a3718a53-0d99-4086-bbed-9fc5f8adbb35",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794074750412
+      },
+      {
+        "executionId": "a3718a53-0d99-4086-bbed-9fc5f8adbb35",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794074998826
+      }
+    ],
+    "3.4 Author the original monster and player base sprites": [
+      {
+        "executionId": "a940afc4-d557-48ac-9cef-8f6b8238752d",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794069418552
+      },
+      {
+        "executionId": "a3718a53-0d99-4086-bbed-9fc5f8adbb35",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794074750952
+      },
+      {
+        "executionId": "a3718a53-0d99-4086-bbed-9fc5f8adbb35",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794074998979
+      }
+    ],
+    "3.5 Add `getProgress()` to the API contract": [
+      {
+        "executionId": "a940afc4-d557-48ac-9cef-8f6b8238752d",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794069418757
+      },
+      {
+        "executionId": "a3718a53-0d99-4086-bbed-9fc5f8adbb35",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794074603401
+      },
+      {
+        "executionId": "a3718a53-0d99-4086-bbed-9fc5f8adbb35",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794074645162
+      }
+    ],
+    "3.6 Write property test for mock progress": [
+      {
+        "executionId": "a940afc4-d557-48ac-9cef-8f6b8238752d",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794069418907
+      },
+      {
+        "executionId": "a3718a53-0d99-4086-bbed-9fc5f8adbb35",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794074752094
+      },
+      {
+        "executionId": "a3718a53-0d99-4086-bbed-9fc5f8adbb35",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794075000010
+      }
+    ],
+    "3.7 Create HUD helpers": [
+      {
+        "executionId": "a940afc4-d557-48ac-9cef-8f6b8238752d",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794069419059
+      },
+      {
+        "executionId": "a3718a53-0d99-4086-bbed-9fc5f8adbb35",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794074604282
+      },
+      {
+        "executionId": "a3718a53-0d99-4086-bbed-9fc5f8adbb35",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794074645779
+      }
+    ],
+    "3.8 Write property test for the low-health predicate": [
+      {
+        "executionId": "a940afc4-d557-48ac-9cef-8f6b8238752d",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794069419210
+      },
+      {
+        "executionId": "a3718a53-0d99-4086-bbed-9fc5f8adbb35",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794074752604
+      },
+      {
+        "executionId": "a3718a53-0d99-4086-bbed-9fc5f8adbb35",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794075000780
+      }
+    ],
+    "3.9 Write property test for room marker state": [
+      {
+        "executionId": "a940afc4-d557-48ac-9cef-8f6b8238752d",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794069419369
+      },
+      {
+        "executionId": "a3718a53-0d99-4086-bbed-9fc5f8adbb35",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794075053375
+      },
+      {
+        "executionId": "a3718a53-0d99-4086-bbed-9fc5f8adbb35",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794075516912
+      }
+    ],
+    "3.10 Rebuild the HUD player and XP blocks": [
+      {
+        "executionId": "a940afc4-d557-48ac-9cef-8f6b8238752d",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794069419515
+      },
+      {
+        "executionId": "a3718a53-0d99-4086-bbed-9fc5f8adbb35",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794075053805
+      },
+      {
+        "executionId": "a3718a53-0d99-4086-bbed-9fc5f8adbb35",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794075517713
+      }
+    ],
+    "3.11 Rebuild the HUD monster block": [
+      {
+        "executionId": "a940afc4-d557-48ac-9cef-8f6b8238752d",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794069419671
+      },
+      {
+        "executionId": "a3718a53-0d99-4086-bbed-9fc5f8adbb35",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794075532008
+      },
+      {
+        "executionId": "a3718a53-0d99-4086-bbed-9fc5f8adbb35",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794075777876
+      }
+    ],
+    "3.12 Wire the level display": [
+      {
+        "executionId": "a940afc4-d557-48ac-9cef-8f6b8238752d",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794069419864
+      },
+      {
+        "executionId": "a3718a53-0d99-4086-bbed-9fc5f8adbb35",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794075789284
+      },
+      {
+        "executionId": "a3718a53-0d99-4086-bbed-9fc5f8adbb35",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794075809647
+      }
+    ],
+    "3.13 Restyle the guest banner and add the controls hint": [
+      {
+        "executionId": "a940afc4-d557-48ac-9cef-8f6b8238752d",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794069419977
+      },
+      {
+        "executionId": "a3718a53-0d99-4086-bbed-9fc5f8adbb35",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794075532802
+      },
+      {
+        "executionId": "a3718a53-0d99-4086-bbed-9fc5f8adbb35",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794075778198
+      }
+    ],
+    "3.14 Redesign `src/components/RoomProgress.tsx`": [
+      {
+        "executionId": "a940afc4-d557-48ac-9cef-8f6b8238752d",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794069420124
+      },
+      {
+        "executionId": "a3718a53-0d99-4086-bbed-9fc5f8adbb35",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794075054575
+      },
+      {
+        "executionId": "a3718a53-0d99-4086-bbed-9fc5f8adbb35",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794075518925
+      }
+    ],
+    "3.15 Style the Question_Panel as a spellbook": [
+      {
+        "executionId": "a940afc4-d557-48ac-9cef-8f6b8238752d",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794069420280
+      },
+      {
+        "executionId": "a3718a53-0d99-4086-bbed-9fc5f8adbb35",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794075055752
+      },
+      {
+        "executionId": "a3718a53-0d99-4086-bbed-9fc5f8adbb35",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794075519773
+      },
+      {
+        "executionId": "6268f777-7059-4af2-94e9-49f373afb9a5",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794077350342
+      },
+      {
+        "executionId": "6268f777-7059-4af2-94e9-49f373afb9a5",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794077448276
+      }
+    ],
+    "3.16 Add the view inset to the bridge and scene": [
+      {
+        "executionId": "a940afc4-d557-48ac-9cef-8f6b8238752d",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794069420420
+      },
+      {
+        "executionId": "a3718a53-0d99-4086-bbed-9fc5f8adbb35",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794075056781
+      },
+      {
+        "executionId": "a3718a53-0d99-4086-bbed-9fc5f8adbb35",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794075520699
+      }
+    ],
+    "3.17 Dock the panel and rebuild the play screen layout": [
+      {
+        "executionId": "a940afc4-d557-48ac-9cef-8f6b8238752d",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794069420533
+      },
+      {
+        "executionId": "a3718a53-0d99-4086-bbed-9fc5f8adbb35",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794075810911
+      },
+      {
+        "executionId": "a3718a53-0d99-4086-bbed-9fc5f8adbb35",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794076149498
+      },
+      {
+        "executionId": "2e62b7be-53ad-41f6-b061-ff5b0d901a7d",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794076567681
+      },
+      {
+        "executionId": "2e62b7be-53ad-41f6-b061-ff5b0d901a7d",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794077160166
+      }
+    ],
+    "3.18 Checkpoint - Phase 3": [
+      {
+        "executionId": "a940afc4-d557-48ac-9cef-8f6b8238752d",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794069420650
+      },
+      {
+        "executionId": "a3718a53-0d99-4086-bbed-9fc5f8adbb35",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794076161693
+      },
+      {
+        "executionId": "a3718a53-0d99-4086-bbed-9fc5f8adbb35",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794076343792
+      }
+    ],
+    "4.1 Create the theme selector": [
+      {
+        "executionId": "a940afc4-d557-48ac-9cef-8f6b8238752d",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794069420756
+      },
+      {
+        "executionId": "05f2f061-4620-4b11-a103-437cdcfafc3f",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794077965707
+      },
+      {
+        "executionId": "05f2f061-4620-4b11-a103-437cdcfafc3f",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794078641516
+      }
+    ],
+    "4.2 Write property test for theme selection": [
+      {
+        "executionId": "a940afc4-d557-48ac-9cef-8f6b8238752d",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794069420884
+      },
+      {
+        "executionId": "05f2f061-4620-4b11-a103-437cdcfafc3f",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794077966482
+      },
+      {
+        "executionId": "05f2f061-4620-4b11-a103-437cdcfafc3f",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794078641739
+      }
+    ],
+    "4.3 Add frame derivation": [
+      {
+        "executionId": "a940afc4-d557-48ac-9cef-8f6b8238752d",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794069421150
+      },
+      {
+        "executionId": "05f2f061-4620-4b11-a103-437cdcfafc3f",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794077967527
+      },
+      {
+        "executionId": "05f2f061-4620-4b11-a103-437cdcfafc3f",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794078642301
+      }
+    ],
+    "4.4 Author decor sprites and player frames": [
+      {
+        "executionId": "a940afc4-d557-48ac-9cef-8f6b8238752d",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794069421277
+      },
+      {
+        "executionId": "05f2f061-4620-4b11-a103-437cdcfafc3f",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794077968615
+      },
+      {
+        "executionId": "05f2f061-4620-4b11-a103-437cdcfafc3f",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794078643163
+      }
+    ],
+    "4.5 Render pixel maps into Phaser textures at boot": [
+      {
+        "executionId": "a940afc4-d557-48ac-9cef-8f6b8238752d",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794069421388
+      },
+      {
+        "executionId": "05f2f061-4620-4b11-a103-437cdcfafc3f",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794077969228
+      },
+      {
+        "executionId": "05f2f061-4620-4b11-a103-437cdcfafc3f",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794078644149
+      }
+    ],
+    "4.6 Switch monsters to spritesheets": [
+      {
+        "executionId": "a940afc4-d557-48ac-9cef-8f6b8238752d",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794069421488
+      },
+      {
+        "executionId": "05f2f061-4620-4b11-a103-437cdcfafc3f",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794077970427
+      },
+      {
+        "executionId": "05f2f061-4620-4b11-a103-437cdcfafc3f",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794078645274
+      }
+    ],
+    "4.7 Switch the player to a sprite with idle and walk animation": [
+      {
+        "executionId": "a940afc4-d557-48ac-9cef-8f6b8238752d",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794069421655
+      },
+      {
+        "executionId": "05f2f061-4620-4b11-a103-437cdcfafc3f",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794077971606
+      },
+      {
+        "executionId": "05f2f061-4620-4b11-a103-437cdcfafc3f",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794078646129
+      }
+    ],
+    "4.8 Add the room decorator and themed floors": [
+      {
+        "executionId": "a940afc4-d557-48ac-9cef-8f6b8238752d",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794069421819
+      },
+      {
+        "executionId": "05f2f061-4620-4b11-a103-437cdcfafc3f",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794077972523
+      },
+      {
+        "executionId": "05f2f061-4620-4b11-a103-437cdcfafc3f",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794078647042
+      }
+    ],
+    "4.9 Write registry consistency test": [
+      {
+        "executionId": "a940afc4-d557-48ac-9cef-8f6b8238752d",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794069421990
+      },
+      {
+        "executionId": "05f2f061-4620-4b11-a103-437cdcfafc3f",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794077973343
+      },
+      {
+        "executionId": "05f2f061-4620-4b11-a103-437cdcfafc3f",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794078648105
+      }
+    ],
+    "4.10 Boss visuals": [
+      {
+        "executionId": "a940afc4-d557-48ac-9cef-8f6b8238752d",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794069422156
+      },
+      {
+        "executionId": "05f2f061-4620-4b11-a103-437cdcfafc3f",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794077974498
+      },
+      {
+        "executionId": "05f2f061-4620-4b11-a103-437cdcfafc3f",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794078648959
+      }
+    ],
+    "4.11 Hook monster animations into the Effects_System": [
+      {
+        "executionId": "a940afc4-d557-48ac-9cef-8f6b8238752d",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794069422294
+      },
+      {
+        "executionId": "05f2f061-4620-4b11-a103-437cdcfafc3f",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794077975399
+      },
+      {
+        "executionId": "05f2f061-4620-4b11-a103-437cdcfafc3f",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794078649837
+      }
+    ],
+    "4.12 Checkpoint - Phase 4": [
+      {
+        "executionId": "a940afc4-d557-48ac-9cef-8f6b8238752d",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794069422456
+      },
+      {
+        "executionId": "05f2f061-4620-4b11-a103-437cdcfafc3f",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794077976138
+      },
+      {
+        "executionId": "05f2f061-4620-4b11-a103-437cdcfafc3f",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794078650953
+      }
+    ],
+    "5.1 Create a shared Overlay shell": [
+      {
+        "executionId": "a940afc4-d557-48ac-9cef-8f6b8238752d",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794069422675
+      },
+      {
+        "executionId": "d1dd1953-7cde-4238-b2b8-af76fe0c1c25",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794079175841
+      },
+      {
+        "executionId": "d1dd1953-7cde-4238-b2b8-af76fe0c1c25",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794079702620
+      }
+    ],
+    "5.2 Restyle the pause menu and exit confirmation": [
+      {
+        "executionId": "a940afc4-d557-48ac-9cef-8f6b8238752d",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794069422857
+      },
+      {
+        "executionId": "d1dd1953-7cde-4238-b2b8-af76fe0c1c25",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794079176960
+      },
+      {
+        "executionId": "d1dd1953-7cde-4238-b2b8-af76fe0c1c25",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794079702934
+      }
+    ],
+    "5.3 Restyle victory and defeat overlays": [
+      {
+        "executionId": "a940afc4-d557-48ac-9cef-8f6b8238752d",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794069423013
+      },
+      {
+        "executionId": "d1dd1953-7cde-4238-b2b8-af76fe0c1c25",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794079177782
+      },
+      {
+        "executionId": "d1dd1953-7cde-4238-b2b8-af76fe0c1c25",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794079703739
+      }
+    ],
+    "5.4 Author the decorative UI character sprites": [
+      {
+        "executionId": "a940afc4-d557-48ac-9cef-8f6b8238752d",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794069423146
+      },
+      {
+        "executionId": "d1dd1953-7cde-4238-b2b8-af76fe0c1c25",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794079179094
+      },
+      {
+        "executionId": "d1dd1953-7cde-4238-b2b8-af76fe0c1c25",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794079704692
+      }
+    ],
+    "5.5 Restyle the landing page": [
+      {
+        "executionId": "a940afc4-d557-48ac-9cef-8f6b8238752d",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794069423270
+      },
+      {
+        "executionId": "d1dd1953-7cde-4238-b2b8-af76fe0c1c25",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794079179947
+      },
+      {
+        "executionId": "d1dd1953-7cde-4238-b2b8-af76fe0c1c25",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794079705679
+      }
+    ],
+    "5.6 Checkpoint - Phase 5": [
+      {
+        "executionId": "a940afc4-d557-48ac-9cef-8f6b8238752d",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794069423396
+      },
+      {
+        "executionId": "d1dd1953-7cde-4238-b2b8-af76fe0c1c25",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794079180795
+      },
+      {
+        "executionId": "d1dd1953-7cde-4238-b2b8-af76fe0c1c25",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794079706708
+      }
+    ],
+    "6.1 Create the object pool": [
+      {
+        "executionId": "a940afc4-d557-48ac-9cef-8f6b8238752d",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794069423569
+      },
+      {
+        "executionId": "6f38c8df-7d20-4e36-8cf3-47fbed3d1578",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794079856098
+      },
+      {
+        "executionId": "6f38c8df-7d20-4e36-8cf3-47fbed3d1578",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794080547606
+      }
+    ],
+    "6.2 Write property test for pool reuse": [
+      {
+        "executionId": "a940afc4-d557-48ac-9cef-8f6b8238752d",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794069423727
+      },
+      {
+        "executionId": "6f38c8df-7d20-4e36-8cf3-47fbed3d1578",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794079856857
+      },
+      {
+        "executionId": "6f38c8df-7d20-4e36-8cf3-47fbed3d1578",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794080551520
+      }
+    ],
+    "6.3 Add the atmosphere system": [
+      {
+        "executionId": "a940afc4-d557-48ac-9cef-8f6b8238752d",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794069423893
+      },
+      {
+        "executionId": "6f38c8df-7d20-4e36-8cf3-47fbed3d1578",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794079857989
+      },
+      {
+        "executionId": "6f38c8df-7d20-4e36-8cf3-47fbed3d1578",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794080545694
+      }
+    ],
+    "6.4 Pool damage numbers and effects": [
+      {
+        "executionId": "a940afc4-d557-48ac-9cef-8f6b8238752d",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794069424040
+      },
+      {
+        "executionId": "6f38c8df-7d20-4e36-8cf3-47fbed3d1578",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794079858828
+      },
+      {
+        "executionId": "6f38c8df-7d20-4e36-8cf3-47fbed3d1578",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794080545377
+      }
+    ],
+    "6.5 Add transitions and entrances": [
+      {
+        "executionId": "a940afc4-d557-48ac-9cef-8f6b8238752d",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794069424190
+      },
+      {
+        "executionId": "6f38c8df-7d20-4e36-8cf3-47fbed3d1578",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794079860000
+      },
+      {
+        "executionId": "6f38c8df-7d20-4e36-8cf3-47fbed3d1578",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794080550683
+      }
+    ],
+    "6.6 Create the sound engine": [
+      {
+        "executionId": "a940afc4-d557-48ac-9cef-8f6b8238752d",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794069424317
+      },
+      {
+        "executionId": "6f38c8df-7d20-4e36-8cf3-47fbed3d1578",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794079860805
+      },
+      {
+        "executionId": "6f38c8df-7d20-4e36-8cf3-47fbed3d1578",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794080544735
+      }
+    ],
+    "6.7 Write property test and unit tests for the sound engine": [
+      {
+        "executionId": "a940afc4-d557-48ac-9cef-8f6b8238752d",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794069424478
+      },
+      {
+        "executionId": "6f38c8df-7d20-4e36-8cf3-47fbed3d1578",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794079861993
+      },
+      {
+        "executionId": "6f38c8df-7d20-4e36-8cf3-47fbed3d1578",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794080546759
+      }
+    ],
+    "6.8 Wire sound": [
+      {
+        "executionId": "a940afc4-d557-48ac-9cef-8f6b8238752d",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794069424680
+      },
+      {
+        "executionId": "6f38c8df-7d20-4e36-8cf3-47fbed3d1578",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794079862861
+      },
+      {
+        "executionId": "6f38c8df-7d20-4e36-8cf3-47fbed3d1578",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794080548722
+      }
+    ],
+    "6.9 Audit reduced motion across CSS, Framer Motion and Phaser": [
+      {
+        "executionId": "a940afc4-d557-48ac-9cef-8f6b8238752d",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794069424842
+      },
+      {
+        "executionId": "6f38c8df-7d20-4e36-8cf3-47fbed3d1578",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794079863989
+      },
+      {
+        "executionId": "6f38c8df-7d20-4e36-8cf3-47fbed3d1578",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794080549554
+      }
+    ],
+    "6.10 Checkpoint - Phase 6": [
+      {
+        "executionId": "a940afc4-d557-48ac-9cef-8f6b8238752d",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794069425026
+      },
+      {
+        "executionId": "6f38c8df-7d20-4e36-8cf3-47fbed3d1578",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794079864706
+      },
+      {
+        "executionId": "6f38c8df-7d20-4e36-8cf3-47fbed3d1578",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794080545966
+      }
+    ],
+    "7.1 Make the play screen responsive": [
+      {
+        "executionId": "a940afc4-d557-48ac-9cef-8f6b8238752d",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794069425218
+      }
+    ],
+    "7.2 Review per-frame allocations": [
+      {
+        "executionId": "a940afc4-d557-48ac-9cef-8f6b8238752d",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794069425358
+      }
+    ],
+    "7.3 Accessibility pass": [
+      {
+        "executionId": "a940afc4-d557-48ac-9cef-8f6b8238752d",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794069425473
+      }
+    ],
+    "7.4 Finalize `ASSETS_LICENSES.md`": [
+      {
+        "executionId": "a940afc4-d557-48ac-9cef-8f6b8238752d",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794069425648
+      }
+    ],
+    "7.5 Update `docs/handoff/B-to-A.md`": [
+      {
+        "executionId": "a940afc4-d557-48ac-9cef-8f6b8238752d",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794069425837
+      }
+    ],
+    "7.6 Final checkpoint - full regression": [
+      {
+        "executionId": "a940afc4-d557-48ac-9cef-8f6b8238752d",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794069425987
+      }
+    ],
+    "1. Phase 1: Continuous question flow (no visual changes)": [
+      {
+        "executionId": "a940afc4-d557-48ac-9cef-8f6b8238752d",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794071865166
+      }
+    ],
+    "2. Phase 2: Design system and typography": [
+      {
+        "executionId": "1cd105b0-c5ba-47f3-882c-73bf36624127",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794073818198
+      }
+    ],
+    "3. Phase 3: HUD, room progression and question panel": [
+      {
+        "executionId": "a3718a53-0d99-4086-bbed-9fc5f8adbb35",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794076344117
+      }
+    ],
+    "4. Phase 4: Environments and monster visuals": [
+      {
+        "executionId": "05f2f061-4620-4b11-a103-437cdcfafc3f",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794078651205
+      }
+    ],
+    "5. Phase 5: Pause, victory, defeat and menus": [
+      {
+        "executionId": "d1dd1953-7cde-4238-b2b8-af76fe0c1c25",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794079706852
+      }
+    ],
+    "6. Phase 6: Atmosphere, animations and optional sound": [
+      {
+        "executionId": "6f38c8df-7d20-4e36-8cf3-47fbed3d1578",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794080551718
+      }
+    ]
+  }
+}
