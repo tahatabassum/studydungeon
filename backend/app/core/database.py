@@ -5,13 +5,20 @@ from sqlalchemy.engine import Engine
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
 from app.core.config import settings
+from app.core.db_url import normalize_database_url
 from app.models.all_models import Base
 
+normalized_url = normalize_database_url(settings.DATABASE_URL, is_alembic_sync=False)
+
 # Engine configuration
+engine_kwargs = {"echo": False, "future": True}
+if "postgresql" in normalized_url and "sslmode" not in normalized_url:
+    # Neon serverless asyncpg requires ssl
+    pass
+
 engine = create_async_engine(
-    settings.DATABASE_URL,
-    echo=False,
-    future=True,
+    normalized_url,
+    **engine_kwargs
 )
 
 
