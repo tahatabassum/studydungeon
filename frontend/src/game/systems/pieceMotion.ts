@@ -46,3 +46,47 @@ export function batOffset(u: number, out: { x: number; y: number } = { x: 0, y: 
   out.y = 40 * s
   return out
 }
+
+/** Vertical bob in px for a floating piece: plus or minus 4 on a 2.2 s period; 0 when reduced. */
+export function bobY(timeMs: number, phase: number, reduced: boolean): number {
+  return reduced ? 0 : 4 * Math.sin((TAU * timeMs) / 2200 + phase * TAU)
+}
+
+/** Progress 0..1 around a loop of `periodMs`; fixed at `phase` when reduced. */
+export function loopU(timeMs: number, periodMs: number, phase: number, reduced: boolean): number {
+  if (reduced) return phase - Math.floor(phase)
+  const u = timeMs / periodMs + phase
+  return u - Math.floor(u)
+}
+
+/** Drifting page offset for loop progress u: slow fall with sideways sway and a tilt (radians). */
+export function pageDrift(u: number, out: { x: number; y: number; rot: number } = { x: 0, y: 0, rot: 0 }): {
+  x: number
+  y: number
+  rot: number
+} {
+  out.x = 16 * Math.sin(u * TAU * 2)
+  out.y = -30 + 90 * u
+  out.rot = 0.6 * Math.sin(u * TAU * 3)
+  return out
+}
+
+/** Alpha for the ghost book pulse (0.4 to 0.65); fixed 0.55 when reduced. */
+export function ghostAlpha(timeMs: number, phase: number, reduced: boolean): number {
+  return reduced ? 0.55 : 0.525 + 0.125 * Math.sin((TAU * timeMs) / 3000 + phase * TAU)
+}
+
+export const LIGHTNING_MAX_ALPHA = 0.25
+export const LIGHTNING_MIN_GAP_MS = 8000
+const LIGHTNING_TOTAL_MS = 360
+
+/**
+ * Soft lightning overlay alpha `sinceMs` after the strike starts: two short pulses (0 to 90 ms and
+ * 200 to 300 ms), never above LIGHTNING_MAX_ALPHA. Zero before the start and after the strike.
+ */
+export function lightningAlpha(sinceMs: number): number {
+  if (sinceMs < 0 || sinceMs >= LIGHTNING_TOTAL_MS) return 0
+  if (sinceMs < 90) return LIGHTNING_MAX_ALPHA * Math.sin((Math.PI * sinceMs) / 90)
+  if (sinceMs >= 200 && sinceMs < 300) return 0.7 * LIGHTNING_MAX_ALPHA * Math.sin((Math.PI * (sinceMs - 200)) / 100)
+  return 0
+}

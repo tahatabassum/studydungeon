@@ -49,6 +49,16 @@ describe('procedural room generators', () => {
     expect(a).not.toBe(c)
   })
 
+  it.each(['library', 'witch_lab', 'pumpkin_workshop', 'boss_hall'] as const)(
+    '%s adds its own dressing beyond the shared floor and walls',
+    (id) => {
+      const own = render(id, 3)
+      expect(own.length).toBeGreaterThan(render('entry', 3).length + 100)
+      expect(own.join('\n')).toBe(render(id, 3).join('\n'))
+      expect(own.join('\n')).not.toBe(render('clockwork_crypt', 3).join('\n'))
+    },
+  )
+
   it('the crypt adds dressing beyond the shared floor and walls', () => {
     expect(render('clockwork_crypt', 1).length).toBeGreaterThan(render('entry', 1).length)
   })

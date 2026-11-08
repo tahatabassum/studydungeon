@@ -61,6 +61,8 @@ export type PieceKind =
   | 'candle'
   | 'bubble'
   | 'page'
+  | 'book'
+  | 'jar'
   | 'lightning'
 
 /** An animated piece group (count = number of pooled objects it uses). */
@@ -69,6 +71,8 @@ export interface PieceSpec {
   x: number
   y: number
   count: number
+  /** Glow color for 'flame' pieces (default warm). */
+  glow?: GlowKey
 }
 
 export interface RoomTheme {
@@ -83,6 +87,10 @@ export interface RoomTheme {
   particles: ParticleSpec
   /** Translucent room tint. */
   light: { tint: number; alpha: number }
+  /** Optional per-torch glow colors (index matches TORCHES); default warm. */
+  torchGlows?: readonly GlowKey[]
+  /** Fog strength multiplier (default 1). */
+  fog?: number
 }
 
 const entryDecor: DecorSpec[] = [
@@ -125,16 +133,23 @@ export const THEMES: Readonly<Record<ThemeId, RoomTheme>> = {
     id: 'library',
     floor: [0x26192a, 0x30202f],
     palette: stone(0x281c2c, [0x26192a, 0x30202f, 0x38262f], 0x4a3446, 0x2a1c2c, 0xe9a23b),
-    decor: [
-      { sprite: 'decor_bookshelf', slot: { at: 'north', offset: 112 } },
-      { sprite: 'decor_bookshelf', slot: { at: 'north', offset: 400 } },
-      { sprite: 'decor_bookshelf', slot: { at: 'north', offset: 880 } },
-      { sprite: 'decor_bookshelf', slot: { at: 'north', offset: 1168 } },
-      { sprite: 'decor_cobweb', slot: { at: 'corner-nw' } },
-      ...entryDecor,
+    // Shelves, window, cobwebs and tables are baked (art/room/library.ts); two floor candles stay sprites.
+    decor: entryDecor,
+    // Focal glow: cool moonlight from the arched window against warm candle pools.
+    lights: [{ x: 940, y: 180, radius: 150, glow: 'cool', min: 0.75, max: 1.0, seed: 21 }],
+    pieces: [
+      { kind: 'candle', x: 400, y: 300, count: 1 },
+      { kind: 'candle', x: 880, y: 300, count: 1 },
+      { kind: 'candle', x: 360, y: 520, count: 1 },
+      { kind: 'candle', x: 920, y: 520, count: 1 },
+      { kind: 'page', x: 450, y: 200, count: 1 },
+      { kind: 'page', x: 800, y: 420, count: 1 },
+      { kind: 'page', x: 300, y: 480, count: 1 },
+      { kind: 'page', x: 1000, y: 260, count: 1 },
+      { kind: 'book', x: 300, y: 250, count: 1 },
+      { kind: 'book', x: 1000, y: 400, count: 1 },
+      { kind: 'book', x: 450, y: 640, count: 1 },
     ],
-    lights: [],
-    pieces: [],
     particles: { kind: 'dust', count: 12, color: 0xe9b44c },
     light: { tint: 0xff9f1c, alpha: 0.05 },
   },
@@ -142,15 +157,18 @@ export const THEMES: Readonly<Record<ThemeId, RoomTheme>> = {
     id: 'witch_lab',
     floor: [0x13241f, 0x1a2f28],
     palette: stone(0x15271f, [0x13241f, 0x1a2f28, 0x20362d], 0x2f4a3f, 0x13241f, 0x8be04e),
-    decor: [
-      { sprite: 'decor_cauldron', slot: { at: 'north', offset: 400 } },
-      { sprite: 'decor_cauldron', slot: { at: 'north', offset: 880 } },
-      { sprite: 'decor_potion', slot: { at: 'west', offset: 200 } },
-      { sprite: 'decor_potion', slot: { at: 'east', offset: 600 } },
-      { sprite: 'decor_cobweb', slot: { at: 'corner-nw' } },
+    // Cauldron, shelves, herbs and jars are baked (art/room/witchLab.ts); two floor candles stay sprites.
+    decor: entryDecor,
+    // Focal glow: the green cauldron, answered by a purple pool at the workbench.
+    lights: [
+      { x: 950, y: 310, radius: 140, glow: 'green', min: 0.7, max: 1.0, seed: 31 },
+      { x: 360, y: 300, radius: 110, glow: 'purple', min: 0.6, max: 1.0, seed: 32 },
     ],
-    lights: [],
-    pieces: [],
+    pieces: [
+      { kind: 'bubble', x: 950, y: 288, count: 6 },
+      { kind: 'jar', x: 110, y: 82, count: 1 },
+      { kind: 'jar', x: 430, y: 82, count: 1 },
+    ],
     particles: { kind: 'bubble', count: 14, color: 0x8fe3c6 },
     light: { tint: 0x59c9a5, alpha: 0.06 },
   },
@@ -187,33 +205,46 @@ export const THEMES: Readonly<Record<ThemeId, RoomTheme>> = {
     id: 'pumpkin_workshop',
     floor: [0x14171f, 0x1c2030],
     palette: stone(0x2a1f18, [0x261c16, 0x2d2119, 0x34261c], 0x5a4030, 0x241a14, 0xf28a1e),
-    decor: [
-      { sprite: 'decor_tomb', slot: { at: 'west', offset: 200 } },
-      { sprite: 'decor_tomb', slot: { at: 'west', offset: 600 } },
-      { sprite: 'decor_tomb', slot: { at: 'east', offset: 600 } },
-      { sprite: 'decor_cobweb', slot: { at: 'corner-nw' } },
-      { sprite: 'decor_candle', slot: { at: 'north', offset: 400 } },
+    // Jack-o'-lanterns, hay, scarecrow and tools are baked (art/room/pumpkinWorkshop.ts); two floor candles stay sprites.
+    decor: entryDecor,
+    // Focal glow: three jack-o'-lanterns in warm orange.
+    lights: [
+      { x: 402, y: 318, radius: 96, glow: 'warm', min: 0.55, max: 1.0, seed: 41 },
+      { x: 898, y: 318, radius: 96, glow: 'warm', min: 0.55, max: 1.0, seed: 42 },
+      { x: 912, y: 590, radius: 96, glow: 'warm', min: 0.55, max: 1.0, seed: 43 },
     ],
-    lights: [],
-    pieces: [],
-    particles: { kind: 'mist', count: 12, color: 0x7a7388 },
-    light: { tint: 0x3fa7c9, alpha: 0.06 },
+    pieces: [
+      { kind: 'flame', x: 402, y: 320, count: 1 },
+      { kind: 'flame', x: 898, y: 320, count: 1 },
+      { kind: 'flame', x: 912, y: 592, count: 1 },
+    ],
+    particles: { kind: 'ember', count: 16, color: 0xf28a1e },
+    light: { tint: 0xf28a1e, alpha: 0.06 },
   },
   boss_hall: {
     id: 'boss_hall',
     floor: [0x2a1019, 0x381622],
     palette: stone(0x2a1420, [0x2a1019, 0x381622, 0x321a2a], 0x5a2a3c, 0x230e18, 0xc04bd6),
-    decor: [
-      { sprite: 'decor_column', slot: { at: 'north', offset: 112 } },
-      { sprite: 'decor_column', slot: { at: 'north', offset: 1168 } },
-      { sprite: 'decor_column', slot: { at: 'west', offset: 200 } },
-      { sprite: 'decor_column', slot: { at: 'east', offset: 200 } },
-      { sprite: 'decor_rune', slot: { at: 'floor', x: 640, y: 470 } },
+    decor: [{ sprite: 'decor_rune', slot: { at: 'floor', x: 640, y: 470 } }],
+    // Focal glow: the giant moon window, with purple fire from two chandeliers.
+    lights: [
+      { x: 880, y: 190, radius: 170, glow: 'cool', min: 0.75, max: 1.0, seed: 51 },
+      { x: 330, y: 300, radius: 120, glow: 'purple', min: 0.6, max: 1.0, seed: 52 },
+      { x: 950, y: 300, radius: 120, glow: 'purple', min: 0.6, max: 1.0, seed: 53 },
     ],
-    lights: [],
-    pieces: [],
+    pieces: [
+      { kind: 'flame', x: 304, y: 296, count: 1, glow: 'purple' },
+      { kind: 'flame', x: 330, y: 286, count: 1, glow: 'purple' },
+      { kind: 'flame', x: 356, y: 296, count: 1, glow: 'purple' },
+      { kind: 'flame', x: 924, y: 296, count: 1, glow: 'purple' },
+      { kind: 'flame', x: 950, y: 286, count: 1, glow: 'purple' },
+      { kind: 'flame', x: 976, y: 296, count: 1, glow: 'purple' },
+      { kind: 'lightning', x: 0, y: 0, count: 1 },
+    ],
     particles: { kind: 'ember', count: 16, color: 0xc83e4d },
     light: { tint: 0xc83e4d, alpha: 0.07 },
+    torchGlows: ['red', 'purple', 'purple', 'red'],
+    fog: 2,
   },
 }
 

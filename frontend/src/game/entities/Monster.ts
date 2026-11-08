@@ -282,11 +282,22 @@ export class Monster {
     this.breathTween?.stop()
     this.breathTween = null
     this.sprite.setAlpha(0).setScale(target * (this.isBoss ? 0.5 : 0.7))
+    if (this.isBoss && this.eyes.length > 0) {
+      // Dramatic entrance: the glowing eyes flare wide, then settle (one-shot; visual only).
+      const rest = this.eyes[0].scale
+      this.scene.tweens.add({
+        targets: this.eyes,
+        scale: { from: rest * 3.5, to: rest },
+        duration: 900,
+        ease: 'Cubic.easeOut',
+      })
+    }
     this.scene.tweens.add({
       targets: this.sprite,
       alpha: 1,
       scale: target,
-      duration: this.isBoss ? 450 : 300,
+      duration: this.isBoss ? 650 : 300,
+      delay: this.isBoss ? 120 : 0,
       ease: this.isBoss ? 'Back.easeOut' : 'Sine.easeOut',
       onComplete: () => {
         if (this.alive && this.sprite.active) this.startBreathing()

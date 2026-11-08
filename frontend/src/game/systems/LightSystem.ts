@@ -130,7 +130,15 @@ export class LightSystem {
   setRoom(theme: RoomTheme, origin: Point, torches: readonly Point[], extra: readonly LightSpec[] = []): void {
     const specs: Array<{ x: number; y: number; radius: number; glow: GlowKey; min: number; max: number; seed: number }> = []
     torches.forEach((t, i) =>
-      specs.push({ x: t.x, y: t.y, radius: TORCH_RADIUS, glow: 'warm', min: 0.55, max: 1, seed: 1 + i }),
+      specs.push({
+        x: t.x,
+        y: t.y,
+        radius: TORCH_RADIUS,
+        glow: theme.torchGlows?.[i] ?? 'warm',
+        min: 0.55,
+        max: 1,
+        seed: 1 + i,
+      }),
     )
     for (const l of [...theme.lights, ...extra]) specs.push({ ...l, x: l.x + origin.x, y: l.y + origin.y })
     this.entries.forEach((e, i) => {

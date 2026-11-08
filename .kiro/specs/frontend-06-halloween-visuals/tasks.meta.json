@@ -242,6 +242,85 @@
         "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
         "timestamp": 1794083836310
       }
+    ],
+    "4.1 Haunted Library (library, paper_wraith)": [
+      {
+        "executionId": "7f897d33-fc2e-49d9-a50c-03c5cdbb6af1",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794131740284
+      },
+      {
+        "executionId": "7f897d33-fc2e-49d9-a50c-03c5cdbb6af1",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794132710178
+      }
+    ],
+    "4.2 Witch's Laboratory (witch_lab, toxic_slime)": [
+      {
+        "executionId": "7f897d33-fc2e-49d9-a50c-03c5cdbb6af1",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794131742095
+      },
+      {
+        "executionId": "7f897d33-fc2e-49d9-a50c-03c5cdbb6af1",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794132710541
+      }
+    ],
+    "4.3 Pumpkin Workshop (pumpkin_workshop, memory_eater)": [
+      {
+        "executionId": "7f897d33-fc2e-49d9-a50c-03c5cdbb6af1",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794131742215
+      },
+      {
+        "executionId": "7f897d33-fc2e-49d9-a50c-03c5cdbb6af1",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794132710819
+      }
+    ],
+    "4.4 Boss Hall of the Exam Warden (boss_hall)": [
+      {
+        "executionId": "7f897d33-fc2e-49d9-a50c-03c5cdbb6af1",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794131742474
+      },
+      {
+        "executionId": "7f897d33-fc2e-49d9-a50c-03c5cdbb6af1",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794132711496
+      }
+    ],
+    "4.5 All-theme coverage tests": [
+      {
+        "executionId": "7f897d33-fc2e-49d9-a50c-03c5cdbb6af1",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794131742623
+      },
+      {
+        "executionId": "7f897d33-fc2e-49d9-a50c-03c5cdbb6af1",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794132711736
+      }
+    ],
+    "5. STOP: Phase 3 checkpoint, rooms review": [
+      {
+        "executionId": "7f897d33-fc2e-49d9-a50c-03c5cdbb6af1",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794131743361
+      },
+      {
+        "executionId": "7f897d33-fc2e-49d9-a50c-03c5cdbb6af1",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794132712333
+      }
+    ],
+    "4. Phase 3: Other four rooms with the shared lighting system": [
+      {
+        "executionId": "7f897d33-fc2e-49d9-a50c-03c5cdbb6af1",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794132711885
+      }
     ]
   }
 }

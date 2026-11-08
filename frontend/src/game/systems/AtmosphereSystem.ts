@@ -93,11 +93,14 @@ export class AtmosphereSystem {
       })
     }
 
-    if (!reduced && (theme.id === 'pumpkin_workshop' || theme.id === 'boss_hall' || theme.id === 'clockwork_crypt')) {
+    if (!reduced && (theme.id === 'boss_hall' || theme.id === 'clockwork_crypt')) {
+      // Heavier fog (theme.fog > 1) is bigger and denser; the blob count stays at FOG_COUNT.
+      const heavy = theme.fog ?? 1
       this.fog.forEach((f, i) => {
         const x = origin.x + (WORLD_W * (i + 1)) / (FOG_COUNT + 1)
         const y = origin.y + WORLD_H * (0.35 + 0.15 * (i % 2))
-        f.setPosition(x, y).setFillStyle(spec.color, 0.06).setVisible(true)
+        f.setSize(420 * (1 + 0.4 * (heavy - 1)), 200 * (1 + 0.4 * (heavy - 1)))
+        f.setPosition(x, y).setFillStyle(spec.color, 0.06 * heavy).setVisible(true)
         this.scene.tweens.add({
           targets: f,
           x: x + 70 * (i % 2 ? -1 : 1),

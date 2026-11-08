@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import fc from 'fast-check'
 import { THEME_IDS, THEMES, MAX_PARTICLES } from './roomTheme'
+import { roomCandleLights } from './roomProps'
 import { AMBIENT_CAP, PIECE_CAP, REDUCED_AMBIENT_CAP, ROOM_TOTAL_CAP, themeBudget } from './themeBudget'
 
 // Feature: frontend-06-halloween-visuals, Property 7: Theme budgets respect the caps
@@ -19,6 +20,27 @@ describe('Property 7: Theme budgets respect the caps', () => {
       }),
       { numRuns: 100 },
     )
+  })
+
+  it('pooled piece images and light pools fit their pools for every theme', () => {
+    const WEBGL_LIGHTS = 12 // MAX_LIGHTS_WEBGL in LightSystem (not imported: it pulls in Phaser)
+    for (const id of THEME_IDS) {
+      const t = THEMES[id]
+      const pooled = t.pieces.filter((p) => p.kind !== 'lightning').reduce((n, p) => n + p.count, 0)
+      expect(pooled, id).toBeLessThanOrEqual(PIECE_CAP)
+      const candles = roomCandleLights(id, 1).length
+      expect(4 + t.lights.length + candles, id).toBeLessThanOrEqual(WEBGL_LIGHTS)
+    }
+  })
+
+  it('only the boss hall has lightning, and it is dropped from the reduced budget', () => {
+    for (const id of THEME_IDS) {
+      const has = THEMES[id].pieces.some((p) => p.kind === 'lightning')
+      expect(has, id).toBe(id === 'boss_hall')
+    }
+    const full = themeBudget(THEMES.boss_hall, false)
+    const reduced = themeBudget(THEMES.boss_hall, true)
+    expect(reduced.pieces).toBe(full.pieces - 1)
   })
 
   it('every registered theme is within the caps (example iteration)', () => {

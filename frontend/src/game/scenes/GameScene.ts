@@ -5,7 +5,8 @@ import { AnimatedPieces } from '../systems/AnimatedPieces'
 import { DebugOverlay } from '../systems/DebugOverlay'
 import { LightSystem } from '../systems/LightSystem'
 import { RoomBaker } from '../systems/RoomBaker'
-import { cryptCandleLights } from '../world/cryptProps'
+import { roomCandleLights } from '../world/roomProps'
+import { GLOW_COLORS } from '../textures/registerGlow'
 import { clampViewInset } from '../world/viewInset'
 import { Gate } from '../entities/Gate'
 import { Monster } from '../entities/Monster'
@@ -236,7 +237,7 @@ export class GameScene extends Phaser.Scene {
     if (!info) return
     this.updateBakedRooms(roomId)
     this.atmosphere?.setRoom(info.theme, info.origin)
-    const extra = info.theme.id === 'clockwork_crypt' ? cryptCandleLights(hashString(roomId)) : []
+    const extra = roomCandleLights(info.theme.id, hashString(roomId))
     this.lighting?.setRoom(info.theme, info.origin, torchesFor({ origin: info.origin }), extra)
     this.lighting?.setMonster(this.monsters.get(roomId) ?? null)
     this.pieces?.setRoom(info.theme, info.origin)
@@ -347,7 +348,7 @@ export class GameScene extends Phaser.Scene {
           }
         }
       }
-      this.drawTorches(torchesFor(opts))
+      this.drawTorches(torchesFor(opts), theme)
       if (room) {
         this.track(
           this.add
@@ -439,17 +440,15 @@ export class GameScene extends Phaser.Scene {
     }
   }
 
-  private drawTorches(torches: Point[]): void {
+  private drawTorches(torches: Point[], theme: RoomTheme): void {
     // Flicker comes from LightSystem (current room); these are the static torch flame and a faint halo.
-    for (const t of torches) {
-      this.track(
-        this.add
-          .circle(t.x, t.y, 40, COLORS.ACCENT, 0.1)
-          .setBlendMode(Phaser.BlendModes.ADD)
-          .setDepth(3),
-      )
-      this.track(this.add.circle(t.x, t.y, 5, COLORS.ACCENT, 1).setDepth(3))
+    // Themes may color their torches (the boss hall burns red and purple).
+    torches.forEach((t, i) => {
+      const glow = theme.torchGlows?.[i]
+      const color = glow ? GLOW_COLORS[glow] : COLORS.ACCENT
+      this.track(this.add.circle(t.x, t.y, 40, color, 0.1).setBlendMode(Phaser.BlendModes.ADD).setDepth(3))
+      this.track(this.add.circle(t.x, t.y, 5, color, 1).setDepth(3))
       this.track(this.add.circle(t.x, t.y - 1, 2, COLORS.BONE, 1).setDepth(3))
-    }
+    })
   }
 }

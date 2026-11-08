@@ -3,7 +3,9 @@ import fc from 'fast-check'
 import { placeProps, type PropKind } from './propPlacement'
 import { propBlockers } from './keepOut'
 import { CRYPT_PROP_KINDS, cryptBlockers, cryptProps } from './cryptProps'
-import { PILLARS, TILE, WORLD_H, WORLD_W, type Rect } from './RoomLayout'
+import { PILLARS, TILE, TORCHES, WORLD_H, WORLD_W, type Rect } from './RoomLayout'
+import { ROOM_DRESSING, roomBlockers, roomProps } from './roomProps'
+import { THEME_IDS } from './roomTheme'
 import { keepOutZone } from './keepOut'
 
 // Feature: frontend-06-halloween-visuals, Property 5: Placed props never block
@@ -49,6 +51,41 @@ describe('Property 5: Placed props never block', () => {
       expect(placed.length).toBe(total)
       for (const p of placed) for (const b of blockers) expect(hits(p, b)).toBe(false)
     }
+  })
+})
+
+describe('Property 5 on every theme (Phase 3)', () => {
+  it.each(THEME_IDS)('%s: furniture and scatter props never block and place fully', (id) => {
+    const dressing = ROOM_DRESSING[id]
+    if (!dressing) {
+      expect(roomProps(id, 1)).toEqual([])
+      return
+    }
+    // Furniture stays out of the keep-out zone, pillars, torches and each other.
+    const torchRects = TORCHES.map((t) => ({ x: t.x - 24, y: t.y - 24, w: 48, h: 48 }))
+    dressing.fixed.forEach((f, i) => {
+      for (const z of [...keepOutZone(), ...PILLARS, ...torchRects]) expect(hits(f, z), `${id} fixed ${i}`).toBe(false)
+      for (let j = i + 1; j < dressing.fixed.length; j++) expect(hits(f, dressing.fixed[j])).toBe(false)
+    })
+    const total = dressing.kinds.reduce((n: number, k: PropKind) => n + k.count, 0)
+    const blockers = roomBlockers(id)
+    for (let seed = 0; seed < 200; seed++) {
+      const placed = roomProps(id, seed)
+      expect(placed.length, `${id} seed ${seed}`).toBe(total)
+      for (const p of placed) {
+        for (const b of blockers) expect(hits(p, b)).toBe(false)
+        for (const z of keepOutZone()) expect(hits(p, z)).toBe(false)
+      }
+    }
+  })
+
+  it('is deterministic for every theme', () => {
+    fc.assert(
+      fc.property(fc.constantFrom(...THEME_IDS), fc.integer({ min: 0, max: 1_000_000 }), (id, seed) => {
+        expect(roomProps(id, seed)).toEqual(roomProps(id, seed))
+      }),
+      { numRuns: 100 },
+    )
   })
 })
 

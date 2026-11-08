@@ -1,9 +1,23 @@
 import Phaser from 'phaser'
+import { glowKey } from '../textures/registerGlow'
 import { PIECE_TEXTURES } from '../textures/registerPieces'
 import type { PieceSpec, RoomTheme } from '../world/roomTheme'
 import { PIECE_CAP } from '../world/themeBudget'
 import type { Point } from '../world/RoomLayout'
-import { batOffset, clockAngles, gearRad, pendulumDeg, type ClockAngles } from './pieceMotion'
+import { flicker } from './flicker'
+import {
+  LIGHTNING_MIN_GAP_MS,
+  batOffset,
+  bobY,
+  clockAngles,
+  gearRad,
+  ghostAlpha,
+  lightningAlpha,
+  loopU,
+  pageDrift,
+  pendulumDeg,
+  type ClockAngles,
+} from './pieceMotion'
 import { ObjectPool } from './objectPool'
 
 const DEPTH_PIECE = 9
@@ -26,6 +40,20 @@ interface Bat {
   start: number
   flying: boolean
 }
+type FloatKind = 'candle' | 'page' | 'book' | 'bubble' | 'jar' | 'flame'
+/** A pooled piece driven by pure motion math (floating candles, pages, books, bubbles, jars, flames). */
+interface Floater {
+  img: Phaser.GameObjects.Image
+  kind: FloatKind
+  x: number
+  y: number
+  phase: number
+  seed: number
+}
+
+const DEPTH_LIGHTNING = 90
+const LIGHTNING_RAND_MS = 12000
+const BUBBLE_RISE = 50
 
 /**
  * Animated, pooled pieces for a room (clock hands, pendulum, gears, steam, bats). Motion is driven
@@ -38,6 +66,13 @@ export class AnimatedPieces {
   private readonly flight = { x: 0, y: 0 }
   private readonly puffs: Puff[] = []
   private readonly bats: Bat[] = []
+  private readonly floaters: Floater[] = []
+  private readonly drift = { x: 0, y: 0, rot: 0 }
+  private overlay: Phaser.GameObjects.Rectangle | null = null
+  private nextStrike = 0
+  private strikeAt = -1e9
+  private jars = 0
+  private lightning = false
   private hour: Phaser.GameObjects.Image | null = null
   private minute: Phaser.GameObjects.Image | null = null
   private pendulum: Phaser.GameObjects.Image | null = null
@@ -49,15 +84,40 @@ export class AnimatedPieces {
   private active = false
 
   constructor(
-    scene: Phaser.Scene,
+    private readonly scene: Phaser.Scene,
     private readonly isReduced: () => boolean,
   ) {
     this.images = new ObjectPool({
       create: () => scene.add.image(0, 0, PIECE_TEXTURES.steam).setDepth(DEPTH_PIECE).setVisible(false),
       reset: (img) =>
-        img.setVisible(true).setActive(true).setAlpha(1).setScale(1).setAngle(0).setOrigin(0.5, 0.5).clearTint(),
+        img
+          .setVisible(true)
+          .setActive(true)
+          .setAlpha(1)
+          .setScale(1)
+          .setAngle(0)
+          .setOrigin(0.5, 0.5)
+          .setBlendMode(Phaser.BlendModes.NORMAL)
+          .clearTint(),
       max: PIECE_CAP,
     })
+  }
+
+  private addFloater(kind: FloatKind, img: Phaser.GameObjects.Image | null, x: number, y: number, phase: number): void {
+    if (!img) return
+    this.floaters.push({ img, kind, x, y, phase, seed: 60 + this.floaters.length })
+  }
+
+  /** Lightning overlay for the boss hall: created once, hidden until a strike. */
+  private ensureOverlay(): void {
+    if (this.overlay) return
+    const { width, height } = this.scene.scale
+    this.overlay = this.scene.add
+      .rectangle(0, 0, width, height, 0xcfe0ff, 0)
+      .setOrigin(0, 0)
+      .setScrollFactor(0)
+      .setDepth(DEPTH_LIGHTNING)
+      .setVisible(false)
   }
 
   /** Number of piece objects currently in use. */
@@ -100,6 +160,44 @@ export class AnimatedPieces {
         case 'bat':
           this.buildBats(spec, origin)
           break
+        case 'candle':
+          this.addFloater('candle', this.take(T.candle, x, y), x, y, this.floaters.length * 0.37)
+          break
+        case 'page':
+          this.addFloater('page', this.take(T.page, x, y), x, y, 0.15 + this.floaters.length * 0.29)
+          break
+        case 'book':
+          this.addFloater(
+            'book',
+            this.take(T.book, x, y)?.setTint(0x68c9a5).setAlpha(0.55) ?? null,
+            x,
+            y,
+            this.floaters.length * 0.41,
+          )
+          break
+        case 'bubble':
+          for (let i = 0; i < spec.count; i++) {
+            const bx = x + ((i % 3) - 1) * 12
+            this.addFloater('bubble', this.take(T.bubble, bx, y), bx, y, i / spec.count)
+          }
+          break
+        case 'jar': {
+          const eye = this.jars++ % 2 === 0
+          const img = this.take(eye ? T.jarEye : T.jarSpark, x, y)
+          if (!eye) img?.setBlendMode(Phaser.BlendModes.ADD)
+          this.addFloater('jar', img, x, y, this.floaters.length * 0.5)
+          break
+        }
+        case 'flame': {
+          const img = this.take(glowKey(spec.glow ?? 'warm'), x, y)?.setBlendMode(Phaser.BlendModes.ADD)
+          img?.setDisplaySize(40, 40)
+          this.addFloater('flame', img ?? null, x, y, 0)
+          break
+        }
+        case 'lightning':
+          this.ensureOverlay()
+          this.lightning = true
+          break
         default:
           break
       }
@@ -107,6 +205,8 @@ export class AnimatedPieces {
     this.active = true
     this.nextPuff = 0
     this.nextBat = 0
+    this.nextStrike = 0
+    this.strikeAt = -1e9
     this.pose(0, this.isReduced())
   }
 
@@ -147,13 +247,63 @@ export class AnimatedPieces {
     if (!this.active) return
     const reduced = this.isReduced()
     this.pose(time, reduced)
+    this.updateFloaters(time, reduced)
     if (reduced) {
       for (const p of this.puffs) p.img.setVisible(false)
       for (const b of this.bats) b.img.setTexture(PIECE_TEXTURES.batRoost).setPosition(b.x, b.y)
+      this.overlay?.setVisible(false)
       return
     }
     this.updateSteam(time)
     this.updateBats(time)
+    this.updateLightning(time)
+  }
+
+  /** Soft lightning flash at most once per 8 s (peak alpha 0.25). Never runs under reduced motion. */
+  private updateLightning(time: number): void {
+    const o = this.overlay
+    if (!o || !this.lightning) return
+    if (this.nextStrike === 0) this.nextStrike = time + LIGHTNING_MIN_GAP_MS + Math.random() * LIGHTNING_RAND_MS
+    if (time >= this.nextStrike) {
+      this.strikeAt = time
+      this.nextStrike = time + LIGHTNING_MIN_GAP_MS + Math.random() * LIGHTNING_RAND_MS
+    }
+    const a = lightningAlpha(time - this.strikeAt)
+    o.setAlpha(a).setVisible(a > 0)
+  }
+
+  private updateFloaters(time: number, reduced: boolean): void {
+    for (const f of this.floaters) {
+      const img = f.img
+      switch (f.kind) {
+        case 'candle':
+          img.setPosition(f.x, f.y + bobY(time, f.phase, reduced))
+          break
+        case 'book':
+          img.setPosition(f.x, f.y + bobY(time, f.phase, reduced)).setAlpha(ghostAlpha(time, f.phase, reduced))
+          break
+        case 'jar':
+          img.setPosition(f.x, f.y + bobY(time, f.phase, reduced) * 0.5).setAlpha(0.7 + 0.3 * flicker(time, f.seed, 0, 1, reduced))
+          break
+        case 'page': {
+          const u = loopU(time, 9000, f.phase, reduced)
+          pageDrift(u, this.drift)
+          img
+            .setPosition(f.x + this.drift.x, f.y + this.drift.y)
+            .setRotation(this.drift.rot)
+            .setAlpha(0.85 * Math.sin(Math.PI * u))
+          break
+        }
+        case 'bubble': {
+          const u = loopU(time, 1800, f.phase, reduced)
+          img.setPosition(f.x + Math.sin(u * 6) * 2, f.y - BUBBLE_RISE * u).setAlpha(0.9 * (1 - u)).setScale(0.7 + 0.5 * u)
+          break
+        }
+        case 'flame':
+          img.setAlpha(flicker(time, f.seed, 0.45, 0.95, reduced))
+          break
+      }
+    }
   }
 
   private updateSteam(time: number): void {
@@ -215,6 +365,10 @@ export class AnimatedPieces {
     this.images.releaseAll()
     this.puffs.length = 0
     this.bats.length = 0
+    this.floaters.length = 0
+    this.jars = 0
+    this.lightning = false
+    this.overlay?.setVisible(false)
     this.vents = []
     this.hour = this.minute = this.pendulum = this.gearL = this.gearS = null
   }
@@ -222,5 +376,7 @@ export class AnimatedPieces {
   destroy(): void {
     this.clearRoom()
     this.images.clear((img) => img.destroy())
+    this.overlay?.destroy()
+    this.overlay = null
   }
 }

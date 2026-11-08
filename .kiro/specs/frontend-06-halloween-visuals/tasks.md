@@ -117,31 +117,31 @@ Rules for every task:
   - Ensure typecheck, lint and all tests pass. Present screenshots or run instructions for the Clockwork Crypt (normal and reduced motion, WebGL and `?renderer=canvas`, `?debug=1`). Ask the user to approve or request changes. Do not start Phase 3 until approved.
   - _Requirements: 7.12_
 
-- [ ] 4. Phase 3: Other four rooms with the shared lighting system
-  - [ ] 4.1 Haunted Library (library, paper_wraith)
+- [x] 4. Phase 3: Other four rooms with the shared lighting system
+  - [x] 4.1 Haunted Library (library, paper_wraith)
     - Create `src/art/room/library.ts`; edit library theme data in `src/game/world/roomTheme.ts`; extend `src/game/systems/AnimatedPieces.ts` (floating candles, drifting pages, ghost books) and moon window beams
     - _Requirements: 11.1, 11.2, 10.2_
 
-  - [ ] 4.2 Witch's Laboratory (witch_lab, toxic_slime)
+  - [x] 4.2 Witch's Laboratory (witch_lab, toxic_slime)
     - Create `src/art/room/witchLab.ts`; edit theme data; extend `AnimatedPieces.ts` (cauldron bubbles and glow, jar eyes and sparks), purple and green lights
     - _Requirements: 11.1, 11.3, 10.2_
 
-  - [ ] 4.3 Pumpkin Workshop (pumpkin_workshop, memory_eater)
+  - [x] 4.3 Pumpkin Workshop (pumpkin_workshop, memory_eater)
     - Create `src/art/room/pumpkinWorkshop.ts`; edit theme data; extend `AnimatedPieces.ts` (jack-o'-lantern faces, embers), warm orange lights
     - _Requirements: 11.1, 11.4, 10.2_
 
-  - [ ] 4.4 Boss Hall of the Exam Warden (boss_hall)
+  - [x] 4.4 Boss Hall of the Exam Warden (boss_hall)
     - Create `src/art/room/bossHall.ts`; edit theme data; extend `AnimatedPieces.ts` (purple-fire chandelier, lightning overlay at most once per 8 s, alpha at most 0.25, off under reduced motion)
     - Edit `src/game/entities/Monster.ts` and `src/game/scenes/GameScene.ts` for the larger boss, aura and dramatic intro using existing events only; heavier fog in `src/game/systems/AtmosphereSystem.ts`
     - _Requirements: 11.1, 11.5, 11.6, 11.7, 4.1_
 
-  - [ ] 4.5 All-theme coverage tests
+  - [x] 4.5 All-theme coverage tests
     - Edit `src/game/world/themeBudget.property.test.ts` and `src/game/world/propPlacement.property.test.ts` to iterate every theme in THEME_IDS (Properties 5 and 7 on all five rooms plus entry)
     - **Property 5: Placed props never block**
     - **Property 7: Theme budgets respect the caps**
     - **Validates: Requirements 9.1, 9.2, 10.1, 10.2, 10.3**
 
-- [ ] 5. STOP: Phase 3 checkpoint, rooms review
+- [x] 5. STOP: Phase 3 checkpoint, rooms review
   - Ensure all tests pass. Ask the user to review each room with `?debug=1` and approve before Phase 4.
   - _Requirements: 11.8_
 

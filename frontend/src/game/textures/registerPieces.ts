@@ -10,6 +10,12 @@ export const PIECE_TEXTURES = {
   batRoost: 'piece_bat_roost',
   batUp: 'piece_bat_up',
   batDown: 'piece_bat_down',
+  candle: 'piece_candle',
+  page: 'piece_page',
+  book: 'piece_book',
+  bubble: 'piece_bubble',
+  jarEye: 'piece_jar_eye',
+  jarSpark: 'piece_jar_spark',
 } as const
 
 type Painter = (ctx: CanvasRenderingContext2D, w: number, h: number) => void
@@ -118,6 +124,79 @@ export function registerPieces(scene: Phaser.Scene): void {
     const g = ctx.createRadialGradient(w / 2, h / 2, 0, w / 2, h / 2, w / 2)
     g.addColorStop(0, 'rgba(235,235,245,0.7)')
     g.addColorStop(1, 'rgba(235,235,245,0)')
+    ctx.fillStyle = g
+    ctx.fillRect(0, 0, w, h)
+  })
+  // Floating candle: soft halo, wax stick and a small flame.
+  make(scene, PIECE_TEXTURES.candle, 32, 40, (ctx, w) => {
+    const g = ctx.createRadialGradient(w / 2, 10, 0, w / 2, 10, 16)
+    g.addColorStop(0, 'rgba(255,200,100,0.5)')
+    g.addColorStop(1, 'rgba(255,200,100,0)')
+    ctx.fillStyle = g
+    ctx.fillRect(0, 0, w, 28)
+    ctx.fillStyle = '#e9dfc4'
+    ctx.fillRect(w / 2 - 3, 16, 6, 20)
+    ctx.fillStyle = '#b8a888'
+    ctx.fillRect(w / 2 - 3, 16, 2, 20)
+    ctx.fillStyle = '#ffcf6a'
+    ctx.beginPath()
+    ctx.ellipse(w / 2, 11, 3, 5, 0, 0, Math.PI * 2)
+    ctx.fill()
+    ctx.fillStyle = '#fff3c0'
+    ctx.fillRect(w / 2 - 1, 10, 2, 4)
+  })
+  make(scene, PIECE_TEXTURES.page, 14, 18, (ctx, w, h) => {
+    ctx.fillStyle = '#d8c9a8'
+    ctx.fillRect(0, 0, w, h)
+    ctx.fillStyle = 'rgba(40,30,30,0.5)'
+    for (let y = 3; y < h - 2; y += 3) ctx.fillRect(2, y, w - 5, 1)
+  })
+  // Ghost book: open pale-green book; shown translucent and tinted by the piece.
+  make(scene, PIECE_TEXTURES.book, 26, 16, (ctx, w, h) => {
+    ctx.fillStyle = '#bfe8d6'
+    ctx.beginPath()
+    ctx.moveTo(0, 3)
+    ctx.lineTo(w / 2, 6)
+    ctx.lineTo(w, 3)
+    ctx.lineTo(w, h - 2)
+    ctx.lineTo(w / 2, h)
+    ctx.lineTo(0, h - 2)
+    ctx.closePath()
+    ctx.fill()
+    ctx.fillStyle = 'rgba(30,60,50,0.55)'
+    ctx.fillRect(w / 2 - 1, 6, 2, h - 6)
+    for (let y = 7; y < h - 3; y += 3) {
+      ctx.fillRect(3, y, 8, 1)
+      ctx.fillRect(w - 11, y, 8, 1)
+    }
+  })
+  make(scene, PIECE_TEXTURES.bubble, 10, 10, (ctx, w, h) => {
+    ctx.strokeStyle = 'rgba(184,240,122,0.9)'
+    ctx.fillStyle = 'rgba(111,208,74,0.45)'
+    ctx.beginPath()
+    ctx.arc(w / 2, h / 2, w / 2 - 1, 0, Math.PI * 2)
+    ctx.fill()
+    ctx.stroke()
+    ctx.fillStyle = 'rgba(255,255,255,0.7)'
+    ctx.fillRect(3, 2, 2, 2)
+  })
+  make(scene, PIECE_TEXTURES.jarEye, 14, 10, (ctx, w, h) => {
+    ctx.fillStyle = '#eef1e0'
+    ctx.beginPath()
+    ctx.ellipse(w / 2, h / 2, w / 2 - 1, h / 2 - 1, 0, 0, Math.PI * 2)
+    ctx.fill()
+    ctx.fillStyle = '#6fd04a'
+    ctx.beginPath()
+    ctx.arc(w / 2, h / 2, 3, 0, Math.PI * 2)
+    ctx.fill()
+    ctx.fillStyle = '#10200f'
+    ctx.fillRect(w / 2 - 1, h / 2 - 1, 2, 3)
+  })
+  make(scene, PIECE_TEXTURES.jarSpark, 12, 12, (ctx, w, h) => {
+    const g = ctx.createRadialGradient(w / 2, h / 2, 0, w / 2, h / 2, w / 2)
+    g.addColorStop(0, 'rgba(255,255,200,1)')
+    g.addColorStop(0.4, 'rgba(233,162,59,0.8)')
+    g.addColorStop(1, 'rgba(233,162,59,0)')
     ctx.fillStyle = g
     ctx.fillRect(0, 0, w, h)
   })
