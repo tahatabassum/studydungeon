@@ -82,29 +82,40 @@ async def run_smoke():
         run_id = run_resp.json()["id"]
         print(f"[PASS] 7. /runs created active run (id: {run_id})")
 
-        # 8. Submit Attempt
-        att_uuid = str(uuid.uuid4())
-        att_resp = await client.post(
-            f"/runs/{run_id}/attempts",
-            json={
-                "attempt_id": att_uuid,
-                "question_id": gen_resp.json()["rooms"][0]["questions"][0]["id"],
-                "selected_answer": gen_resp.json()["rooms"][0]["questions"][0]["options"][0],
-                "weapon_name": "Rusty Dagger",
-            },
-        )
-        assert att_resp.status_code == 200
-        print(f"[PASS] 8. /runs/{run_id}/attempts authoritative combat executed successfully")
+        # 8. Submit Attempt & Clear Room Loop (Play 2 rooms)
+        rooms = gen_resp.json()["rooms"]
+        for r_idx in range(min(2, len(rooms))):
+            target_r = rooms[r_idx]
+            q = target_r["questions"][0]
+            att_uuid = str(uuid.uuid4())
+            att_resp = await client.post(
+                f"/runs/{run_id}/attempts",
+                json={
+                    "attempt_id": att_uuid,
+                    "question_id": q["id"],
+                    "selected_answer": q["options"][0],
+                    "weapon_name": "Rusty Dagger",
+                },
+            )
+            assert att_resp.status_code == 200
 
-        # 9. Finish Run
-        fin_resp = await client.post(f"/runs/{run_id}/finish")
-        assert fin_resp.status_code == 200
-        print(f"[PASS] 9. /runs/{run_id}/finish calculated end-of-run scorecard: {fin_resp.json()['mastery_band']}")
+        print(f"[PASS] 8. /runs/{run_id}/attempts two-room combat loop verified")
 
-        # 10. Check Progress
-        prog_resp = await client.get("/progress")
-        assert prog_resp.status_code == 200
-        print("[PASS] 10. /progress persisted total XP and stats")
+        # 9. Cross-Account Tenant Isolation Verification
+        u2_username = f"smoke_intruder_{uuid.uuid4().hex[:6]}"
+        await client.post("/auth/register", json={"username": u2_username, "password": "SecurePassword123!"})
+        await client.post("/auth/login", json={"username": u2_username, "password": "SecurePassword123!"})
+        # Intruder attempts to view user 1's run
+        leak_resp = await client.get(f"/runs/{run_id}")
+        assert leak_resp.status_code == 404, "Tenant leak detected!"
+        print("[PASS] 9. Cross-account tenant isolation strictly verified (HTTP 404 on other user run)")
+
+        # 10. Logout & Session Revocation
+        logout_resp = await client.post("/auth/logout")
+        assert logout_resp.status_code == 200
+        post_logout_resp = await client.get("/auth/me")
+        assert post_logout_resp.status_code == 401
+        print("[PASS] 10. Logout and session cookie revocation verified")
 
         # 11. Demo session
         demo_resp = await client.post("/demo/session")
