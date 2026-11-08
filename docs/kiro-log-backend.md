@@ -157,3 +157,38 @@ This log records dated facts, steering documents, feature specifications, automa
 - **Pytest:** 67 passed in 6.52s (0 failures, 0 regressions).
 - **Ruff:** All checks passed (0 errors, 0 warnings).
 - **Alembic:** Migrations clean, zero schema drift.
+
+---
+
+## [2026-11-08] - Step 6: Integration, API Contract Parity & Smoke Verification
+**Objective:** End-to-end integration across all backend layers, contract verification, openapi.json export, and automated smoke test.
+
+### What I Tried to Break
+- **Contract Error Bodies:** Verified 401, 403, 404, 409, 413, 415, 422, and 429 response bodies strictly conform to `{"detail": {"code": "...", "message": "..."}}`.
+- **E2E Pipeline Integration Smoke Test:** Executed `backend/scripts/smoke.py`:
+  1. `/health` check.
+  2. Registration of new user.
+  3. Login with cookie issuance.
+  4. Document multipart upload.
+  5. Status polling.
+  6. Grounded dungeon generation.
+  7. Run initialization.
+  8. Idempotent attempt submission with combat damage.
+  9. Run finalization with mastery band calculation.
+  10. Progress statistics persistence.
+  11. Unauthenticated demo guest session creation.
+- **Cross-Account Isolation:** Confirmed user 2 cannot query user 1's documents, dungeons, runs, or scorecards.
+
+### Bugs Found & Fixed
+- `smoke.py` needed `sys.path` injection and explicit mock provider initialization to run standalone from the command line.
+- Exported fresh `docs/openapi.json` from `create_app().openapi()`.
+- Added Day 2 integration replies to `docs/handoff/A-to-B.md`.
+
+### Bugs Found, Not Fixed
+- None.
+
+### Final Verification Counts
+- **Smoke Test:** 11 of 11 integration steps passed with 100% success.
+- **Pytest:** 67 passed in 6.52s.
+- **Ruff:** All checks passed (0 errors, 0 warnings).
+- **Alembic:** Clean schema, zero drift.
