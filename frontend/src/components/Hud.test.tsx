@@ -53,6 +53,20 @@ describe('Hud halloween frame', () => {
     expect(screen.queryByText(/to next/)).toBeNull()
   })
 
+  it('real mode: without xp_to_next it shows total XP only, and with it the full line', () => {
+    const { rerender } = render(<Hud {...base} level={2} totalXp={120} />)
+    expect(screen.getByText('Total 120 XP')).toBeTruthy()
+    expect(screen.queryByText(/to next/)).toBeNull()
+    rerender(<Hud {...base} level={2} totalXp={120} xpToNext={80} />)
+    expect(screen.getByText(/Total 120 XP .* 80 to next/)).toBeTruthy()
+  })
+
+  it('shows the boss HP it is given, not an assumed one (220 / 220)', () => {
+    render(<Hud {...base} monsterHp={220} maxMonsterHp={220} isBoss />)
+    expect(screen.getByText('220 / 220')).toBeTruthy()
+    expect(screen.getByRole('progressbar', { name: 'Monster health' }).getAttribute('aria-valuemax')).toBe('220')
+  })
+
   it('shows the Haunted memories counter only when a count is given, in full and compact modes', () => {
     const { rerender } = render(<Hud {...base} />)
     expect(screen.queryByTestId('haunted-counter')).toBeNull()

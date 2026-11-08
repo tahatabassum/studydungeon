@@ -5,8 +5,9 @@ import type { AnswerResult, Dungeon, DemoSessionResponse, Run } from '../types/a
 
 /**
  * Shared contract suite (D17). The same assertions run against the Mock_Adapter (always)
- * and the real Http_Client (only when VITE_API_BASE_URL is set and mocks are off), so the
- * mock cannot drift from the contract. Every response is also checked against its zod schema.
+ * and the real Http_Client (only when VITE_API_BASE or VITE_API_BASE_URL is set and mocks are off), so
+ * the mock cannot drift from the contract. Every value the client returns is a DOMAIN value (the wire
+ * layer has already mapped it) and is checked against the domain zod schema in `src/api/schemas.ts`.
  */
 export interface ContractSuiteOptions {
   label: string
@@ -31,10 +32,12 @@ function expectAnswerInvariants(r: AnswerResult): void {
   expect(r.streak).toBeGreaterThanOrEqual(0)
   if (!r.correct) expect(r.damage_dealt).toBe(0)
   if (r.correct) expect(r.streak).toBeGreaterThan(0)
-  // PROPOSED presentation fields: optional, but well-formed when present.
+  // Optional in real mode (no xp_delta, source or review_status in the attempt response).
+  if (r.xp_delta !== undefined) expect(r.xp_delta).toBeGreaterThanOrEqual(0)
+  if (r.source !== undefined) expect(typeof r.source.page).toBe('number')
   if (r.weapon_id !== undefined) expect(r.weapon_id.length).toBeGreaterThan(0)
   if (r.is_critical !== undefined) expect(typeof r.is_critical).toBe('boolean')
-  // A critical hit never changes damage, so it can only follow a correct answer.
+  // A critical hit can only follow a correct answer.
   if (r.is_critical === true) expect(r.correct).toBe(true)
 }
 
@@ -69,6 +72,16 @@ export function defineContractSuite(opts: ContractSuiteOptions): void {
       for (const q of dungeon.questions) expect(q.options.length).toBeGreaterThanOrEqual(2)
     })
 
+    it('monster HP comes from the data: positive whole numbers, and the boss is the toughest', async () => {
+      const normal = dungeon.rooms.filter((r) => !r.is_boss)
+      const boss = dungeon.rooms.find((r) => r.is_boss)!
+      for (const r of dungeon.rooms) {
+        expect(Number.isInteger(r.monster.max_hp)).toBe(true)
+        expect(r.monster.max_hp).toBeGreaterThan(0)
+      }
+      for (const r of normal) expect(boss.monster.max_hp).toBeGreaterThan(r.monster.max_hp)
+    })
+
     it('POST /runs starts in the first room with full player HP', async () => {
       run = await api.startRun(dungeon.id)
       expectSchema('startRun', run)
@@ -78,6 +91,18 @@ export function defineContractSuite(opts: ContractSuiteOptions): void {
       expect(run.monster_hp).toBe(first.monster.max_hp)
     })
 
+    it('GET /runs/{id} rehydrates the same run (room, player HP, monster HP)', async () => {
+      const again = await api.getRun(run.id)
+      expectSchema('getRun', again)
+      expect(again).toMatchObject({
+        id: run.id,
+        dungeon_id: run.dungeon_id,
+        current_room_id: run.current_room_id,
+        player_hp: run.player_hp,
+        monster_hp: run.monster_hp,
+      })
+    })
+
     it('POST /runs/{id}/attempts is idempotent per attempt_id and never reveals the answer in the request', async () => {
       const first = [...dungeon.rooms].sort((a, b) => a.order - b.order)[0]
       const q = dungeon.questions.find((x) => x.id === first.monster.question_ids[0])!
@@ -85,28 +110,31 @@ export function defineContractSuite(opts: ContractSuiteOptions): void {
       const a = await api.submitAttempt(run.id, req)
       expectSchema('submitAttempt', a)
       expectAnswerInvariants(a)
+      expect(a.monster_hp_remaining).toBeLessThanOrEqual(first.monster.max_hp)
       const b = await api.submitAttempt(run.id, req)
       expect(b).toEqual(a)
     })
 
-    it('GET /progress returns a positive level and xp_to_next', async () => {
+    it('GET /progress returns a positive level and total XP; xp_to_next is positive when present', async () => {
       const p = await api.getProgress()
       expectSchema('getProgress', p)
       expect(p.level).toBeGreaterThanOrEqual(1)
-      expect(p.xp_to_next).toBeGreaterThan(0)
+      if (p.xp_to_next !== undefined) expect(p.xp_to_next).toBeGreaterThan(0)
       expect(p.total_xp).toBeGreaterThanOrEqual(0)
-      // PROPOSED: when the weapon list is present, every entry has a positive unlock level.
+      // When the weapon list is present, every entry has a positive unlock level.
       for (const w of p.weapons ?? []) expect(w.unlock_level).toBeGreaterThanOrEqual(1)
+      // The dagger is always unlocked.
+      if (p.unlocked_weapons !== undefined) expect(p.unlocked_weapons).toContain('rusty_dagger')
     })
 
-    it('GET /reviews/due (PROPOSED) returns questions without answers, each in a known room', async () => {
+    it('GET /reviews/due returns questions without answers; room_id is a known room or empty (another dungeon)', async () => {
       const reviews = await api.getDueReviews(dungeon.id)
       expectSchema('getDueReviews', reviews)
       const roomIds = new Set(dungeon.rooms.map((r) => r.id))
       const ids = new Set(reviews.map((r) => r.id))
       expect(ids.size).toBe(reviews.length)
       for (const r of reviews) {
-        expect(roomIds.has(r.room_id)).toBe(true)
+        expect(r.room_id === '' || roomIds.has(r.room_id)).toBe(true)
         expect(r.question.options.length).toBeGreaterThanOrEqual(2)
         // The question never carries the answer.
         expect(Object.keys(r.question).sort()).toEqual(['id', 'options', 'prompt', 'type'])

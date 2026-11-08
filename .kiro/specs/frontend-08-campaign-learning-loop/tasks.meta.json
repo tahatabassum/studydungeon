@@ -12,6 +12,54 @@
         "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
         "timestamp": 1794154096616
       }
+    ],
+    "3.1 Apply the contract-reconciliation fixes so the Frontend matches the real contract": [
+      {
+        "executionId": "e10e6ce4-77c1-4307-8b34-e7ce094035ef",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794154132750
+      },
+      {
+        "executionId": "e10e6ce4-77c1-4307-8b34-e7ce094035ef",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794157742854
+      }
+    ],
+    "3.2 Align the Mock_Adapter and demo data with the real balance values": [
+      {
+        "executionId": "e10e6ce4-77c1-4307-8b34-e7ce094035ef",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794154133803
+      },
+      {
+        "executionId": "e10e6ce4-77c1-4307-8b34-e7ce094035ef",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794157743109
+      }
+    ],
+    "3.3 Write property test for wire mapping": [
+      {
+        "executionId": "e10e6ce4-77c1-4307-8b34-e7ce094035ef",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794154134609
+      },
+      {
+        "executionId": "e10e6ce4-77c1-4307-8b34-e7ce094035ef",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794157743648
+      }
+    ],
+    "3.18 Extend the contract suite and the boundary tests": [
+      {
+        "executionId": "f7b388dd-bf51-4ce0-ae22-6360d4abb095",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794158272069
+      },
+      {
+        "executionId": "f7b388dd-bf51-4ce0-ae22-6360d4abb095",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794159030180
+      }
     ]
   }
 }

@@ -130,6 +130,10 @@ export function Hud({
         {!compact && level !== undefined && totalXp !== undefined && xpToNext !== undefined && (
           <span className="text-xs text-ink/80">{`Total ${totalXp} XP · ${xpToNext} to next`}</span>
         )}
+        {/* Real mode sends no xp_to_next: show the total only. */}
+        {!compact && level !== undefined && totalXp !== undefined && xpToNext === undefined && (
+          <span className="text-xs text-ink/80">{`Total ${totalXp} XP`}</span>
+        )}
         {streak !== undefined && streak > 0 && (
           <span className="flex items-center gap-1 text-accent">
             <Flame aria-hidden="true" className="size-4" />

@@ -1,7 +1,5 @@
 import fc from 'fast-check'
 import { describe, expect, it } from 'vitest'
-import { createHttpClient } from './client'
-import { ContractError } from './ContractError'
 import { ENDPOINT_SCHEMAS } from './schemas'
 
 const str = fc.string({ minLength: 1, maxLength: 12 })
@@ -97,57 +95,30 @@ const REQUIRED: Record<Key, string[]> = {
   startDemoSession: ['user', 'dungeon_id', 'expires_at'],
   getDungeon: ['id', 'name', 'rooms', 'questions'],
   startRun: ['id', 'dungeon_id', 'player_hp', 'monster_hp', 'current_room_id'],
-  submitAttempt: ['correct', 'damage_dealt', 'monster_hp_remaining', 'player_hp_remaining', 'score_delta', 'xp_delta', 'streak', 'source', 'review_status'],
+  submitAttempt: ['correct', 'damage_dealt', 'monster_hp_remaining', 'player_hp_remaining', 'score_delta', 'streak'],
   clearRoom: ['xp_delta'],
   finishRun: ['score', 'xp', 'correct', 'total', 'accuracy'],
-  getProgress: ['level', 'total_xp', 'xp_to_next'],
-}
-
-const json = (body: unknown) => async () =>
-  new Response(JSON.stringify(body), { status: 200, headers: { 'Content-Type': 'application/json' } })
-
-/** Calls the matching Http_Client method with a fake fetch returning `body`. */
-function call(key: Key, body: unknown): Promise<unknown> {
-  const api = createHttpClient('', json(body) as unknown as typeof fetch)
-  switch (key) {
-    case 'startDemoSession':
-      return api.startDemoSession()
-    case 'getDungeon':
-      return api.getDungeon('d')
-    case 'startRun':
-      return api.startRun('d')
-    case 'submitAttempt':
-      return api.submitAttempt('r', { question_id: 'q', selected_answer: 'a', attempt_id: 'x' })
-    case 'clearRoom':
-      return api.clearRoom('r', 'room')
-    case 'finishRun':
-      return api.finishRun('r')
-    case 'getProgress':
-      return api.getProgress()
-  }
+  getProgress: ['level', 'total_xp'],
 }
 
 describe('response schemas', () => {
   // Feature: frontend-07-premium-ux-leaderboard, Property 22: Schema validation round trip and loud failure
   // **Validates: Requirements 17.3, 17.4, 17.7**
-  it.each(KEYS)('Property 22: %s round trips and fails loudly with the endpoint and path', async (key) => {
+  it.each(KEYS)('Property 22: %s round trips and fails loudly at the field', async (key) => {
     const arb = VALID[key] as fc.Arbitrary<Record<string, unknown>>
     await fc.assert(
       fc.asyncProperty(arb, fc.nat(), fc.boolean(), async (value, pick, remove) => {
-        // Round trip: a valid value parses to an equal value through the Http_Client.
+        // Round trip: a valid domain value parses to an equal value.
         expect(ENDPOINT_SCHEMAS[key].schema.parse(value)).toEqual(value)
-        expect(await call(key, value)).toEqual(value)
 
-        // One required field removed or retyped must throw a ContractError naming endpoint and path.
+        // One required field removed or retyped must fail, naming the field as the first path segment.
         const field = REQUIRED[key][pick % REQUIRED[key].length]
         const mutated: Record<string, unknown> = { ...value }
         if (remove) delete mutated[field]
         else mutated[field] = { not: 'valid' }
-        const err = await call(key, mutated).catch((e: unknown) => e)
-        expect(err).toBeInstanceOf(ContractError)
-        const ce = err as ContractError
-        expect(ce.message).toContain(ENDPOINT_SCHEMAS[key].endpoint)
-        expect(ce.path.startsWith(field)).toBe(true)
+        const r = ENDPOINT_SCHEMAS[key].schema.safeParse(mutated)
+        expect(r.success).toBe(false)
+        if (!r.success) expect(String(r.error.issues[0].path[0])).toBe(field)
       }),
       { numRuns: 100 },
     )

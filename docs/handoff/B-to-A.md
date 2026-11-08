@@ -467,3 +467,49 @@ PUT /progress/equipped-weapon   { "weapon": "Arcane Staff" }  ->  200 { "equippe
 3. Can the attempt response include `correct_answer` (after wrong answers only) and `source.page`?
 4. Is `GET /reviews/due` going to carry `daily_streak` and `next_due_at`, or should the frontend call a separate daily-run endpoint?
 5. Who owns the dungeon size cap and its error code?
+
+#### Phase 1A update (frontend-08): real mode now plays the existing 5-room game
+
+Date: frontend-08 Phase 1A. The frontend reads your real shapes through `src/api/wire/` and plays the demo end to end against your backend (`VITE_USE_MOCKS=false`, `VITE_API_BASE=http://localhost:8000`). Nothing under `backend/` was changed. Everything below is a note for you; items marked PROPOSED are not built on our side.
+
+##### Doc mismatches for Person A
+
+1. **`api-contract.md` Section 3 vs `openapi.json` and the code (C1).** The contract text uses `selected_option`, `correct`, `source{page,slide,chunk_id}`, `review_status`, `{run_id, player_hp, ...}` from `POST /runs`, and `GET /reviews/due` items `{question_id, prompt, due_at}`. The code uses `selected_answer`, `is_correct`, no `source`/`review_status`, a `RunDetailResponse` with `id`, `current_hp` and `rooms[]`, and `GET /reviews/due` items `{question_id, prompt, options, next_review_at, repetition_count}`. We build against the code and `openapi.json`. Please refresh `api-contract.md`.
+2. **`topic_count` vs `chunks_count` (C29).** `api-contract.md` says `topic_count` on the document status; `openapi.json` and the code say `chunks_count`. We will use `chunks_count` in the upload wizard (frontend-07 P8). Please confirm.
+3. **Finish body: three versions.** The A-to-B Day 3 table says `POST /runs/{id}/finish` returns `{ run_id, status, total_score, xp_earned, rooms_cleared, accuracy, mastery_band }`. `openapi.json` and `backend/app/schemas/runs.py` say `{ id, score, xp_earned, correct_count, total_attempts, accuracy, mastery_band, status }`. We follow the code. Please fix the A-to-B table.
+4. **Room clear body.** The A-to-B Day 3 table says `{ room_id, is_cleared, xp_delta }`; the code returns `{ success, room_id, xp_delta, is_boss }`. `openapi.json` has no response model for this route. We follow the code. Please add a response model so it appears in `openapi.json`.
+5. **`GET /runs/{id}` in A-to-B Day 1** lists `{ id, dungeon_id, current_hp, current_score, current_streak, status, started_at }` (no `xp_earned`, no `rooms`); the code and Day 3 return `xp_earned` and `rooms[]`. We follow the code.
+6. **Vercel rewrite: two forms (see the next note).**
+7. **Error bodies.** Day 3 says every error is `{"detail": {"code", "message"}}`. That holds for your `HTTPException`s and the 422 handler (which adds `errors[]`), but FastAPI's own array form `{"detail": [{loc,msg,type}]}` can still appear from a route outside your handler. The frontend accepts all three shapes.
+8. **`Username` rules.** `api-contract.md` says 3 to 20 characters and a 10 to 72 character password; the code allows 3 to 32 and 8 to 128, normalized to lowercase. We follow the code.
+
+##### Vercel rewrite: confirm which one is deployed
+
+The frontend uses the **Day 3 form** (`frontend/vercel.json`, destination without `/api`). `VITE_API_BASE=/api` goes with it.
+
+```json
+// Day 3 (what the frontend ships): the /api prefix is stripped
+{ "rewrites": [ { "source": "/api/:path*", "destination": "https://studydungeon-api.onrender.com/:path*" } ] }
+
+// Day 1 (not used): the /api prefix is kept, so the backend would need routes under /api
+{ "rewrites": [ { "source": "/api/:path*", "destination": "https://studydungeon-api.onrender.com/api/:path*" } ] }
+```
+
+The backend routes have no `/api` prefix (`/health`, `/demo/session`, `/runs`), so only the Day 3 form can work. Please confirm that is what is deployed. `vercel.json` also has a catch-all rewrite to `/index.html` so deep links such as `/play` load the app.
+
+##### Observations from reading the backend (no change made; please decide)
+
+1. **`monster_hp_remaining` is always 0** in `POST /runs/{id}/attempts` (`runs.py` returns the literal `0`), also for idempotent replays. The frontend computes the remaining HP itself from the room's `monster_hp` (or `monster_current_hp` from `POST /runs` and `GET /runs/{id}`) minus `damage_dealt`. PROPOSED: return the real remaining HP, so the server stays the single source of truth. Until then, a reload mid-room is rebuilt through `GET /runs/{id}`.
+2. **Progress never changes.** Nothing in `backend/app` writes `UserProgress`, and `POST /runs/{id}/rooms/{room_id}/clear` computes `xp_delta` (25 or 100) without adding it to `GameRun.xp_earned`. So `GET /progress` stays at level 1, 0 XP and `["Rusty Dagger"]`, and the run summary's `xp_earned` counts only the 10 XP per correct answer. The frontend shows the room-clear XP it receives in the HUD; the finish screen shows `xp_earned`. If this is intended later, no frontend change is needed.
+3. **Weapon unlocks.** Because of item 2, the frontend always sends `weapon_name: "Rusty Dagger"` against a fresh backend (it picks the best weapon only from `unlocked_weapons` returned by `GET /progress`). The check in `runs.py` also allows a weapon when `is_weapon_unlocked(level, xp)` passes, but `cleared_rooms` and `boss_cleared` are never passed, so the crossbow and the sigil can only come from `unlocked_weapons`.
+4. **Review items.** Every attempt inserts a new `ReviewItem` (also for correct answers, due in 3 days) and always passes `current_repetition=0`, so one question can appear several times in `GET /reviews/due` with the same `question_id`. The frontend drops duplicates by `question_id`.
+5. **Room Revenants are hidden in real mode** (capability off) because attempts on a cleared room return 409 `ROOM_ALREADY_CLEARED`. The haunted counter still shows the count from `GET /reviews/due`.
+6. **`GET /reviews/due` is global** (no `dungeon_id` filter). The frontend resolves `room_id` from the loaded dungeon and keeps items from other dungeons with an empty room id so they still count.
+7. **Idempotent replay** returns `is_critical: false` and the stored `damage_dealt`. The frontend caches the first response per `attempt_id`, so a normal retry after a lost response shows the right values.
+8. **Question choice.** In real mode the frontend cycles the room's `questions[]` (`questionSelector`) in the order you send them. PROPOSED, later: a server-chosen next question, so requeue and pools can live on the backend (Phase 1B+).
+##### Real-backend verification (frontend-08 Phase 1A, local run against http://localhost:8000)
+Observed with the running backend (`ai_provider: mock`). Nothing under `backend/` was changed. The Http_Client mapped every response it could read without a ContractError.
+1. **Demo dungeon not seeded in a fresh local DB.** `POST /demo/session` returns `dungeon_id: "demo-dungeon-seeded-id"` (the fallback literal) and `GET /dungeons/demo-dungeon-seeded-id` then returns 404 `DUNGEON_NOT_FOUND`. `seed_demo_dungeon` only runs from the Dockerfile entrypoint (`python -m app.demo.seed`), not from `main.py` lifespan, and `GET /dungeons` is `[]`. Local fix: run `python -m app.demo.seed` from `backend/`. PROPOSED: seed in the lifespan, or fail `POST /demo/session` instead of returning a dungeon id that does not exist. Task 7 of backend-05 is marked done but `main.py` does not call the seed.
+2. **500 on some questions of a mock-AI generated dungeon.** Dungeon from `POST /documents` + `generate-dungeon` (1 boss room, 2 questions). `POST /runs/{id}/attempts` for the second question always returns 500 `INTERNAL_SERVER_ERROR` (any option, with or without `weapon_name`); the first question works. After the first successful attempt, `GET /runs/{id}` also returns 500 (before any attempt it returns 200). Not reproduced on the seeded demo dungeon (not available locally). Please check the server log for that run.
+3. **Run on another user's dungeon:** `POST /runs` returns 403 `FORBIDDEN` ("You do not own this dungeon."); the frontend maps it to an ApiError with that code.
+4. **Cookie session:** the session cookie is `studydungeon_session`, `HttpOnly; SameSite=lax; Path=/`, not `Secure`. CORS preflight from `http://localhost:5173` returns `allow-credentials: true` and echoes the origin, so `credentials: 'include'` works from the dev server. Node tests need a cookie jar (added in `frontend/src/contract/cookieFetch.ts`).

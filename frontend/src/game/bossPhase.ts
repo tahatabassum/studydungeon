@@ -4,7 +4,7 @@
  */
 export type BossPhase = 'normal' | 'enraged' | 'defeated'
 
-/** Fraction of max HP below which the boss is enraged (60 of 120 stays normal; 59 is enraged). */
+/** Fraction of the RECEIVED max HP below which the boss is enraged (half stays normal; one less is enraged). Works for any max (120, 220, 240). */
 export const ENRAGE_BELOW = 0.5
 
 export function bossPhase(hp: number, maxHp: number): BossPhase {

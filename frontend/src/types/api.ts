@@ -27,6 +27,8 @@ export interface Question {
   type: QuestionType
   prompt: string
   options: string[]
+  /** Real backend only: easy, medium or hard (hard questions deal 1.25x damage). */
+  difficulty?: string
 }
 
 /** Plain string so the backend can add kinds without breaking the frontend. */
@@ -61,6 +63,9 @@ export interface Run {
   player_hp: number
   monster_hp: number
   current_room_id: string
+  /** Real backend only (resume data): the run's score and streak so far. */
+  score?: number
+  streak?: number
 }
 
 /** Request body for an attempt. Carries no correctness or damage fields. */
@@ -68,6 +73,8 @@ export interface AttemptRequest {
   question_id: string
   selected_answer: string
   attempt_id: string
+  /** Weapon to strike with. The real backend validates it; absent means the Rusty Dagger. */
+  weapon_id?: WeaponId
 }
 
 /** Authoritative result of an attempt, determined by the backend. */
@@ -77,10 +84,14 @@ export interface AnswerResult {
   monster_hp_remaining: number
   player_hp_remaining: number
   score_delta: number
-  xp_delta: number
+  /** Absent in real mode: the attempt response carries no XP. HUD XP comes from clear and finish. */
+  xp_delta?: number
   streak: number
-  source: { page: number; chunk_id: string }
-  review_status: 'due' | 'not_due'
+  /** Absent in real mode; the Source line then falls back to evidence_quote. */
+  source?: { page: number; chunk_id: string }
+  review_status?: 'due' | 'not_due'
+  /** Real backend: the quote from the player's notes that grounds the answer. */
+  evidence_quote?: string
   /** Optional; when absent the Source_Line shows only the page. */
   explanation?: string
   /** PROPOSED (pending Person A): weapon used for the strike. Absent means Rusty Dagger. */
@@ -91,6 +102,7 @@ export interface AnswerResult {
 
 export interface ClearRoomResponse {
   xp_delta: number
+  is_boss?: boolean
 }
 
 export interface RunSummary {
@@ -100,6 +112,8 @@ export interface RunSummary {
   total: number
   /** Ratio from 0 to 1. */
   accuracy: number
+  /** Real backend: one band for the whole run (Weak, Learning or Strong). */
+  mastery_band?: string
   /** PROPOSED (pending Person A): badges earned this run. */
   badges_earned?: BadgeId[]
   /** PROPOSED (pending Person A): rank on the dungeon leaderboard after this run. */
@@ -117,11 +131,14 @@ export interface RunSummary {
 export interface ProgressInfo {
   level: number
   total_xp: number
-  xp_to_next: number
+  /** Absent in real mode: the HUD then shows total XP only. */
+  xp_to_next?: number
+  /** Real mode: ids of the weapons the backend reports as unlocked. */
+  unlocked_weapons?: WeaponId[]
   /** PROPOSED (pending Person A) */
   badges?: BadgeId[]
   /** PROPOSED (pending Person A) */
-  weapons?: { id: WeaponId; unlock_level: number }[]
+  weapons?: { id: WeaponId; unlock_level: number; requirement?: string }[]
   /** PROPOSED (pending Person A) */
   recent_runs?: { id: string; dungeon_name: string; score: number; accuracy: number; finished_at: string }[]
   /** PROPOSED (pending Person A) */

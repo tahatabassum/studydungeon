@@ -48,7 +48,13 @@ export function Armory({ weapons, level, className = '' }: ArmoryProps) {
               <Icon aria-hidden="true" className={`size-5 shrink-0 ${w.unlocked ? 'text-gold' : ''}`} />
               <span className="min-w-0 flex-1 truncate font-semibold">{w.name}</span>
               <span className="shrink-0 text-xs">
-                {w.unlocked ? `Unlocked (level ${w.unlockLevel})` : `Locked: unlocks at level ${w.unlockLevel}`}
+                {w.requirement !== undefined
+                  ? w.unlocked
+                    ? 'Unlocked'
+                    : `Locked: ${w.requirement}`
+                  : w.unlocked
+                    ? `Unlocked (level ${w.unlockLevel})`
+                    : `Locked: unlocks at level ${w.unlockLevel}`}
               </span>
             </li>
           )

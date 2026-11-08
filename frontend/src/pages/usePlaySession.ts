@@ -106,6 +106,16 @@ export function usePlaySession() {
         setDungeon(d)
         dispatch({ type: 'run-started', run, rooms: d.rooms })
         void refreshProgress(api)
+        // Real mode has no due count in progress: load it once so the Haunted counter is honest.
+        // Optional: a failure hides nothing and blocks nothing.
+        if (api.capabilities?.roomRevenants === false) {
+          void api
+            .getDueReviews(d.id)
+            .then((due) => {
+              if (!cancelled && mountedRef.current) setFetchedDue(due.length)
+            })
+            .catch(() => undefined)
+        }
       } catch (err) {
         if (!cancelled) setLoadError(describeError(err, 'The dungeon could not be loaded.'))
       }
@@ -305,6 +315,12 @@ export function usePlaySession() {
         const due = await api.getDueReviews(dungeonId)
         // Ignore a late answer from before a restart or after leaving the page.
         if (!mountedRef.current || stateRef.current.runId !== runId) return
+        // Real backend (C19): an attempt on a cleared room is rejected, so no room Revenants spawn.
+        // The counter still shows how many reviews are due.
+        if (api.capabilities?.roomRevenants === false) {
+          setFetchedDue(due.length)
+          return
+        }
         const spawns = spawnsForRoom(due, roomId)
         const ids = new Set(spawns.map((s) => s.id))
         revenantsRef.current = new Map(due.filter((d) => ids.has(d.id)).map((d) => [d.id, d]))

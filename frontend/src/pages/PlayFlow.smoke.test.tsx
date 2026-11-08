@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Integration smoke test for the play flow (Mock_Adapter + Demo_Rules, Phaser mocked
  * at the GameCanvas/bridge boundary).
  * **Validates: Requirements 15.6, 3.3, 3.4, 9.1, 10.6, 22.1, 22.3, 22.4**
@@ -93,7 +93,7 @@ async function startAndEncounter() {
   await startDemo()
   const playerBar = await screen.findByRole('progressbar', { name: 'Player health' })
   expect(playerBar.getAttribute('aria-valuenow')).toBe('100')
-  expect(screen.getByRole('progressbar', { name: 'Monster health' }).getAttribute('aria-valuenow')).toBe('60')
+  expect(screen.getByRole('progressbar', { name: 'Monster health' }).getAttribute('aria-valuenow')).toBe('80')
   expect(await screen.findByText('100 / 100')).toBeTruthy()
   expect(screen.getByText('XP 0')).toBeTruthy()
   emitEncounter('monster-1')
@@ -119,7 +119,7 @@ describe('play flow smoke test', () => {
     vi.useRealTimers()
   })
 
-  it('continuous flow: one encounter, three auto-advanced questions, room cleared', async () => {
+  it('continuous flow: one encounter, four auto-advanced questions (80 HP), room cleared', async () => {
     const clearSpy = vi.spyOn(adapter, 'clearRoom')
     await startDemo()
     let encounters = 0
@@ -130,7 +130,7 @@ describe('play flow smoke test', () => {
     const dialog = await screen.findByRole('dialog')
 
     const seen: string[] = []
-    for (let i = 0; i < 3; i++) {
+    for (let i = 0; i < 4; i++) {
       if (i > 0) {
         // Auto-advance: the next question shows up in the SAME dialog without a new encounter.
         await vi.waitFor(() => expect(promptOf(dialog)).not.toBe(seen[i - 1]))
@@ -153,7 +153,7 @@ describe('play flow smoke test', () => {
     await vi.waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
     expect(await screen.findByText(/Room cleared/)).toBeTruthy()
     expect(encounters).toBe(1)
-    expect(new Set(seen).size).toBe(3)
+    expect(new Set(seen).size).toBe(4)
     expect(clearSpy).toHaveBeenCalledTimes(1)
   })
 
@@ -172,7 +172,7 @@ describe('play flow smoke test', () => {
     await user.click(await screen.findByRole('button', { name: 'Next' }))
 
     await vi.waitFor(() =>
-      expect(screen.getByRole('progressbar', { name: 'Monster health' }).getAttribute('aria-valuenow')).toBe('40'),
+      expect(screen.getByRole('progressbar', { name: 'Monster health' }).getAttribute('aria-valuenow')).toBe('60'),
     )
     expect(screen.getByText('XP 10')).toBeTruthy()
     // Next presented the following question without a new encounter.
@@ -299,14 +299,14 @@ describe('play flow smoke test', () => {
     // One encounter; the remaining questions follow automatically (Next skips the delay).
     emitEncounter(room1.monster.id)
     const dialog = await screen.findByRole('dialog')
-    for (let i = 0; i < 3; i++) {
+    for (let i = 0; i < 4; i++) {
       const q = questionOf(dialog)
       expect(room1.monster.question_ids).toContain(q.id)
       await user.click(correctButton(dialog))
       await vi.waitFor(() => expect(applyResults()).toHaveLength(i + 1))
       animationDone()
       await user.click(await screen.findByRole('button', { name: 'Next' }))
-      if (i < 2) await vi.waitFor(() => expect(questionOf(dialog).id).not.toBe(q.id))
+      if (i < 3) await vi.waitFor(() => expect(questionOf(dialog).id).not.toBe(q.id))
     }
 
     await vi.waitFor(() =>

@@ -355,6 +355,7 @@ function EncounterBody({
             <SourceLine
               source={shownResult.source}
               explanation={shownResult.explanation}
+              evidenceQuote={shownResult.evidence_quote}
               className="min-w-0 flex-1 basis-48 px-2 py-1"
             />
             {waiting && (

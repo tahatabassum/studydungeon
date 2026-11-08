@@ -56,7 +56,8 @@ Rules for every task:
   - Summarize the reconciliation highlights, decisions D1 to D26, risks and cut list. Say how to view the three documents and the B-to-A.md section. Wait for approval, then commit Phase 0 separately.
 
 - [ ] 3. Phase 1: Floors data model and adapters
-  - [ ] 3.1 Apply the contract-reconciliation fixes so the Frontend matches the real contract
+  - Split by user: Phase 1A = 3.1, 3.2, 3.3 and the wire/contract part of 3.18, then STOP for review; Phase 1B = 3.4 to 3.17 and the rest of 3.18.
+  - [x] 3.1 Apply the contract-reconciliation fixes so the Frontend matches the real contract
     - Create `src/api/wire/` with wire zod schemas and pure mappers for dungeon (C2 to C6), run start (C8), attempt result (C10, C11), room clear (C17), finish (C15), progress (C14), due reviews (C20) and the auth bodies (C22), plus `kindFromMonsterType` (C5)
     - Switch `src/api/client.ts` (Http_Client) to validate with the wire schemas and return mapped domain values; keep `ContractError` naming the endpoint and field
     - Update `src/api/errors.ts` to expose `detail.code` and `detail.message`, handle the 422 array form (C24), and map the codes in C16, C18 and C28 to friendly messages
@@ -65,11 +66,11 @@ Rules for every task:
     - Add `ApiClient.getRun(runId)` (C21) over `GET /runs/{id}`
     - Add the legacy single-Floor mapping hook point (completed in 3.4)
     - _Requirements: 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 1.9_
-  - [ ] 3.2 Align the Mock_Adapter and demo data with the real balance values
+  - [x] 3.2 Align the Mock_Adapter and demo data with the real balance values
     - Demo monster HP to 80, 90, 85, 85 and the Exam Warden to 220 (C7); critical x1.5 and hard-question x1.25 damage in the mock (C12); weapon table with base damage 20, 25, 30, 35, 40 and unlock rules (C13); `unlocked_weapons` names mapped to ids
     - Keep every existing mock test passing; update expected numbers only where the contract changed them and note each change in the kiro log
     - _Requirements: 1.9, 3.1_
-  - [ ]* 3.3 Write property test for wire mapping
+  - [x]* 3.3 Write property test for wire mapping
     - **Property 1: Wire mapping produces valid domain values and fails loudly**
     - **Validates: Requirements 1.2, 1.3, 1.4**
   - [ ] 3.4 Add the floors Domain_Model, schemas and ApiClient surface
@@ -120,7 +121,7 @@ Rules for every task:
   - [ ] 3.17 Add the development-only route `/dev/floors`
     - Lazy-registered only when `import.meta.env.DEV`; `?floors=1|3|10|25&status=mixed`; renders a JSON and status table placeholder now (the map arrives in Phase 2); a test proves the route is absent when DEV is false and that fixtures of 3 or more Floors are not reachable in production
     - _Requirements: 4.1, 4.2, 4.3_
-  - [ ] 3.18 Extend the contract suite and the boundary tests
+  - [x] 3.18 Extend the contract suite and the boundary tests
     - Add `src/contract/suite.ts` cases for `getDungeon` with floors, `startRun` with mode, `getDueReviews` new shape, `getGenerationStatus`, `finishRun` additions and wire mapper tests against `docs/handoff/demo_dungeon.sample.json`
     - Extend `importBoundary.test.ts` with the new module folders; add a test that real mode loads no mock module
     - _Requirements: 1.9, 4.4, 15.1, 15.2, 15.5_

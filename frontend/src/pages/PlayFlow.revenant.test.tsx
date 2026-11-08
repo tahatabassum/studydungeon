@@ -111,15 +111,18 @@ describe('haunted memories (revenants)', () => {
     // Fight the room monster: miss the first question, then answer the rest correctly.
     emit({ type: 'encounter-started', monsterId: room1.monster.id })
     const dialog = await screen.findByRole('dialog')
-    const missed = await answer(dialog, false)
-    let previous = promptOf(dialog)
-    advance(2000)
-    for (let i = 0; i < 3; i++) {
+    // The room monster has 80 HP: correct x3 deal 20 + 20 + 30 (critical), the fourth is missed,
+    // and one more correct answer (20) defeats it. The missed question is never asked again.
+    let previous = ''
+    let missed = ''
+    for (let i = 0; i < 5; i++) {
       // Auto-advance shows the next question in the same dialog.
-      await vi.waitFor(() => expect(promptOf(dialog)).not.toBe(previous))
+      if (i > 0) await vi.waitFor(() => expect(promptOf(dialog)).not.toBe(previous))
       previous = promptOf(dialog)
-      await answer(dialog, true)
-      advance(1200)
+      const ok = i !== 3
+      const qid = await answer(dialog, ok)
+      if (!ok) missed = qid
+      advance(ok ? 1200 : 2000)
     }
 
     // Defeated: room cleared, gate opens, and exactly one Revenant (the missed question) is sent.
@@ -139,6 +142,8 @@ describe('haunted memories (revenants)', () => {
     // Engage the Revenant: the intro line comes first, then its own question.
     const attemptsBefore = submitSpy.mock.calls.length
     const applyBefore = applyResults().length
+    // The player walks to the ghost: the pop-up has finished sliding out and unmounted, so the intro line shows.
+    advance(500)
     emit({ type: 'revenant-engaged', revenantId: `rev-${missed}` })
     const rev = await screen.findByRole('dialog')
     expect((await screen.findAllByText(REVENANT_INTRO)).length).toBeGreaterThan(0)
@@ -168,6 +173,39 @@ describe('haunted memories (revenants)', () => {
     expect(sent().filter((e) => e.type === 'gate-open')).toHaveLength(1)
     await vi.waitFor(() => expect(counter()).toBe(0))
     expect(await adapter.getDueReviews(dungeon.id)).toEqual([])
+  })
+
+  it('real mode (roomRevenants capability off): no Revenants spawn after a clear, the counter still shows what is due', async () => {
+    // The backend rejects attempts on a cleared room (C19), so room Revenants are hidden.
+    const real: ApiClient = {
+      ...createMockAdapter({ seedRevenants: true }),
+      capabilities: { roomRevenants: false, floors: false, modes: false, dailyHaunt: false },
+    }
+    h.api = real
+    const clearSpy = vi.spyOn(real, 'clearRoom')
+    render(
+      <MemoryRouter initialEntries={['/']}>
+        <SessionProvider>
+          <App />
+        </SessionProvider>
+      </MemoryRouter>,
+    )
+    await user.click(screen.getByRole('button', { name: /try the demo/i }))
+    await vi.waitFor(() => expect(gameBridge()).toBeTruthy())
+    await vi.waitFor(() => expect(counter()).toBe(12))
+
+    emit({ type: 'encounter-started', monsterId: room1.monster.id })
+    const dialog = await screen.findByRole('dialog')
+    for (let i = 0; i < 4; i++) {
+      if (i > 0) await vi.waitFor(() => expect(applyResults()).toHaveLength(i))
+      await vi.waitFor(() => expect(optionButton(dialog, answerKey[questionOf(dialog).id].correct)).toBeTruthy())
+      await answer(dialog, true)
+      advance(1200)
+    }
+    await vi.waitFor(() => expect(clearSpy).toHaveBeenCalledTimes(1))
+    await vi.waitFor(() => expect(sent().some((e) => e.type === 'gate-open')).toBe(true))
+    expect(sent().some((e) => e.type === 'spawn-revenants')).toBe(false)
+    expect(counter()).toBeGreaterThan(0)
   })
 
   it('shows no Revenant and a counter of 0 when nothing is due', async () => {

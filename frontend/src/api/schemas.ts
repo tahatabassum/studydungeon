@@ -45,6 +45,7 @@ export const questionSchema = z.object({
   type: z.enum(['mcq', 'true_false']),
   prompt: z.string(),
   options: z.array(z.string()),
+  difficulty: z.string().optional(),
 })
 
 export const monsterSchema = z.object({
@@ -76,6 +77,8 @@ export const runSchema: z.ZodType<Run> = z.object({
   player_hp: z.number(),
   monster_hp: z.number(),
   current_room_id: z.string(),
+  score: z.number().optional(),
+  streak: z.number().optional(),
 })
 
 export const answerResultSchema: z.ZodType<AnswerResult> = z.object({
@@ -84,10 +87,11 @@ export const answerResultSchema: z.ZodType<AnswerResult> = z.object({
   monster_hp_remaining: z.number(),
   player_hp_remaining: z.number(),
   score_delta: z.number(),
-  xp_delta: z.number(),
+  xp_delta: z.number().optional(),
   streak: z.number(),
-  source: z.object({ page: z.number(), chunk_id: z.string() }),
-  review_status: z.enum(['due', 'not_due']),
+  source: z.object({ page: z.number(), chunk_id: z.string() }).optional(),
+  review_status: z.enum(['due', 'not_due']).optional(),
+  evidence_quote: z.string().optional(),
   explanation: z.string().optional(),
   // PROPOSED
   weapon_id: z.string().optional(),
@@ -96,6 +100,7 @@ export const answerResultSchema: z.ZodType<AnswerResult> = z.object({
 
 export const clearRoomSchema: z.ZodType<ClearRoomResponse> = z.object({
   xp_delta: z.number(),
+  is_boss: z.boolean().optional(),
 })
 
 export const runSummarySchema: z.ZodType<RunSummary> = z.object({
@@ -104,6 +109,7 @@ export const runSummarySchema: z.ZodType<RunSummary> = z.object({
   correct: z.number(),
   total: z.number(),
   accuracy: z.number(),
+  mastery_band: z.string().optional(),
   // PROPOSED
   badges_earned: z.array(badgeId).optional(),
   leaderboard_rank: z.number().optional(),
@@ -116,10 +122,13 @@ export const runSummarySchema: z.ZodType<RunSummary> = z.object({
 export const progressSchema: z.ZodType<ProgressInfo> = z.object({
   level: z.number(),
   total_xp: z.number(),
-  xp_to_next: z.number(),
+  xp_to_next: z.number().optional(),
+  unlocked_weapons: z.array(weaponId).optional(),
   // PROPOSED
   badges: z.array(badgeId).optional(),
-  weapons: z.array(z.object({ id: weaponId, unlock_level: z.number() })).optional(),
+  weapons: z
+    .array(z.object({ id: weaponId, unlock_level: z.number(), requirement: z.string().optional() }))
+    .optional(),
   recent_runs: z
     .array(
       z.object({
@@ -149,6 +158,7 @@ export const ENDPOINT_SCHEMAS = {
   startDemoSession: { endpoint: 'POST /demo/session', schema: demoSessionSchema },
   getDungeon: { endpoint: 'GET /dungeons/{id}', schema: dungeonSchema },
   startRun: { endpoint: 'POST /runs', schema: runSchema },
+  getRun: { endpoint: 'GET /runs/{id}', schema: runSchema },
   submitAttempt: { endpoint: 'POST /runs/{id}/attempts', schema: answerResultSchema },
   clearRoom: { endpoint: 'POST /runs/{id}/rooms/{roomId}/clear', schema: clearRoomSchema },
   finishRun: { endpoint: 'POST /runs/{id}/finish', schema: runSummarySchema },

@@ -446,7 +446,7 @@ describe('combat state machine properties', () => {
         expect(after.monsterHp).toBe(result.monster_hp_remaining)
         expect(after.roomHp[before.currentRoomId as string]).toBe(result.monster_hp_remaining)
         expect(after.streak).toBe(result.streak)
-        expect(after.xp).toBe(before.xp + result.xp_delta)
+        expect(after.xp).toBe(before.xp + (result.xp_delta ?? 0))
         expect(after.score).toBe(before.score + result.score_delta)
         expect(after.lastResult).toBe(result)
         expect(after.prevPlayerHp).toBe(before.playerHp)

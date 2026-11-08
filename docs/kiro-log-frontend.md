@@ -153,3 +153,63 @@ Optional, display-first feature. `combatMachine` transitions, damage rules and t
 ### Phase 4 test counts
 
 - Typecheck, lint, build and `test:contract` pass. Full suite: 85 files, 567 passed, 1 skipped (the HTTP contract case needs a backend).
+
+## Phase 1A: real-backend matching (frontend-08, tasks 3.1, 3.2, 3.3 and the wire/contract part of 3.18)
+
+Scope set by the user: make the existing 5-room game playable against Person A's real backend. Floors, pools, fixtures for 1/3/10/25 floors and the `/dev/floors` route (3.4 to 3.17) are Phase 1B and were not started. Nothing under `backend/` was changed; backend code was read only. No commit, no push, no new dependency.
+
+### What was built
+
+- **Wire layer (3.1, D15).** `src/api/wire/{kinds,dungeon,run,attempt,progress,reviews,auth,index}.ts`: wire zod schemas plus pure mappers for dungeon (C2 to C6), run start and `GET /runs/{id}` (C8, C21), attempt (C10), room clear (C17), finish (C15), progress (C14), due reviews (C20) and the auth bodies (C22). `kindFromMonsterType` (C5) matches keywords, a boss is always `exam_warden`, an unknown name gets the default look. Questions are flattened from `rooms[].questions[]`; `type` is derived from the options; the monster id is `monster-<room id>`.
+- **Http_Client (`src/api/client.ts`).** Validates every body with the wire schemas, returns domain values, and keeps `ContractError` naming the endpoint and field (for example `rooms[0].monster_hp`). It remembers what the wire does not repeat: monster HP per room (the backend's attempt response always sends `monster_hp_remaining: 0`, so the client computes HP minus `damage_dealt`), the last score (for `score_delta`), and the first response per `attempt_id` (so a retry returns the same value). `ApiClient.getRun(runId)` added (also in the mock). `ApiClient.capabilities` added (D26); the Http_Client reports `roomRevenants`, `floors`, `modes`, `dailyHaunt` all false.
+- **Errors (`src/api/errors.ts`).** `ApiError.code`, `parseErrorBody` for `{detail:"text"}`, `{detail:{code,message,errors?}}` and the 422 array form, and `friendlyMessage` for `BOSS_NOT_CLEARED`, `MONSTER_ALIVE`, `RUN_FINISHED`, `OUT_OF_ORDER_ROOM`, `ROOM_ALREADY_CLEARED`, `UNKNOWN_WEAPON`, `WEAPON_LOCKED`, `QUESTION_NOT_FOUND`, `GUEST_FORBIDDEN`, `VALIDATION_ERROR`, plus 401 (guest session expired) and 429. `describeError` uses it, so the existing UI messages become friendly with no UI change.
+- **Optional fields.** `xp_delta`, `source`, `review_status` (attempt), `xp_to_next` (progress) are optional in types and schemas; new optional `evidence_quote`, `mastery_band`, `difficulty`, `unlocked_weapons`, `Run.score/streak`, `AttemptRequest.weapon_id`, `ClearRoomResponse.is_boss`. The reducer adds `xp_delta ?? 0`. `SourceLine` shows `From your notes: "<evidence_quote>"` when there is no page and renders nothing when there is nothing to cite. The HUD shows `Total N XP` when `xp_to_next` is absent.
+- **Config.** `readFlags()` reads `VITE_API_BASE`, falling back to `VITE_API_BASE_URL` (the first non-empty one). `frontend/vercel.json` has the Day 3 rewrite (`/api/:path*` to `https://studydungeon-api.onrender.com/:path*`) plus a catch-all to `/index.html` for deep links. `.env.example` documents both names.
+- **Real-mode gameplay.** Weapon names map to our ids (`weaponIdFromName`); the client sends `weapon_name` (the best weapon listed in `unlocked_weapons` from `GET /progress`, the Rusty Dagger otherwise, and a one-time fall back to the dagger on `WEAPON_LOCKED`/`UNKNOWN_WEAPON`). The result carries the sent weapon as `weapon_id`, so the strike animation matches. Room Revenants: `usePlaySession` skips `spawn-revenants` when `capabilities.roomRevenants === false` and still loads the due count from `GET /reviews/due` (at run start and after each clear). The Armory uses the real unlock rules as text (`Locked: Earn 100 XP`). The question cycling (`questionSelector`) is unchanged: in real mode the question set and its order are the backend's `rooms[].questions[]`.
+- **HP never hard-coded.** Checked `src/game` and the UI: Phaser reads `max_hp` from the room data (`Monster.maxHp`), `bossPhase(hp, maxHp)` uses the received maximum (the comment that mentioned 60 and 120 was fixed), the HUD and reducer take the values they are given. `demo/rules.ts` kept `MAX_MONSTER_HP = 60` only as the legacy default of `INITIAL_STATE`; no room uses it.
+- **Guest flow.** `POST /demo/session` then the public demo dungeon id from the response; `GUEST_FORBIDDEN` and 401 map to friendly messages.
+
+### Mock and demo balance (3.2): numbers that changed
+
+| Item | Before | After |
+|------|--------|-------|
+| Demo monster HP (rooms 1 to 4) | 60, 60, 60, 60 | 80, 90, 85, 85 |
+| Exam Warden HP | 120 | 220 |
+| Weapon damage | 20 for every weapon | Dagger 20, Staff 25, Crossbow 30, Hammer 35, Sigil 40 |
+| Hard questions (mock: b2, b4, b6, b8) | no multiplier | x1.25 |
+| Critical hit | flag only on streak 3, 6, 9; damage unchanged | x1.5 from the third correct answer in a row (streak before >= 2), like the backend; rounding half to even |
+| Weapon unlock | by level (L1, L2, L3, L5, L8) | Staff at 100 XP, Crossbow after clearing 2 rooms, Hammer at level 3, Sigil after a boss clear |
+| Weapon the mock strikes with | best for the level | best unlocked by the real rules |
+| Mock progress weapons list | `unlock_level` 1, 2, 3, 5, 8 | unlocked: 1; locked: level + 1; plus `requirement` text and `unlocked_weapons` |
+
+Presentation kept working: the boss enrage line is half of the boss's own max HP (110 of 220); `showMonster`, the HUD bars and the Phaser bars read the data.
+
+### Existing tests whose expected numbers changed because of the contract
+
+- `src/demo/demoDungeon.test.ts`: HP list `[60,60,60,60,120]` to `[80,90,85,85,220]`.
+- `src/api/mock/mockAdapter.test.ts`: Property 5 max monster HP bound 120 to 220; `startRun` monster HP 60 to 80; the "owning room" test 40 and 40 to 70 and 60 (room 2: 90 minus 20; room 1: 80 minus 20); `clearRoom` tests, finish, playthrough and the boss test now kill a room by answering until `monster_hp_remaining` is 0 (damage varies with crits, hard questions and weapons) instead of `ceil(hp / 20)` hits; finish test expects `correct = hits`, `total = hits + 1`, `score = 100 * hits`, `xp = 10 * hits + 100`; "boss 120 HP, 6th hit" became "boss 220 HP: each strike lowers it by the damage dealt".
+- `src/api/mock/mockRun.boss.test.ts`: setup 120 to 220; "falls after exactly 6 correct answers" to "falls when the damage adds up to 220" (at least 3 hits, the strongest strike is 75).
+- `src/api/mock/mockRun.invariants.test.ts`: the HP drop is the reported `damage_dealt` instead of a fixed 20.
+- `src/api/mock/mockReviews.property.test.ts`: the room-1 monster now needs 4 correct answers (20, 20, 30, 30) instead of 3.
+- `src/contract/mock.contract.test.ts`: crit test now `[false,false,true,true]` with damage `[20,20,30,10]`; unlock-by-level test replaced by the real rules (hammer at level 3, staff at 100 XP, crossbow after 2 clears); progress weapon list test updated.
+- `src/pages/PlayFlow.smoke.test.tsx`: monster bar 60 to 80, first hit 40 to 60, room 1 needs 4 answers instead of 3 (two tests plus the "clears room 1" test).
+- `src/pages/PlayFlow.revenant.test.tsx`: the fight is correct x3, miss the fourth, correct once more (80 HP); the missed question is `q4`, so the test advances 500 ms before engaging the Revenant so the pop-up has unmounted and shows the intro line (the intro shows only on a fresh mount; a pre-existing quirk, the old test passed because the missed question was the popup's first one).
+- `src/api/client.test.ts`: rewritten against real wire bodies (the Http_Client no longer accepts domain-shaped bodies); the attempt body now has `weapon_name`.
+- `src/api/schemas.property.test.ts`: Property 22 keeps the domain round trip and field failure, and no longer goes through the Http_Client (that part moved to `wire.property.test.ts`).
+- Type-only edits (`?? 0` / `?.`) in `mockAdapter.test.ts`, `mockRun.summary.test.ts`, `combatMachine.property.test.ts`, `runReducer.test.ts`, `runReducer.victory.test.ts` because `xp_delta` and `source` are now optional.
+
+### New tests
+
+- `src/api/wire/wire.test.ts`: mapper tests on `docs/handoff/demo_dungeon.sample.json` (HP 80, 90, 85, 220; kinds; no answer leakage), on the real-shape samples in `wire.fixtures.ts`, the auth bodies, error bodies, and a check that every `required` property of the matching `docs/openapi.json` component is present in our samples.
+- `src/api/wire/wire.property.test.ts` (3.3, Property 1, validates Requirements 1.2, 1.3, 1.4): mapped values pass the domain schemas; HP and ids come from the data; removing or retyping a required field makes the client throw a `ContractError` naming the endpoint and path.
+- `src/contract/suite.ts` asserts domain shapes (HP from the data, boss toughest, `getRun`, optional `xp_to_next`, `room_id` may be empty for another dungeon's review). `http.contract.test.ts` runs it against the real API when `VITE_API_BASE` (or `VITE_API_BASE_URL`) is set and `VITE_USE_MOCKS` is not `true`.
+- Smaller: `SourceLine.test.tsx`, Hud tests (no `xp_to_next`, 220 HP boss), `bossPhase.hp.test.ts`, and a PlayFlow test that real-mode capabilities spawn no Revenants but keep the counter.
+
+### Real backend check
+
+`GET http://localhost:8000/health` was tried once: not reachable. The contract suite was therefore not run against a real backend. The mock contract suite and the mapper tests pass.
+
+### Test counts
+
+- Typecheck, lint and build pass. `test:contract`: 1 file passed (14 tests) and 1 skipped (the real-backend file). Full suite: 90 files passed, 1 skipped; 654 tests passed, 1 skipped.
+- Not verified: any run against Person A's backend (no backend was reachable), and no browser was driven.

@@ -78,11 +78,11 @@ describe('Mock_Adapter due reviews', () => {
     const run = await api.startRun(dungeon.id)
     const room = rooms[0]
     const [q1, q2, q3, q4] = room.monster.question_ids
-    // Miss q4 once, then defeat the monster with three correct answers.
+    // Miss q4 once, then defeat the monster with correct answers (80 HP: 20 + 20 + 30 + 30).
     const missed = await api.submitAttempt(run.id, { question_id: q4, selected_answer: wrongOption(q4), attempt_id: 'a0' })
     expect(missed.player_hp_remaining).toBe(run.player_hp - 10)
     let last = missed
-    for (const [i, qid] of [q1, q2, q3].entries()) {
+    for (const [i, qid] of [q1, q2, q3, q1].entries()) {
       last = await api.submitAttempt(run.id, { question_id: qid, selected_answer: answerKey[qid].correct, attempt_id: `a${i + 1}` })
     }
     expect(last.monster_hp_remaining).toBe(0)

@@ -2,6 +2,7 @@
 
 export interface FlagEnv {
   VITE_USE_MOCKS?: string
+  VITE_API_BASE?: string
   VITE_API_BASE_URL?: string
   VITE_MOCK_SEED_REVENANTS?: string
   VITE_BADGE_SPEED_READER?: string
@@ -23,7 +24,8 @@ export interface Flags {
 export function readFlags(env: FlagEnv = import.meta.env): Flags {
   return {
     useMocks: isTrue(env.VITE_USE_MOCKS),
-    apiBaseUrl: env.VITE_API_BASE_URL ?? '',
+    // VITE_API_BASE (the Day 3 runbook name) wins; VITE_API_BASE_URL is the older name. Empty means unset.
+    apiBaseUrl: env.VITE_API_BASE || env.VITE_API_BASE_URL || '',
     mockSeedRevenants: isTrue(env.VITE_MOCK_SEED_REVENANTS),
     badgeSpeedReader: isTrue(env.VITE_BADGE_SPEED_READER),
   }

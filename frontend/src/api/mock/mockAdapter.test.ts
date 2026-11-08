@@ -66,10 +66,10 @@ describe('Property 5: Mock attempt results conform to the contract', () => {
           expect(r.player_hp_remaining).toBeGreaterThanOrEqual(0)
           expect(r.player_hp_remaining).toBeLessThanOrEqual(100)
           expect(r.monster_hp_remaining).toBeGreaterThanOrEqual(0)
-          expect(r.monster_hp_remaining).toBeLessThanOrEqual(120)
+          expect(r.monster_hp_remaining).toBeLessThanOrEqual(220)
           expect(['due', 'not_due']).toContain(r.review_status)
-          expect(typeof r.source.page).toBe('number')
-          expect(typeof r.source.chunk_id).toBe('string')
+          expect(typeof r.source?.page).toBe('number')
+          expect(typeof r.source?.chunk_id).toBe('string')
           expect(['undefined', 'string']).toContain(typeof r.explanation)
         },
       ),
@@ -160,20 +160,14 @@ describe('mock adapter unit tests', () => {
   it('clearRoom is 409 while the monster is alive and grants 25 xp after defeat', async () => {
     const { api, run } = await freshRun()
     await expect(api.clearRoom(run.id, 'room-1')).rejects.toMatchObject({ status: 409 })
-    for (let i = 0; i < 3; i++) {
-      await api.submitAttempt(run.id, {
-        question_id: 'q1',
-        selected_answer: 'CPU',
-        attempt_id: `c${i}`,
-      })
-    }
+    await killRoom(api, run.id, 'room-1')
     await expect(api.clearRoom(run.id, 'room-1')).resolves.toEqual({ xp_delta: 25 })
   })
 
   it('startRun begins in the first room with full player and room-1 monster HP', async () => {
     const { run } = await freshRun()
     expect(run.player_hp).toBe(100)
-    expect(run.monster_hp).toBe(60)
+    expect(run.monster_hp).toBe(80)
     expect((run as { current_room_id?: string }).current_room_id).toBe('room-1')
   })
 
@@ -200,12 +194,18 @@ async function answer(
   })
 }
 
-async function killRoom(api: ReturnType<typeof createMockAdapter>, runId: string, roomId: string) {
+/** Answers correctly until the room monster is dead (damage varies with crits, hard questions and weapon). */
+async function killRoom(api: ReturnType<typeof createMockAdapter>, runId: string, roomId: string): Promise<number> {
   const room = demoDungeon.rooms.find((r) => r.id === roomId)!
   const ids = room.monster.question_ids
-  let i = 0
-  const hits = Math.ceil(room.monster.max_hp / 20)
-  for (; i < hits; i++) await answer(api, runId, ids[i % ids.length], true, `${roomId}-k${i}`)
+  let hits = 0
+  let hp = room.monster.max_hp
+  while (hp > 0 && hits < 40) {
+    const r = await answer(api, runId, ids[hits % ids.length], true, `${roomId}-k${hits}`)
+    hp = r.monster_hp_remaining
+    hits += 1
+  }
+  return hits
 }
 
 describe('multi-room mock behaviour', () => {
@@ -214,9 +214,9 @@ describe('multi-room mock behaviour', () => {
     await answer(api, run.id, 'q1', false, 'w1')
     const r = await answer(api, run.id, 'm1', true, 'c1')
     expect(r.player_hp_remaining).toBe(90)
-    expect(r.monster_hp_remaining).toBe(40)
+    expect(r.monster_hp_remaining).toBe(70)
     const r2 = await answer(api, run.id, 'q1', true, 'c2')
-    expect(r2.monster_hp_remaining).toBe(40)
+    expect(r2.monster_hp_remaining).toBe(60)
   })
 
   it('rejects attempts on a defeated monster with 409', async () => {
@@ -239,26 +239,30 @@ describe('multi-room mock behaviour', () => {
     const { api, run } = await freshRun()
     await expect(api.finishRun(run.id)).rejects.toMatchObject({ status: 409 })
     await answer(api, run.id, 'b1', false, 'bw')
-    for (let i = 0; i < 6; i++) {
-      const r = await answer(api, run.id, `b${(i % 8) + 1}`, true, `bc${i}`)
-      if (i < 5) expect(r.monster_hp_remaining).toBeGreaterThan(0)
-      else expect(r.monster_hp_remaining).toBe(0)
-    }
+    const hits = await killRoom(api, run.id, 'room-5')
+    expect(hits).toBeGreaterThan(5)
     await api.clearRoom(run.id, 'room-5')
     const s = await api.finishRun(run.id)
-    expect(s).toMatchObject({ correct: 6, total: 7, score: 600, xp: 160 })
-    expect(s.accuracy).toBeCloseTo(6 / 7)
+    // 100 score and 10 XP per correct answer, plus 100 XP for the boss clear.
+    expect(s).toMatchObject({ correct: hits, total: hits + 1, score: hits * 100, xp: hits * 10 + 100 })
+    expect(s.accuracy).toBeCloseTo(hits / (hits + 1))
     await expect(api.finishRun(run.id)).resolves.toEqual(s)
   })
 
-  it('boss at full 120 HP: 5 correct answers leave it alive, the 6th brings it to 0', async () => {
+  it('boss at full 220 HP: each strike lowers it by the damage dealt, and it stays alive until the last', async () => {
     const { api, run } = await freshRun()
-    const hp: number[] = []
-    for (let i = 0; i < 6; i++) {
-      const r = await answer(api, run.id, `b${i + 1}`, true, `bf${i}`)
-      hp.push(r.monster_hp_remaining)
+    let hp = 220
+    let hits = 0
+    while (hp > 0 && hits < 40) {
+      const r = await answer(api, run.id, `b${(hits % 8) + 1}`, true, `bf${hits}`)
+      if (hits === 0) expect(r.monster_hp_remaining).toBe(200)
+      expect(r.monster_hp_remaining).toBe(Math.max(0, hp - r.damage_dealt))
+      hp = r.monster_hp_remaining
+      hits += 1
+      if (hp > 0) expect(hits).toBeLessThan(40)
     }
-    expect(hp).toEqual([100, 80, 60, 40, 20, 0])
+    expect(hp).toBe(0)
+    expect(hits).toBeGreaterThan(5)
   })
 
   it('full dungeon playthrough ends in a consistent run summary', async () => {
@@ -266,8 +270,7 @@ describe('multi-room mock behaviour', () => {
     const rooms = [...demoDungeon.rooms].sort((a, b) => a.order - b.order)
     let hits = 0
     for (const room of rooms) {
-      await killRoom(api, run.id, room.id)
-      hits += Math.ceil(room.monster.max_hp / 20)
+      hits += await killRoom(api, run.id, room.id)
       await api.clearRoom(run.id, room.id)
     }
     const s = await api.finishRun(run.id)

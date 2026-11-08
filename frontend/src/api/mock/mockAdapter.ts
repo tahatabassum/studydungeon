@@ -1,9 +1,16 @@
 import type { ApiClient } from '../ApiClient'
 import { ApiError } from '../errors'
 import demoDungeonJson from '../../demo/demoDungeon.json'
-import { BOSS_PROFILE, INITIAL_STATE, ROOM_PROFILE, applyAnswer } from '../../demo/rules'
-import type { AnswerResult, Dungeon, ProgressInfo, Room, RunSummary } from '../../types/api'
-import { WEAPONS, weaponForLevel } from '../../weapons/weapons'
+import {
+  BOSS_PROFILE,
+  CRIT_AFTER_STREAK,
+  INITIAL_STATE,
+  ROOM_PROFILE,
+  applyAnswer,
+  strikeDamage,
+} from '../../demo/rules'
+import type { AnswerResult, Dungeon, ProgressInfo, Room, RunSummary, WeaponId } from '../../types/api'
+import { WEAPONS, bestWeaponAmong } from '../../weapons/weapons'
 import { readFlags } from '../../config/flags'
 import { answerKey } from './answerKey'
 import { readMockLevel } from './mockLevel'
@@ -17,6 +24,9 @@ export interface MockAdapterOptions {
   /** Dev override of the player level (from `?mockLevel=N`); otherwise derived from XP. */
   level?: number
 }
+
+/** Mock only: demo questions that count as "hard" (damage x1.25, C12). The rest are easy or medium. */
+const HARD_QUESTION_IDS: ReadonlySet<string> = new Set(['b2', 'b4', 'b6', 'b8'])
 
 const ROOM_CLEAR_XP = 25
 const BOSS_CLEAR_XP = 100
@@ -93,6 +103,27 @@ export function createMockAdapter(options: MockAdapterOptions = {}): ApiClient {
   /** Player level: the dev override when given, else derived from cumulative XP. */
   const playerLevel = (): number => options.level ?? progressFromXp(totalXp()).level
 
+  /**
+   * Real unlock rules (C13): staff at 100 XP, crossbow after clearing 2 rooms, hammer at level 3,
+   * sigil after the first boss. The dagger is always unlocked. Cumulative across runs of this adapter.
+   */
+  const unlockedWeapons = (): WeaponId[] => {
+    let cleared = 0
+    let bosses = 0
+    for (const run of runs.values()) {
+      cleared += run.cleared.size
+      if (bossRoom && run.cleared.has(bossRoom.id)) bosses += 1
+    }
+    const xp = totalXp()
+    const level = playerLevel()
+    const ids: WeaponId[] = ['rusty_dagger']
+    if (xp >= 100) ids.push('arcane_staff')
+    if (cleared >= 2) ids.push('hunter_crossbow')
+    if (level >= 3) ids.push('spectral_hammer')
+    if (bosses >= 1) ids.push('flame_sigil')
+    return ids
+  }
+
   const wait = async (): Promise<void> => {
     if (delayMs > 0) await new Promise((resolve) => setTimeout(resolve, delayMs))
   }
@@ -168,18 +199,24 @@ export function createMockAdapter(options: MockAdapterOptions = {}): ApiClient {
       if (run.playerHp <= 0) throw new ApiError(409, 'Player is defeated')
 
       const isCorrect = req.selected_answer === entry.correct
+      // Real balance (C12, C13): best unlocked weapon, hard x1.25, critical x1.5 from the third answer in a row.
+      const weapon = bestWeaponAmong(unlockedWeapons())
+      const critical = !isReview && isCorrect && run.streak >= CRIT_AFTER_STREAK
+      const baseProfile = room.is_boss && !isReview ? BOSS_PROFILE : ROOM_PROFILE
       const { next, result } = applyAnswer(
         { playerHp: run.playerHp, monsterHp: roomHp, streak: run.streak },
         isCorrect,
-        room.is_boss && !isReview ? BOSS_PROFILE : ROOM_PROFILE,
+        {
+          ...baseProfile,
+          weaponDamage: strikeDamage(weapon.baseDamage, HARD_QUESTION_IDS.has(req.question_id), critical),
+        },
       )
       const full: AnswerResult = {
         ...result,
         source: { page: entry.page, chunk_id: entry.chunk_id },
         ...(entry.explanation !== undefined ? { explanation: entry.explanation } : {}),
-        // PROPOSED, presentation only: best weapon for the level; crit on streak multiples of 3.
-        weapon_id: weaponForLevel(playerLevel()).id,
-        is_critical: !isReview && isCorrect && next.streak > 0 && next.streak % 3 === 0,
+        weapon_id: weapon.id,
+        is_critical: critical,
       }
       reviews.record(req.question_id, isCorrect)
       run.playerHp = next.playerHp
@@ -188,7 +225,7 @@ export function createMockAdapter(options: MockAdapterOptions = {}): ApiClient {
       run.total += 1
       if (isCorrect) run.correct += 1
       run.score += result.score_delta
-      run.xp += result.xp_delta
+      run.xp += result.xp_delta ?? 0
       run.attempts.set(req.attempt_id, full)
       return structuredClone(full)
     },
@@ -231,13 +268,35 @@ export function createMockAdapter(options: MockAdapterOptions = {}): ApiClient {
       // Cumulative across all runs of this adapter instance (answer xp + clear xp, summed).
       const base = progressFromXp(totalXp())
       const level = options.level ?? base.level
+      const unlocked = unlockedWeapons()
       return {
         ...base,
         level,
-        // PROPOSED: the weapon list the Armory reads.
-        weapons: WEAPONS.map((w) => ({ id: w.id, unlock_level: w.unlockLevel })),
+        unlocked_weapons: unlocked,
+        // The weapon list the Armory reads: unlocked weapons count as level 1, the rest as the next level,
+        // each with its real unlock rule.
+        weapons: WEAPONS.map((w) => ({
+          id: w.id,
+          unlock_level: unlocked.includes(w.id) ? 1 : level + 1,
+          requirement: w.requirement,
+        })),
         // PROPOSED: how many reviews are due across the dungeon.
         due_review_count: reviews.count(),
+      }
+    },
+
+    async getRun(runId) {
+      await wait()
+      const run = getRun(runId)
+      const current = orderedRooms.find((r) => !run.cleared.has(r.id)) ?? orderedRooms[orderedRooms.length - 1]
+      return {
+        id: runId,
+        dungeon_id: run.dungeonId,
+        player_hp: run.playerHp,
+        monster_hp: run.monsterHp.get(current.id) ?? current.monster.max_hp,
+        current_room_id: current.id,
+        score: run.score,
+        streak: run.streak,
       }
     },
 

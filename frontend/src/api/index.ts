@@ -1,4 +1,5 @@
 import type { ApiClient } from './ApiClient'
+import { readFlags } from '../config/flags'
 import { createHttpClient } from './client'
 
 export { ApiError } from './errors'
@@ -16,7 +17,7 @@ export function getApi(): Promise<ApiClient> {
   if (!apiPromise) {
     apiPromise = shouldUseMocks(import.meta.env)
       ? import('./mock/mockAdapter').then((m) => m.default)
-      : Promise.resolve(createHttpClient(import.meta.env.VITE_API_BASE_URL ?? ''))
+      : Promise.resolve(createHttpClient(readFlags().apiBaseUrl))
   }
   return apiPromise
 }

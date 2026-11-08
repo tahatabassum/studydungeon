@@ -193,7 +193,7 @@ export function runReducer(state: RunState, action: RunAction): RunState {
           prevPlayerHp: state.playerHp,
           playerHp: r.player_hp_remaining,
           streak: r.streak,
-          xp: state.xp + r.xp_delta,
+          xp: state.xp + (r.xp_delta ?? 0),
           score: state.score + r.score_delta,
           lastResult: r,
         }
@@ -206,7 +206,7 @@ export function runReducer(state: RunState, action: RunAction): RunState {
         playerHp: r.player_hp_remaining,
         monsterHp: r.monster_hp_remaining,
         streak: r.streak,
-        xp: state.xp + r.xp_delta,
+        xp: state.xp + (r.xp_delta ?? 0),
         score: state.score + r.score_delta,
         lastResult: r,
         roomHp: state.currentRoomId
