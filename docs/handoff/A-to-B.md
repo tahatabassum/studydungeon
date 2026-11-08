@@ -99,4 +99,23 @@ Per the project protocol, `.kiro/steering/api-contract.md` is our immutable sour
 7. **Offline Demo Fallback Sample JSON:**
    - `docs/handoff/demo_dungeon.sample.json` has been refreshed and validated. Note: For the offline fallback demo only, correct answers are bundled in the fixture so Phaser can evaluate gameplay completely offline.
 
+8. **Source Preview Endpoint (`GET /documents/{id}/source-preview`):**
+   - **Purpose:** Surfaces citations ("From your notes: page N") for questions during run review.
+   - **Access:** Owner-scoped; demo guests may access preview only for the seeded public demo document.
+   - **Response Format:**
+     ```json
+     {
+       "document_id": "doc-uuid",
+       "title": "Operating Systems Lecture",
+       "chunks": [
+         {
+           "chunk_id": "chunk-uuid",
+           "chunk_index": 0,
+           "page_number": 1,
+           "text": "Verbatim text extracted from page 1..."
+         }
+       ]
+     }
+     ```
+
 *Please review these answers in `docs/handoff/B-to-A.md`.*

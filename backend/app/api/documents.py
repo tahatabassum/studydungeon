@@ -210,6 +210,51 @@ async def get_document_status(
     )
 
 
+@documents_router.get("/{id}/source-preview")
+async def get_source_preview(
+    id: str,
+    user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """
+    Source preview citations: scoped to owner or public demo document.
+    Returns 1-based page numbers and stable chunk IDs.
+    """
+    from app.models.all_models import Dungeon
+    # Check if this document belongs to user OR belongs to the public demo dungeon
+    doc_res = await db.execute(select(Document).where(Document.id == id))
+    doc = doc_res.scalar_one_or_none()
+    if not doc:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail={"code": "DOCUMENT_NOT_FOUND", "message": "Document not found."})
+
+    is_demo_doc = False
+    dungeon_res = await db.execute(select(Dungeon).where(Dungeon.document_id == doc.id, Dungeon.is_public_demo == True))
+    if dungeon_res.scalar_one_or_none():
+        is_demo_doc = True
+
+    if not is_demo_doc and doc.user_id != user.id:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail={"code": "DOCUMENT_NOT_FOUND", "message": "Document not found or does not belong to user."})
+
+    chunks_res = await db.execute(
+        select(DocumentChunk).where(DocumentChunk.document_id == doc.id).order_by(DocumentChunk.chunk_index.asc())
+    )
+    chunks = chunks_res.scalars().all()
+
+    return {
+        "document_id": doc.id,
+        "title": doc.title,
+        "chunks": [
+            {
+                "chunk_id": c.id,
+                "chunk_index": c.chunk_index,
+                "page_number": c.page_number if c.page_number else c.chunk_index + 1,
+                "text": c.text,
+            }
+            for c in chunks
+        ],
+    }
+
+
 @documents_router.delete("/{id}")
 async def delete_document(
     id: str,
