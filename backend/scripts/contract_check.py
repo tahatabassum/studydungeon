@@ -7,13 +7,14 @@ without answer leakage or missing attributes.
 import asyncio
 import os
 import sys
+
 from httpx import ASGITransport, AsyncClient
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
+from app.core.database import async_session_maker
 from app.demo.seed import seed_demo_dungeon
 from app.main import app
-from app.core.database import async_session_maker
 
 
 async def main():
