@@ -135,3 +135,25 @@ This log records dated facts, steering documents, feature specifications, automa
 - **Pytest:** 65 passed in 6.07s (0 failures, 0 regressions).
 - **Ruff:** All checks passed (0 errors, 0 warnings).
 - **Alembic:** Migrations fully tested, 0 schema drift.
+
+---
+
+## [2026-11-08] - Step 5: Demo Seed Grounding & Offline Compatibility (Break-It Round)
+**Objective:** Zero-AI demo execution, verbatim evidence quote verification across all seeded demo questions, and offline sample JSON parity.
+
+### What I Tried to Break
+- **Evidence Quote Verbatim Check:** Iterated through every seeded question across all topics. Verified that `q.evidence_quote` is a direct substring of `chunk.text`.
+- **Zero-AI Offline Resilience:** Tested seeded dungeon access and run creation with AIProvider completely disabled or mocked. Verified zero LLM calls occur during demo gameplay.
+- **System Demo Protection during Purge:** Executed `purge_expired_guests()`. Verified system user and public demo dungeon remain completely untouched.
+
+### Bugs Found & Fixed
+- Re-exported [`docs/handoff/demo_dungeon.sample.json`](file:///D:/dev-stuff/studydungeon/docs/handoff/demo_dungeon.sample.json) from canonical seeded data.
+- Verified and documented that `demo_dungeon.sample.json` contains correct answers for demo purposes only.
+
+### Bugs Found, Not Fixed
+- None.
+
+### Final Verification Counts
+- **Pytest:** 67 passed in 6.52s (0 failures, 0 regressions).
+- **Ruff:** All checks passed (0 errors, 0 warnings).
+- **Alembic:** Migrations clean, zero schema drift.
