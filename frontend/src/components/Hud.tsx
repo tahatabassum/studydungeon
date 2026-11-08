@@ -4,6 +4,7 @@ import { motion, useReducedMotion } from 'framer-motion'
 import { getSprite } from '../art/sprites'
 import { ICONS } from '../art/sprites/icons'
 import { PixelSprite } from './PixelSprite'
+import { HauntedCounter } from './HauntedCounter'
 import { isLowHealth } from './hudHelpers'
 import { ProgressBar } from './ProgressBar'
 import { StoneFrame } from './StoneFrame'
@@ -32,6 +33,10 @@ export interface HudProps {
   isBoss?: boolean
   /** Render the monster block (default true). */
   showMonster?: boolean
+  /** Compact top bar (viewport below 640 px): hero, monster chip and XP only. */
+  compact?: boolean
+  /** Haunted memories due; the counter renders only when provided. */
+  hauntedDue?: number
 }
 
 export function Hud({
@@ -51,12 +56,17 @@ export function Hud({
   monsterKind,
   isBoss = false,
   showMonster = true,
+  compact = false,
+  hauntedDue,
 }: HudProps) {
   const reduceMotion = useReducedMotion()
   const lowHealth = isLowHealth(playerHp, maxPlayerHp)
   return (
-    <div className="pointer-events-none flex w-full flex-wrap items-stretch gap-2 text-ink">
-      {rooms && currentRoomId !== undefined && (
+    <div
+      data-hud-mode={compact ? 'compact' : 'full'}
+      className={`pointer-events-none flex w-full flex-wrap items-stretch text-ink ${compact ? 'gap-1' : 'gap-2'}`}
+    >
+      {!compact && rooms && currentRoomId !== undefined && (
         <div className="shrink-0">
           <RoomProgress
             rooms={rooms}
@@ -67,7 +77,7 @@ export function Hud({
       )}
       <StoneFrame
         tone={lowHealth ? 'danger' : 'default'}
-        className={`min-w-44 flex-1 px-2 py-1 ${lowHealth && !reduceMotion ? 'sd-lowhp' : ''}`}
+        className={`${compact ? 'min-w-32' : 'min-w-44'} flex-1 px-2 py-1 ${lowHealth && !reduceMotion ? 'sd-lowhp' : ''}`}
         data-low-health={lowHealth ? 'true' : undefined}
       >
         <div className="mb-0.5 flex items-center justify-between gap-2 text-sm font-semibold">
@@ -101,6 +111,7 @@ export function Hud({
           monsterKind={monsterKind}
           isBoss={isBoss}
           reduceMotion={!!reduceMotion}
+          compact={compact}
         />
       )}
 
@@ -116,7 +127,7 @@ export function Hud({
           <span className="text-gold">{`XP ${xp}`}</span>
         </span>
         {level !== undefined && <span className="font-label text-[color-mix(in_srgb,var(--color-magic),var(--color-ink)_40%)]">{`Lv ${level}`}</span>}
-        {level !== undefined && totalXp !== undefined && xpToNext !== undefined && (
+        {!compact && level !== undefined && totalXp !== undefined && xpToNext !== undefined && (
           <span className="text-xs text-ink/80">{`Total ${totalXp} XP · ${xpToNext} to next`}</span>
         )}
         {streak !== undefined && streak > 0 && (
@@ -126,6 +137,7 @@ export function Hud({
           </span>
         )}
       </motion.div>
+      {hauntedDue !== undefined && <HauntedCounter count={hauntedDue} compact={compact} />}
     </div>
   )
 }
@@ -137,6 +149,7 @@ interface MonsterBlockProps {
   monsterKind?: string
   isBoss: boolean
   reduceMotion: boolean
+  compact: boolean
 }
 
 function MonsterBlock({
@@ -146,6 +159,7 @@ function MonsterBlock({
   monsterKind,
   isBoss,
   reduceMotion,
+  compact,
 }: MonsterBlockProps) {
   // Derived during render: counts HP decreases so the hit flash can re-trigger.
   const [prevHp, setPrevHp] = useState(monsterHp)
@@ -159,7 +173,7 @@ function MonsterBlock({
   const portrait = (kind ? getSprite(kind) : undefined) ?? ICONS.skull
 
   return (
-    <StoneFrame tone="danger" className="min-w-52 flex-1 overflow-hidden px-2 py-1">
+    <StoneFrame tone="danger" className={`${compact ? 'min-w-32' : 'min-w-52'} flex-1 overflow-hidden px-2 py-1`}>
       {hitCount > 0 && !reduceMotion && (
         <motion.div
           key={hitCount}
@@ -171,14 +185,16 @@ function MonsterBlock({
         />
       )}
       <div className="flex items-center gap-2">
-        <div className="relative shrink-0 rounded-sm border border-deep bg-bg p-0.5">
-          <PixelSprite map={portrait} scale={1.5} />
-          {isBoss && (
-            <span className="absolute -right-2 -top-2 rounded-sm bg-panel p-0.5">
-              <PixelSprite map={ICONS.crown} scale={1} />
-            </span>
-          )}
-        </div>
+        {!compact && (
+          <div className="relative shrink-0 rounded-sm border border-deep bg-bg p-0.5">
+            <PixelSprite map={portrait} scale={1.5} />
+            {isBoss && (
+              <span className="absolute -right-2 -top-2 rounded-sm bg-panel p-0.5">
+                <PixelSprite map={ICONS.crown} scale={1} />
+              </span>
+            )}
+          </div>
+        )}
         <div className="min-w-0 flex-1">
           <div className="mb-0.5 flex items-center justify-between gap-2 text-sm font-semibold">
             <span className="flex min-w-0 items-center gap-1.5 font-display text-sm tracking-wide">

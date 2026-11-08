@@ -34,12 +34,14 @@ function specifiers(source: string): string[] {
   return found
 }
 
+const FORBIDDEN_DIRS = ['api', 'demo', 'state', 'offline', 'leaderboard']
+
 function isForbidden(spec: string, file: string): boolean {
-  if (/^@\/(api|demo|state)(\/|$)/.test(spec)) return true
+  if (/^@\/(api|demo|state|offline|leaderboard)(\/|$)/.test(spec)) return true
   if (!spec.startsWith('.')) return false
   // src/game/../api -> ['..', 'api', ...]
   const [up, dir] = resolveFromGame(file, spec)
-  return up === '..' && ['api', 'demo', 'state'].includes(dir ?? '')
+  return up === '..' && FORBIDDEN_DIRS.includes(dir ?? '')
 }
 
 describe('game import boundary', () => {
@@ -55,6 +57,10 @@ describe('game import boundary', () => {
     expect(isForbidden('@/state/runReducer', f)).toBe(true)
     expect(isForbidden('../../demo/rules', f)).toBe(true)
     expect(isForbidden('../../api', f)).toBe(true)
+    expect(isForbidden('@/offline', f)).toBe(true)
+    expect(isForbidden('@/leaderboard/ranking', f)).toBe(true)
+    expect(isForbidden('../../offline/adapter', f)).toBe(true)
+    expect(isForbidden('../../leaderboard', f)).toBe(true)
     expect(isForbidden('@/types/api', f)).toBe(false)
     expect(isForbidden('../events', f)).toBe(false)
     expect(specifiers(`import('@/api')\nimport { a } from "@/demo"\nimport type { T } from '@/types/api'`)).toEqual([
@@ -64,7 +70,7 @@ describe('game import boundary', () => {
     ])
   })
 
-  it('no game file imports from api, demo or state', () => {
+  it('no game file imports from api, demo, state, offline or leaderboard', () => {
     const violations: string[] = []
     for (const file of files) {
       for (const spec of specifiers(modules[file])) {

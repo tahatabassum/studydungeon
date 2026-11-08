@@ -50,6 +50,9 @@ function fakeContext(): SfxContext & { started: number; masterGain: { value: num
   return ctx
 }
 
+/** Larger than the longest per-cue rate limit (boss, 1500 ms), so the fake clock never rate limits. */
+const MAX_GAP_STEP = 2000
+
 type Op = { op: 'unlock' } | { op: 'mute' } | { op: 'unmute' } | { op: 'play'; cue: Cue }
 
 const opArb: fc.Arbitrary<Op> = fc.oneof(
@@ -71,7 +74,7 @@ describe('sfx', () => {
           created++
           if (factoryThrows) throw new Error('no audio')
           return fakeContext()
-        }, () => (clock += 1000)) // always past every rate limit
+        }, () => (clock += MAX_GAP_STEP)) // always past every rate limit (boss gap is 1500 ms)
         let unlocked = false
         let muted = false
         let unlockCalled = false
@@ -94,14 +97,23 @@ describe('sfx', () => {
           expect(engine.isMuted()).toBe(muted)
         }
       }),
-      { numRuns: 200 },
+      {
+        numRuns: 200,
+        // Regression: seed -2109931452 found back-to-back boss plays rate limited by the old 1000 ms clock step.
+        examples: [
+          [
+            [{ op: 'unlock' }, { op: 'play', cue: 'boss' }, { op: 'play', cue: 'boss' }] as Op[],
+            false,
+          ],
+        ],
+      },
     )
   })
 
   it('has all cues, schedules each when unlocked, and keeps master gain quiet', () => {
     const ctx = fakeContext()
     let t = 0
-    const engine = new SfxEngine(() => ctx, () => (t += 1000))
+    const engine = new SfxEngine(() => ctx, () => (t += MAX_GAP_STEP))
     expect(MASTER_GAIN).toBeLessThanOrEqual(0.3)
     engine.unlock()
     expect(ctx.masterGain?.value).toBeLessThanOrEqual(0.3)
@@ -114,7 +126,8 @@ describe('sfx', () => {
   it('includes the miss and boss stingers', () => {
     expect(CUES).toContain('miss')
     expect(CUES).toContain('boss')
-    expect(CUES.length).toBe(11)
+    expect(CUES).toContain('rest')
+    expect(CUES.length).toBe(12)
   })
 
   it('rate limits repeated footsteps', () => {

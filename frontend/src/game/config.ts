@@ -2,15 +2,17 @@ import Phaser from 'phaser'
 import type { GameBridge } from './events'
 import { BootScene } from './scenes/BootScene'
 import { GameScene } from './scenes/GameScene'
-import { CSS_COLORS } from './colors'
 import { rendererFromSearch } from './rendererQuery'
 
 export const GAME_WIDTH = 960
 export const GAME_HEIGHT = 540
 /** Registry key under which the Event_Bridge is stored. */
 export const BRIDGE_KEY = 'bridge'
-/** Camera zoom (D3). Rooms never fit whole at any zoom, so the follow camera stays at 1.0. */
-export const CAMERA_ZOOM = 1
+/**
+ * D1: the canvas equals the viewport (RESIZE) and is transparent over the CSS backdrop.
+ * Fallback if RESIZE breaks at any size: Phaser.Scale.FIT (letterboxed 960x540, zoom stays 1).
+ */
+export const SCALE_MODE = Phaser.Scale.RESIZE
 
 function rendererType(): number {
   const search = typeof window === 'undefined' ? '' : window.location.search
@@ -26,10 +28,10 @@ export function createGameConfig(
     parent,
     width: GAME_WIDTH,
     height: GAME_HEIGHT,
-    backgroundColor: CSS_COLORS.BG,
+    transparent: true,
     pixelArt: true,
     physics: { default: 'arcade', arcade: { gravity: { x: 0, y: 0 }, debug: false } },
-    scale: { mode: Phaser.Scale.FIT, autoCenter: Phaser.Scale.CENTER_BOTH },
+    scale: { mode: SCALE_MODE, autoCenter: Phaser.Scale.CENTER_BOTH },
     scene: [BootScene, GameScene],
     callbacks: {
       // Runs before scenes boot, so the bridge is available in every create().

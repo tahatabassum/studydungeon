@@ -1,0 +1,91 @@
+/*
+ * App shell: a 100dvh x 100dvw stage with a CSS-only themed backdrop (gradient, vignette, fog)
+ * behind the transparent Phaser canvas. Motion stops under prefers-reduced-motion (global rule)
+ * and under data-reduced="true" (in-app flag).
+ */
+
+.sd-shell {
+  --sd-safe-top: env(safe-area-inset-top, 0px);
+  --sd-safe-right: env(safe-area-inset-right, 0px);
+  --sd-safe-bottom: env(safe-area-inset-bottom, 0px);
+  --sd-safe-left: env(safe-area-inset-left, 0px);
+  position: relative;
+  width: 100vw;
+  width: 100dvw;
+  height: 100vh;
+  height: 100dvh;
+  overflow: hidden;
+  background: var(--color-bg);
+  color: var(--color-ink);
+}
+
+.sd-backdrop {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse at 50% 35%, color-mix(in srgb, var(--color-witch) 38%, var(--color-indigo)) 0%, transparent 65%),
+    linear-gradient(180deg, var(--color-indigo) 0%, var(--color-bg) 100%);
+}
+
+.sd-backdrop::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at center, transparent 55%, rgb(0 0 0 / 0.65) 100%);
+}
+
+.sd-backdrop__fog {
+  position: absolute;
+  width: 70%;
+  height: 40%;
+  border-radius: 50%;
+  filter: blur(48px);
+  opacity: 0.22;
+  background: radial-gradient(ellipse, var(--color-ghost) 0%, transparent 70%);
+  animation: sd-fog-drift 38s ease-in-out infinite alternate;
+}
+.sd-backdrop__fog--a { left: -10%; bottom: 5%; }
+.sd-backdrop__fog--b { right: -15%; top: 20%; animation-duration: 52s; animation-direction: alternate-reverse; opacity: 0.16; }
+
+@keyframes sd-fog-drift {
+  0% { transform: translateX(-6%) scale(1); }
+  100% { transform: translateX(8%) scale(1.08); }
+}
+
+[data-reduced='true'] .sd-backdrop__fog {
+  animation: none;
+}
+
+/* Floating HUD: sits over the stage, never over the safe band (see hudSafeBand). */
+.sd-hud-top {
+  position: absolute;
+  inset: 0 0 auto 0;
+  z-index: 20;
+  pointer-events: none;
+  padding: max(0.375rem, var(--sd-safe-top)) max(0.75rem, var(--sd-safe-right)) 0 max(0.75rem, var(--sd-safe-left));
+}
+
+.sd-hud-bottom {
+  position: absolute;
+  inset: auto 0 0 0;
+  z-index: 20;
+  display: flex;
+  justify-content: center;
+  pointer-events: none;
+  min-height: var(--sd-hud-bottom);
+  padding: 0 max(0.75rem, var(--sd-safe-right)) max(0.25rem, var(--sd-safe-bottom)) max(0.75rem, var(--sd-safe-left));
+}
+
+.sd-legend {
+  pointer-events: auto;
+  display: inline-flex;
+  align-items: center;
+  max-width: 100%;
+  padding: 0.25rem 0.75rem;
+  border-radius: 0.5rem;
+  background: var(--sd-hud-surface);
+  box-shadow: var(--sd-elev-1);
+}

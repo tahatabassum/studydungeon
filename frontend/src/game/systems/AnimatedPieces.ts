@@ -6,7 +6,6 @@ import { PIECE_CAP } from '../world/themeBudget'
 import type { Point } from '../world/RoomLayout'
 import { flicker } from './flicker'
 import {
-  LIGHTNING_MIN_GAP_MS,
   batOffset,
   bobY,
   clockAngles,
@@ -19,6 +18,8 @@ import {
   type ClockAngles,
 } from './pieceMotion'
 import { ObjectPool } from './objectPool'
+import { nextLightningAt } from '../lightning'
+import type { Rect } from '../viewport'
 
 const DEPTH_PIECE = 9
 const STEAM_LIFE_MS = 1200
@@ -53,6 +54,7 @@ interface Floater {
 
 const DEPTH_LIGHTNING = 90
 const LIGHTNING_RAND_MS = 12000
+const ENRAGED_RAND_MS = 3000
 const BUBBLE_RISE = 50
 
 /**
@@ -69,9 +71,14 @@ export class AnimatedPieces {
   private readonly floaters: Floater[] = []
   private readonly drift = { x: 0, y: 0, rot: 0 }
   private overlay: Phaser.GameObjects.Rectangle | null = null
+  private screenRect: Rect = { x: 0, y: 0, w: 960, h: 540 }
   private nextStrike = 0
   private strikeAt = -1e9
   private jars = 0
+  /** The room theme carries lightning (the boss hall). */
+  private themeLightning = false
+  /** Enraged boss: lightning runs even if the theme has none, and flashes come sooner (still 8 s apart). */
+  private enraged = false
   private lightning = false
   private hour: Phaser.GameObjects.Image | null = null
   private minute: Phaser.GameObjects.Image | null = null
@@ -111,13 +118,19 @@ export class AnimatedPieces {
   /** Lightning overlay for the boss hall: created once, hidden until a strike. */
   private ensureOverlay(): void {
     if (this.overlay) return
-    const { width, height } = this.scene.scale
+    const r = this.screenRect
     this.overlay = this.scene.add
-      .rectangle(0, 0, width, height, 0xcfe0ff, 0)
+      .rectangle(r.x, r.y, r.w, r.h, 0xcfe0ff, 0)
       .setOrigin(0, 0)
       .setScrollFactor(0)
       .setDepth(DEPTH_LIGHTNING)
       .setVisible(false)
+  }
+
+  /** Re-fit the screen-space lightning overlay to the viewport (called on resize). */
+  setScreenRect(r: Rect): void {
+    this.screenRect = r
+    this.overlay?.setPosition(r.x, r.y).setSize(r.w, r.h)
   }
 
   /** Number of piece objects currently in use. */
@@ -196,6 +209,7 @@ export class AnimatedPieces {
         }
         case 'lightning':
           this.ensureOverlay()
+          this.themeLightning = true
           this.lightning = true
           break
         default:
@@ -259,14 +273,33 @@ export class AnimatedPieces {
     this.updateLightning(time)
   }
 
+  /**
+   * Enraged boss phase: the same overlay flashes more often (8 to 11 s apart instead of 8 to 20 s).
+   * Spacing and peak alpha stay as before; update() never reaches the lightning under reduced motion.
+   */
+  setEnraged(on: boolean): void {
+    if (this.enraged === on) return
+    this.enraged = on
+    if (on) this.ensureOverlay()
+    this.lightning = this.themeLightning || (on && this.active)
+    this.nextStrike = 0
+    if (!this.lightning) this.overlay?.setVisible(false)
+  }
+
   /** Soft lightning flash at most once per 8 s (peak alpha 0.25). Never runs under reduced motion. */
   private updateLightning(time: number): void {
     const o = this.overlay
     if (!o || !this.lightning) return
-    if (this.nextStrike === 0) this.nextStrike = time + LIGHTNING_MIN_GAP_MS + Math.random() * LIGHTNING_RAND_MS
+    const rand = this.enraged ? ENRAGED_RAND_MS : LIGHTNING_RAND_MS
+    if (this.nextStrike === 0) {
+      // Enraged: the first flash follows the roar closely, but never within 8 s of the last one.
+      this.nextStrike = this.enraged
+        ? nextLightningAt(time, this.strikeAt, false, 400 + Math.random() * 600)
+        : nextLightningAt(time, time, false, Math.random() * rand)
+    }
     if (time >= this.nextStrike) {
       this.strikeAt = time
-      this.nextStrike = time + LIGHTNING_MIN_GAP_MS + Math.random() * LIGHTNING_RAND_MS
+      this.nextStrike = nextLightningAt(time, time, false, Math.random() * rand)
     }
     const a = lightningAlpha(time - this.strikeAt)
     o.setAlpha(a).setVisible(a > 0)
@@ -368,6 +401,8 @@ export class AnimatedPieces {
     this.floaters.length = 0
     this.jars = 0
     this.lightning = false
+    this.themeLightning = false
+    this.enraged = false
     this.overlay?.setVisible(false)
     this.vents = []
     this.hour = this.minute = this.pendulum = this.gearL = this.gearS = null

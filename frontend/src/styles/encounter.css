@@ -1,0 +1,386 @@
+/*
+ * Character-led encounter: scrim, sliding portrait, parchment speech panel, answer grid.
+ * CSS only (candle, glow, bob and shake are drawn here). Motion is off under the OS preference
+ * (the global rule in index.css) and under data-reduced="true" (the in-app flag).
+ */
+
+.sd-encounter {
+  position: absolute;
+  inset: 0;
+  /* Above the canvas and the room banners, below the floating HUD (20) so health stays readable. */
+  z-index: 15;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  align-items: center;
+  padding: 0 var(--sd-space-3) calc(var(--sd-hud-bottom) + var(--sd-space-2));
+  overflow: hidden;
+}
+
+/* About 55 percent dim so the monster and the room stay visible behind the pop-up. */
+.sd-encounter__scrim {
+  position: absolute;
+  inset: 0;
+  background: color-mix(in srgb, var(--color-bg) 55%, transparent);
+  animation: sd-enc-fade var(--sd-dur-slow) ease-out both;
+}
+
+/*
+ * The stage: portrait and speech panel in one centred row at the bottom. The portrait stands beside
+ * the panel (first in the row on the left, last on the right) and leans 24px over the panel's outer
+ * edge, in front of it. The panel reserves matching inner padding so no content sits under the portrait.
+ * The numbers mirror src/encounter/stageLayout.ts.
+ */
+.sd-stage {
+  --sd-lean: 24px;
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  width: 100%;
+  min-width: 0;
+}
+.sd-encounter[data-side='right'] .sd-stage {
+  flex-direction: row-reverse;
+}
+
+/* The slide wrapper owns the entry and exit transform; the canvas inside owns the bob and shake. */
+.sd-encounter__slide {
+  position: relative;
+  z-index: 3;
+  flex: none;
+  height: clamp(14rem, min(52dvh, 44vw), 30rem);
+  aspect-ratio: 3 / 4;
+  pointer-events: none;
+}
+.sd-encounter[data-side='left'] .sd-encounter__slide {
+  margin-right: calc(var(--sd-lean) * -1);
+  animation: sd-enc-in-left var(--sd-dur-slow) cubic-bezier(0.2, 0.8, 0.25, 1) both;
+}
+.sd-encounter[data-side='right'] .sd-encounter__slide {
+  margin-left: calc(var(--sd-lean) * -1);
+  animation: sd-enc-in-right var(--sd-dur-slow) cubic-bezier(0.2, 0.8, 0.25, 1) both;
+}
+.sd-encounter[data-closing='true'] .sd-encounter__scrim {
+  animation: sd-enc-fade-out var(--sd-dur-slow) ease-in both;
+}
+.sd-encounter[data-closing='true'][data-side='left'] .sd-encounter__slide {
+  animation: sd-enc-out-left var(--sd-dur-slow) ease-in both;
+}
+.sd-encounter[data-closing='true'][data-side='right'] .sd-encounter__slide {
+  animation: sd-enc-out-right var(--sd-dur-slow) ease-in both;
+}
+.sd-encounter[data-closing='true'] .sd-speech {
+  animation: sd-enc-sink var(--sd-dur-slow) ease-in both;
+}
+.sd-encounter[data-closing='true'] {
+  pointer-events: none;
+}
+
+.sd-portrait {
+  display: block;
+  width: 100%;
+  height: 100%;
+  filter: drop-shadow(0 10px 18px rgb(0 0 0 / 0.55));
+  transform-origin: 50% 100%;
+}
+.sd-portrait--idle {
+  animation: sd-portrait-bob 3.2s ease-in-out infinite;
+}
+.sd-portrait--talking {
+  animation: sd-portrait-bob 1.1s ease-in-out infinite;
+}
+.sd-portrait--taunt {
+  animation: sd-portrait-taunt 0.5s ease-in-out infinite;
+}
+.sd-portrait--hurt {
+  animation: sd-portrait-shake 0.36s linear 1;
+}
+
+/* Revenant: a spectral, translucent haunt with a cold glow instead of a heavy shadow. */
+.sd-portrait[data-character='revenant'] {
+  opacity: 0.92;
+  filter: drop-shadow(0 0 22px rgb(159 232 255 / 0.55)) drop-shadow(0 0 48px rgb(184 156 255 / 0.35));
+}
+.sd-encounter__intro {
+  font-style: italic;
+}
+
+/* Speech panel: parchment (see spellbook.css) with a glowing edge. */
+.sd-speech {
+  position: relative;
+  z-index: 2;
+  flex: 0 1 46rem;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  max-height: min(58dvh, 34rem);
+  overflow: hidden;
+  padding: 0 1rem;
+  border: 3px solid var(--color-gold);
+  border-radius: 0.875rem;
+  box-shadow:
+    0 0 0 2px var(--color-deep),
+    0 0 22px color-mix(in srgb, var(--color-pumpkin) 55%, transparent),
+    var(--sd-elev-3);
+  outline: none;
+  animation: sd-enc-rise var(--sd-dur-slow) ease-out both;
+}
+/* Only this inner block scrolls, so scrolled text never slides under the portrait's lean zone. */
+.sd-speech__scroll {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  padding: var(--sd-space-3) 0;
+}
+/* The portrait's side keeps clear of the lean: overlap plus a 12px gap. */
+.sd-encounter[data-side='left'] .sd-speech {
+  padding-left: calc(24px + 12px);
+}
+.sd-encounter[data-side='right'] .sd-speech {
+  padding-right: calc(24px + 12px);
+}
+.sd-speech:focus-visible {
+  outline: 3px solid var(--color-deep);
+  outline-offset: 3px;
+}
+.sd-speech__name {
+  margin: 0 0 0.25rem;
+  padding-right: 1.5rem;
+  border-bottom: 1px solid color-mix(in srgb, var(--color-deep) 30%, transparent);
+  color: var(--color-deep);
+  font-family: var(--font-display);
+  font-size: var(--sd-text-md);
+}
+.sd-speech__line {
+  margin: 0.25rem 0 0;
+  min-height: 1.5em;
+  color: var(--color-deep);
+  font-style: italic;
+  font-size: var(--sd-text-sm);
+}
+.sd-speech__prompt {
+  margin: 0.25rem 0 0;
+  padding-right: 1.5rem;
+  font-family: var(--font-body);
+  font-size: var(--sd-text-lg);
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+/* Answer grid: 2x2 on wide panels, one column on phones; true/false is two wide buttons. */
+.sd-answers {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--sd-space-2);
+  margin: var(--sd-space-3) 0 0;
+  padding: 0;
+  list-style: none;
+}
+@media (min-width: 560px) {
+  .sd-answers[data-layout='grid'] {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+.sd-answer {
+  display: flex;
+  align-items: center;
+  gap: var(--sd-space-2);
+  width: 100%;
+  min-height: 3.25rem;
+  padding: var(--sd-space-2) var(--sd-space-3);
+  border: 2px solid color-mix(in srgb, var(--color-deep) 45%, transparent);
+  border-radius: 0.625rem;
+  background: color-mix(in srgb, var(--color-bg) 5%, transparent);
+  color: var(--color-bg);
+  font-size: var(--sd-text-md);
+  line-height: 1.3;
+  text-align: left;
+  cursor: pointer;
+  transition:
+    box-shadow var(--sd-dur-fast) ease,
+    border-color var(--sd-dur-fast) ease,
+    background-color var(--sd-dur-fast) ease,
+    transform var(--sd-dur-fast) ease;
+}
+.sd-answer:enabled:hover {
+  border-color: var(--color-deep);
+  background: color-mix(in srgb, var(--color-magic) 16%, transparent);
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--color-magic) 80%, transparent),
+    0 0 14px color-mix(in srgb, var(--color-magic) 55%, transparent);
+}
+.sd-answer:enabled:active {
+  transform: translateY(1px) scale(0.99);
+}
+.sd-answer:disabled {
+  cursor: not-allowed;
+  opacity: 0.8;
+}
+.sd-answer:focus-visible,
+.sd-speech__btn:focus-visible {
+  outline: 3px solid var(--color-deep);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 6px var(--color-accent);
+}
+.sd-answer[data-tone='correct'] {
+  border-color: var(--color-health);
+  background: color-mix(in srgb, var(--color-health) 30%, transparent);
+}
+.sd-answer[data-tone='wrong'] {
+  border-color: var(--color-danger);
+  background: color-mix(in srgb, var(--color-danger) 20%, transparent);
+}
+.sd-answer[data-tone='picked'] {
+  border-color: var(--color-magic);
+  background: color-mix(in srgb, var(--color-magic) 20%, transparent);
+}
+.sd-answers[data-layout='wide'] .sd-answer {
+  min-height: 3.75rem;
+  justify-content: center;
+  font-weight: 600;
+}
+.sd-answer__badge {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: 0.375rem;
+  background: var(--color-deep);
+  color: var(--color-ink);
+  font-size: var(--sd-text-sm);
+  font-weight: 700;
+}
+
+.sd-speech__btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.375rem 1rem;
+  border: 2px solid var(--color-deep);
+  border-radius: 0.5rem;
+  background: transparent;
+  color: var(--color-deep);
+  font-size: var(--sd-text-sm);
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    background-color var(--sd-dur-fast) ease,
+    color var(--sd-dur-fast) ease;
+}
+.sd-speech__btn:hover {
+  background: var(--color-deep);
+  color: var(--color-ink);
+}
+.sd-speech__btn--primary {
+  background: var(--color-deep);
+  color: var(--color-ink);
+  padding: 0.5rem 1.5rem;
+  font-size: var(--sd-text-md);
+}
+.sd-speech__btn--primary:hover {
+  background: var(--color-bg);
+}
+
+/* Desktop and tablets: keep the speech panel in the lower area. Phones: full width, portrait above it. */
+@media (max-width: 639px) {
+  .sd-encounter {
+    padding-inline: 0;
+  }
+  /* Phones: the portrait stands above the panel, on its entry side, leaning 24px onto the top edge. */
+  .sd-stage {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .sd-encounter[data-side='right'] .sd-stage {
+    flex-direction: column;
+  }
+  .sd-speech,
+  .sd-encounter[data-side] .sd-speech {
+    flex: 0 1 auto;
+    max-height: 58dvh;
+    padding: calc(24px + 12px) 1rem 0;
+    border-inline-width: 0;
+    border-radius: 0.875rem 0.875rem 0 0;
+  }
+  .sd-speech__scroll {
+    padding-top: 0;
+  }
+  .sd-encounter__slide,
+  .sd-encounter[data-side] .sd-encounter__slide {
+    height: min(30dvh, 16rem);
+    margin: 0 0 calc(var(--sd-lean) * -1);
+  }
+  .sd-encounter[data-side='left'] .sd-encounter__slide {
+    align-self: flex-start;
+    margin-left: 0.5rem;
+  }
+  .sd-encounter[data-side='right'] .sd-encounter__slide {
+    align-self: flex-end;
+    margin-right: 0.5rem;
+  }
+}
+
+@keyframes sd-enc-fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes sd-enc-fade-out {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+@keyframes sd-enc-in-left {
+  from { transform: translateX(-120%); }
+  to { transform: translateX(0); }
+}
+@keyframes sd-enc-in-right {
+  from { transform: translateX(120%); }
+  to { transform: translateX(0); }
+}
+@keyframes sd-enc-out-left {
+  from { transform: translateX(0); }
+  to { transform: translateX(-120%); }
+}
+@keyframes sd-enc-out-right {
+  from { transform: translateX(0); }
+  to { transform: translateX(120%); }
+}
+@keyframes sd-enc-rise {
+  from { opacity: 0; transform: translateY(18px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes sd-enc-sink {
+  from { opacity: 1; transform: translateY(0); }
+  to { opacity: 0; transform: translateY(18px); }
+}
+@keyframes sd-portrait-bob {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+@keyframes sd-portrait-taunt {
+  0%, 100% { transform: translateY(0) rotate(-0.8deg); }
+  50% { transform: translateY(-4px) rotate(0.8deg); }
+}
+@keyframes sd-portrait-shake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-9px); }
+  40% { transform: translateX(8px); }
+  60% { transform: translateX(-6px); }
+  80% { transform: translateX(4px); }
+}
+
+/* In-app Reduced_Motion flag: no slide, no bob, no shake, no fade. */
+[data-reduced='true'] .sd-encounter__scrim,
+[data-reduced='true'] .sd-encounter__slide,
+[data-reduced='true'] .sd-portrait,
+[data-reduced='true'] .sd-speech,
+[data-reduced='true'] .sd-answer,
+[data-reduced='true'] .sd-speech__btn {
+  animation: none !important;
+  transition: none !important;
+}

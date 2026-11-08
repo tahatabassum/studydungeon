@@ -1,16 +1,18 @@
 import { useCallback, useEffect, useReducer, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { getApi } from '@/api'
+import { describeError, getApi } from '@/api'
 import { ambient } from '@/audio/ambient'
 import { sfx } from '@/audio/sfx'
 import type { ApiClient } from '@/api'
+import { entrySide } from '@/encounter/entrySide'
+import { remainingDue, spawnsForRoom } from '@/encounter/revenants'
 import { createGameBridge } from '@/game/events'
 import { canAnswer, canRetreat, readDelayMs } from '@/state/combatMachine'
 import { pickQuestionId } from '@/state/questionSelector'
 import { initialRunState, runReducer } from '@/state/runReducer'
 import { useReducedMotion } from '@/state/useReducedMotion'
 import { useSession } from '@/state/SessionContext'
-import type { Dungeon, ProgressInfo, Question, Room } from '@/types/api'
+import type { Dungeon, DueReview, ProgressInfo, Question, Room } from '@/types/api'
 
 function newAttemptId(): string {
   return typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function'
@@ -34,6 +36,11 @@ export function usePlaySession() {
   const [clearError, setClearError] = useState<string | null>(null)
   const [finishError, setFinishError] = useState<string | null>(null)
   const [progress, setProgress] = useState<ProgressInfo | null>(null)
+  // Haunted memories: the last due-review total fetched, Revenants rested since progress was last
+  // loaded (display only), and whether the pop-up is showing a Revenant (kept through the slide-out).
+  const [fetchedDue, setFetchedDue] = useState<number | null>(null)
+  const [restedLocal, setRestedLocal] = useState(0)
+  const [revenantView, setRevenantView] = useState(false)
   const navigate = useNavigate()
 
   const apiRef = useRef<ApiClient | null>(null)
@@ -42,6 +49,8 @@ export function usePlaySession() {
   const pendingClearRoomRef = useRef<string | null>(null)
   const submittingRef = useRef(false)
   const clearStartedRoomsRef = useRef<Set<string>>(new Set())
+  /** Due reviews behind the Revenants currently shown, by Revenant id. */
+  const revenantsRef = useRef<Map<string, DueReview>>(new Map())
   const stateRef = useRef(state)
   const questionRef = useRef(question)
   const gameWrapRef = useRef<HTMLDivElement>(null)
@@ -70,7 +79,11 @@ export function usePlaySession() {
   const refreshProgress = useCallback(async (api: ApiClient) => {
     try {
       const p = await api.getProgress()
-      if (mountedRef.current) setProgress(p)
+      if (mountedRef.current) {
+        setProgress(p)
+        // The backend count now includes every Revenant rested so far.
+        setRestedLocal(0)
+      }
     } catch {
       if (mountedRef.current) setProgress(null)
     }
@@ -93,8 +106,8 @@ export function usePlaySession() {
         setDungeon(d)
         dispatch({ type: 'run-started', run, rooms: d.rooms })
         void refreshProgress(api)
-      } catch {
-        if (!cancelled) setLoadError('The dungeon could not be loaded.')
+      } catch (err) {
+        if (!cancelled) setLoadError(describeError(err, 'The dungeon could not be loaded.'))
       }
     })()
     return () => {
@@ -113,9 +126,18 @@ export function usePlaySession() {
   }, [bridge, muted])
 
   // Ambient bed ends when leaving the page, and on victory or defeat.
-  useEffect(() => () => ambient.stop(), [])
+  useEffect(
+    () => () => {
+      ambient.setEnraged(false)
+      ambient.stop()
+    },
+    [],
+  )
   useEffect(() => {
-    if (state.phase === 'victory' || state.phase === 'defeated') ambient.stop()
+    if (state.phase === 'victory' || state.phase === 'defeated') {
+      ambient.setEnraged(false)
+      ambient.stop()
+    }
   }, [state.phase])
 
   // Audio may only start after a user gesture: unlock on the first key or pointer press.
@@ -141,7 +163,7 @@ export function usePlaySession() {
     if (dungeon) bridge.send({ type: 'set-phase', phase: state.phase })
   }, [bridge, dungeon, state.phase])
 
-  // The question panel sits below the stage (no overlap), so the arena view needs no inset.
+  // The encounter pop-up overlays the full-viewport canvas and the camera does not move: the inset stays 0.
   useEffect(() => {
     bridge.send({ type: 'set-view-inset', bottomFraction: 0 })
   }, [bridge])
@@ -167,9 +189,15 @@ export function usePlaySession() {
         setAnswerError(null)
         setAnimDone(false)
         setQuestion(q)
+        setRevenantView(false)
         if (monsterRoom.is_boss) sfx.play('boss')
         dispatch({ type: 'encounter-started' })
         dispatch({ type: 'question-presented' })
+        bridge.send({
+          type: 'encounter-open',
+          monsterId: e.monsterId,
+          side: entrySide(monsterRoom.order, monsterRoom.is_boss),
+        })
       } else if (e.type === 'result-animation-done') {
         setAnimDone(true)
         dispatch({ type: 'result-settled' })
@@ -179,9 +207,37 @@ export function usePlaySession() {
         dispatch({ type: 'room-entered', roomId: e.roomId })
       } else if (e.type === 'gate-opened') {
         dispatch({ type: 'gate-opened', roomId: e.roomId })
+      } else if (e.type === 'boss-phase-changed') {
+        // Enraged boss: switch the ambient bed to its enraged variant; any other phase reverts it.
+        ambient.setEnraged(e.phase === 'enraged')
+      } else if (e.type === 'revenant-engaged') {
+        // An optional haunted-memory encounter: the same flow, with the due review's own question.
+        const cur = stateRef.current
+        const review = revenantsRef.current.get(e.revenantId)
+        const busy = cur.phase !== 'exploring' || (cur.combat !== null && cur.combat !== 'exited') || !dungeon
+        const room = review ? dungeon?.rooms.find((r) => r.id === review.room_id) : undefined
+        if (busy) return
+        if (!review || !room) {
+          // Nothing to ask: let the scene put the ghost back.
+          bridge.send({ type: 'encounter-close' })
+          return
+        }
+        attemptIdRef.current = newAttemptId()
+        setAnswerError(null)
+        setAnimDone(false)
+        setQuestion(review.question)
+        setRevenantView(true)
+        dispatch({ type: 'encounter-started', revenant: true })
+        dispatch({ type: 'question-presented' })
+        bridge.send({ type: 'encounter-open', monsterId: e.revenantId, side: entrySide(room.order, false) })
+      } else if (e.type === 'revenant-rested') {
+        // The memory is at rest: forget the ghost and reload the authoritative due count.
+        revenantsRef.current.delete(e.revenantId)
+        const api = apiRef.current
+        if (api) void refreshProgress(api)
       }
     })
-  }, [bridge, dungeon])
+  }, [bridge, dungeon, refreshProgress])
 
   const onAnswer = useCallback(
     async (selected: string) => {
@@ -195,6 +251,8 @@ export function usePlaySession() {
       setAnswerError(null)
       dispatch({ type: 'answer-submitted' })
       const hpBefore = stateRef.current.playerHp
+      // A Revenant answer goes through the same submitAttempt path; its result never touches the monster.
+      const isRevenant = stateRef.current.revenantActive
       try {
         const result = await api.submitAttempt(runId, {
           question_id: q.id,
@@ -205,12 +263,17 @@ export function usePlaySession() {
         setAnimDone(false)
         dispatch({ type: 'result-received', result })
         bridge.send({ type: 'apply-result', result })
-        // A wrong answer that costs no health is a "miss"; otherwise the wrong thud.
-        sfx.play(result.correct ? 'correct' : result.player_hp_remaining >= hpBefore ? 'miss' : 'wrong')
+        if (isRevenant && result.correct) {
+          // The scene plays the soft rest chime; the displayed counter drops now and is refetched after.
+          setRestedLocal((n) => n + 1)
+        } else {
+          // A wrong answer that costs no health is a "miss"; otherwise the wrong thud.
+          sfx.play(result.correct ? 'correct' : result.player_hp_remaining >= hpBefore ? 'miss' : 'wrong')
+        }
         if (result.player_hp_remaining <= 0) setTimeout(() => sfx.play('defeat'), 450)
-      } catch {
+      } catch (err) {
         dispatch({ type: 'answer-failed' })
-        setAnswerError('Your answer could not be submitted. Please try again.')
+        setAnswerError(describeError(err, 'Your answer could not be submitted. Please try again.'))
       } finally {
         submittingRef.current = false
       }
@@ -227,10 +290,32 @@ export function usePlaySession() {
       const summary = await api.finishRun(runId)
       dispatch({ type: 'run-finished', summary })
       sfx.play('victory')
-    } catch {
-      setFinishError('Your results could not be loaded.')
+    } catch (err) {
+      setFinishError(describeError(err, 'Your results could not be loaded.'))
     }
   }, [])
+
+  /**
+   * After a room is cleared: fetch the due reviews and send up to 3 Revenants for that room. Optional by
+   * design: a failure is ignored and nothing here touches the clear, the gate or the run state.
+   */
+  const spawnRevenants = useCallback(
+    async (api: ApiClient, dungeonId: string, roomId: string, runId: string) => {
+      try {
+        const due = await api.getDueReviews(dungeonId)
+        // Ignore a late answer from before a restart or after leaving the page.
+        if (!mountedRef.current || stateRef.current.runId !== runId) return
+        const spawns = spawnsForRoom(due, roomId)
+        const ids = new Set(spawns.map((s) => s.id))
+        revenantsRef.current = new Map(due.filter((d) => ids.has(d.id)).map((d) => [d.id, d]))
+        setFetchedDue(due.length)
+        bridge.send({ type: 'spawn-revenants', roomId, revenants: spawns })
+      } catch {
+        // No Revenants this time.
+      }
+    },
+    [bridge],
+  )
 
   const clear = useCallback(
     async (roomId: string) => {
@@ -246,12 +331,15 @@ export function usePlaySession() {
         setClearedXp(res.xp_delta)
         void refreshProgress(api)
         if (dungeon.rooms.find((r) => r.id === roomId)?.is_boss) await finish()
-        else bridge.send({ type: 'gate-open', roomId })
-      } catch {
-        setClearError('The room could not be cleared. Please try again.')
+        else {
+          bridge.send({ type: 'gate-open', roomId })
+          void spawnRevenants(api, dungeon.id, roomId, runId)
+        }
+      } catch (err) {
+        setClearError(describeError(err, 'The room could not be cleared. Please try again.'))
       }
     },
-    [bridge, dungeon, finish, refreshProgress],
+    [bridge, dungeon, finish, refreshProgress, spawnRevenants],
   )
 
   /** Leaves the current result: next question, room clear, or defeat. */
@@ -259,6 +347,14 @@ export function usePlaySession() {
     const s = stateRef.current
     const c = s.combat
     if (c !== 'next' && c !== 'monster_defeated' && c !== 'player_defeated') return
+    if (c === 'next' && s.revenantActive) {
+      // A Revenant asks one question. Leave it: the room monster, the gate and the cleared rooms stay as they are.
+      dispatch({ type: 'revenant-finished' })
+      setQuestion(null)
+      bridge.send({ type: 'encounter-close' })
+      setTimeout(focusGame, 0)
+      return
+    }
     dispatch({ type: 'advance' })
     if (c === 'next') {
       const monsterRoom = dungeon?.rooms.find((r) => r.id === s.currentRoomId)
@@ -278,6 +374,7 @@ export function usePlaySession() {
       dispatch({ type: 'question-presented' })
     } else if (c === 'monster_defeated') {
       setQuestion(null)
+      bridge.send({ type: 'encounter-close' })
       const roomId = s.currentRoomId
       if (roomId && !clearStartedRoomsRef.current.has(roomId)) {
         clearStartedRoomsRef.current.add(roomId)
@@ -285,8 +382,9 @@ export function usePlaySession() {
       }
     } else {
       setQuestion(null)
+      bridge.send({ type: 'encounter-close' })
     }
-  }, [clear, dungeon])
+  }, [bridge, clear, dungeon, focusGame])
 
   const advanceRef = useRef(advanceCombat)
   const waitTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -335,6 +433,9 @@ export function usePlaySession() {
       askCountsRef.current = new Map()
       pendingClearRoomRef.current = null
       clearStartedRoomsRef.current = new Set()
+      revenantsRef.current = new Map()
+      setRestedLocal(0)
+      setRevenantView(false)
       setQuestion(null)
       setAnswerError(null)
       setAnimDone(false)
@@ -344,12 +445,13 @@ export function usePlaySession() {
       dispatch({ type: 'run-started', run, rooms: dungeon.rooms })
       void refreshProgress(api)
       if (sfx.unlocked) ambient.start()
+      bridge.send({ type: 'encounter-close' })
       bridge.send({ type: 'reset' })
       bridge.send({ type: 'set-view-inset', bottomFraction: 0 })
       bridge.send({ type: 'set-phase', phase: 'exploring' })
       setTimeout(focusGame, 0)
-    } catch {
-      setLoadError('A new run could not be started.')
+    } catch (err) {
+      setLoadError(describeError(err, 'A new run could not be started.'))
     }
   }, [bridge, dungeon, focusGame, refreshProgress])
 
@@ -368,8 +470,9 @@ export function usePlaySession() {
     dispatch({ type: 'retreat' })
     setQuestion(null)
     setAnswerError(null)
+    bridge.send({ type: 'encounter-close' })
     setTimeout(focusGame, 0)
-  }, [focusGame])
+  }, [bridge, focusGame])
 
   // Esc toggles pause while exploring/paused.
   useEffect(() => {
@@ -420,6 +523,9 @@ export function usePlaySession() {
     animDone,
     clearedXp,
     progress,
+    revenantView,
+    // Haunted memories due, once progress has loaded: the backend count minus Revenants rested since.
+    hauntedDue: progress ? remainingDue(progress.due_review_count ?? fetchedDue ?? 0, restedLocal) : undefined,
     onAnswer,
     skipWait,
     restart,

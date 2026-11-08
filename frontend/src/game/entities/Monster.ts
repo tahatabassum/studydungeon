@@ -11,6 +11,8 @@ const BOSS_BAR_W = 128
 const BOSS_BAR_H = 12
 const HP_TWEEN_MS = 300
 const DEATH_FADE_MS = 400
+/** Red-shifted resting tint for the enraged boss. */
+const ENRAGED_TINT = 0xff9a8a
 
 /** Pixel-art monster built from Room.monster data. Visual bob never moves the collision zone. */
 export class Monster {
@@ -22,7 +24,11 @@ export class Monster {
   readonly position: Point
   readonly isBoss: boolean
   alive = true
+  /** True while the boss phase is enraged (tint shift and the heavier attack). Display only. */
+  enraged = false
 
+  /** Resting tint: the style tint, or the enraged red shift. */
+  private baseTint: number
   private hp: number
   private shownHp: number
   private readonly style: MonsterStyle
@@ -56,6 +62,7 @@ export class Monster {
     this.position = { ...at }
     this.isBoss = isBoss
     this.style = getMonsterStyle(data.kind, isBoss)
+    this.baseTint = this.style.tint
     this.barW = isBoss ? BOSS_BAR_W : BAR_W
     this.barH = isBoss ? BOSS_BAR_H : BAR_H
 
@@ -67,7 +74,7 @@ export class Monster {
       .setDepth(8)
     this.feetY = at.y + Math.round(this.sprite.displayHeight / 2)
     this.sprite.setY(this.feetY)
-    if (this.style.tint !== 0xffffff) this.sprite.setTint(this.style.tint)
+    if (this.baseTint !== 0xffffff) this.sprite.setTint(this.baseTint)
     this.barOffset = Math.round(this.sprite.displayHeight / 2) + 10
 
     // Two small glowing eye points that follow the sprite (updated in tick()).
@@ -221,7 +228,60 @@ export class Monster {
   /** Attack animation (lean with accent highlight). No-op under reduced motion. */
   playAttack(): void {
     this.playOnce(this.style.anims.attack)
-    this.windUp()
+    if (this.enraged) this.roar()
+    else this.windUp()
+  }
+
+  /** Re-applies the resting tint after a flash or wind-up. */
+  private restoreTint(): void {
+    this.sprite.clearTint()
+    if (this.baseTint !== 0xffffff) this.sprite.setTint(this.baseTint)
+  }
+
+  /**
+   * Enraged phase look: a red tint shift on the sprite, a red aura and red eyes. This is the only
+   * enraged effect under reduced motion (tint only). Idempotent; display only.
+   */
+  setEnraged(on: boolean): void {
+    if (this.enraged === on) return
+    this.enraged = on
+    this.baseTint = on ? ENRAGED_TINT : this.style.tint
+    if (!this.alive || !this.sprite.active) return
+    this.restoreTint()
+    this.aura.setFillStyle(on ? COLORS.DANGER : this.style.aura, this.isBoss ? 0.4 : 0.3)
+    for (const e of this.eyes) e.setTint(on ? COLORS.DANGER : this.style.aura)
+  }
+
+  /**
+   * Enraged attack: a heavier lunge and roar. The sprite rears back further than the normal
+   * wind-up, the eyes flare wide and the body flashes red. Runs inside the existing lunge window,
+   * so combat timing is unchanged. Skipped when reduced.
+   */
+  private roar(): void {
+    if (this.reducedMotion || !this.alive || !this.sprite.active) return
+    this.sprite.setTint(COLORS.DANGER)
+    this.scene.tweens.add({
+      targets: this.sprite,
+      angle: { from: 0, to: -12 },
+      duration: 140,
+      yoyo: true,
+      hold: 90,
+      ease: 'Back.easeOut',
+    })
+    if (this.eyes.length > 0) {
+      const rest = this.eyes[0].scale
+      this.scene.tweens.add({
+        targets: this.eyes,
+        scale: { from: rest * 3, to: rest },
+        duration: 420,
+        ease: 'Cubic.easeOut',
+      })
+    }
+    this.scene.time.delayedCall(320, () => {
+      if (!this.sprite.active) return
+      this.restoreTint()
+      this.sprite.setAngle(0)
+    })
   }
 
   /**
@@ -241,8 +301,7 @@ export class Monster {
     })
     this.scene.time.delayedCall(200, () => {
       if (!this.sprite.active) return
-      this.sprite.clearTint()
-      if (this.style.tint !== 0xffffff) this.sprite.setTint(this.style.tint)
+      this.restoreTint()
       this.sprite.setAngle(0)
     })
   }
@@ -258,8 +317,7 @@ export class Monster {
     this.sprite.setTintFill(0xffffff)
     this.scene.time.delayedCall(90, () => {
       if (!this.sprite.active) return
-      this.sprite.clearTint()
-      if (this.style.tint !== 0xffffff) this.sprite.setTint(this.style.tint)
+      this.restoreTint()
     })
   }
 

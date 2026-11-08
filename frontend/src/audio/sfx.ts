@@ -15,8 +15,10 @@ export type Cue =
   | 'defeat'
   | 'miss'
   | 'boss'
+  | 'rest'
 
 export const CUES: readonly Cue[] = [
+  'rest',
   'miss',
   'boss',
   'footstep',
@@ -46,6 +48,7 @@ const MIN_GAP_MS: Record<Cue, number> = {
   defeat: 800,
   miss: 200,
   boss: 1500,
+  rest: 600,
 }
 
 /** Narrow slice of the Web Audio API that the engine uses (lets tests inject a fake). */
@@ -258,6 +261,10 @@ export class SfxEngine {
       case 'miss':
         // Soft whoosh: a short filtered breath, no pitched tone.
         this.noiseBurst(ctx, out, t, 0.18, 0.2, 900)
+        break
+      case 'rest':
+        // A soft descending chime: a memory laid to rest. Quieter than the other cues.
+        ;[1175, 880, 659].forEach((f, i) => this.tone(ctx, out, 'sine', f, f * 0.995, t + i * 0.14, 0.55, 0.14))
         break
       case 'boss':
         // Low two-note swell, quiet and brief.

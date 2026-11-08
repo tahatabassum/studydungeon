@@ -3,6 +3,7 @@ import type {
   AttemptRequest,
   ClearRoomResponse,
   DemoSessionResponse,
+  DueReview,
   Dungeon,
   ProgressInfo,
   Run,
@@ -18,4 +19,9 @@ export interface ApiClient {
   finishRun(runId: string): Promise<RunSummary>
   /** Backend owns level/XP-to-next; the frontend never computes them. */
   getProgress(): Promise<ProgressInfo>
+  /**
+   * PROPOSED (pending Person A): questions due for review in this dungeon, backed by GET /reviews/due.
+   * Person A may instead embed them in the run payload; this method hides the choice from the UI.
+   */
+  getDueReviews(dungeonId: string): Promise<DueReview[]>
 }

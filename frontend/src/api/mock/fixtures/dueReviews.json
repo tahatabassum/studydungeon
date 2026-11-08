@@ -1,0 +1,13 @@
+[
+  {
+    "id": "rev-q2",
+    "question": { "id": "q2", "type": "true_false", "prompt": "RAM keeps data when power is off.", "options": ["True", "False"] },
+    "room_id": "room-1",
+    "times_missed": 2
+  },
+  {
+    "id": "rev-q1",
+    "question": { "id": "q1", "type": "mcq", "prompt": "Which component executes program instructions?", "options": ["CPU", "RAM", "Disk", "Fan"] },
+    "room_id": "room-1"
+  }
+]

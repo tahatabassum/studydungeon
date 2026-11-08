@@ -2,6 +2,7 @@ import Phaser from 'phaser'
 import { MAX_PARTICLES, type ParticleSpec, type RoomTheme } from '../world/roomTheme'
 import { themeBudget } from '../world/themeBudget'
 import { TILE, WORLD_H, WORLD_W, type Point } from '../world/RoomLayout'
+import { COLORS } from '../colors'
 import { ObjectPool } from './objectPool'
 import { ensureSparkTexture } from './sparkTexture'
 
@@ -24,6 +25,7 @@ const LOOKS: Record<ParticleSpec['kind'], Look> = {
 }
 
 const FOG_COUNT = 3
+const EXTRA_FOG_COUNT = 2
 const DEPTH_FOG = 4
 const DEPTH_PARTICLE = 11
 
@@ -35,6 +37,12 @@ export class AtmosphereSystem {
   private readonly pool: ObjectPool<Phaser.GameObjects.Image>
   private readonly fog: Phaser.GameObjects.Ellipse[] = []
   private readonly active: Phaser.GameObjects.Image[] = []
+  /** Extra red fog blobs for the enraged boss. Separate from, and not counted in, MAX_PARTICLES. */
+  private readonly extraFog: Phaser.GameObjects.Ellipse[] = []
+  private roomOrigin: Point = { x: 0, y: 0 }
+  private fogColor = 0xffffff
+  private fogAlpha = 0.06
+  private fogShown = false
 
   constructor(
     private readonly scene: Phaser.Scene,
@@ -49,6 +57,34 @@ export class AtmosphereSystem {
     for (let i = 0; i < FOG_COUNT; i++) {
       this.fog.push(scene.add.ellipse(0, 0, 420, 200, 0xffffff, 0.05).setDepth(DEPTH_FOG).setVisible(false))
     }
+    for (let i = 0; i < EXTRA_FOG_COUNT; i++) {
+      this.extraFog.push(scene.add.ellipse(0, 0, 360, 170, COLORS.DANGER, 0.08).setDepth(DEPTH_FOG).setVisible(false))
+    }
+  }
+
+  /**
+   * Enraged boss: two extra red fog blobs and thicker base fog. Display only, no particles added.
+   * Does nothing without room fog (non-boss rooms) or under reduced motion.
+   */
+  setEnraged(on: boolean): void {
+    if (!this.fogShown || this.isReduced()) on = false
+    this.fog.forEach((f) => f.setFillStyle(this.fogColor, on ? this.fogAlpha * 1.7 : this.fogAlpha))
+    this.extraFog.forEach((f, i) => {
+      this.scene.tweens.killTweensOf(f)
+      f.setVisible(on)
+      if (!on) return
+      const x = this.roomOrigin.x + (WORLD_W * (i + 1)) / (EXTRA_FOG_COUNT + 1)
+      const y = this.roomOrigin.y + WORLD_H * (0.5 + 0.18 * (i % 2 ? 1 : -1))
+      f.setPosition(x, y)
+      this.scene.tweens.add({
+        targets: f,
+        x: x + 80 * (i % 2 ? -1 : 1),
+        duration: 7000 + i * 2000,
+        yoyo: true,
+        repeat: -1,
+        ease: 'Sine.easeInOut',
+      })
+    })
   }
 
   /** Number of particles currently shown (never above MAX_PARTICLES). */
@@ -96,6 +132,10 @@ export class AtmosphereSystem {
     if (!reduced && (theme.id === 'boss_hall' || theme.id === 'clockwork_crypt')) {
       // Heavier fog (theme.fog > 1) is bigger and denser; the blob count stays at FOG_COUNT.
       const heavy = theme.fog ?? 1
+      this.roomOrigin = origin
+      this.fogColor = spec.color
+      this.fogAlpha = 0.06 * heavy
+      this.fogShown = true
       this.fog.forEach((f, i) => {
         const x = origin.x + (WORLD_W * (i + 1)) / (FOG_COUNT + 1)
         const y = origin.y + WORLD_H * (0.35 + 0.15 * (i % 2))
@@ -125,12 +165,19 @@ export class AtmosphereSystem {
       this.scene.tweens.killTweensOf(f)
       f.setVisible(false)
     }
+    for (const f of this.extraFog) {
+      this.scene.tweens.killTweensOf(f)
+      f.setVisible(false)
+    }
+    this.fogShown = false
   }
 
   destroy(): void {
     this.clearRoom()
     this.pool.clear((img) => img.destroy())
     for (const f of this.fog) f.destroy()
+    for (const f of this.extraFog) f.destroy()
     this.fog.length = 0
+    this.extraFog.length = 0
   }
 }

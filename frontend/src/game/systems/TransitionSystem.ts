@@ -3,6 +3,7 @@ import { COLORS } from '../colors'
 import { FOG_BLOB_KEY } from '../textures/registerGlow'
 import { ObjectPool } from './objectPool'
 import { MIST_BLOBS, transitionPlan } from './transition'
+import type { Rect } from '../viewport'
 
 /**
  * Mist wipe between rooms: pooled fog blobs sweep up the screen in at most 600 ms.
@@ -11,6 +12,7 @@ import { MIST_BLOBS, transitionPlan } from './transition'
 export class TransitionSystem {
   private readonly blobs: ObjectPool<Phaser.GameObjects.Image>
   private active = false
+  private screenRect: Rect = { x: 0, y: 0, w: 960, h: 540 }
   private safety: Phaser.Time.TimerEvent | null = null
 
   private readonly skip = (): void => this.end()
@@ -32,6 +34,11 @@ export class TransitionSystem {
     })
   }
 
+  /** Screen-space rect covering the viewport at the current zoom (set on resize). */
+  setScreenRect(r: Rect): void {
+    this.screenRect = r
+  }
+
   get playing(): boolean {
     return this.active
   }
@@ -41,19 +48,20 @@ export class TransitionSystem {
     if (!plan || !this.scene.textures.exists(FOG_BLOB_KEY)) return
     this.end()
     this.active = true
-    const cam = this.scene.cameras.main
-    const w = cam.width
-    const h = cam.height
+    // Screen-space rect (already adjusted for camera zoom) so the wipe spans the whole viewport.
+    const r = this.screenRect
+    const z = this.scene.cameras.main.zoom || 1
     let remaining = 0
     for (let i = 0; i < plan.blobs; i++) {
       const b = this.blobs.acquire()
       if (!b) break
       remaining++
-      const x = (w * i) / (plan.blobs - 1)
-      b.setPosition(x, h + 160)
+      const x = r.x + (r.w * i) / (plan.blobs - 1)
+      b.setScale(4 / z, 5 / z)
+      b.setPosition(x, r.y + r.h + 160 / z)
       this.scene.tweens.add({
         targets: b,
-        y: -160,
+        y: r.y - 160 / z,
         delay: plan.delayMs(i),
         duration: plan.sweepMs,
         ease: 'Sine.easeInOut',

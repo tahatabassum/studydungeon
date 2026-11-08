@@ -3,7 +3,16 @@
  * creaks and a distant owl at random 20 to 60 s intervals.
  * Must not import @/api, @/demo, @/state, Phaser or React.
  */
-import { MASTER_GAIN, type ContextFactory, type SfxBufferSource, type SfxContext, type SfxGain, type SfxNode } from './sfx'
+import {
+  MASTER_GAIN,
+  type ContextFactory,
+  type SfxBufferSource,
+  type SfxContext,
+  type SfxFilter,
+  type SfxGain,
+  type SfxNode,
+  type SfxOsc,
+} from './sfx'
 
 /** Wind drone gain relative to master (requirement: at most 5 percent). */
 export const BED_GAIN = 0.05
@@ -12,6 +21,12 @@ export const BED_GAIN = 0.05
  * with the 0.25 master) so the owl is clearly audible but still soft.
  */
 export const ONESHOT_GAIN = 0.35
+/** Bed low-pass cutoff in Hz: normal, and the darker enraged variant. */
+export const BED_CUTOFF_HZ = 260
+export const ENRAGED_BED_CUTOFF_HZ = 170
+/** Enraged sub-drone pitch (Hz) and gain relative to master. It stays below the 5 percent bed ceiling. */
+export const ENRAGED_DRONE_HZ = 55
+export const ENRAGED_DRONE_GAIN = 0.03
 export const MIN_INTERVAL_MS = 20_000
 export const MAX_INTERVAL_MS = 60_000
 /** The first one-shot comes early so the player hears the owl soon after starting. */
@@ -36,6 +51,9 @@ export class AmbientEngine {
   private muted = false
   private oneShotCount = 0
   private gestureAttached = false
+  private enraged = false
+  private bedFilter: SfxFilter | null = null
+  private droneOsc: SfxOsc | null = null
 
   constructor(
     private readonly factory: ContextFactory = defaultFactory,
@@ -61,6 +79,7 @@ export class AmbientEngine {
       this.master = master
       this.startBed(ctx, master)
       this.running = true
+      this.applyEnraged()
       this.tryResume()
       this.scheduleNext()
     } catch {
@@ -123,6 +142,44 @@ export class AmbientEngine {
     return this.muted
   }
 
+  isEnraged(): boolean {
+    return this.enraged
+  }
+
+  /**
+   * Boss enraged variant: a darker bed, a quiet low sub-drone and no owl (creaks only).
+   * Remembered while stopped and applied on start; mute still silences everything via the master.
+   */
+  setEnraged(value: boolean): void {
+    this.enraged = value
+    this.applyEnraged()
+  }
+
+  private applyEnraged(): void {
+    const ctx = this.ctx
+    const master = this.master
+    if (!ctx || !master) return
+    try {
+      this.bedFilter?.frequency.setValueAtTime(this.enraged ? ENRAGED_BED_CUTOFF_HZ : BED_CUTOFF_HZ, ctx.currentTime)
+      if (this.enraged && !this.droneOsc) {
+        const osc = ctx.createOscillator()
+        const g = ctx.createGain()
+        osc.type = 'sine'
+        osc.frequency.setValueAtTime(ENRAGED_DRONE_HZ, ctx.currentTime)
+        g.gain.value = ENRAGED_DRONE_GAIN
+        osc.connect(g)
+        g.connect(master)
+        osc.start()
+        this.droneOsc = osc
+      } else if (!this.enraged && this.droneOsc) {
+        this.droneOsc.stop()
+        this.droneOsc = null
+      }
+    } catch {
+      /* ignore */
+    }
+  }
+
   // ----- internals -----
 
   private teardown(): void {
@@ -143,6 +200,13 @@ export class AmbientEngine {
     } catch {
       /* ignore */
     }
+    try {
+      this.droneOsc?.stop()
+    } catch {
+      /* ignore */
+    }
+    this.droneOsc = null
+    this.bedFilter = null
     this.bedSource = null
     this.master = null
     this.ctx = null
@@ -167,7 +231,8 @@ export class AmbientEngine {
     src.loop = true
     const filter = ctx.createBiquadFilter()
     filter.type = 'lowpass'
-    filter.frequency.setValueAtTime(260, ctx.currentTime)
+    filter.frequency.setValueAtTime(BED_CUTOFF_HZ, ctx.currentTime)
+    this.bedFilter = filter
     const g = ctx.createGain()
     g.gain.value = BED_GAIN
     src.connect(filter)
@@ -195,7 +260,7 @@ export class AmbientEngine {
     this.tryResume()
     try {
       // Alternate, owl first.
-      const isOwl = this.oneShotCount % 2 === 0
+      const isOwl = !this.enraged && this.oneShotCount % 2 === 0
       this.oneShotCount++
       if (isOwl) this.owl(ctx, master)
       else this.creak(ctx, master)
