@@ -111,3 +111,27 @@ This log records dated facts, steering documents, feature specifications, automa
 - **Pytest:** 61 passed in 7.70s (0 failures, 0 regressions).
 - **Ruff:** All checks passed (0 errors, 0 warnings).
 - **Alembic:** Clean migrations, zero schema drift.
+
+---
+
+## [2026-11-08] - Step 4: Authoritative Combat, Game Runs & Fixed-Ladder SRS (Break-It Round)
+**Objective:** Authoritative state progression, client attempt idempotency (`attempt_id`), guest access containment, and end-of-run scorecard calculation.
+
+### What I Tried to Break
+- **Cross-User Run Tampering:** User B attempted to inspect or finish User A's run via `GET /runs/{id}` and `POST /runs/{id}/finish`. Verified HTTP 404 `RUN_NOT_FOUND` cross-tenant security barrier.
+- **Finished/Defeated Run Resubmission:** Submitted attempts to a run with status `"defeated"`. Verified HTTP 409 `RUN_FINISHED` preventing late HP/score exploitation.
+- **Idempotency Replay Attack:** Dispatched duplicate attempt payloads with identical `attempt_id`. Verified idempotent replay returning cached combat results without double damage or score inflation.
+- **Guest Access Containment:** Attempted starting a run on private dungeons as guest. Verified HTTP 403 `GUEST_FORBIDDEN`, while public demo dungeon run creation succeeds cleanly.
+
+### Bugs Found & Fixed
+- Added relationship on `GameRun.dungeon` and `Attempt.question` for eager loading in runs status endpoint.
+- Added `selected_answer` and `damage_taken` columns to `Attempt` model along with Alembic migration `188c79c171dd_add_attempt_selected_answer_and_damage_taken.py`.
+- Fixed field name parity on `ReviewItem` (`due_at` and `repetition`).
+
+### Bugs Found, Not Fixed
+- None.
+
+### Final Verification Counts
+- **Pytest:** 65 passed in 6.07s (0 failures, 0 regressions).
+- **Ruff:** All checks passed (0 errors, 0 warnings).
+- **Alembic:** Migrations fully tested, 0 schema drift.

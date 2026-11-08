@@ -9,6 +9,8 @@ from app.api.auth import auth_router, demo_router
 from app.api.documents import documents_router
 from app.api.dungeons import dungeons_router
 from app.api.health import health_router
+from app.api.progress import progress_router
+from app.api.runs import runs_router
 from app.core.config import settings
 from app.core.errors import (
     generic_exception_handler,
@@ -52,6 +54,8 @@ def create_app() -> FastAPI:
     app.include_router(demo_router)
     app.include_router(documents_router)
     app.include_router(dungeons_router)
+    app.include_router(runs_router)
+    app.include_router(progress_router)
 
     return app
 
