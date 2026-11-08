@@ -10,6 +10,8 @@ export const TEXTURE_CAP_MIB = 32
 
 export interface DebugSources {
   ambientCount: () => number
+  /** Optional readout of the Revenants shown and the pooled objects their effect uses. */
+  revenants?: () => string
   textureBytes: () => number
   /** Optional readout line: viewport size, zoom, canvas size, HUD mode. */
   viewport?: () => string
@@ -73,7 +75,9 @@ export class DebugOverlay {
     const mib = this.sources.textureBytes() / MIB
     const renderer = game.renderer.type === Phaser.WEBGL ? 'WebGL' : 'Canvas'
     this.text.setText(
-      `fps ${Math.round(game.loop.actualFps)}  ambient ${this.sources.ambientCount()}  tweens ${this.scene.tweens.getTweens().length}\n` +
+      `fps ${Math.round(game.loop.actualFps)}  ambient ${this.sources.ambientCount()}  tweens ${this.scene.tweens.getTweens().length}` +
+        (this.sources.revenants ? `  revenants ${this.sources.revenants()}` : '') +
+        '\n' +
         `renderer ${renderer}  texture ${mib.toFixed(1)} MiB / ${TEXTURE_CAP_MIB}` +
         (this.sources.viewport ? `\n${this.sources.viewport()}` : ''),
     )

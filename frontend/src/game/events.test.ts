@@ -122,6 +122,23 @@ describe('createGameBridge', () => {
     ])
   })
 
+  it('delivers the additive revenant events in both directions', () => {
+    const bridge = createGameBridge()
+    const to: ToGameEvent[] = []
+    const from: FromGameEvent[] = []
+    bridge.onToGame((e) => to.push(e))
+    bridge.on((e) => from.push(e))
+    bridge.send({ type: 'spawn-revenants', roomId: 'room-1', revenants: [{ id: 'rev-q1', questionId: 'q1' }] })
+    bridge.emit({ type: 'ready' })
+    bridge.emit({ type: 'revenant-engaged', revenantId: 'rev-q1' })
+    bridge.emit({ type: 'revenant-rested', revenantId: 'rev-q1' })
+    expect(to).toEqual([{ type: 'spawn-revenants', roomId: 'room-1', revenants: [{ id: 'rev-q1', questionId: 'q1' }] }])
+    expect(from.slice(1)).toEqual([
+      { type: 'revenant-engaged', revenantId: 'rev-q1' },
+      { type: 'revenant-rested', revenantId: 'rev-q1' },
+    ])
+  })
+
   it('delivers room-entered and gate-opened to React', () => {
     const bridge = createGameBridge()
     const got: FromGameEvent[] = []

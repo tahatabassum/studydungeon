@@ -260,6 +260,12 @@ Phase 3 details (weapons, criticals, boss phase). Everything here is presentatio
   ```json
   { "id": "rev_1", "question": { "id": "q2", "type": "mcq", "prompt": "...", "options": ["...", "..."] }, "room_id": "room-1", "times_missed": 2 }
   ```
+- Phase 4 details (the frontend is built against Option 2; `ApiClient.getDueReviews(dungeonId)` hides the choice, so switching to Option 1 needs no UI change):
+  - `GET /reviews/due?dungeon_id=<id>` returns a **bare JSON array** of the items above (empty array when nothing is due). `times_missed` is optional.
+  - `GET /progress` `due_review_count` should equal the length of that array for the dungeon; the counter in the HUD reads it and refetches it after a Revenant is rested.
+  - A Revenant is shown in `room_id` once that room's monster is defeated: at most 3 per room, in the order returned. They are optional and never block the gate.
+  - **Answering a Revenant uses the normal `POST /runs/{id}/attempts` with the due question's id, after the room monster is already defeated.** The backend must accept that (not return 409 "monster already defeated") when the question is due, must **leave the room monster at 0 HP** (`monster_hp_remaining: 0`, `damage_dealt: 0`), and must still deduct player HP, update streak, score and XP and the review schedule. The mock charges 10 player HP for a wrong answer (same as a topic room) and clears the review on a correct one. The frontend never computes any of this.
+  - Dev only: `VITE_MOCK_SEED_REVENANTS=true` makes the mock treat the first 3 questions of every non-boss room as due, so 3 Revenants show at once. It has no effect on a real backend.
 
 ### Auth endpoints
 

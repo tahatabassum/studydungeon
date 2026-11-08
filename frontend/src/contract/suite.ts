@@ -99,6 +99,23 @@ export function defineContractSuite(opts: ContractSuiteOptions): void {
       for (const w of p.weapons ?? []) expect(w.unlock_level).toBeGreaterThanOrEqual(1)
     })
 
+    it('GET /reviews/due (PROPOSED) returns questions without answers, each in a known room', async () => {
+      const reviews = await api.getDueReviews(dungeon.id)
+      expectSchema('getDueReviews', reviews)
+      const roomIds = new Set(dungeon.rooms.map((r) => r.id))
+      const ids = new Set(reviews.map((r) => r.id))
+      expect(ids.size).toBe(reviews.length)
+      for (const r of reviews) {
+        expect(roomIds.has(r.room_id)).toBe(true)
+        expect(r.question.options.length).toBeGreaterThanOrEqual(2)
+        // The question never carries the answer.
+        expect(Object.keys(r.question).sort()).toEqual(['id', 'options', 'prompt', 'type'])
+      }
+      // The progress count agrees with the list when the backend sends it.
+      const p = await api.getProgress()
+      if (p.due_review_count !== undefined) expect(p.due_review_count).toBe(reviews.length)
+    })
+
     const answer = opts.correctAnswer
     it.skipIf(!answer)('plays through every room: clear after defeat, boss last, finish returns a summary', async () => {
       const fresh = await api.startRun(dungeon.id)

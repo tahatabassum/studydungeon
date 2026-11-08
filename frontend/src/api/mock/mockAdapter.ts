@@ -4,10 +4,14 @@ import demoDungeonJson from '../../demo/demoDungeon.json'
 import { BOSS_PROFILE, INITIAL_STATE, ROOM_PROFILE, applyAnswer } from '../../demo/rules'
 import type { AnswerResult, Dungeon, ProgressInfo, Room, RunSummary } from '../../types/api'
 import { WEAPONS, weaponForLevel } from '../../weapons/weapons'
+import { readFlags } from '../../config/flags'
 import { answerKey } from './answerKey'
 import { readMockLevel } from './mockLevel'
+import { createReviewStore } from './mockReviews'
 
 export interface MockAdapterOptions {
+  /** Seed due reviews for demos. Defaults to VITE_MOCK_SEED_REVENANTS. */
+  seedRevenants?: boolean
   /** Artificial latency in ms. Default 0. */
   delayMs?: number
   /** Dev override of the player level (from `?mockLevel=N`); otherwise derived from XP. */
@@ -70,6 +74,16 @@ export function createMockAdapter(options: MockAdapterOptions = {}): ApiClient {
   const delayMs = options.delayMs ?? 0
   const runs = new Map<string, RunRecord>()
   let runCounter = 0
+  // Due reviews persist across runs of this adapter instance, like a real review schedule.
+  const reviews = createReviewStore(
+    orderedRooms.map((r) => ({
+      id: r.id,
+      order: r.order,
+      is_boss: r.is_boss,
+      question_ids: r.monster.question_ids,
+    })),
+    options.seedRevenants ?? readFlags().mockSeedRevenants,
+  )
 
   const totalXp = (): number => {
     let sum = 0
@@ -147,14 +161,17 @@ export function createMockAdapter(options: MockAdapterOptions = {}): ApiClient {
       const room = roomOfQuestion.get(req.question_id)
       if (!room) throw new ApiError(422, `Question has no room: ${req.question_id}`)
       const roomHp = run.monsterHp.get(room.id) ?? 0
-      if (roomHp <= 0) throw new ApiError(409, 'Monster is already defeated')
+      // A due question may still be answered after its room monster is defeated (a Revenant).
+      // That attempt never changes the room monster: its HP stays 0 and no damage is dealt.
+      const isReview = roomHp <= 0 && reviews.isDue(req.question_id)
+      if (roomHp <= 0 && !isReview) throw new ApiError(409, 'Monster is already defeated')
       if (run.playerHp <= 0) throw new ApiError(409, 'Player is defeated')
 
       const isCorrect = req.selected_answer === entry.correct
       const { next, result } = applyAnswer(
         { playerHp: run.playerHp, monsterHp: roomHp, streak: run.streak },
         isCorrect,
-        room.is_boss ? BOSS_PROFILE : ROOM_PROFILE,
+        room.is_boss && !isReview ? BOSS_PROFILE : ROOM_PROFILE,
       )
       const full: AnswerResult = {
         ...result,
@@ -162,8 +179,9 @@ export function createMockAdapter(options: MockAdapterOptions = {}): ApiClient {
         ...(entry.explanation !== undefined ? { explanation: entry.explanation } : {}),
         // PROPOSED, presentation only: best weapon for the level; crit on streak multiples of 3.
         weapon_id: weaponForLevel(playerLevel()).id,
-        is_critical: isCorrect && next.streak > 0 && next.streak % 3 === 0,
+        is_critical: !isReview && isCorrect && next.streak > 0 && next.streak % 3 === 0,
       }
+      reviews.record(req.question_id, isCorrect)
       run.playerHp = next.playerHp
       run.streak = next.streak
       run.monsterHp.set(room.id, next.monsterHp)
@@ -218,7 +236,15 @@ export function createMockAdapter(options: MockAdapterOptions = {}): ApiClient {
         level,
         // PROPOSED: the weapon list the Armory reads.
         weapons: WEAPONS.map((w) => ({ id: w.id, unlock_level: w.unlockLevel })),
+        // PROPOSED: how many reviews are due across the dungeon.
+        due_review_count: reviews.count(),
       }
+    },
+
+    async getDueReviews(dungeonId) {
+      await wait()
+      if (dungeonId !== demoDungeon.id) throw new ApiError(404, `Dungeon not found: ${dungeonId}`)
+      return reviews.list(demoDungeon.questions)
     },
   }
 }

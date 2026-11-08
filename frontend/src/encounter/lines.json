@@ -69,6 +69,20 @@
       "You stirred it just right."
     ]
   },
+  "revenant": {
+    "taunts": [
+      "You missed me once. Look closer.",
+      "Forgotten facts do not stay buried.",
+      "I am the answer you never kept.",
+      "Name me, and I will rest."
+    ],
+    "reactions": [
+      "Yes. I remember now.",
+      "The memory lets go. Thank you.",
+      "Rest, little question.",
+      "I can finally fade."
+    ]
+  },
   "warden": {
     "taunts": [
       "The final exam begins. Sit up straight.",

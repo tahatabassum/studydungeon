@@ -13,6 +13,7 @@ import { PauseMenu } from '@/components/PauseMenu'
 import { Spinner } from '@/components/Spinner'
 import { VictoryOverlay } from '@/components/VictoryOverlay'
 import { EncounterPopup } from '@/encounter/EncounterPopup'
+import { REVENANT_KIND } from '@/encounter/revenants'
 import { GameCanvas } from '@/game/GameCanvas'
 import { hudMode } from '@/game/viewport'
 import { useFullscreen } from '@/shell/useFullscreen'
@@ -95,7 +96,8 @@ export default function PlayPage() {
               monsterName={room.monster.name}
               monsterKind={room.monster.kind}
               isBoss={room.is_boss}
-              showMonster={combatActive || state.monsterHp > 0}
+              // A Revenant encounter never shows the (defeated) room monster's bar.
+              showMonster={(combatActive && !state.revenantActive) || state.monsterHp > 0}
               xp={state.xp}
               streak={state.streak}
               level={s.progress?.level}
@@ -104,6 +106,7 @@ export default function PlayPage() {
               rooms={s.rooms}
               currentRoomId={s.currentRoomId}
               clearedRoomIds={s.clearedRoomIds}
+              hauntedDue={s.hauntedDue}
             />
             {!compact && <GuestBanner isGuest={user?.is_guest ?? false} />}
           </div>
@@ -118,8 +121,9 @@ export default function PlayPage() {
         question={panelVisible ? s.question : null}
         combat={state.combat}
         monsterName={room.monster.name}
-        monsterKind={room.monster.kind}
-        isBoss={room.is_boss}
+        monsterKind={s.revenantView ? REVENANT_KIND : room.monster.kind}
+        isRevenant={s.revenantView}
+        isBoss={room.is_boss && !s.revenantView}
         roomOrder={room.order}
         error={s.answerError}
         result={state.lastResult}

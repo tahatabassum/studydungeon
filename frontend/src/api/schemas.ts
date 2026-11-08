@@ -3,6 +3,7 @@ import type {
   AnswerResult,
   ClearRoomResponse,
   DemoSessionResponse,
+  DueReview,
   Dungeon,
   ProgressInfo,
   Run,
@@ -133,6 +134,16 @@ export const progressSchema: z.ZodType<ProgressInfo> = z.object({
   due_review_count: z.number().optional(),
 })
 
+/** PROPOSED: GET /reviews/due returns a bare array of due reviews. */
+export const dueReviewsSchema: z.ZodType<DueReview[]> = z.array(
+  z.object({
+    id: z.string(),
+    question: questionSchema,
+    room_id: z.string(),
+    times_missed: z.number().optional(),
+  }),
+)
+
 /** One entry per existing endpoint; the HTTP client and the fixture test both use this table. */
 export const ENDPOINT_SCHEMAS = {
   startDemoSession: { endpoint: 'POST /demo/session', schema: demoSessionSchema },
@@ -142,4 +153,5 @@ export const ENDPOINT_SCHEMAS = {
   clearRoom: { endpoint: 'POST /runs/{id}/rooms/{roomId}/clear', schema: clearRoomSchema },
   finishRun: { endpoint: 'POST /runs/{id}/finish', schema: runSummarySchema },
   getProgress: { endpoint: 'GET /progress', schema: progressSchema },
+  getDueReviews: { endpoint: 'GET /reviews/due', schema: dueReviewsSchema },
 } as const

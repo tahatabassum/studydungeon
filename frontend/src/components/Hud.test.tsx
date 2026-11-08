@@ -53,6 +53,18 @@ describe('Hud halloween frame', () => {
     expect(screen.queryByText(/to next/)).toBeNull()
   })
 
+  it('shows the Haunted memories counter only when a count is given, in full and compact modes', () => {
+    const { rerender } = render(<Hud {...base} />)
+    expect(screen.queryByTestId('haunted-counter')).toBeNull()
+    rerender(<Hud {...base} hauntedDue={3} />)
+    expect(screen.getByTestId('haunted-counter').getAttribute('data-count')).toBe('3')
+    expect(screen.getByText('Haunted memories due')).toBeTruthy()
+    rerender(<Hud {...base} compact hauntedDue={0} />)
+    expect(screen.getByTestId('haunted-counter').getAttribute('data-count')).toBe('0')
+    // Compact keeps the full label for assistive tech.
+    expect(screen.getByText('Haunted memories due').className).toContain('sr-only')
+  })
+
   it('draws candle flame on the current room only', () => {
     const rooms = [
       { id: 'a', label: 'A', is_boss: false },

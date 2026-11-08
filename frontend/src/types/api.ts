@@ -128,6 +128,17 @@ export interface ProgressInfo {
   due_review_count?: number
 }
 
+/**
+ * PROPOSED (pending Person A): a question the player got wrong and should review.
+ * It becomes a Revenant in the room it came from. The question never carries the answer.
+ */
+export interface DueReview {
+  id: string
+  question: Question
+  room_id: string
+  times_missed?: number
+}
+
 /** PROPOSED (pending Person A) */
 export type WeaponId =
   | 'rusty_dagger'

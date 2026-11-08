@@ -7,6 +7,14 @@
     "7.6 Write property tests for boss phase and lightning": {
       "status": "passed",
       "lastRunTimestamp": 1794148613302
+    },
+    "9.2 Write property test for mock due reviews": {
+      "status": "passed",
+      "lastRunTimestamp": 1794149248247
+    },
+    "9.6 Write property test for revenant counting": {
+      "status": "passed",
+      "lastRunTimestamp": 1794150080894
     }
   },
   "executionHistory": {
@@ -568,6 +576,97 @@
         "executionId": "fdbc56d6-1d78-4ea1-8f22-1be4619ef016",
         "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
         "timestamp": 1794148802378
+      }
+    ],
+    "9.1 Add due reviews through the contract": [
+      {
+        "executionId": "fdbc56d6-1d78-4ea1-8f22-1be4619ef016",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794148830022
+      },
+      {
+        "executionId": "fdbc56d6-1d78-4ea1-8f22-1be4619ef016",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794150616299
+      }
+    ],
+    "9.2 Write property test for mock due reviews": [
+      {
+        "executionId": "fdbc56d6-1d78-4ea1-8f22-1be4619ef016",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794148830863
+      },
+      {
+        "executionId": "fdbc56d6-1d78-4ea1-8f22-1be4619ef016",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794150617186
+      }
+    ],
+    "9.3 Implement the RevenantSystem": [
+      {
+        "executionId": "fdbc56d6-1d78-4ea1-8f22-1be4619ef016",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794148831806
+      },
+      {
+        "executionId": "fdbc56d6-1d78-4ea1-8f22-1be4619ef016",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794150619836
+      }
+    ],
+    "9.4 Wire revenants into the play session": [
+      {
+        "executionId": "fdbc56d6-1d78-4ea1-8f22-1be4619ef016",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794148832949
+      },
+      {
+        "executionId": "fdbc56d6-1d78-4ea1-8f22-1be4619ef016",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794150622541
+      }
+    ],
+    "9.5 Add the Haunted memories counter": [
+      {
+        "executionId": "fdbc56d6-1d78-4ea1-8f22-1be4619ef016",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794148833839
+      },
+      {
+        "executionId": "fdbc56d6-1d78-4ea1-8f22-1be4619ef016",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794150630547
+      }
+    ],
+    "9.6 Write property test for revenant counting": [
+      {
+        "executionId": "fdbc56d6-1d78-4ea1-8f22-1be4619ef016",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794148834764
+      },
+      {
+        "executionId": "fdbc56d6-1d78-4ea1-8f22-1be4619ef016",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794150632371
+      }
+    ],
+    "9.7 Verify and log Phase 4": [
+      {
+        "executionId": "fdbc56d6-1d78-4ea1-8f22-1be4619ef016",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794148835826
+      },
+      {
+        "executionId": "fdbc56d6-1d78-4ea1-8f22-1be4619ef016",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794150633252
+      }
+    ],
+    "9. Phase 4: Haunted memories (revenants)": [
+      {
+        "executionId": "fdbc56d6-1d78-4ea1-8f22-1be4619ef016",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794150633409
       }
     ]
   }

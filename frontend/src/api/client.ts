@@ -72,5 +72,6 @@ export function createHttpClient(baseUrl: string, fetchImpl: typeof fetch = fetc
       request('clearRoom', 'POST', `/runs/${enc(runId)}/rooms/${enc(roomId)}/clear`),
     finishRun: (runId) => request('finishRun', 'POST', `/runs/${enc(runId)}/finish`),
     getProgress: () => request('getProgress', 'GET', '/progress'),
+    getDueReviews: (dungeonId) => request('getDueReviews', 'GET', `/reviews/due?dungeon_id=${enc(dungeonId)}`),
   }
 }

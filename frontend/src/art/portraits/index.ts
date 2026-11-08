@@ -1,5 +1,6 @@
 import { drawGhost } from './ghost'
 import { drawGolem } from './golem'
+import { drawRevenant } from './revenant'
 import { drawSkeleton } from './skeleton'
 import { drawVampire } from './vampire'
 import { drawWarden } from './warden'
@@ -17,6 +18,7 @@ export const PORTRAITS: Readonly<Record<PortraitKind, PortraitDrawer>> = {
   golem: drawGolem,
   witch: drawWitch,
   warden: drawWarden,
+  revenant: drawRevenant,
 }
 
 const cache = new Map<string, HTMLCanvasElement>()

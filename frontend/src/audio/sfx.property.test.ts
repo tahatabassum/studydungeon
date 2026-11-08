@@ -126,7 +126,8 @@ describe('sfx', () => {
   it('includes the miss and boss stingers', () => {
     expect(CUES).toContain('miss')
     expect(CUES).toContain('boss')
-    expect(CUES.length).toBe(11)
+    expect(CUES).toContain('rest')
+    expect(CUES.length).toBe(12)
   })
 
   it('rate limits repeated footsteps', () => {

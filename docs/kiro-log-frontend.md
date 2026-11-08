@@ -136,3 +136,20 @@ Presentation only. `combatMachine`, damage values and the Event_Bridge boundary 
 ### Phase 3 test counts
 
 - Typecheck, lint, build and `test:contract` pass. Full suite: 81 files, 541 tests (540 passed, 1 skipped).
+
+## Phase 4: haunted memories / revenants (frontend-07)
+
+Optional, display-first feature. `combatMachine` transitions, damage rules and the gate-open flow are unchanged; Phaser still imports nothing from api, demo, state, offline or leaderboard.
+
+- 9.1 Contract: `DueReview` (PROPOSED), `ApiClient.getDueReviews(dungeonId)` over `GET /reviews/due?dungeon_id=` (bare array), zod `dueReviewsSchema`, fixture `dueReviews.json`, contract case (no answers in questions, known rooms, `due_review_count` agrees). `src/api/mock/mockReviews.ts` keeps a pure store: a question is due while its latest answer was wrong; with `VITE_MOCK_SEED_REVENANTS=true` the first 3 questions of every non-boss room are also due. The mock accepts an attempt on a due question after its room monster is dead: no damage, monster stays at 0, wrong costs 10 HP, correct clears the review.
+- 9.3 Events (additive): `spawn-revenants` (ToGame), `revenant-engaged` and `revenant-rested` (FromGame), `RevenantSpawn` defined in `events.ts`. `RevenantSystem`: pool of 3 ghosts (code-drawn texture `revenant`: hooded translucent wisp-wraith, ragged hem, hollow face with two glowing eyes, question-mark rune, torn page; additive cyan glow under it, bob and pulse in `update` with no allocation), spawn only after the room monster is defeated, no collider so the gate is never blocked. Rest effect: the ghost rises and fades, 6 pooled sparks, soft `rest` chime (new cue, quieter than the others, respects mute); Reduced_Motion shows a pale ghost and one static marker. A wrong answer makes the ghost lunge; the scene routes `apply-result` to the system while a Revenant is engaged, so the room monster and its HP bar are never touched.
+- 9.4 `usePlaySession`: after a non-boss room clear it fetches due reviews and sends up to 3 for that room (failures ignored). `revenant-engaged` opens the same encounter with the due review's own question; the popup (portrait `revenant`, 5 poses) speaks "The ghost of a question you forgot..." first. Answers use `submitAttempt`. The reducer gained `revenantActive`: a Revenant result copies only player HP, streak, XP and score, and `result-settled` never turns it into `monster_defeated`; `revenant-finished` returns to exploring. Counter drops locally on a correct answer, then progress is refetched.
+- 9.5 `HauntedCounter` ("Haunted memories due", polite live region, icon only plus sr-only label in compact mode) is in the Hud and exported for the Dashboard.
+
+### Phase 4 performance notes (no browser was driven here)
+
+- Pooled objects with 3 Revenants present, from the code: 3 ghosts x 2 images (body, glow), 1 prompt text; during a rest at most 6 sparks plus 1 marker (Reduced_Motion). Ambient particles are unchanged (within `MAX_PARTICLES` 24). `/play?debug=1` now also prints `revenants N ghosts, M fx`. Frame rate was not measured; read fps from the debug line with `VITE_MOCK_SEED_REVENANTS=true`.
+
+### Phase 4 test counts
+
+- Typecheck, lint, build and `test:contract` pass. Full suite: 85 files, 567 passed, 1 skipped (the HTTP contract case needs a backend).

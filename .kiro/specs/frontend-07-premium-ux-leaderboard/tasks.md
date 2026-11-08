@@ -224,34 +224,34 @@ Rules for every task:
   - Summarize the changes. Tell the user how to see each weapon (mock unlocks by level; use the dev query `?mockLevel=8` added in 7.1), a critical hit on a 3-streak, the enraged boss below 60 of 120 HP, and the pause-menu Armory. Wait for approval, then commit Phase 3 separately.
   - _Requirements: 20.6, 20.8_
 
-- [ ] 9. Phase 4: Haunted memories (revenants)
-  - [ ] 9.1 Add due reviews through the contract
+- [x] 9. Phase 4: Haunted memories (revenants)
+  - [x] 9.1 Add due reviews through the contract
     - Add `DueReview`, `ApiClient.getDueReviews`, schema, fixture, contract case and `progress.due_review_count` (PROPOSED); create `src/api/mock/mockReviews.ts` (wrong-answer set, plus seeded set when `VITE_MOCK_SEED_REVENANTS` is "true")
     - _Requirements: 9.9, 17.8, 17.9_
 
-  - [ ]* 9.2 Write property test for mock due reviews
+  - [x]* 9.2 Write property test for mock due reviews
     - **Property 11: Mock due reviews follow wrong answers**
     - Create `src/api/mock/mockReviews.property.test.ts`
     - **Validates: Requirements 9.9**
 
-  - [ ] 9.3 Implement the RevenantSystem
+  - [x] 9.3 Implement the RevenantSystem
     - Add `spawn-revenants` (ToGame) and `revenant-engaged`, `revenant-rested` (FromGame) events in `events.ts` with the `RevenantSpawn` type defined there; create `src/game/systems/RevenantSystem.ts` (pool of 3, glowing translucent look distinct from monsters, spawn only after the room monster HP is 0, "memory laid to rest" pooled effect, static marker under Reduced_Motion)
     - _Requirements: 9.2, 9.5, 9.7, 9.8, 19.2, 19.3_
 
-  - [ ] 9.4 Wire revenants into the play session
+  - [x] 9.4 Wire revenants into the play session
     - In `usePlaySession.ts` fetch due reviews per room, send `spawn-revenants` (max 3), start the same encounter on `revenant-engaged` with the intro line "The ghost of a question you forgot..." before the question, decrement the displayed counter on a correct result, and refetch progress afterward; leave the gate-open flow unchanged
     - _Requirements: 9.1, 9.3, 9.5, 9.6, 9.8_
 
-  - [ ] 9.5 Add the Haunted memories counter
+  - [x] 9.5 Add the Haunted memories counter
     - Create `src/components/HauntedCounter.tsx` and show it in the Floating_HUD; export it for the Dashboard
     - _Requirements: 9.4, 9.6_
 
-  - [ ]* 9.6 Write property test for revenant counting
+  - [x]* 9.6 Write property test for revenant counting
     - **Property 10: Revenant spawn count and counter**
     - Create `src/encounter/revenants.property.test.ts` against pure `spawnCount` and `remainingDue` helpers in `src/encounter/revenants.ts`
     - **Validates: Requirements 9.1, 9.4, 9.5, 9.6**
 
-  - [ ] 9.7 Verify and log Phase 4
+  - [x] 9.7 Verify and log Phase 4
     - Run typecheck, lint, tests, contract tests and build; record fps and particle counts with 3 revenants present; update kiro log
     - _Requirements: 20.1, 20.2, 20.7, 1.8_
 

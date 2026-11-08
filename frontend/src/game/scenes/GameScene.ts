@@ -18,6 +18,7 @@ import { EffectsSystem } from '../systems/EffectsSystem'
 import { EncounterFxSystem } from '../systems/EncounterFxSystem'
 import { WeaponFxSystem } from '../systems/WeaponFxSystem'
 import { BossPhaseSystem } from '../systems/BossPhaseSystem'
+import { RevenantSystem } from '../systems/RevenantSystem'
 import { InteractionSystem } from '../systems/InteractionSystem'
 import { MovementSystem } from '../systems/MovementSystem'
 import { RoomTracker } from '../systems/RoomTracker'
@@ -61,6 +62,7 @@ export class GameScene extends Phaser.Scene {
   private encounterFx: EncounterFxSystem | null = null
   private weaponFx: WeaponFxSystem | null = null
   private bossPhase: BossPhaseSystem | null = null
+  private revenants: RevenantSystem | null = null
   private tracker: RoomTracker | null = null
   private atmosphere: AtmosphereSystem | null = null
   private lighting: LightSystem | null = null
@@ -114,6 +116,14 @@ export class GameScene extends Phaser.Scene {
       this.encounterFx,
       { weapons: this.weaponFx, boss: this.bossPhase },
     )
+    this.revenants = new RevenantSystem(this, this.bridge, {
+      player: () => this.player,
+      phase: () => this.phase,
+      reduced: () => this.reducedMotion,
+      originOf: (id) => this.roomInfo.get(id)?.origin ?? null,
+      // Revenants wait until the room monster is defeated, so the gate-open flow is unchanged.
+      monsterDefeated: (id) => this.monsters.get(id)?.alive === false,
+    })
     this.atmosphere = new AtmosphereSystem(this, () => this.reducedMotion)
     this.lighting = new LightSystem(this, () => this.reducedMotion)
     this.pieces = new AnimatedPieces(this, () => this.reducedMotion)
@@ -122,6 +132,7 @@ export class GameScene extends Phaser.Scene {
     this.debug = new DebugOverlay(this, {
       ambientCount: () => this.atmosphere?.activeCount ?? 0,
       textureBytes: () => (this.baker?.estimatedBytes() ?? 0) + SHARED_TEXTURE_BYTES,
+      revenants: () => (this.revenants ? `${this.revenants.activeCount} ghosts, ${this.revenants.fxCount} fx` : '0'),
       viewport: () => {
         const { width, height } = this.scale
         return `viewport ${width}x${height}  zoom ${this.cameras.main.zoom}  canvas ${this.game.canvas.width}x${this.game.canvas.height}  hud ${hudMode(width)}`
@@ -141,6 +152,8 @@ export class GameScene extends Phaser.Scene {
       this.weaponFx = null
       this.bossPhase?.destroy()
       this.bossPhase = null
+      this.revenants?.destroy()
+      this.revenants = null
       this.atmosphere?.destroy()
       this.atmosphere = null
       this.lighting?.destroy()
@@ -224,6 +237,7 @@ export class GameScene extends Phaser.Scene {
     this.tracker?.update()
     this.lighting?.update(time)
     this.pieces?.update(time)
+    this.revenants?.update(time)
     for (const m of this.monsters.values()) m.tick(time)
     // A gate glows once its room's monster is defeated (derived from existing state only).
     const id = this.tracker?.currentRoomId
@@ -282,13 +296,18 @@ export class GameScene extends Phaser.Scene {
         this.gates.get(e.roomId)?.open()
         break
       case 'apply-result':
-        this.effects?.apply(e.result)
+        // While a Revenant is engaged the result belongs to it: the room monster is left untouched.
+        if (!this.revenants?.handleResult(e.result)) this.effects?.apply(e.result)
         break
       case 'encounter-open':
         this.encounterFx?.open()
         break
       case 'encounter-close':
         this.encounterFx?.close()
+        this.revenants?.onEncounterClose()
+        break
+      case 'spawn-revenants':
+        this.revenants?.spawn(e.roomId, e.revenants)
         break
     }
   }
@@ -347,6 +366,7 @@ export class GameScene extends Phaser.Scene {
     this.effects?.reset()
     this.encounterFx?.reset()
     this.weaponFx?.reset()
+    this.revenants?.reset()
     this.transition?.end()
     this.atmosphere?.clearRoom()
     this.lighting?.clearRoom()

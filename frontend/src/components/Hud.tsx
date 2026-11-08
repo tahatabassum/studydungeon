@@ -4,6 +4,7 @@ import { motion, useReducedMotion } from 'framer-motion'
 import { getSprite } from '../art/sprites'
 import { ICONS } from '../art/sprites/icons'
 import { PixelSprite } from './PixelSprite'
+import { HauntedCounter } from './HauntedCounter'
 import { isLowHealth } from './hudHelpers'
 import { ProgressBar } from './ProgressBar'
 import { StoneFrame } from './StoneFrame'
@@ -34,6 +35,8 @@ export interface HudProps {
   showMonster?: boolean
   /** Compact top bar (viewport below 640 px): hero, monster chip and XP only. */
   compact?: boolean
+  /** Haunted memories due; the counter renders only when provided. */
+  hauntedDue?: number
 }
 
 export function Hud({
@@ -54,6 +57,7 @@ export function Hud({
   isBoss = false,
   showMonster = true,
   compact = false,
+  hauntedDue,
 }: HudProps) {
   const reduceMotion = useReducedMotion()
   const lowHealth = isLowHealth(playerHp, maxPlayerHp)
@@ -133,6 +137,7 @@ export function Hud({
           </span>
         )}
       </motion.div>
+      {hauntedDue !== undefined && <HauntedCounter count={hauntedDue} compact={compact} />}
     </div>
   )
 }

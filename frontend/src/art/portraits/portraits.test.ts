@@ -32,8 +32,8 @@ function stubCtx(): { ctx: CanvasRenderingContext2D; calls: string[] } {
 }
 
 describe('portraits', () => {
-  it('registers all 6 characters', () => {
-    expect([...PORTRAIT_KINDS].sort()).toEqual(['ghost', 'golem', 'skeleton', 'vampire', 'warden', 'witch'])
+  it('registers all 6 monster characters plus the Revenant', () => {
+    expect([...PORTRAIT_KINDS].sort()).toEqual(['ghost', 'golem', 'revenant', 'skeleton', 'vampire', 'warden', 'witch'])
     for (const k of PORTRAIT_KINDS) expect(typeof PORTRAITS[k]).toBe('function')
   })
 
@@ -42,6 +42,10 @@ describe('portraits', () => {
     expect(() => PORTRAITS[kind](ctx, pose)).not.toThrow()
     expect(calls.length).toBeGreaterThan(20)
     expect(calls).toContain('clearRect')
+  })
+
+  it('maps the revenant kind to its own portrait', () => {
+    expect(portraitFor('revenant')).toBe('revenant')
   })
 
   it('falls back to the Skeleton for an unknown kind', () => {

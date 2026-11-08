@@ -11,6 +11,7 @@ import { AnswerGrid } from './AnswerGrid'
 import { entrySide } from './entrySide'
 import { keyToOption } from './keys'
 import { linesFor, pickLine } from './lines'
+import { REVENANT_INTRO } from './revenants'
 import { poseFor } from './pose'
 import { SpeechPanel } from './SpeechPanel'
 import { Typewriter } from './Typewriter'
@@ -45,6 +46,11 @@ export interface EncounterPopupProps {
   onRetreat?(): void
   /** False while paused or while an overlay is open: number/Enter keys are ignored. */
   keysEnabled: boolean
+  /**
+   * A Revenant (haunted memory) is asking: it speaks the intro line before the question and a correct
+   * answer shows "Memory laid to rest" instead of damage. Pass `monsterKind="revenant"` for its portrait.
+   */
+  isRevenant?: boolean
 }
 
 function isWaiting(c: CombatState | null): boolean {
@@ -95,6 +101,7 @@ function EncounterBody({
   onNext,
   onRetreat,
   keysEnabled,
+  isRevenant = false,
 }: BodyProps) {
   const headingId = useId()
   const panelRef = useRef<HTMLDivElement>(null)
@@ -119,7 +126,8 @@ function EncounterBody({
 
   const lines = linesFor(monsterKind)
   const seed = hashString(question.id) + (shownResult?.streak ?? 0)
-  const taunt = pickLine(lines.taunts, hashString(introId))
+  // A Revenant always opens with its intro line; monsters open with a taunt.
+  const taunt = isRevenant ? REVENANT_INTRO : pickLine(lines.taunts, hashString(introId))
   const showIntro = question.id === introId
   const questionTyping = !showIntro || tauntDone
   const talking = (showIntro && !tauntDone) || typedId !== question.id
@@ -241,6 +249,7 @@ function EncounterBody({
       data-side={side}
       data-closing={closing ? 'true' : undefined}
       data-reduced={reduced ? 'true' : undefined}
+      data-revenant={isRevenant ? 'true' : undefined}
       data-testid="encounter-popup"
       aria-hidden={closing ? true : undefined}
     >
@@ -250,12 +259,16 @@ function EncounterBody({
         <PortraitCanvas kind={monsterKind} pose={pose} />
       </div>
       <SpeechPanel ref={panelRef} labelledBy={headingId}>
-        {monsterName && <p className="sd-speech__name">{monsterName} blocks your way</p>}
+        {isRevenant ? (
+          <p className="sd-speech__name">A haunted memory</p>
+        ) : (
+          monsterName && <p className="sd-speech__name">{monsterName} blocks your way</p>
+        )}
         {speakerLine !== null ? (
           <p className="sd-speech__line">{speakerLine}</p>
         ) : (
           showIntro && (
-            <p className="sd-speech__line">
+            <p className={isRevenant ? 'sd-speech__line sd-encounter__intro' : 'sd-speech__line'}>
               <Typewriter text={taunt} reduced={reduced} onDone={() => setTauntDone(true)} />
             </p>
           )
@@ -313,10 +326,12 @@ function EncounterBody({
               </p>
               <p className="rounded-full border border-deep/50 bg-deep/10 px-2 text-sm font-semibold text-bg">
                 {shownResult.correct
-                  ? `You dealt ${shownResult.damage_dealt} damage`
+                  ? isRevenant
+                    ? 'Memory laid to rest'
+                    : `You dealt ${shownResult.damage_dealt} damage`
                   : `You took ${damageReceived ?? 0} damage`}
               </p>
-              {shownResult.correct && (
+              {shownResult.correct && !isRevenant && (
                 <p className="m-0 inline-flex items-baseline gap-2 font-bold text-deep">
                   {/* The number is the backend's damage_dealt; a critical hit only enlarges it (1.5x). */}
                   <span

@@ -47,6 +47,11 @@ export interface RunState {
   roomMaxHp: Record<string, number>
   clearedRoomIds: string[]
   summary: RunSummary | null
+  /**
+   * True while the open encounter is a Revenant (a haunted memory), not the room monster.
+   * A Revenant result updates the player's HP, streak, XP and score but never the room monster's HP.
+   */
+  revenantActive: boolean
 }
 
 export const initialRunState: RunState = {
@@ -70,6 +75,7 @@ export const initialRunState: RunState = {
   roomMaxHp: {},
   clearedRoomIds: [],
   summary: null,
+  revenantActive: false,
 }
 
 export type RunAction =
@@ -77,7 +83,10 @@ export type RunAction =
 ooms (legacy), a single room is assumed and maxMonsterHp is used. */
   | { type: 'run-started'; run: RunInfo; rooms?: readonly RoomInfo[]; maxMonsterHp?: number }
   | { type: 'room-entered'; roomId: string }
-  | { type: 'encounter-started' }
+  /** `revenant` marks an optional haunted-memory encounter that must not touch the room monster. */
+  | { type: 'encounter-started'; revenant?: boolean }
+  /** A Revenant encounter ended after its result: back to exploring, room monster state unchanged. */
+  | { type: 'revenant-finished' }
   | { type: 'question-presented' }
   | { type: 'answer-submitted' }
   | { type: 'answer-failed' }
@@ -143,7 +152,12 @@ export function runReducer(state: RunState, action: RunAction): RunState {
     case 'encounter-started':
       if (state.phase !== 'exploring') return state
       if (state.combat !== null && state.combat !== 'exited') return state
-      return { ...state, phase: 'encounter', combat: 'starting' }
+      return { ...state, phase: 'encounter', combat: 'starting', revenantActive: action.revenant === true }
+
+    case 'revenant-finished':
+      // Only from a settled Revenant result; the room monster's HP and the cleared rooms are untouched.
+      if (!state.revenantActive || state.combat !== 'next') return state
+      return { ...state, phase: 'exploring', combat: null, revenantActive: false }
 
     case 'question-presented':
       if (state.combat !== 'starting' && state.combat !== 'next') return state
@@ -160,16 +174,30 @@ export function runReducer(state: RunState, action: RunAction): RunState {
     case 'advance':
       if (state.combat === 'next') return { ...state, phase: 'encounter', combat: 'question' }
       if (state.combat === 'monster_defeated') return { ...state, phase: 'cleared', combat: null }
-      if (state.combat === 'player_defeated') return { ...state, phase: 'defeated', combat: null }
+      if (state.combat === 'player_defeated') return { ...state, phase: 'defeated', combat: null, revenantActive: false }
       return state
 
     case 'retreat':
       if (state.combat !== 'question') return state
-      return { ...state, phase: 'exploring', combat: 'exited' }
+      return { ...state, phase: 'exploring', combat: 'exited', revenantActive: false }
 
     case 'result-received': {
       if (state.combat !== 'submitting') return state
       const r = action.result
+      if (state.revenantActive) {
+        // A Revenant result: copy the player-side values only. The room monster keeps its HP (0).
+        return {
+          ...state,
+          phase: 'resolving',
+          combat: 'result',
+          prevPlayerHp: state.playerHp,
+          playerHp: r.player_hp_remaining,
+          streak: r.streak,
+          xp: state.xp + r.xp_delta,
+          score: state.score + r.score_delta,
+          lastResult: r,
+        }
+      }
       return {
         ...state,
         phase: 'resolving',
@@ -190,7 +218,8 @@ export function runReducer(state: RunState, action: RunAction): RunState {
     case 'result-settled':
       if (state.combat !== 'result') return state
       if (state.playerHp <= 0) return { ...state, combat: 'player_defeated' }
-      if (state.monsterHp <= 0) return { ...state, combat: 'monster_defeated' }
+      // The room monster is already defeated during a Revenant encounter; that must not read as a new defeat.
+      if (state.monsterHp <= 0 && !state.revenantActive) return { ...state, combat: 'monster_defeated' }
       return { ...state, combat: 'next' }
 
     case 'room-cleared': {

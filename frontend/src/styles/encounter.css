@@ -98,6 +98,15 @@
   animation: sd-portrait-shake 0.36s linear 1;
 }
 
+/* Revenant: a spectral, translucent haunt with a cold glow instead of a heavy shadow. */
+.sd-portrait[data-character='revenant'] {
+  opacity: 0.92;
+  filter: drop-shadow(0 0 22px rgb(159 232 255 / 0.55)) drop-shadow(0 0 48px rgb(184 156 255 / 0.35));
+}
+.sd-encounter__intro {
+  font-style: italic;
+}
+
 /* Speech panel: parchment (see spellbook.css) with a glowing edge. */
 .sd-speech {
   position: relative;

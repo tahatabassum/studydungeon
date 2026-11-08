@@ -1,6 +1,6 @@
 /** Portrait character ids, poses and the monster-kind mapping. Pure data: no canvas, no React. */
 
-export const PORTRAIT_KINDS = ['ghost', 'vampire', 'skeleton', 'golem', 'witch', 'warden'] as const
+export const PORTRAIT_KINDS = ['ghost', 'vampire', 'skeleton', 'golem', 'witch', 'warden', 'revenant'] as const
 export type PortraitKind = (typeof PORTRAIT_KINDS)[number]
 
 export const POSES = ['idle', 'talking', 'hurt', 'taunt', 'defeated'] as const
@@ -25,6 +25,7 @@ const KIND_TO_PORTRAIT: Readonly<Record<string, PortraitKind>> = {
   vampire: 'vampire',
   exam_warden: 'warden',
   skeleton: 'skeleton',
+  revenant: 'revenant',
 }
 
 export function portraitFor(kind: string): PortraitKind {
