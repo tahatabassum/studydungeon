@@ -3,9 +3,14 @@ from httpx import ASGITransport, AsyncClient
 from sqlalchemy import event
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
+from app.ai.factory import set_ai_provider
+from app.ai.mock_provider import MockAIProvider
 from app.core.database import get_db
 from app.main import app
 from app.models.all_models import Base
+
+# Ensure AIProvider is always mocked in all tests (never call Gemini during testing)
+set_ai_provider(MockAIProvider())
 
 TEST_DATABASE_URL = "sqlite+aiosqlite:///:memory:"
 

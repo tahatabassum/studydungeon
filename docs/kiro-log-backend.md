@@ -58,3 +58,31 @@ This log records dated facts, steering documents, feature specifications, automa
 - **Pytest:** 47 passed in 4.90s.
 - **Ruff:** All checks passed (0 errors, 0 warnings).
 - **Alembic:** Migrations clean, zero schema drift.
+
+---
+
+## [2026-11-08] - Step 2: Document Ingestion & Multimodal Guardrails (Break-It Round)
+**Objective:** End-to-end multi-format ingestion (PDF, DOCX, PPTX, TXT, images), AIProvider interface with mock/Gemini implementations, quotas, and hostile QA testing.
+
+### What I Tried to Break
+- **Guest Upload Bypass:** Sent `POST /documents` with guest auth cookie. Verified HTTP 403 `GUEST_FORBIDDEN` error body.
+- **Unsupported Executable / Archive Upload:** Attempted upload with `malicious.exe` and `payload.zip`. Verified HTTP 415 `UNSUPPORTED_FILE_TYPE`.
+- **Oversized Upload:** Sent 16MB file exceeding `MAX_UPLOAD_MB` (15MB). Verified HTTP 413 `FILE_TOO_LARGE`.
+- **User Document Quota Limit:** Seeded 5 documents and attempted a 6th upload. Verified HTTP 400 `QUOTA_EXCEEDED`.
+- **Meme / Receipt Content Ingestion:** Ingested non-academic meme text. Verified background processing marks document status as `rejected` with actionable message.
+- **Prompt Injection in Document Notes:** Injected `Ignore all previous instructions...` inside notes text. Verified AI evaluation neutralizes instructions without privilege escalation.
+- **Cascading Deletion:** Uploaded document, extracted chunks, and issued `DELETE /documents/{id}`. Verified document and all related chunks are purged.
+
+### Bugs Found & Fixed
+- Missing `python-multipart` prevented multipart form uploads; installed and added dependency.
+- Extractors needed `python-docx`, `python-pptx`, `pymupdf`, and `pillow`; installed into virtual environment.
+- Background worker execution in unit tests was asynchronous; added optional session parameter for deterministic test inspection.
+- Fixed unused imports across ingestion test fixtures.
+
+### Bugs Found, Not Fixed
+- None.
+
+### Final Verification Counts
+- **Pytest:** 56 passed in 6.81s (0 failures, 0 regressions).
+- **Ruff:** All checks passed (0 errors, 0 warnings).
+- **Alembic:** Migrations up to date; 0 schema drift.
