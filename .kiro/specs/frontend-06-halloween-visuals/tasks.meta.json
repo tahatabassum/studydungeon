@@ -424,6 +424,61 @@
         "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
         "timestamp": 1794134154836
       }
+    ],
+    "8.1 Ambient bed and creaks": [
+      {
+        "executionId": "cc8b0783-bc4c-492f-87b2-71c3e5e24e66",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794134772352
+      },
+      {
+        "executionId": "cc8b0783-bc4c-492f-87b2-71c3e5e24e66",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794135523346
+      }
+    ],
+    "8.2 Stingers": [
+      {
+        "executionId": "cc8b0783-bc4c-492f-87b2-71c3e5e24e66",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794134829386
+      },
+      {
+        "executionId": "cc8b0783-bc4c-492f-87b2-71c3e5e24e66",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794135523718
+      }
+    ],
+    "8.3 Wiring, defaults and tests": [
+      {
+        "executionId": "cc8b0783-bc4c-492f-87b2-71c3e5e24e66",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794134830312
+      },
+      {
+        "executionId": "cc8b0783-bc4c-492f-87b2-71c3e5e24e66",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794135524532
+      }
+    ],
+    "9. STOP: Phase 5 checkpoint, sound review": [
+      {
+        "executionId": "cc8b0783-bc4c-492f-87b2-71c3e5e24e66",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794134831174
+      },
+      {
+        "executionId": "cc8b0783-bc4c-492f-87b2-71c3e5e24e66",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794135525502
+      }
+    ],
+    "8. Phase 5: Sound": [
+      {
+        "executionId": "cc8b0783-bc4c-492f-87b2-71c3e5e24e66",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794135524748
+      }
     ]
   }
 }

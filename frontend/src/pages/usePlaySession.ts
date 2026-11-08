@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useReducer, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { getApi } from '@/api'
+import { ambient } from '@/audio/ambient'
 import { sfx } from '@/audio/sfx'
 import type { ApiClient } from '@/api'
 import { createGameBridge } from '@/game/events'
@@ -108,12 +109,21 @@ export function usePlaySession() {
   useEffect(() => {
     bridge.send({ type: 'set-muted', value: muted })
     sfx.setMuted(muted)
+    ambient.setMuted(muted)
   }, [bridge, muted])
+
+  // Ambient bed ends when leaving the page, and on victory or defeat.
+  useEffect(() => () => ambient.stop(), [])
+  useEffect(() => {
+    if (state.phase === 'victory' || state.phase === 'defeated') ambient.stop()
+  }, [state.phase])
 
   // Audio may only start after a user gesture: unlock on the first key or pointer press.
   useEffect(() => {
     const unlock = () => {
       sfx.unlock()
+      const p = stateRef.current.phase
+      if (p !== 'victory' && p !== 'defeated') ambient.start()
       window.removeEventListener('keydown', unlock)
       window.removeEventListener('pointerdown', unlock)
     }
@@ -157,6 +167,7 @@ export function usePlaySession() {
         setAnswerError(null)
         setAnimDone(false)
         setQuestion(q)
+        if (monsterRoom.is_boss) sfx.play('boss')
         dispatch({ type: 'encounter-started' })
         dispatch({ type: 'question-presented' })
       } else if (e.type === 'result-animation-done') {
@@ -183,6 +194,7 @@ export function usePlaySession() {
       submittingRef.current = true
       setAnswerError(null)
       dispatch({ type: 'answer-submitted' })
+      const hpBefore = stateRef.current.playerHp
       try {
         const result = await api.submitAttempt(runId, {
           question_id: q.id,
@@ -193,7 +205,8 @@ export function usePlaySession() {
         setAnimDone(false)
         dispatch({ type: 'result-received', result })
         bridge.send({ type: 'apply-result', result })
-        sfx.play(result.correct ? 'correct' : 'wrong')
+        // A wrong answer that costs no health is a "miss"; otherwise the wrong thud.
+        sfx.play(result.correct ? 'correct' : result.player_hp_remaining >= hpBefore ? 'miss' : 'wrong')
         if (result.player_hp_remaining <= 0) setTimeout(() => sfx.play('defeat'), 450)
       } catch {
         dispatch({ type: 'answer-failed' })
@@ -330,6 +343,7 @@ export function usePlaySession() {
       setFinishError(null)
       dispatch({ type: 'run-started', run, rooms: dungeon.rooms })
       void refreshProgress(api)
+      if (sfx.unlocked) ambient.start()
       bridge.send({ type: 'reset' })
       bridge.send({ type: 'set-view-inset', bottomFraction: 0 })
       bridge.send({ type: 'set-phase', phase: 'exploring' })

@@ -178,21 +178,21 @@ Rules for every task:
 - [x] 7. STOP: Phase 4 checkpoint, UI review
   - Ensure all tests pass. Ask the user to review HUD, panel, landing, victory, defeat, pause and transitions in normal and reduced motion. Do not start Phase 5 until approved.
 
-- [ ] 8. Phase 5: Sound
-  - [ ] 8.1 Ambient bed and creaks
+- [x] 8. Phase 5: Sound
+  - [x] 8.1 Ambient bed and creaks
     - Create `src/audio/ambient.ts` (low wind drone at most 5 percent of master, creaks and distant owl at random 20 to 60 s intervals, Web Audio only, injectable context)
     - _Requirements: 15.1, 15.2, 15.3, 15.5, 15.7_
 
-  - [ ] 8.2 Stingers
+  - [x] 8.2 Stingers
     - Edit `src/audio/sfx.ts` to add 'miss' and 'boss' cues (reuse 'hit', 'gate' for door, 'victory'); update `src/audio/sfx.property.test.ts` for the new cue list
     - _Requirements: 15.4, 15.1_
 
-  - [ ] 8.3 Wiring, defaults and tests
+  - [x] 8.3 Wiring, defaults and tests
     - Wire ambient start, mute and stingers from React side (`src/pages/PlayPage.tsx`, `src/pages/usePlaySession.ts` or the existing audio hook) using existing events only; apply D8 default
     - Create `src/audio/ambient.test.ts` (muted gives no output, gain ceiling, missing context does not throw)
     - _Requirements: 15.4, 15.5, 15.6, 15.7, 1.2_
 
-- [ ] 9. STOP: Phase 5 checkpoint, sound review
+- [x] 9. STOP: Phase 5 checkpoint, sound review
   - Ensure all tests pass. Ask the user to listen with sound on and off and approve before Phase 6.
 
 - [ ] 10. Phase 6: Verification and documentation

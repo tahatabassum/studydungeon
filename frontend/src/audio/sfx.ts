@@ -3,9 +3,22 @@
  * Must not import @/api, @/demo, @/state, Phaser or React so src/game can use it.
  */
 
-export type Cue = 'footstep' | 'growl' | 'attack' | 'hit' | 'correct' | 'wrong' | 'gate' | 'victory' | 'defeat'
+export type Cue =
+  | 'footstep'
+  | 'growl'
+  | 'attack'
+  | 'hit'
+  | 'correct'
+  | 'wrong'
+  | 'gate'
+  | 'victory'
+  | 'defeat'
+  | 'miss'
+  | 'boss'
 
 export const CUES: readonly Cue[] = [
+  'miss',
+  'boss',
   'footstep',
   'growl',
   'attack',
@@ -31,6 +44,8 @@ const MIN_GAP_MS: Record<Cue, number> = {
   gate: 400,
   victory: 800,
   defeat: 800,
+  miss: 200,
+  boss: 1500,
 }
 
 /** Narrow slice of the Web Audio API that the engine uses (lets tests inject a fake). */
@@ -239,6 +254,15 @@ export class SfxEngine {
         break
       case 'defeat':
         ;[330, 262, 196, 147].forEach((f, i) => this.tone(ctx, out, 'sawtooth', f, f * 0.97, t + i * 0.18, 0.35, 0.22))
+        break
+      case 'miss':
+        // Soft whoosh: a short filtered breath, no pitched tone.
+        this.noiseBurst(ctx, out, t, 0.18, 0.2, 900)
+        break
+      case 'boss':
+        // Low two-note swell, quiet and brief.
+        this.tone(ctx, out, 'sawtooth', 65, 62, t, 0.9, 0.25)
+        this.tone(ctx, out, 'triangle', 98, 92, t + 0.15, 0.8, 0.18)
         break
     }
   }

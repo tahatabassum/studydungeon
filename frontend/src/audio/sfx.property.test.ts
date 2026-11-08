@@ -111,6 +111,12 @@ describe('sfx', () => {
     expect(ctx.masterGain?.value).toBe(0)
   })
 
+  it('includes the miss and boss stingers', () => {
+    expect(CUES).toContain('miss')
+    expect(CUES).toContain('boss')
+    expect(CUES.length).toBe(11)
+  })
+
   it('rate limits repeated footsteps', () => {
     let t = 0
     const engine = new SfxEngine(() => fakeContext(), () => t)
