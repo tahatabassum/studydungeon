@@ -104,3 +104,11 @@ Zoom comes from `zoomForViewport` (run by `viewport.property.test.ts`). HUD mode
 | 1920x1080 | 2.0 | 960x540 | full | none | to be read by the user |
 | 2560x1440 | 2.75 | 931x524 | full | none | to be read by the user |
 | 390x844 | 0.75 | 520x1125 | compact | none | to be read by the user |
+
+## Phase 2: character-led encounter (frontend-07)
+- `EncounterPopup` replaces the bottom `QuestionPanel` sheet. Scrim about 55 percent, original code-drawn portraits (Ghost, Vampire, Skeleton, Clockwork Golem, Witch, Exam Warden; 5 poses each) in `src/art/portraits/`, parchment speech panel, 2x2 `AnswerGrid`, 45 chars/s typewriter (full text exposed to assistive tech from the first frame; instant under Reduced_Motion).
+- Mapping: paper_wraith to Ghost, toxic_slime to Witch, gear_golem to Golem, memory_eater to Vampire, exam_warden to Warden, anything else to Skeleton. Side alternates by room order parity (D5), boss from the right.
+- `combatMachine` is unchanged. New additive ToGameEvents `encounter-open` and `encounter-close`; `set-view-inset` stays 0. Damage text comes only from `result.damage_dealt` and `player_hp_remaining`.
+- `EncounterFxSystem` (light dim ack, static hit marker under Reduced_Motion, pools of one each) and a once-latch for `result-animation-done`. The wisp burst, curse flash and strike stay in the existing pooled `EffectsSystem` (24 sparks, unchanged budget).
+- `QuestionPanel.tsx` and its test were deleted after the assertions moved to `EncounterPopup.test.tsx`.
+- Not measured here: fps and particle counts from `?debug=1` for the encounter-open and result states (no browser session was driven for gameplay). Portraits were rendered once in headless Edge to check the art.

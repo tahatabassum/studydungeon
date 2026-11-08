@@ -29,6 +29,10 @@ export type ToGameEvent =
   | { type: 'set-view-inset'; bottomFraction: number }
   /** Display-only: the shell's measured stage size in CSS pixels (drives camera zoom). */
   | { type: 'set-viewport'; width: number; height: number }
+  /** Display-only: the encounter pop-up opened for this monster; Phaser dims and acknowledges it. */
+  | { type: 'encounter-open'; monsterId: string; side: 'left' | 'right' }
+  /** Display-only: the encounter pop-up closed (retreat, monster defeated or player defeated). */
+  | { type: 'encounter-close' }
 
 export type FromGameEvent =
   | { type: 'ready' }

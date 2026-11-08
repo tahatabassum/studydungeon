@@ -4,6 +4,7 @@ import { describeError, getApi } from '@/api'
 import { ambient } from '@/audio/ambient'
 import { sfx } from '@/audio/sfx'
 import type { ApiClient } from '@/api'
+import { entrySide } from '@/encounter/entrySide'
 import { createGameBridge } from '@/game/events'
 import { canAnswer, canRetreat, readDelayMs } from '@/state/combatMachine'
 import { pickQuestionId } from '@/state/questionSelector'
@@ -141,7 +142,7 @@ export function usePlaySession() {
     if (dungeon) bridge.send({ type: 'set-phase', phase: state.phase })
   }, [bridge, dungeon, state.phase])
 
-  // The question panel sits below the stage (no overlap), so the arena view needs no inset.
+  // The encounter pop-up overlays the full-viewport canvas and the camera does not move: the inset stays 0.
   useEffect(() => {
     bridge.send({ type: 'set-view-inset', bottomFraction: 0 })
   }, [bridge])
@@ -170,6 +171,11 @@ export function usePlaySession() {
         if (monsterRoom.is_boss) sfx.play('boss')
         dispatch({ type: 'encounter-started' })
         dispatch({ type: 'question-presented' })
+        bridge.send({
+          type: 'encounter-open',
+          monsterId: e.monsterId,
+          side: entrySide(monsterRoom.order, monsterRoom.is_boss),
+        })
       } else if (e.type === 'result-animation-done') {
         setAnimDone(true)
         dispatch({ type: 'result-settled' })
@@ -278,6 +284,7 @@ export function usePlaySession() {
       dispatch({ type: 'question-presented' })
     } else if (c === 'monster_defeated') {
       setQuestion(null)
+      bridge.send({ type: 'encounter-close' })
       const roomId = s.currentRoomId
       if (roomId && !clearStartedRoomsRef.current.has(roomId)) {
         clearStartedRoomsRef.current.add(roomId)
@@ -285,8 +292,9 @@ export function usePlaySession() {
       }
     } else {
       setQuestion(null)
+      bridge.send({ type: 'encounter-close' })
     }
-  }, [clear, dungeon])
+  }, [bridge, clear, dungeon])
 
   const advanceRef = useRef(advanceCombat)
   const waitTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -344,6 +352,7 @@ export function usePlaySession() {
       dispatch({ type: 'run-started', run, rooms: dungeon.rooms })
       void refreshProgress(api)
       if (sfx.unlocked) ambient.start()
+      bridge.send({ type: 'encounter-close' })
       bridge.send({ type: 'reset' })
       bridge.send({ type: 'set-view-inset', bottomFraction: 0 })
       bridge.send({ type: 'set-phase', phase: 'exploring' })
@@ -368,8 +377,9 @@ export function usePlaySession() {
     dispatch({ type: 'retreat' })
     setQuestion(null)
     setAnswerError(null)
+    bridge.send({ type: 'encounter-close' })
     setTimeout(focusGame, 0)
-  }, [focusGame])
+  }, [bridge, focusGame])
 
   // Esc toggles pause while exploring/paused.
   useEffect(() => {

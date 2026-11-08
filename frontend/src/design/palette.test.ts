@@ -84,6 +84,35 @@ describe('Required text and UI pairs on component surfaces', () => {
     expect(contrastRatio(COLORS.BG, COLORS.BONE)).toBeGreaterThanOrEqual(4.5)
   })
 
+  // Phase 2 encounter: the speech panel is parchment (ink to bone, darkest corner tinted 22% ember).
+  it('encounter speech panel text meets 4.5:1 on every parchment tone', () => {
+    const tones = [COLORS.INK, COLORS.BONE, blend(COLORS.EMBER, COLORS.BONE, 22)]
+    const darkDanger = blend(COLORS.BG, COLORS.DANGER, 45)
+    const darkHealth = blend(COLORS.BG, COLORS.HEALTH, 70)
+    for (const tone of tones) {
+      expect(contrastRatio(COLORS.BG, tone), 'body text').toBeGreaterThanOrEqual(4.5)
+      expect(contrastRatio(COLORS.DEEP, tone), 'name plate and speaker line').toBeGreaterThanOrEqual(4.5)
+      expect(contrastRatio(darkDanger, tone), 'incorrect text').toBeGreaterThanOrEqual(4.5)
+      expect(contrastRatio(darkHealth, tone), 'correct text').toBeGreaterThanOrEqual(4.5)
+    }
+  })
+
+  it('encounter focus ring (deep) and number badge (ink on deep) meet their minimums on parchment', () => {
+    for (const tone of [COLORS.INK, COLORS.BONE]) {
+      expect(contrastRatio(COLORS.DEEP, tone)).toBeGreaterThanOrEqual(3)
+    }
+    expect(contrastRatio(COLORS.INK, COLORS.DEEP)).toBeGreaterThanOrEqual(4.5)
+  })
+
+  it('defines the encounter styles with a 55 percent scrim and a visible focus state', () => {
+    const encounter = nodeProcess
+      .getBuiltinModule('node:fs')
+      .readFileSync(`${nodeProcess.cwd()}/src/styles/encounter.css`, 'utf8')
+    expect(encounter).toMatch(/var\(--color-bg\) 55%/)
+    expect(encounter).toMatch(/\.sd-answer:focus-visible/)
+    expect(encounter).toMatch(/\.sd-speech:focus-visible/)
+  })
+
   it('UI borders and glows (magic, pumpkin, magenta) are at least 3:1 on panel', () => {
     for (const c of [COLORS.MAGIC, COLORS.PUMPKIN, COLORS.MAGENTA]) {
       expect(contrastRatio(c, COLORS.PANEL)).toBeGreaterThanOrEqual(3)

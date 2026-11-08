@@ -15,6 +15,7 @@ import { Monster } from '../entities/Monster'
 import { Player } from '../entities/Player'
 import { AtmosphereSystem } from '../systems/AtmosphereSystem'
 import { EffectsSystem } from '../systems/EffectsSystem'
+import { EncounterFxSystem } from '../systems/EncounterFxSystem'
 import { InteractionSystem } from '../systems/InteractionSystem'
 import { MovementSystem } from '../systems/MovementSystem'
 import { RoomTracker } from '../systems/RoomTracker'
@@ -55,6 +56,7 @@ export class GameScene extends Phaser.Scene {
   private movement: MovementSystem | null = null
   private interaction: InteractionSystem | null = null
   private effects: EffectsSystem | null = null
+  private encounterFx: EncounterFxSystem | null = null
   private tracker: RoomTracker | null = null
   private atmosphere: AtmosphereSystem | null = null
   private lighting: LightSystem | null = null
@@ -89,6 +91,7 @@ export class GameScene extends Phaser.Scene {
 
   create(): void {
     this.bridge = this.registry.get(BRIDGE_KEY) as GameBridge | undefined
+    this.encounterFx = new EncounterFxSystem(this, () => this.reducedMotion)
     this.effects = new EffectsSystem(
       this,
       this.bridge,
@@ -99,6 +102,7 @@ export class GameScene extends Phaser.Scene {
         gate: null,
       }),
       () => this.reducedMotion,
+      this.encounterFx,
     )
     this.atmosphere = new AtmosphereSystem(this, () => this.reducedMotion)
     this.lighting = new LightSystem(this, () => this.reducedMotion)
@@ -121,6 +125,8 @@ export class GameScene extends Phaser.Scene {
       off?.()
       this.scale.off(Phaser.Scale.Events.RESIZE, this.onScaleResize)
       this.effects?.destroy()
+      this.encounterFx?.destroy()
+      this.encounterFx = null
       this.atmosphere?.destroy()
       this.atmosphere = null
       this.lighting?.destroy()
@@ -264,6 +270,12 @@ export class GameScene extends Phaser.Scene {
       case 'apply-result':
         this.effects?.apply(e.result)
         break
+      case 'encounter-open':
+        this.encounterFx?.open()
+        break
+      case 'encounter-close':
+        this.encounterFx?.close()
+        break
     }
   }
 
@@ -318,6 +330,7 @@ export class GameScene extends Phaser.Scene {
 
   private teardown(): void {
     this.effects?.reset()
+    this.encounterFx?.reset()
     this.transition?.end()
     this.atmosphere?.clearRoom()
     this.lighting?.clearRoom()

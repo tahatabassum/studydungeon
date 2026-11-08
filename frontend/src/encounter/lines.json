@@ -1,0 +1,86 @@
+{
+  "ghost": {
+    "taunts": [
+      "Boo. Did you study, or just hope?",
+      "I have haunted this page for centuries.",
+      "Your notes feel a little transparent.",
+      "Answer wisely, or join my paper chorus."
+    ],
+    "reactions": [
+      "Oof, that went right through me.",
+      "Fine, fine. You read the chapter.",
+      "I have been fact-checked by a mortal.",
+      "Wail! Correct again."
+    ]
+  },
+  "vampire": {
+    "taunts": [
+      "I never forget a fact. Do you?",
+      "Come closer. Let us test your memory.",
+      "I do not bite. I only quiz.",
+      "Your recall looks a bit pale tonight."
+    ],
+    "reactions": [
+      "Hmph. You have a decent memory.",
+      "A flawless answer. How tiresome.",
+      "My cape is ruffled. Well played.",
+      "Ah, you remembered. Charming."
+    ]
+  },
+  "skeleton": {
+    "taunts": [
+      "I have no stomach for wrong answers.",
+      "Rattle me this, brave scholar.",
+      "I have been waiting a long time for a question.",
+      "Bone up before you answer."
+    ],
+    "reactions": [
+      "That rattled my ribs. Good one.",
+      "You have a funny bone for facts.",
+      "Right on. I am tickled, bone-deep.",
+      "I would clap, but my hands fell off."
+    ]
+  },
+  "golem": {
+    "taunts": [
+      "Gears turning. Questions loading.",
+      "Tick. Tock. Your time is wound tight.",
+      "My springs are ready. Are you?",
+      "Every answer is a cog. Pick the right one."
+    ],
+    "reactions": [
+      "Whirr. A perfect fit.",
+      "A gear slipped. That one stung.",
+      "Clank! You have oiled my logic.",
+      "Tick. Tick. Impressive."
+    ]
+  },
+  "witch": {
+    "taunts": [
+      "I brewed a question just for you.",
+      "Stir, stir, think, think.",
+      "Eye of newt, pinch of facts. Ready?",
+      "Hee hee. This one bubbles."
+    ],
+    "reactions": [
+      "My potion fizzled. Nicely done.",
+      "Hmph. A tidy spell of an answer.",
+      "That cauldron just hiccuped.",
+      "You stirred it just right."
+    ]
+  },
+  "warden": {
+    "taunts": [
+      "The final exam begins. Sit up straight.",
+      "No notes. No mercy. Only answers.",
+      "I have failed better scholars than you.",
+      "The bell tolls for your grade."
+    ],
+    "reactions": [
+      "Hmm. That earns a mark.",
+      "Remarkable. My ledger frowns.",
+      "You pass this one. Barely.",
+      "The warden has been corrected."
+    ]
+  }
+}

@@ -116,67 +116,67 @@ Rules for every task:
   - Summarize the changes. Tell the user to run `npm run dev` in `frontend/`, open `/play?debug=1` and check each of the five sizes (browser devtools device toolbar), the F key and button, resize, and the compact HUD below 640 px. Wait for approval, then commit Phase 1 separately.
   - _Requirements: 20.6, 20.8_
 
-- [ ] 5. Phase 2: Character-led encounter
-  - [ ] 5.1 Add pure encounter helpers and the lines data
+- [x] 5. Phase 2: Character-led encounter
+  - [x] 5.1 Add pure encounter helpers and the lines data
     - Create `src/encounter/entrySide.ts`, `src/encounter/keys.ts` (`keyToOption`), `src/encounter/lines.json` (3 to 5 taunts and 3 to 5 reactions per kind: paper_wraith/ghost, vampire, skeleton, gear_golem, toxic_slime/witch, memory_eater, exam_warden; funny, non-gory) and `src/encounter/lines.ts` (`linesFor`, `pickLine`, skeleton fallback)
     - Create `src/art/portraits/types.ts` with the kind, pose and `portraitFor` mapping that falls back to Skeleton
     - _Requirements: 4.2, 4.5, 5.3, 5.4, 5.5, 5.6_
 
-  - [ ]* 5.2 Write property tests for encounter helpers
+  - [x]* 5.2 Write property tests for encounter helpers
     - **Property 5: Entry side alternates**
     - **Property 6: Number keys map to options**
     - **Property 7: Characters and lines have fallbacks and bounded counts**
     - Create `src/encounter/encounter.property.test.ts`
     - **Validates: Requirements 4.2, 4.5, 5.3, 5.4, 5.5, 5.6**
 
-  - [ ] 5.3 Implement the Typewriter
+  - [x] 5.3 Implement the Typewriter
     - Create `src/encounter/typewriter.ts` (`visibleChars`, 45 chars per second per D6), `src/encounter/useTypewriter.ts` and `src/encounter/Typewriter.tsx` that exposes the full text to assistive technology from the first frame (visually hidden full copy, aria-hidden animated copy), completes on Space, Enter or click, and shows full text under Reduced_Motion
     - _Requirements: 5.7, 5.8, 5.9_
 
-  - [ ]* 5.4 Write property test for the Typewriter
+  - [x]* 5.4 Write property test for the Typewriter
     - **Property 8: Typewriter visibility**
     - Create `src/encounter/typewriter.property.test.ts`
     - **Validates: Requirements 5.7, 5.8**
 
-  - [ ] 5.5 Draw the Ghost and Skeleton portraits
+  - [x] 5.5 Draw the Ghost and Skeleton portraits
     - Create `src/art/portraits/draw.ts` (shared Canvas2D helpers), `ghost.ts` and `skeleton.ts`, each drawing idle, talking, hurt, taunt and defeated poses at portrait scale (about 360x480 logical) in original shapes using palette tokens
     - _Requirements: 5.1, 5.2, 19.5, 19.6_
 
-  - [ ] 5.6 Draw the Vampire and Witch portraits
+  - [x] 5.6 Draw the Vampire and Witch portraits
     - Create `src/art/portraits/vampire.ts` and `witch.ts` with all five poses; original designs, no copied names or style from the reference game
     - _Requirements: 5.1, 5.2, 19.5, 19.6_
 
-  - [ ] 5.7 Draw the Clockwork Golem and Exam Warden portraits and the PortraitCanvas
+  - [x] 5.7 Draw the Clockwork Golem and Exam Warden portraits and the PortraitCanvas
     - Create `src/art/portraits/golem.ts`, `warden.ts`, `index.ts` (registry) and `src/art/portraits/PortraitCanvas.tsx` (one cached bitmap per kind and pose, CSS bob and shake, static under Reduced_Motion)
     - Add `src/art/portraits/portraits.test.ts` covering 6 kinds x 5 poses in a canvas stub and the unknown-kind fallback
     - Record the portraits in `ASSETS_LICENSES.md` as code-drawn originals
     - _Requirements: 5.1, 5.2, 5.3, 19.5, 19.6_
 
-  - [ ] 5.8 Build the Speech_Panel and Answer_Grid
+  - [x] 5.8 Build the Speech_Panel and Answer_Grid
     - Create `src/encounter/SpeechPanel.tsx` (parchment panel, glowing edge, candle accent drawn in CSS/SVG), `src/encounter/AnswerGrid.tsx` (2x2 large buttons, number badges, hover glow, true/false uses two wide buttons) and styles in `src/styles/encounter.css`
     - Meet 4.5:1 text contrast on parchment and visible focus
     - _Requirements: 4.3, 4.4, 19.4, 19.7_
 
-  - [ ] 5.9 Build the EncounterPopup and replace the Question_Panel
+  - [x] 5.9 Build the EncounterPopup and replace the Question_Panel
     - Create `src/encounter/EncounterPopup.tsx`: scrim dim, portrait slide in from `entrySide`, taunt line then question, keys 1 to 4 and Enter, Retreat button, focus trap and restore, result view with hurt or taunt pose, `damage_dealt` shown from the response, Source_Line and optional explanation, reaction line, slide out within 300 ms, no slide under Reduced_Motion, results announced in the aria-live region
     - Add `encounter-open` and `encounter-close` ToGameEvents (additive); wire `PlayPage.tsx` and `usePlaySession.ts` to mount the popup in place of `QuestionPanel`; leave `combatMachine` unchanged and `set-view-inset` at 0
     - Mark `QuestionPanel.tsx` unused only after its tests are migrated (task 5.11)
     - _Requirements: 4.1, 4.5, 4.6, 4.7, 4.8, 4.9, 4.10, 4.11, 5.5, 5.6, 6.1, 6.2, 6.3, 6.4, 19.8_
 
-  - [ ] 5.10 Add the Phaser result feedback
+  - [x] 5.10 Add the Phaser result feedback
     - Create `src/game/systems/EncounterFxSystem.ts` (dim ack, pooled ghost-wisp burst, pooled curse flash purple-red, strike on the monster using the default Rusty Dagger slash until Phase 3), handle `encounter-open`/`encounter-close`, emit `result-animation-done` exactly once per result via a once-latch, and show a static hit marker instead of bursts under Reduced_Motion
     - Keep particle totals within the existing `MAX_PARTICLES` budget
     - _Requirements: 6.1, 6.2, 6.5, 6.6, 19.1, 19.2, 19.3_
 
-  - [ ] 5.11 Migrate and add tests
+  - [x] 5.11 Migrate and add tests
     - Move useful assertions from `QuestionPanel` tests to `EncounterPopup` tests (keys, focus trap, retreat, Reduced_Motion, Source_Line, explanation optional, damage text equals response); update `PlayFlow.smoke.test.tsx`; add the once-latch test
     - _Requirements: 4.5, 4.6, 4.7, 4.9, 4.10, 6.3, 6.4, 6.5, 20.1_
 
-  - [ ] 5.12 Verify and log Phase 2
+  - [x] 5.12 Verify and log Phase 2
     - Run typecheck, lint, tests, contract tests and build; record fps and particle counts for the encounter-open and result states from `?debug=1` (note any value the user must read); update kiro log and `ASSETS_LICENSES.md`
     - _Requirements: 20.1, 20.2, 20.7, 19.1_
 
-- [ ] 6. STOP: Phase 2 checkpoint, encounter review
+- [x] 6. STOP: Phase 2 checkpoint, encounter review
   - Summarize the changes. Tell the user to play `/play` against the mock, press E at a monster, test keys 1 to 4, Enter, Retreat, typewriter skip, correct and wrong results, the alternating side in the next room, and Reduced_Motion. Wait for approval, then commit Phase 2 separately.
   - _Requirements: 20.6, 20.8_
 

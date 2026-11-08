@@ -10,9 +10,9 @@ import { GuestBanner } from '@/components/GuestBanner'
 import { Hud } from '@/components/Hud'
 import { Panel } from '@/components/Panel'
 import { PauseMenu } from '@/components/PauseMenu'
-import { QuestionPanel } from '@/components/QuestionPanel'
 import { Spinner } from '@/components/Spinner'
 import { VictoryOverlay } from '@/components/VictoryOverlay'
+import { EncounterPopup } from '@/encounter/EncounterPopup'
 import { GameCanvas } from '@/game/GameCanvas'
 import { hudMode } from '@/game/viewport'
 import { useFullscreen } from '@/shell/useFullscreen'
@@ -113,27 +113,22 @@ export default function PlayPage() {
 
       <ControlsLegend compact={compact} />
 
-      {/* Until the Phase 2 pop-up, the question panel is a bottom sheet over the stage. */}
-      {panelVisible && s.question && (
-        <div className="pointer-events-none absolute inset-x-0 bottom-[calc(var(--sd-hud-bottom)+0.5rem)] z-30 flex justify-center px-3">
-          <div className="@container pointer-events-auto max-h-[min(60dvh,32rem)] w-full max-w-3xl overflow-y-auto overflow-x-hidden">
-            <QuestionPanel
-              question={s.question}
-              combat={state.combat}
-              monsterName={room.monster.name}
-              error={s.answerError}
-              result={state.lastResult}
-              damageReceived={
-                state.lastResult ? damageReceived(state.prevPlayerHp, state.lastResult) : undefined
-              }
-              onAnswer={(sel) => void s.onAnswer(sel)}
-              onNext={s.skipWait}
-              onRetreat={s.retreat}
-              keysEnabled={state.phase !== 'paused' && state.phase !== 'defeated' && !showVictory}
-            />
-          </div>
-        </div>
-      )}
+      {/* Character-led encounter: scrim, sliding portrait and speech panel over the full-viewport canvas. */}
+      <EncounterPopup
+        question={panelVisible ? s.question : null}
+        combat={state.combat}
+        monsterName={room.monster.name}
+        monsterKind={room.monster.kind}
+        isBoss={room.is_boss}
+        roomOrder={room.order}
+        error={s.answerError}
+        result={state.lastResult}
+        damageReceived={state.lastResult ? damageReceived(state.prevPlayerHp, state.lastResult) : undefined}
+        onAnswer={(sel) => void s.onAnswer(sel)}
+        onNext={s.skipWait}
+        onRetreat={s.retreat}
+        keysEnabled={state.phase !== 'paused' && state.phase !== 'defeated' && !showVictory}
+      />
 
       {state.phase === 'paused' && !confirmingExit && (
         <PauseMenu

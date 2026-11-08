@@ -97,6 +97,19 @@ describe('createGameBridge', () => {
     expect(got).toEqual([{ type: 'set-viewport', width: 1366, height: 768 }])
   })
 
+  it('delivers the additive encounter-open and encounter-close events in order', () => {
+    const bridge = createGameBridge()
+    const got: ToGameEvent[] = []
+    bridge.onToGame((e) => got.push(e))
+    bridge.send({ type: 'encounter-open', monsterId: 'm', side: 'left' })
+    bridge.send({ type: 'encounter-close' })
+    bridge.emit({ type: 'ready' })
+    expect(got).toEqual([
+      { type: 'encounter-open', monsterId: 'm', side: 'left' },
+      { type: 'encounter-close' },
+    ])
+  })
+
   it('delivers room-entered and gate-opened to React', () => {
     const bridge = createGameBridge()
     const got: FromGameEvent[] = []

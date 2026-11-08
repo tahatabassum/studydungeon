@@ -69,7 +69,9 @@ const advance = (ms: number) =>
   act(() => {
     vi.advanceTimersByTime(ms)
   })
-const promptOf = (dialog: HTMLElement) => within(dialog).getByRole('heading').textContent ?? ''
+// The heading holds a visually hidden full copy (for assistive tech) and an animated copy; read the full one.
+const promptOf = (dialog: HTMLElement) =>
+  within(dialog).getByRole('heading').querySelector('.sr-only')?.textContent ?? ''
 const questionOf = (dialog: HTMLElement) => dungeon.questions.find((x) => x.prompt === promptOf(dialog))!
 const correctButton = (dialog: HTMLElement) =>
   within(dialog).getByRole('button', { name: new RegExp(`${answerKey[questionOf(dialog).id].correct}$`) })
@@ -259,6 +261,19 @@ describe('play flow smoke test', () => {
     await user.click(within(pause).getByRole('button', { name: /Retreat from battle/ }))
     await vi.waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
     await vi.waitFor(() => expect(insets().at(-1)).toBe(0))
+  })
+
+  it('sends encounter-open with the entry side when the pop-up opens and encounter-close on retreat', async () => {
+    await startAndEncounter()
+    expect(sent().filter((e) => e.type === 'encounter-open')).toEqual([
+      { type: 'encounter-open', monsterId: 'monster-1', side: 'right' },
+    ])
+    expect(sent().some((e) => e.type === 'encounter-close')).toBe(false)
+
+    await user.keyboard('{Escape}')
+    const pause = await screen.findByRole('dialog', { name: 'Paused' })
+    await user.click(within(pause).getByRole('button', { name: /Retreat from battle/ }))
+    await vi.waitFor(() => expect(sent().some((e) => e.type === 'encounter-close')).toBe(true))
   })
 
   it('clears room 1, opens the gate, enters room 2 and asks room 2 questions', async () => {

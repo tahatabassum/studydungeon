@@ -11,6 +11,8 @@ import { sfx } from '@/audio/sfx'
 import { feedbackPlan, type FeedbackPlan } from './feedback'
 import { ObjectPool } from './objectPool'
 import { ensureSparkTexture } from './sparkTexture'
+import type { EncounterFxSystem } from './EncounterFxSystem'
+import { createOnceLatch } from './onceLatch'
 
 const PROJECTILE_MS = 250
 const LUNGE_MS = 160
@@ -40,6 +42,7 @@ export class EffectsSystem {
     private readonly bridge: GameBridge | undefined,
     private readonly targets: () => EffectsTargets,
     private readonly isReduced: () => boolean,
+    private readonly fx?: EncounterFxSystem,
   ) {
     this.sparks = new ObjectPool({
       create: () => scene.add.image(0, 0, 'spark'),
@@ -104,12 +107,13 @@ export class EffectsSystem {
     const has = (s: (typeof plan.steps)[number]): boolean => plan.steps.includes(s)
     const { player, monster, gate } = this.targets()
 
-    let finished = false
-    const finish = (): void => {
-      if (finished) return
-      finished = true
+    // Once-latch: result-animation-done is emitted exactly once per result, however many paths reach it.
+    const latch = createOnceLatch(() => {
       this.finishPending = null
       this.bridge?.emit({ type: 'result-animation-done' })
+    })
+    const finish = (): void => {
+      latch.fire()
     }
     this.finishPending = finish
 
@@ -135,6 +139,8 @@ export class EffectsSystem {
       const fb = feedbackPlan(result.correct, reduced)
       if (fb.kind === 'wisp' && monster) this.wispBurst(monster.position.x, monster.position.y - 10, fb)
       if (fb.kind === 'curse') this.curseTint(fb)
+      // Reduced_Motion: a static marker on the monster instead of moving bursts.
+      if (reduced && monster) this.fx?.hitMarker(monster.position.x, monster.position.y - 10, result.correct)
       if (has('damage-number') && plan.damageText && monster) {
         this.floatText(monster.position.x, monster.position.y - 40, plan.damageText, CSS_COLORS.ACCENT, reduced)
       }

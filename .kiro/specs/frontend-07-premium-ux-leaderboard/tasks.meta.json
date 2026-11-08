@@ -230,6 +230,209 @@
         "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
         "timestamp": 1794143263188
       }
+    ],
+    "5.1 Add pure encounter helpers and the lines data": [
+      {
+        "executionId": "ae1a5d8e-cdcc-40b1-97f2-466cb2c1727b",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794143288569
+      },
+      {
+        "executionId": "ae1a5d8e-cdcc-40b1-97f2-466cb2c1727b",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794145074972
+      }
+    ],
+    "5.2 Write property tests for encounter helpers": [
+      {
+        "executionId": "ae1a5d8e-cdcc-40b1-97f2-466cb2c1727b",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794143289520
+      },
+      {
+        "executionId": "ae1a5d8e-cdcc-40b1-97f2-466cb2c1727b",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794145075360
+      }
+    ],
+    "5.3 Implement the Typewriter": [
+      {
+        "executionId": "ae1a5d8e-cdcc-40b1-97f2-466cb2c1727b",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794143290536
+      },
+      {
+        "executionId": "ae1a5d8e-cdcc-40b1-97f2-466cb2c1727b",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794145076062
+      }
+    ],
+    "5.4 Write property test for the Typewriter": [
+      {
+        "executionId": "ae1a5d8e-cdcc-40b1-97f2-466cb2c1727b",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794143291503
+      },
+      {
+        "executionId": "ae1a5d8e-cdcc-40b1-97f2-466cb2c1727b",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794145077267
+      }
+    ],
+    "5.5 Draw the Ghost and Skeleton portraits": [
+      {
+        "executionId": "ae1a5d8e-cdcc-40b1-97f2-466cb2c1727b",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794143292534
+      },
+      {
+        "executionId": "ae1a5d8e-cdcc-40b1-97f2-466cb2c1727b",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794145078236
+      },
+      {
+        "executionId": "37938e68-d417-4067-9041-37afa83e2050",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794145634252
+      },
+      {
+        "executionId": "37938e68-d417-4067-9041-37afa83e2050",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794146879881
+      }
+    ],
+    "5.6 Draw the Vampire and Witch portraits": [
+      {
+        "executionId": "ae1a5d8e-cdcc-40b1-97f2-466cb2c1727b",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794143293520
+      },
+      {
+        "executionId": "ae1a5d8e-cdcc-40b1-97f2-466cb2c1727b",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794145079241
+      },
+      {
+        "executionId": "37938e68-d417-4067-9041-37afa83e2050",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794145635143
+      },
+      {
+        "executionId": "37938e68-d417-4067-9041-37afa83e2050",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794146880795
+      }
+    ],
+    "5.7 Draw the Clockwork Golem and Exam Warden portraits and the PortraitCanvas": [
+      {
+        "executionId": "ae1a5d8e-cdcc-40b1-97f2-466cb2c1727b",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794143294405
+      },
+      {
+        "executionId": "ae1a5d8e-cdcc-40b1-97f2-466cb2c1727b",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794145080137
+      },
+      {
+        "executionId": "37938e68-d417-4067-9041-37afa83e2050",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794145635625
+      },
+      {
+        "executionId": "37938e68-d417-4067-9041-37afa83e2050",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794146882120
+      }
+    ],
+    "5.8 Build the Speech_Panel and Answer_Grid": [
+      {
+        "executionId": "ae1a5d8e-cdcc-40b1-97f2-466cb2c1727b",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794143295558
+      },
+      {
+        "executionId": "ae1a5d8e-cdcc-40b1-97f2-466cb2c1727b",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794145081272
+      }
+    ],
+    "5.9 Build the EncounterPopup and replace the Question_Panel": [
+      {
+        "executionId": "ae1a5d8e-cdcc-40b1-97f2-466cb2c1727b",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794143296798
+      },
+      {
+        "executionId": "ae1a5d8e-cdcc-40b1-97f2-466cb2c1727b",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794145082497
+      },
+      {
+        "executionId": "37938e68-d417-4067-9041-37afa83e2050",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794145633524
+      },
+      {
+        "executionId": "37938e68-d417-4067-9041-37afa83e2050",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794146882818
+      }
+    ],
+    "5.10 Add the Phaser result feedback": [
+      {
+        "executionId": "ae1a5d8e-cdcc-40b1-97f2-466cb2c1727b",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794143298003
+      },
+      {
+        "executionId": "ae1a5d8e-cdcc-40b1-97f2-466cb2c1727b",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794145083394
+      }
+    ],
+    "5.11 Migrate and add tests": [
+      {
+        "executionId": "ae1a5d8e-cdcc-40b1-97f2-466cb2c1727b",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794143298593
+      },
+      {
+        "executionId": "ae1a5d8e-cdcc-40b1-97f2-466cb2c1727b",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794145084075
+      }
+    ],
+    "5.12 Verify and log Phase 2": [
+      {
+        "executionId": "ae1a5d8e-cdcc-40b1-97f2-466cb2c1727b",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794143299294
+      },
+      {
+        "executionId": "ae1a5d8e-cdcc-40b1-97f2-466cb2c1727b",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794145085093
+      }
+    ],
+    "5. Phase 2: Character-led encounter": [
+      {
+        "executionId": "ae1a5d8e-cdcc-40b1-97f2-466cb2c1727b",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794145085531
+      }
+    ],
+    "6. STOP: Phase 2 checkpoint, encounter review": [
+      {
+        "executionId": "fdbc56d6-1d78-4ea1-8f22-1be4619ef016",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794147598488
+      },
+      {
+        "executionId": "fdbc56d6-1d78-4ea1-8f22-1be4619ef016",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794147606827
+      }
     ]
   }
 }
