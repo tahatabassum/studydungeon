@@ -60,7 +60,7 @@ These are in `FRONTEND_STATE_AND_CHANGES.md` Section 6.3. They block real-mode p
 | P4 | Upsert one `ReviewItem` per user and question (keep the repetition count) instead of inserting one per attempt. | `GET /reviews/due` never repeats a `question_id`. |
 | P5 | Fix the 500 on the second attempt and on `GET /runs/{id}` for a generated dungeon. | Regression test with a 2-question generated dungeon. |
 | P6 | Make the cookie `Secure` configurable (`COOKIE_SECURE=true` in production) and accept a list of CORS origins (`CORS_ORIGINS`). | Production cookie has `Secure`; dev works on ports 5173 and 5174. |
-| P7 | Decide the run score rule (Section 5.2 of the frontend doc lists three versions) and write it in `game-design.md`. | One rule in docs and code. |
+| P7 | Decide the run score rule (Section 5.2 of the frontend doc lists three versions) and **state the exact streak-bonus rule** (when it triggers, how much, whether it repeats, whether retries or hard questions change it). Write both in `game-design.md`. | One rule in docs and code; C.2 uses the same streak rule. |
 
 ---
 
@@ -88,8 +88,9 @@ These are in `FRONTEND_STATE_AND_CHANGES.md` Section 6.3. They block real-mode p
 | A-R8 | Public surfaces (leaderboard, counters, share data) show only the handle, display name, tag, level, points and badges. They never show the **login username**, internal ids, IP addresses or any contact data. The product collects no email; if an email field is ever added it must never appear in a public response. |
 | A-R9 | `users.is_test` (default false) marks test and staff accounts. They can play normally but are excluded from every leaderboard and from the player counter. The existing `is_system` users (the seed owner) are excluded the same way. Set `is_test` with a backend script or an env allowlist of usernames (`TEST_USERNAMES`); there is no public endpoint for it. |
 | A-R10 | Registered users get a display name and tag too: on register, the display name defaults to the username with its original casing (cut to 16 characters) and passes the same moderation; if it fails, a neutral default is used (for example `Adventurer`). ASSUMPTION B1. |
-| A-R11 | Rate limits: `POST /guests` 5 per hour and 20 per day per IP; `POST /guests/name-check` 30 per minute per IP; `POST /auth/upgrade` 10 per hour per IP. |
+| A-R11 | Rate limits: `POST /guests` **30 per hour per IP** (schools, offices and mobile carriers often share one IP, so a low per-IP limit would block real players), plus a **global hourly cap** on new guests (`GUEST_CREATE_GLOBAL_PER_HOUR`, default 300) that returns 503 `GUEST_CREATION_PAUSED` with `Retry-After` when reached. `POST /guests/name-check` 30 per minute per IP; `POST /auth/upgrade` 10 per hour per IP. If the client IP cannot be trusted on the deployed stack (F.7), the per-IP limits fall back to cookie-based limits and the global cap stays. |
 | A-R12 | `POST /demo/session` stays working (it creates a guest with a generated name such as `Wanderer#1234`) until the frontend ships the name step; then it can be retired. |
+| A-R13 | **Delete my account and data**: any player (guest or registered) can delete their account. It removes the user and every row they own (documents, chunks, dungeons, runs, attempts, reviews, progress, point events, player stats, week stats, rate-limit rows keyed by their id) in one transaction, unlinks their `ai_usage` rows (set `user_id` to null), clears the cookie, and marks every leaderboard snapshot stale so the next request recomputes it without them. The player counter drops them after its cache expires. |
 
 ### A.3 Endpoints
 
@@ -145,6 +146,17 @@ Errors: 403 `NOT_A_GUEST`, 401 `NOT_AUTHENTICATED`, 409 `USERNAME_TAKEN`, 422 `V
 
 **`PATCH /me/display-name`** (optional, owner only): `{ "display_name": "Night Raven" }` returns the user with a **new tag**. At most once per 24 h (429 `NAME_CHANGE_LIMIT`). ASSUMPTION B2 that renaming is wanted at all.
 
+**`DELETE /auth/me`** (existing route; extend it to guests and require a confirmation)
+
+```json
+// request
+{ "confirm": "DELETE" }
+// 200 (the session cookie is cleared in the same response)
+{ "success": true, "message": "Your account and all of its study data were deleted." }
+```
+
+Errors: 401 `NOT_AUTHENTICATED`, 422 `CONFIRMATION_REQUIRED` when `confirm` is missing or different.
+
 ### A.4 Acceptance criteria
 
 1. A name of 2 or 17 characters, a name with `<`, `admin`, `Adm1n`, `ghost rival` and a profane word all fail with the right `reason`, and no user row is created.
@@ -154,6 +166,7 @@ Errors: 403 `NOT_A_GUEST`, 401 `NOT_AUTHENTICATED`, 409 `USERNAME_TAKEN`, 422 `V
 5. After `POST /auth/upgrade`, `GET /auth/me` returns the same `id`, `public_id`, `handle`, and `GET /progress`, `GET /leaderboard` (me block) show the same points as before.
 6. No public endpoint returns `username`, `id` (internal UUID) or an IP address; a test scans the leaderboard and counter responses for these keys.
 7. `is_test` and `is_system` users never appear in `GET /leaderboard` entries and are not counted by `GET /stats/players`.
+8. After `DELETE /auth/me`, the old cookie gets 401, no row with that user id remains, and the next `GET /leaderboard` (any board) no longer lists the player even if the hour has not passed.
 ---
 
 ## B. Preloaded packs
@@ -219,6 +232,7 @@ Errors: 403 `NOT_A_GUEST`, 401 `NOT_AUTHENTICATED`, 409 `USERNAME_TAKEN`, 422 `V
 ### C.1 Definitions
 
 - **Points** are the leaderboard currency. They are separate from the run score shown on the scorecard (ASSUMPTION B3). Every point comes from a row in an append-only **points ledger**.
+- **Labels**: the screens call the run value **"Dungeon score"** (the existing `score`, `current_score` fields, shown on the HUD and scorecard) and the leaderboard value **"Leaderboard points"** (the new `points_*` fields). The API keeps these names apart: `score` never means leaderboard points and `points` never means the run score. Use the same two terms in `api-contract.md` and `game-design.md`.
 - **Board kind** of a point: `preloaded` (earned in a pack dungeon) or `own_notes` (earned in a dungeon generated from the player's notes that counts for ranking). Overall = preloaded + own_notes.
 - **Scoring window**: the leaderboard week (Section D, default Monday 00:00 UTC to the next Monday 00:00 UTC). "First correct per question per window" means: the first time a player answers a question correctly within a week.
 
@@ -230,11 +244,12 @@ Errors: 403 `NOT_A_GUEST`, 401 `NOT_AUTHENTICATED`, 409 `USERNAME_TAKEN`, 422 `V
 | Repeat correct answer to the same question in the same window | 10 | Reduced points; never full points twice in a week. |
 | Second-chance retry (the question returned after a miss in this run) | half of the value above, rounded half to even | Matches the frontend's `retry_multiplier` 0.5 display. |
 | Wrong answer | 0 | |
-| Streak bonus | +25 when the streak reaches 3, 6, 9 ... and the answer earned full points | Aligns with `game-design.md` "+25 after 3 consecutive hits". ASSUMPTION B4 on the exact reading. |
+| Streak bonus | Default proposal: +25 when the streak reaches 3, 6, 9 ... and the answer earned full points | **Person A states the exact rule in `game-design.md`** (P7); this row follows it. |
 | Room cleared (first time this week) | 50 | Once per player, room and week. |
 | Floor boss or final boss defeated (first time this week) | 200 | Once per player, boss room and week. |
 | Pack completed for the first time ever | 500 | Once per player and pack. |
-| Answer faster than the minimum answer time | 0 (`too_fast`) | The answer still counts for combat; only points are withheld. |
+| Answer faster than the minimum answer time | 25 percent of the value it would have earned, rounded half to even (`too_fast`) | Reduced, never zero, so a quick reader is not punished; damage and HP still apply. |
+| Daily Haunt and practice modes (`weak_topics`, `exam`, `replay_floor`) | 50 percent of the answer values above (`PRACTICE_POINTS_MULTIPLIER`, default 0.5); no room, boss or pack bonuses | Reduced, so replaying reviews cannot outscore playing new content. |
 | Own-notes dungeon below the ranking minimum | 0 (`not_ranked`) | Playable, but no points. |
 
 ### C.3 Requirements
@@ -246,12 +261,12 @@ Errors: 403 `NOT_A_GUEST`, 401 `NOT_AUTHENTICATED`, 409 `USERNAME_TAKEN`, 422 `V
 | C-R3 | **Same transaction**: inserting the attempt, inserting its point events and updating `player_stats` and `player_week_stats` happen in one database transaction. Lock the run row (`SELECT ... FOR UPDATE`) so two attempts of the same run are serialized. |
 | C-R4 | **Idempotent attempt ids**: `(user_id, attempt_id)` is unique. A repeated `attempt_id` returns the stored response (including the stored `points_awarded`) and creates nothing. |
 | C-R5 | **First correct is enforced by the database**: a partial unique index on `(user_id, question_id, week_start) WHERE reason = 'first_correct'`. If the insert conflicts (a race or a repeat), the server records a `repeat_correct` event instead. The same pattern applies to `room_clear` and `boss_clear` (per room and week) and `pack_complete` (per pack, no week). |
-| C-R6 | **Minimum answer time**: an attempt that arrives less than `MIN_ANSWER_MS` (default 1500) after the previous attempt in the same run, or after the run start for the first attempt, earns 0 points with reason `too_fast`. ASSUMPTION B5: measuring the gap between attempts is enough, because the server does not know when the question appeared on screen. |
+| C-R6 | **Minimum answer time (generous)**: an attempt that arrives less than `MIN_ANSWER_MS` (default 800) after the previous attempt in the same run, or after the run start for the first attempt, earns **reduced points** (25 percent, reason `too_fast`), never zero. The threshold only targets answers no human can read and click that fast; tune it from real data. ASSUMPTION B5: the gap between attempts is a good enough proxy, because the server does not know when the question appeared on screen. |
 | C-R7 | **Minimum notes size for ranking**: an own-notes dungeon counts for ranking only when its document has at least `RANKING_MIN_CHARS` (default 3000) extracted characters and at least 2 topics. Otherwise `counts_for_ranking=false`. The flag is returned on the document status and the dungeon. |
 | C-R8 | **Own-notes caps**: at most `OWN_NOTES_DAILY_POINTS_CAP` (default 2000) own-notes points per player per UTC day; points above the cap are recorded with 0 and reason `daily_cap`. ASSUMPTION B6. |
 | C-R9 | **Generation limits per player** (also Section G): registered 3 dungeons per day and 5 stored documents; guests 1 per day and 2 stored. Re-uploading identical notes reuses the cached dungeon (content hash), so its questions fall under the repeat rule. |
 | C-R10 | **Rate limits**: at most 30 attempts per minute per user and 60 per minute per IP (429 `RATE_LIMIT_EXCEEDED`). |
-| C-R11 | Practice modes (`weak_topics`, `exam`, `replay_floor`) and the `daily_haunt` run follow the same table (repeats in the week give 10). ASSUMPTION B7. |
+| C-R11 | Daily Haunt (`daily_haunt`) and the practice modes (`weak_topics`, `exam`, `replay_floor`) give **reduced points**: answer values times `PRACTICE_POINTS_MULTIPLIER` (default 0.5), the weekly repeat rule still applies on top, and they award no room, boss or pack bonuses. ASSUMPTION B7 on the multiplier. |
 | C-R12 | A maintenance script rebuilds `player_stats` and `player_week_stats` from the ledger and reports differences (for audits and after bug fixes). |
 
 ### C.4 Response additions
@@ -264,7 +279,7 @@ Errors: 403 `NOT_A_GUEST`, 401 `NOT_AUTHENTICATED`, 409 `USERNAME_TAKEN`, 422 `V
   "player_points": { "preloaded": 1250, "own_notes": 0, "overall": 1250 } }
 ```
 
-`points_reason` is one of `first_correct`, `repeat_correct`, `retry`, `wrong`, `too_fast`, `not_ranked`, `daily_cap`. Streak bonuses are reported as `points_bonus: 25` next to it when present.
+`points_reason` is one of `first_correct`, `repeat_correct`, `retry`, `wrong`, `too_fast`, `practice`, `not_ranked`, `daily_cap`. When several rules apply (for example a fast repeat in a practice mode), the reason names the last reduction and `points_awarded` is the final value. Streak bonuses are reported as `points_bonus: 25` next to it when present.
 
 `POST /runs/{id}/rooms/{room_id}/clear` and `POST /runs/{id}/finish` (additive):
 
@@ -279,10 +294,11 @@ Errors: 403 `NOT_A_GUEST`, 401 `NOT_AUTHENTICATED`, 409 `USERNAME_TAKEN`, 422 `V
 1. The first correct answer to question Q this week gives 100 (150 if hard); a second correct answer to Q this week gives 10; after the weekly reset Q gives full points again.
 2. Two parallel requests that both try to award `first_correct` for Q give exactly one `first_correct` and one `repeat_correct` row.
 3. Replaying the same `attempt_id` returns identical JSON and the ledger row count does not change.
-4. An attempt 500 ms after the previous one earns 0 with `too_fast`, while damage and HP still apply.
+4. An attempt 300 ms after the previous one earns 25 percent of its value with `too_fast` (25 for a first correct easy question), while damage and HP still apply. An attempt 900 ms after the previous one earns full points.
 5. A run on a document with 1200 characters gives 0 points with `not_ranked`, and the dungeon carries `counts_for_ranking: false`.
 6. After any sequence of attempts, `player_stats` equals the sum of the ledger (property test with random sequences; the rebuild script reports no difference).
 7. A request body containing `points`, `score` or `damage` keys is rejected with 422 or ignored; no value from it reaches the ledger.
+8. A first correct answer in a Daily Haunt or practice run earns 50 (75 if hard) with reason `practice`; clearing a room in such a run adds no room bonus.
 ---
 
 ## D. Leaderboard
@@ -399,7 +415,7 @@ Use **PostgreSQL through one connection string** (`DATABASE_URL`). The code toda
 
 Content was rephrased for compliance with licensing restrictions.
 
-Either host is fine. The rest of this section works for both. ASSUMPTION B10: the team picks Supabase (the brief mentions its pause); if Neon is picked, F.4 still applies but is less critical.
+Either host is fine. The rest of this section works for both. ASSUMPTION B10: the team picks Supabase (the brief mentions its pause); whichever host is picked, the keep-alive in F.4 runs from an **external uptime monitor**, with the GitHub workflow only as a backup.
 
 Connection notes (ASSUMPTION B11, verify with the host docs):
 
@@ -463,11 +479,12 @@ WHERE user_id = :uid;
 
 | ID | Requirement |
 | --- | --- |
-| F-R1 | Add `GET /health/db`: runs `SELECT 1`, updates `keepalive.last_ping_at`, returns `{"status": "ok", "db": "ok", "checked_at": "..."}`. It requires the header `X-Keepalive-Token` equal to the `KEEPALIVE_TOKEN` env variable (otherwise 404), so strangers cannot use it to write. `GET /health` stays DB-free and fast. |
-| F-R2 | A scheduled job calls it **once a day** with retries (it must first wake the Render service, which can take about a minute). Primary: a GitHub Actions workflow with `schedule` (cron) plus `workflow_dispatch`, `curl --retry 5 --retry-delay 30 --max-time 120`, the token in a repository secret. Backup: a free external pinger (for example cron-job.org) with the same URL. |
-| F-R3 | GitHub may disable scheduled workflows in a repository with no activity for a long period (ASSUMPTION B13: about 60 days). Put a calendar reminder on 2026-12-20 and 2027-01-15 to check the last successful run; the backup pinger covers the gap. |
+| F-R1 | Add `GET /health/db`: runs `SELECT 1`, updates `keepalive.last_ping_at`, returns `{"status": "ok", "db": "ok", "checked_at": "..."}`. It requires the `KEEPALIVE_TOKEN` secret, sent as the `X-Keepalive-Token` header, or as a `?token=` query parameter over HTTPS for monitors that cannot send headers (otherwise 404), so strangers cannot use it to write. `GET /health` stays DB-free and fast (it is also the warm-up call, F.7). |
+| F-R2 | **Primary: an external uptime monitor** (for example UptimeRobot or cron-job.org, free plans) calls `GET /health/db` at least once a day, ideally every few hours, with a timeout of at least 120 s (it must first wake the Render service, which can take about a minute) and an email alert on failure. **Backup only: a GitHub Actions workflow** with `schedule` (cron) plus `workflow_dispatch`, `curl --retry 5 --retry-delay 30 --max-time 120`, the token in a repository secret. ASSUMPTION B21 on the monitor's header support and free-plan interval. |
+| F-R3 | GitHub may disable scheduled workflows in a repository with no activity for a long period (ASSUMPTION B13: about 60 days). Because the repository must not change after the submission deadline (F-R5a), the gap from 2026-12-04 to 2027-01-29 is close to that limit, so the GitHub workflow cannot be the primary keep-alive. Check the monitor's dashboard on 2026-12-20 and 2027-01-15. |
 | F-R4 | The job must hit the **database**, not only the API, because the Supabase pause depends on database activity. |
 | F-R5 | Keep it running until at least **2027-01-29**. After that it can be switched off. |
+| F-R5a | **No code pushes after the submission deadline** (2026-12-04, 2:00 PM Pacific). The monitor, the backup workflow, the private backup job, env variables and secrets must all be in place and tested before it. After the deadline only actions outside the repository are allowed (monitor settings, host dashboards, restoring a paused project, reading backups). |
 
 ### F.5 Private backups
 
@@ -488,10 +505,11 @@ WHERE user_id = :uid;
 
 - Render free web services spin down after 15 minutes without traffic, take about a minute to spin up, get 750 free instance hours per month, and lose local files on restart ([Render free docs](https://render.com/docs/free), [Render free tier article](https://render.com/articles/platforms-with-a-real-free-tier-for-developers-in-2026)). Content was rephrased for compliance with licensing restrictions.
 - Startup must be quick: the pack seed only checks a version row and seeds when needed; no AI calls; no long migrations in the request path.
+- **Warm-up call**: the frontend calls `GET /health` once when the title screen loads (fire and forget, no cookie needed), so Render starts waking while the player reads or types a name. `GET /health` must not touch the database, must answer within milliseconds once the service is up, and must allow at least 120 requests per minute per IP. In local development it must be CORS-allowed like the other routes.
 - The frontend shows "Waking up the dungeon..." and offers the offline demo after 8 s, so a slow first request is acceptable, but `POST /guests` must still succeed once the service is up (no state lost).
 - Production goes through the Vercel rewrite `/api/:path*` to the Render URL **without** the `/api` prefix (routes have no prefix). The browser sees one origin, so: cookie `HttpOnly; Secure; SameSite=Lax; Path=/`, no `Domain` attribute, `Max-Age` 30 days.
 - CORS is only needed for local development: `CORS_ORIGINS` as a list (ports 5173 and 5174 on localhost and 127.0.0.1), `allow_credentials=True`, never `*` with credentials.
-- Client IP for rate limits: read `X-Forwarded-For` with the right number of trusted hops (`TRUSTED_PROXY_COUNT`). ASSUMPTION B15: Vercel adds one hop and Render one more; verify by logging the header once in staging.
+- Client IP for rate limits: read `X-Forwarded-For` with the right number of trusted hops (`TRUSTED_PROXY_COUNT`). ASSUMPTION B15, **test on the deployed stack first**: send requests through the Vercel rewrite from two networks and log the header and the computed client IP. If the client IP cannot be trusted (spoofable, or every request shows the same proxy IP), switch the per-IP limits to **cookie-based limits** (per session or guest id) and keep the global caps (guest creation, uploads) as the outer guard.
 ---
 
 ## G. AI provider routing
@@ -544,8 +562,9 @@ Content was rephrased for compliance with licensing restrictions.
 | G-R6 | **Cache by content hash**: `sha256` of the normalized extracted text. If the same player uploads the same content again, reuse the existing topics, questions and dungeon (no AI call, no new generation counted). ASSUMPTION B16: the cache is per player (sharing across players saves quota but needs a privacy decision). |
 | G-R7 | **Lazy floor-by-floor generation**: `generate-dungeon` generates the topic map and floor 1 only; floor N+1 is generated when floor N is cleared (or by a background task after floor 1 is ready). Each floor has its own status (`generating`, `ready`, `failed`), shown by `GET /documents/{id}/status` and `GET /dungeons/{id}`; `POST /floors/{id}/retry` re-runs a failed floor (B-to-A frontend-08 item 8). |
 | G-R8 | Guests may upload within the guest limits (this replaces 403 `GUEST_FORBIDDEN`). The same file checks apply: allowlist, signature, 15 MB, pages, minimum text, relevance gate. |
-| G-R9 | **Privacy**: the privacy note (README and a short line in the upload screen) says that note text is sent to an AI provider for question generation, that free tiers may let the provider use the content to improve their products, and that originals are deleted after processing. For Gemini, the unpaid-tier terms say submitted content and responses may be used to improve Google products and may be read by human reviewers ([Gemini API terms](https://ai.google.dev/gemini-api/terms), [billing page](https://ai.google.dev/gemini-api/docs/billing)). For OpenRouter free models, check the account privacy settings and each free provider's data policy; some free endpoints require allowing providers that may log or train on prompts (ASSUMPTION B17). Content was rephrased for compliance with licensing restrictions. |
-| G-R10 | **Minimal retention**: delete the uploaded original right after extraction (also on failure, in a `finally`). Keep chunks, topics and questions until the owner deletes the document or the account, or the guest is purged. Never send usernames, cookies, IPs or other users' data to a provider. |
+| G-R9 | **Upload notice with a confirm checkbox**: before the first upload the screen shows, and the player must tick: "Your notes are sent to third-party AI providers (Google Gemini, and models routed through OpenRouter as a fallback) to generate questions. Free tiers may let these providers keep or use the content under their own terms. Do not upload personal or confidential information." `POST /documents` requires the form field `accept_ai_notice=true` and stores `ai_notice_accepted_at` and the notice version on the document (422 `AI_NOTICE_NOT_ACCEPTED` otherwise). Background for the wording: the Gemini unpaid-tier terms say submitted content and responses may be used to improve Google products and may be read by human reviewers ([Gemini API terms](https://ai.google.dev/gemini-api/terms), [billing page](https://ai.google.dev/gemini-api/docs/billing)); for OpenRouter free models, check the account privacy settings and each free provider's data policy, because some free endpoints require allowing providers that may log or train on prompts (ASSUMPTION B17). The README privacy note says the same. Content was rephrased for compliance with licensing restrictions. |
+| G-R10 | **Retention, without over-promising**: our side deletes the uploaded original right after extraction (also on failure, in a `finally`) and keeps chunks, topics and questions until the owner deletes the document or the account, or the guest is purged. What happens at the AI provider is governed by that provider's terms, so the notice and the README **must not promise minimal retention, deletion or "no training" beyond what each provider's terms support**. Never send usernames, cookies, IPs or other users' data to a provider. |
+| G-R11 | **File size limits by type, checked after extraction and before any AI call**: PDF at most 30 pages (422 `TOO_MANY_PAGES`), PPTX at most 30 slides (422 `TOO_MANY_SLIDES`), DOCX at most `MAX_DOCX_CHARS` extracted characters (default 60 000, 422 `TOO_MUCH_TEXT`). Each error carries `detail.limit` and `detail.found` so the screen can say "This PDF has 42 pages; the limit is 30." ASSUMPTION B20 on the DOCX default and on applying the same character limit to TXT. |
 
 ### G.4 Endpoints and errors
 
@@ -573,6 +592,8 @@ Errors on `POST /documents` and `POST /documents/{id}/generate-dungeon`:
 | 503 | `UPLOADS_PAUSED_TODAY` | Global daily cap reached. |
 | 503 | `AI_BUSY` | Every provider failed. |
 | 413 / 415 / 422 | existing | Size, type, content checks (unchanged). |
+| 422 | `AI_NOTICE_NOT_ACCEPTED` | `accept_ai_notice` missing or false (G-R9). |
+| 422 | `TOO_MANY_PAGES` / `TOO_MANY_SLIDES` / `TOO_MUCH_TEXT` | Type limits (G-R11), with `limit` and `found`. |
 
 ```json
 { "detail": { "code": "AI_BUSY",
@@ -593,13 +614,15 @@ Errors on `POST /documents` and `POST /documents/{id}/generate-dungeon`:
 7. A guest's second upload on the same day returns 429 `UPLOAD_LIMIT_PLAYER` before any AI call; `GET /uploads/quota` reports `player_daily_limit`.
 8. The temp upload directory is empty after a successful and after a failed ingestion.
 9. Pack and demo flows run with the AI chain empty.
+10. A 31-page PDF, a 31-slide PPTX and a DOCX over the character limit each return their own 422 code with `limit` and `found`, and no AI call is made.
+11. `POST /documents` without `accept_ai_notice=true` returns 422 `AI_NOTICE_NOT_ACCEPTED`.
 ---
 
 ## H. Security and abuse
 
 | ID | Requirement |
 | --- | --- |
-| H-R1 | Rate limits (DB-backed, the existing `check_rate_limit`): guest creation 5 per hour and 20 per day per IP; name check 30 per minute per IP; login 10 per minute per IP (existing); upgrade 10 per hour per IP; attempts 30 per minute per user and 60 per minute per IP; uploads per Section G; leaderboard and stats 120 per minute per IP. All return 429 `RATE_LIMIT_EXCEEDED` with `Retry-After`. |
+| H-R1 | Rate limits (DB-backed, the existing `check_rate_limit`): guest creation 30 per hour per IP plus the global hourly guest cap (A-R11); name check 30 per minute per IP; login 10 per minute per IP (existing); upgrade 10 per hour per IP; attempts 30 per minute per user and 60 per minute per IP; uploads per Section G; leaderboard, stats and `GET /health` 120 per minute per IP. All return 429 `RATE_LIMIT_EXCEEDED` with `Retry-After` (the global caps return 503). Per-IP limits fall back to cookie-based limits when the client IP is not trustworthy (F.7). |
 | H-R2 | Ownership checks on every private resource: documents, dungeons (except published packs), runs, attempts, reviews, progress, quota. A wrong owner gets 404 (or 403 where the code already does), never data. Two-user and guest-vs-user tests for each route. |
 | H-R3 | Display-name moderation on the server only (A-R1 to A-R3); log refused names without the IP. A way to blank an abusive name without deleting the player (backend script that sets a neutral name and a new tag). |
 | H-R4 | No secrets in the frontend: AI keys, `SECRET_KEY`, `KEEPALIVE_TOKEN` and database URLs live only in backend env. The frontend only knows `VITE_USE_MOCKS` and `VITE_API_BASE`. |
@@ -622,7 +645,7 @@ The frontend runs `npm.cmd run test:contract` with `VITE_API_BASE` and `VITE_USE
 5. `GET /packs` without a cookie shows pack 1 available and the rest locked; with a fresh guest the same; `POST /runs` on a locked pack is 403 `PACK_LOCKED`.
 6. Clearing pack 1 (through the normal run calls) unlocks pack 2 in `GET /packs` and in `pack_progress`.
 7. The first correct answer awards 100 or 150 points; answering the same question correctly again in the same week awards 10; replaying the same `attempt_id` returns identical JSON.
-8. Two answers less than 1.5 s apart: the second has `points_reason: "too_fast"` and `points_awarded: 0`.
+8. Two answers less than 0.8 s apart: the second has `points_reason: "too_fast"` and 25 percent of its normal points (never 0 for a correct answer).
 9. `GET /leaderboard` without a cookie: at most 20 entries, `me: null`, `updated_at` and `next_refresh_at` one hour apart, no `username` key anywhere.
 10. `GET /leaderboard` with a session: `me.live` is true and `me.points` equals the player's `player_points` from the last attempt.
 11. Every `board` and `period` combination returns 200; an unknown value returns 422.
@@ -632,6 +655,10 @@ The frontend runs `npm.cmd run test:contract` with `VITE_API_BASE` and `VITE_USE
 15. With the AI chain disabled on the test backend, generation returns 503 `AI_BUSY` with `offer_packs: true`.
 16. `GET /dungeons/{pack dungeon}` returns `floors[]` and `final_boss`; `POST /runs` with `floor_id` scopes the run to that floor.
 17. Regression tests for the prerequisites P1 to P5 (seeded demo, real `monster_hp_remaining`, progress persisted, no duplicate due reviews, no 500 on generated dungeons).
+18. `DELETE /auth/me` with `{"confirm": "DELETE"}` works for a guest and a registered player; the cookie then gets 401 and the player is gone from `GET /leaderboard`.
+19. `POST /documents` without `accept_ai_notice=true` is 422 `AI_NOTICE_NOT_ACCEPTED`; a 31-page PDF is 422 `TOO_MANY_PAGES`.
+20. `GET /health` answers 200 without a cookie and without touching the database.
+21. A Daily Haunt answer reports `points_reason: "practice"` and half points.
 
 Backend-side tests that the frontend cannot run: concurrency of `first_correct` (C.5 item 2), the snapshot single-recompute (D.4 item 2), purge after 30 days (A.4 item 4), ledger-equals-stats property test (C.5 item 6), paid-cap and `:free` validation (G.5), temp directory cleanup (G.5 item 8).
 
@@ -651,16 +678,19 @@ Backend-side tests that the frontend cannot run: concurrency of `first_correct` 
 8. Own-notes daily points cap (C-R8): wanted, and at what value?
 9. Will `POST /demo/session` be kept for the offline-demo label and old links, or retired after `POST /guests`?
 10. Which pack topics for packs 2 and 3, and who writes and reviews the questions?
-11. Do practice modes and Daily Haunt earn leaderboard points at all? (C-R11)
+11. Practice modes and Daily Haunt give reduced points (C-R11): is 50 percent right?
 12. Are badges computed on the server (B-to-A frontend-07 proposal), and should they appear on leaderboard entries?
 13. Is a capabilities endpoint welcome (for example `GET /meta` returning `{floors, modes, daily_haunt, packs, leaderboard, guest_upload}`)? The frontend hides features until a backend declares them; today it infers them from responses.
+14. The exact streak-bonus rule, written in `game-design.md` (P7).
+15. The DOCX character limit (and whether TXT shares it), G-R11.
+16. The global hourly guest cap value (A-R11).
 
 ### J.2 What the frontend needs from the backend (summary)
 
 - The prerequisites P1 to P7.
 - Response models for every route in `openapi.json`, and `api-contract.md` refreshed to match the code (doc drift list in the frontend doc, 6.3).
 - The PROPOSED items still open in `B-to-A.md`: floors and final boss on dungeons, `floor_id` and `mode` on runs (including `daily_haunt`), attempt additions (`requeue_after`, `is_retry`, `retry_multiplier`, `combo`, `correct_answer` after wrong answers, `source.page`), finish additions (`floor_rank`, `mastery_by_topic`, `badges_earned`, `level_up`, `weapon_unlocked`, `chest_rewards`), progress additions (`xp_to_next` first), the `GET /reviews/due` summary shape, `POST /floors/{id}/retry`, `PUT /progress/equipped-weapon`.
-- The new endpoints in this doc: `POST /guests/name-check`, `POST /guests`, `POST /auth/upgrade`, `GET /packs`, `GET /leaderboard` (new shape), `GET /stats/players`, `GET /uploads/quota`, plus the points fields and new error codes.
+- The new endpoints in this doc: `POST /guests/name-check`, `POST /guests`, `POST /auth/upgrade`, `DELETE /auth/me` for guests too (with confirmation), `GET /packs`, `GET /leaderboard` (new shape), `GET /stats/players`, `GET /uploads/quota`, a fast DB-free `GET /health` for the warm-up call, plus the points fields, the `accept_ai_notice` upload field and the new error codes.
 - An A-to-B entry per shipped step, with the exact JSON.
 
 ---
@@ -673,11 +703,11 @@ Each step is one backend spec, ends with tests green, `api-contract.md` and `ope
 | --- | --- | --- |
 | 1 | **Prerequisites P1 to P7** (seed at startup, real `monster_hp_remaining`, progress persisted, review upsert, 500 fix, cookie `Secure` and CORS list, score rule) | Real-mode play is broken without them; points depend on correct progress. |
 | 2 | **PostgreSQL and operations** (F): Postgres `DATABASE_URL`, `timestamptz`, migrations on Postgres, `/health/db`, keep-alive workflow plus backup pinger, private backups, restore drill | Every later table lives here; the keep-alive must run long before 2027-01-29. |
-| 3 | **Guest identity** (A): display names, moderation, tags, 30-day cookie and lazy purge, `is_test`, `POST /guests`, name check, upgrade, public fields on `/auth/me` | Leaderboard entries need handles. |
+| 3 | **Guest identity** (A): display names, moderation, tags, 30-day cookie and lazy purge, `is_test`, `POST /guests`, name check, upgrade, public fields on `/auth/me`, guest limits with the global hourly cap, delete my account and data | Leaderboard entries need handles; deletion must exist before real players arrive. |
 | 4 | **Floors and run scoping** (B-to-A items 1, 2, 3, 8) and **packs** (B): floors table, `floor_id`, `mode`, server-side question draw, pack JSON + validator + seed, `GET /packs`, unlock rule | Packs are campaigns made of floors. |
 | 5 | **Points ledger** (C): `point_events`, `player_stats`, `player_week_stats`, attempt/clear/finish additions, anti-farming rules, rebuild script | The leaderboard reads these tables. |
 | 6 | **Leaderboard and counter** (D, E): snapshots with lazy refresh, live `me`, tie-breaks, `GET /stats/players` | Needs steps 3 and 5. |
-| 7 | **AI routing, quotas and guest upload** (G): router, OpenRouter free array, paid fallback behind flags, `ai_usage`, quota endpoint and errors, content-hash cache, lazy floors | Independent of 5 and 6; can run in parallel with them if time is short. |
+| 7 | **AI routing, quotas and guest upload** (G): router, OpenRouter free array, paid fallback behind flags, `ai_usage`, quota endpoint and errors, content-hash cache, lazy floors, upload notice field, page/slide/character limits | Independent of 5 and 6; can run in parallel with them if time is short. |
 | 8 | **Hardening and contract tests** (H, I): rate limits on new routes, CSRF check, ownership tests, the contract cases in Section I, docs sync | Final pass before the submission freeze. |
 
 ---
@@ -687,19 +717,22 @@ Each step is one backend spec, ends with tests green, `api-contract.md` and `ope
 - **B1**: Registered users get a display name derived from their username (A-R10).
 - **B2**: Changing the display name is optional; if built, it issues a new tag and is limited to once per day.
 - **B3**: Leaderboard points are separate from the run score (also A4 in the frontend doc).
-- **B4**: The streak bonus is read as +25 at every third consecutive correct answer that earned full points.
-- **B5**: The time between attempts in a run is a good enough proxy for the minimum answer time.
+- **B4**: Person A states the exact streak-bonus rule in `game-design.md`; until then C.2 uses +25 at every third consecutive full-point correct answer as a placeholder.
+- **B5**: The time between attempts is a good enough proxy for the minimum answer time; the threshold is generous (800 ms) and too-fast answers get 25 percent of their points, never zero.
 - **B6**: Own notes get a daily points cap (default 2000).
-- **B7**: Practice modes and Daily Haunt follow the same points table.
+- **B7**: Daily Haunt and practice modes give 50 percent of the answer points and no room, boss or pack bonuses.
 - **B8**: The weekly reset is Monday 00:00 UTC.
 - **B9**: The indexed count query meets 50 ms for 10 000 players on a free Postgres tier (not measured).
-- **B10**: The team picks Supabase; Neon works with the same design.
+- **B10**: The team picks Supabase (Neon works with the same design); either way the keep-alive runs from an external uptime monitor.
 - **B11**: The asyncpg and pooler settings in F.1 match the host docs (verify).
 - **B12**: Guests keep an internal username (random or null) and only the display name is public.
-- **B13**: GitHub may disable scheduled workflows after about 60 days without repository activity (verify in the GitHub Actions docs).
+- **B13**: GitHub may disable scheduled workflows after about 60 days without repository activity (verify in the GitHub Actions docs), so the GitHub workflow is only a backup and the repository stays unchanged after the 2026-12-04 deadline.
 - **B14**: The free tier's own backups are not relied on.
-- **B15**: Vercel and Render together add two proxy hops to `X-Forwarded-For` (verify).
+- **B15**: Vercel and Render together add two proxy hops to `X-Forwarded-For`. **Test on the deployed stack first**; if the client IP cannot be trusted, per-IP limits fall back to cookie-based limits.
 - **B16**: The AI output cache is per player by default.
-- **B17**: Some OpenRouter free endpoints need a privacy setting that allows providers who may log or train on prompts (verify in the OpenRouter account settings).
-- **B18**: The default limits (5 guests per hour per IP, 1 guest generation per day, 3 per registered player, 40 global, 30 attempts per minute) suit a hackathon demo; tune them after a test day.
+- **B17**: Some OpenRouter free endpoints need a privacy setting that allows providers who may log or train on prompts (verify in the OpenRouter account settings). The upload notice and README promise no retention beyond what each provider supports.
+- **B18**: The default limits suit a hackathon demo: 30 new guests per hour per IP plus a global cap of 300 per hour, 1 guest generation per day, 3 per registered player, 40 generations per day in total, 30 attempts per minute. Tune them after a test day.
 - **B19**: All free-tier numbers quoted here (Supabase, Neon, Render, OpenRouter, Gemini) were true on 2026-11-10 according to the linked pages and may change.
+- **B20**: The DOCX limit is 60 000 extracted characters and TXT uses the same limit (PDF 30 pages and PPTX 30 slides are firm).
+- **B21**: The chosen uptime monitor can send a custom header or call a URL with a query token, and its free plan allows a daily (or more frequent) check with a 120 s timeout.
+- **B22**: Marking all snapshots stale on account deletion is cheap enough (a few deletions a day).

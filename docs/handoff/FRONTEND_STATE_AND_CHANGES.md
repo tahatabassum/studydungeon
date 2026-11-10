@@ -118,7 +118,7 @@ Compared against the master roadmap (`docs/StudyDungeon_Complete_Build_Roadmap_a
 
 | Item | Status |
 | --- | --- |
-| Settings screen (sound, reduced motion, logout, delete account/document) | Placeholder card "Coming soon". Mute is in the pause menu, reduced motion follows the OS setting, Log out is on the Dashboard. **Delete account and delete document are not built** (backend has `DELETE /auth/me` and `DELETE /documents/{id}`). |
+| Settings screen (sound, reduced motion, logout, delete account/document) | Placeholder card "Coming soon". Mute is in the pause menu, reduced motion follows the OS setting, Log out is on the Dashboard. **Delete my account and data is now PLANNED** (Section 9.8); delete document is still not built (backend has `DELETE /documents/{id}`). |
 | Recent dungeons list on the Dashboard | Not built. The Dashboard shows one dungeon (the session's dungeon); `GET /dungeons` and `GET /documents` are not called. |
 | Credits screen | Not built; credits are in `frontend/ASSETS_LICENSES.md`. |
 | Source preview panel from `GET /documents/{id}/source-preview` | Not called. The source line shows the evidence quote; the page number needs `source.page` (PROPOSED). |
@@ -163,7 +163,7 @@ The real backend decides every value below. The frontend shows what it receives.
 | Level curve | Level n to n+1 costs 100 x n XP (L2 at 100, L3 at 300, L4 at 600) | `UserProgress` exists but is never written, so level stays 1 | "100 x current level" | Confirm and persist |
 | `xp_to_next` | computed by the mock | not sent | - | PROPOSED field |
 
-The new **leaderboard points** (DOC 2, Section C) are a separate, server-only number. The run score stays a scorecard value. ASSUMPTION A4: the team wants points and run score kept separate.
+The new **leaderboard points** (DOC 2, Section C) are a separate, server-only number. The run score stays a scorecard value. The screens will label them **"Dungeon score"** (run score, HUD and scorecard) and **"Leaderboard points"** (Section 9.9). ASSUMPTION A4: the team wants the two kept separate.
 
 ### 5.3 Streaks, combo, ranks, mastery
 
@@ -182,7 +182,7 @@ The new **leaderboard points** (DOC 2, Section C) are a separate, server-only nu
 
 ### 5.4 Upload limits shown in the UI (hints only, the server decides)
 
-PDF, DOCX, PPTX, TXT, PNG, JPEG; at most 15 MB and 30 pages; at least 500 characters of text; at most 5 stored documents per account (`frontend/src/upload/limits.ts`, matching the backend errors `FILE_TOO_LARGE` 413, `UNSUPPORTED_FILE_TYPE` 415, `QUOTA_EXCEEDED` 400). The 30-page limit is from the README; ASSUMPTION A5 that the backend enforces it.
+PDF, DOCX, PPTX, TXT, PNG, JPEG; at most 15 MB and 30 pages; at least 500 characters of text; at most 5 stored documents per account (`frontend/src/upload/limits.ts`, matching the backend errors `FILE_TOO_LARGE` 413, `UNSUPPORTED_FILE_TYPE` 415, `QUOTA_EXCEEDED` 400). The browser checks are hints only. **Person A must enforce** 30 pages for PDF, 30 slides for PPTX and a character limit for DOCX, each with its own error code (`TOO_MANY_PAGES`, `TOO_MANY_SLIDES`, `TOO_MUCH_TEXT`, DOC 2 G-R11). The frontend will show the `limit` and `found` values from the error.
 ---
 
 ## 6. Contract table
@@ -243,7 +243,7 @@ Every call goes through `ApiClient` (`frontend/src/api/ApiClient.ts`). Real impl
 - **Turn capabilities on** as the backend ships them (floors, modes, Daily Haunt, leaderboard, packs). Each one is a flag plus wire schemas; the screens already exist.
 - **Send `floor_id` and `mode`** on `POST /runs` once they are accepted (one change in `client.ts`, D18).
 - **PLANNED features in Section 9** (guest name, preloaded packs, real leaderboard, player counter, guest upload).
-- Settings screen, delete account, delete document, recent dungeons list (Section 4.3).
+- Settings screen, delete document, recent dungeons list (Section 4.3); delete my account and data, score labels and the warm-up call are PLANNED (Sections 9.8 to 9.10).
 - Not tested on a real phone yet (only headless Edge, DevTools device mode and `?touch=1`).
 - Optional tasks skipped: a few component tests in frontend-00/03 and presentation-only room events (frontend-08 task 11.10). The frontend-04 Phase 7 parent box is unchecked.
 
@@ -325,13 +325,32 @@ Everything in this section is **PLANNED**: no code exists yet. Every endpoint li
 - Guests can upload (today they see a sign-up prompt). Before the drop zone the wizard reads the quota and shows one of: allowed with what remains, "You have used today's summoning. Come back tomorrow or play a pack", "The summoning circle is busy today. Try a pack while it rests", "Create an account to keep more than N dungeons".
 - During generation it handles `AI_BUSY` (503) with the same message and a "Play a pack instead" button, and 429 limits with the `Retry-After` time.
 - If the notes are too small to count for ranking, the result says so: "This dungeon is playable, but notes this short do not count toward the Own notes leaderboard."
-- Endpoints (PROPOSED): `GET /uploads/quota` (G), `POST /documents` open to guests within limits (A, G), document status with `counts_for_ranking` and `floors[]` (C, G), the errors `UPLOAD_LIMIT_PLAYER`, `UPLOAD_LIMIT_IP`, `UPLOADS_PAUSED_TODAY`, `AI_BUSY`, `QUOTA_EXCEEDED` (G).
+- **Upload notice with a confirm checkbox** before the first upload: "Your notes are sent to third-party AI providers (Google Gemini, and models routed through OpenRouter as a fallback) to generate questions. Free tiers may let these providers keep or use the content under their own terms. Do not upload personal or confidential information." The upload button stays disabled until it is ticked, and the request sends `accept_ai_notice=true`. The copy never promises retention or deletion at the providers beyond what their terms support.
+- Clear messages for the type limits: "This PDF has 42 pages; the limit is 30.", the same for PPTX slides and DOCX length, using `limit` and `found` from the error.
+- Endpoints (PROPOSED): `GET /uploads/quota` (G), `POST /documents` open to guests within limits and with the `accept_ai_notice` field (A, G), document status with `counts_for_ranking` and `floors[]` (C, G), the errors `UPLOAD_LIMIT_PLAYER`, `UPLOAD_LIMIT_IP`, `UPLOADS_PAUSED_TODAY`, `AI_BUSY`, `QUOTA_EXCEEDED`, `AI_NOTICE_NOT_ACCEPTED`, `TOO_MANY_PAGES`, `TOO_MANY_SLIDES`, `TOO_MUCH_TEXT` (G).
 
 ### 9.7 Smaller follow-ups tied to DOC 2
 
 - Show `points_awarded` next to the damage number, with a short reason for reduced points ("Already answered this week: +10").
 - Remove the per-dungeon `dungeon_id` query from the leaderboard client.
 - Hide "Ghost Rival" wording everywhere in real mode (already true; keep it covered by a boundary test).
+
+### 9.8 Delete my account and data (PLANNED)
+
+- A "Delete my account and data" action in the Settings screen (which replaces the placeholder) and in the Dashboard's account area, for guests and registered players.
+- A confirm dialog explains what goes (name, points, leaderboard entries, runs, reviews, uploaded notes and dungeons) and asks the player to type `DELETE`. On success the session ends and the player lands on the title screen.
+- Endpoint (PROPOSED change to an existing route): `DELETE /auth/me` with `{"confirm": "DELETE"}`, open to guests too (A-R13).
+
+### 9.9 "Dungeon score" and "Leaderboard points" labels (PLANNED)
+
+- The run value is labelled **Dungeon score** everywhere (HUD, victory and defeat overlays, scorecard, share card).
+- The leaderboard value is labelled **Leaderboard points** (leaderboard, You panel, points pop-ups, scorecard line "+830 Leaderboard points").
+- The scorecard shows both, one under the other, with a one-line tooltip on the difference. No backend change beyond keeping `score` and `points_*` separate (DOC 2, C.1).
+
+### 9.10 Warm-up call on the title screen (PLANNED)
+
+- When the title screen loads, the frontend sends one `GET /health` (fire and forget, no cookie, result ignored) so a sleeping Render service starts waking while the player reads or types a name. In mock and offline mode nothing is sent.
+- Endpoint: `GET /health` (existing; DOC 2 F.7 asks that it stay DB-free and fast).
 
 ---
 
@@ -341,8 +360,10 @@ Everything in this section is **PLANNED**: no code exists yet. Every endpoint li
 - **A2**: The Person A prompt pack is not in the repository; the "original plan" for the backend is taken from the master roadmap and A-to-B.md.
 - **A3**: The deployed backend URL is `https://studydungeon-api.onrender.com` (from A-to-B Day 3 and `vercel.json`).
 - **A4**: Leaderboard points (DOC 2, C) are a new server-only number, separate from the run score on the scorecard.
-- **A5**: The backend enforces the 30-page limit stated in the README and the upload hints (not verified in `backend/`).
+- **A5**: Until Person A ships G-R11, the 30-page limit is only a frontend hint; Person A must enforce 30 pages (PDF), 30 slides (PPTX) and a DOCX character limit with separate error codes.
 - **A6**: The mobile pass works on real phones; it was only checked with headless Edge, DevTools device mode and `?touch=1`.
-- **A7**: The frontend never calls `GET /health`; if Person A wants a warm-up ping before `POST /guests`, the waking screen can add it (small change).
+- **A7**: The warm-up `GET /health` on the title screen (9.10) is enough to start waking Render; the waking screen keeps its 8 s offline offer.
 - **A8**: The weekly reset shown in 9.4 ("Monday 00:00 UTC") follows the default proposed in DOC 2; the frontend reads the real value from the response.
 - **A9**: The planned copy (notice text, quota messages, counter line) is a draft and can change without backend impact.
+- **A10**: The upload notice wording in 9.6 is a draft for Person A and the team to check against each provider's current terms.
+- **A11**: Guests see "Delete my account and data" too, since they now persist for 30 days and appear on the leaderboard.
