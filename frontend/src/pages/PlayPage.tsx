@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { Button } from '@/components/Button'
 import { ConfirmDialog } from '@/components/ConfirmDialog'
 import { AppShell } from '@/components/AppShell'
@@ -11,22 +11,39 @@ import { Hud } from '@/components/Hud'
 import { Panel } from '@/components/Panel'
 import { PauseMenu } from '@/components/PauseMenu'
 import { Spinner } from '@/components/Spinner'
-import { VictoryOverlay } from '@/components/VictoryOverlay'
 import { EncounterPopup } from '@/encounter/EncounterPopup'
 import { REVENANT_KIND } from '@/encounter/revenants'
 import { GameCanvas } from '@/game/GameCanvas'
 import { hudMode } from '@/game/viewport'
+import { ExamTimer } from '@/haunt/ExamTimer'
+import { HauntFinale } from '@/haunt/HauntFinale'
+import type { ExamMinutes } from '@/haunt/modes'
+import '../styles/haunt.css'
+import { Scorecard } from '@/scorecard/Scorecard'
+import { ChestOverlay } from '@/rewards/ChestOverlay'
+import { chestView } from '@/rewards/chestView'
+import type { RunSummary } from '@/types/api'
 import { useFullscreen } from '@/shell/useFullscreen'
 import { useViewportWidth } from '@/shell/useViewportWidth'
 import { damageReceived, isCombatActive } from '@/state/combatMachine'
 import { useSession } from '@/state/SessionContext'
-import { usePlaySession } from './usePlaySession'
+import { campaignPath, usePlaySession, type PlayScope } from './usePlaySession'
 
-export default function PlayPage() {
+export interface PlayPageProps {
+  /** Campaign play: only this Floor's rooms. Absent means the whole dungeon (the legacy `/play` route). */
+  scope?: PlayScope
+  /** Exam only: timer length in minutes. Absent or null means no timer (the default). */
+  examMinutes?: ExamMinutes | null
+}
+
+export default function PlayPage({ scope, examMinutes = null }: PlayPageProps = {}) {
   const { user } = useSession()
-  const [s, gameWrapRef] = usePlaySession()
+  const navigate = useNavigate()
+  const [s, gameWrapRef] = usePlaySession(scope)
   const { state, room } = s
   const [confirmingExit, setConfirmingExit] = useState(false)
+  // The summary whose Chest was collected (a new run brings a new summary, so its Chest shows again).
+  const [chestSeen, setChestSeen] = useState<RunSummary | null>(null)
   // Lives here (not in the banner) so it survives restart / Play again within one page visit.
   const [guestBannerDone, setGuestBannerDone] = useState(false)
   const fullscreen = useFullscreen()
@@ -36,8 +53,8 @@ export default function PlayPage() {
     return (
       <main className="flex min-h-screen flex-col items-center justify-center gap-4 bg-bg text-ink">
         <p role="alert">{s.loadError}</p>
-        <Link to="/" className="underline">
-          Back to start
+        <Link to={scope ? campaignPath(scope.dungeonId) : '/'} className="underline">
+          {scope ? 'Back to the map' : 'Back to start'}
         </Link>
       </main>
     )
@@ -52,10 +69,15 @@ export default function PlayPage() {
     )
   }
 
-  const bossCleared = s.rooms.some((r) => r.is_boss && s.clearedRoomIds.includes(r.id))
+  // The run ends with its last room (the boss, the last topic of a practice run, the last hall); the timer can end it early.
+  const bossCleared = state.bossRoomId !== null && s.clearedRoomIds.includes(state.bossRoomId)
   const showVictory =
-    state.phase === 'victory' || (bossCleared && state.phase === 'cleared' && !state.summary)
-  const showTopicCleared = state.phase === 'cleared' && !room.is_boss && s.clearedXp !== null
+    state.phase === 'victory' || s.timeUp || (bossCleared && state.phase === 'cleared' && !state.summary)
+  const haunt = s.hall !== null
+  const showTopicCleared = state.phase === 'cleared' && !room.is_boss && s.clearedXp !== null && !bossCleared
+  const showHallRest = haunt && state.phase === 'cleared' && !bossCleared && !showVictory
+  // The Chest shows once per summary, only when the Backend sent rewards (empty or missing: skipped).
+  const chestVisible = state.summary !== null && state.summary !== chestSeen && chestView(state.summary.chest_rewards) !== null
   const combatActive = isCombatActive(state.combat)
   const panelVisible = combatActive && s.question !== null
 
@@ -65,6 +87,22 @@ export default function PlayPage() {
       <div ref={gameWrapRef} className="absolute inset-0 z-[1]">
         <GameCanvas bridge={s.bridge} className="absolute inset-0 size-full" />
       </div>
+
+      {haunt && <div className="sd-hall-veil" aria-hidden="true" data-testid="hall-veil" />}
+
+      {haunt && !showVictory && (
+        <div className="sd-hall-banner">
+          <Panel tone="gold" className="sd-hall-banner__chip" role={showHallRest ? 'status' : undefined}>
+            {showHallRest
+              ? 'This hall is at rest. The gate opens.'
+              : 'Haunted Hall: walk up to a ghost and press E to face the memory'}
+          </Panel>
+        </div>
+      )}
+
+      {examMinutes !== null && scope?.mode === 'exam' && !showVictory && state.phase !== 'defeated' && (
+        <ExamTimer minutes={examMinutes} onExpire={s.finishExam} />
+      )}
 
       {showTopicCleared && !s.clearError && (
         <div className="pointer-events-none absolute inset-x-0 top-28 z-10 flex justify-center">
@@ -102,6 +140,7 @@ export default function PlayPage() {
               showMonster={(combatActive && !state.revenantActive) || state.monsterHp > 0}
               xp={state.xp}
               streak={state.streak}
+              combo={s.combo}
               level={s.progress?.level}
               xpToNext={s.progress?.xp_to_next}
               totalXp={s.progress?.total_xp}
@@ -109,6 +148,7 @@ export default function PlayPage() {
               currentRoomId={s.currentRoomId}
               clearedRoomIds={s.clearedRoomIds}
               hauntedDue={s.hauntedDue}
+              roomNoun={haunt ? 'Hall' : undefined}
             />
             {!compact && !guestBannerDone && (
               <GuestBanner
@@ -138,6 +178,9 @@ export default function PlayPage() {
         damageReceived={state.lastResult ? damageReceived(state.prevPlayerHp, state.lastResult) : undefined}
         onAnswer={(sel) => void s.onAnswer(sel)}
         onNext={s.skipWait}
+        secondChance={s.secondChance}
+        requeueRemaining={s.requeueRemaining}
+        onQuickRetry={s.quickRetry}
         onRetreat={s.retreat}
         keysEnabled={state.phase !== 'paused' && state.phase !== 'defeated' && !showVictory}
       />
@@ -156,8 +199,12 @@ export default function PlayPage() {
       )}
       {state.phase === 'paused' && confirmingExit && (
         <ConfirmDialog
-          title="Leave the dungeon?"
-          message="Your run progress will be lost."
+          title={s.campaign ? `Leave this ${s.campaign.unit}?` : 'Leave the dungeon?'}
+          message={
+            s.campaign
+              ? `Your progress ${s.campaign.unit === 'floor' ? 'on' : 'in'} this ${s.campaign.unit} will be lost. You return to the map.`
+              : 'Your run progress will be lost.'
+          }
           confirmLabel="Leave"
           cancelLabel="Stay"
           onConfirm={() => {
@@ -170,15 +217,55 @@ export default function PlayPage() {
       {state.phase === 'defeated' && (
         <DefeatOverlay onRetry={() => void s.restart()} xp={state.xp} score={state.score} />
       )}
-      {showVictory && (
-        <VictoryOverlay
+      {haunt && showVictory && state.summary && (
+        <HauntFinale
+          laidToRest={state.summary.correct}
+          dailyStreak={s.hauntOutcome?.dailyStreak ?? null}
+          dueLeft={s.hauntOutcome?.dueLeft ?? null}
+          onDashboard={() => navigate('/dashboard')}
+          onMap={s.exit}
+        />
+      )}
+      {haunt && showVictory && !state.summary && (
+        <div className="sd-hall-banner">
+          <Panel tone={s.finishError ? 'danger' : 'gold'} role={s.finishError ? 'alert' : 'status'} className="sd-hall-banner__chip">
+            {s.finishError ?? 'Counting the memories laid to rest...'}
+            {s.finishError && (
+              <Button variant="secondary" onClick={() => void s.retryFinish()}>
+                Retry
+              </Button>
+            )}
+          </Panel>
+        </div>
+      )}
+      {!haunt && showVictory && !s.bossDeathHold && (
+        <Scorecard
           summary={state.summary}
           pending={!state.summary && !s.finishError}
           error={s.finishError}
+          received={{ score: state.score, xp: state.xp }}
+          progress={s.progress}
+          isGuest={user?.is_guest ?? false}
+          {...(s.dungeonName ? { dungeonName: s.dungeonName } : {})}
+          leaderboardEnabled={s.leaderboardEnabled}
+          onViewLeaderboard={() => navigate('/leaderboard')}
+          onCreateAccount={() => navigate('/register')}
           onRetry={() => void s.retryFinish()}
           onPlayAgain={() => void s.playAgain()}
           onExit={s.exit}
+          {...(s.campaign
+            ? {
+                title: s.campaign.scorecard.title,
+                subtitle: s.campaign.scorecard.subtitle,
+                playAgainLabel: s.campaign.scorecard.playAgainLabel,
+                exitLabel: 'Back to the map',
+              }
+            : {})}
         />
+      )}
+      {/* After the Scorecard in the tree so the Chest, mounted last, takes focus; it sits above it (z-60). */}
+      {!haunt && showVictory && !s.bossDeathHold && chestVisible && (
+        <ChestOverlay rewards={state.summary?.chest_rewards} onClose={() => setChestSeen(state.summary)} />
       )}
     </AppShell>
   )

@@ -14,6 +14,12 @@ export const wireAttemptSchema = z.object({
   monster_hp_remaining: z.number().int().nonnegative(),
   explanation: z.string().nullish(),
   evidence_quote: z.string().nullish(),
+  // PROPOSED (frontend-08): absent on today's backend.
+  requeue_after: z.number().int().nonnegative().nullish(),
+  is_retry: z.boolean().optional(),
+  retry_multiplier: z.number().optional(),
+  combo: z.number().int().nonnegative().optional(),
+  correct_answer: z.string().nullish(),
 })
 
 export type WireAttempt = z.output<typeof wireAttemptSchema>
@@ -44,5 +50,10 @@ export function mapAttempt(w: WireAttempt, ctx: AttemptContext): AnswerResult {
     is_critical: w.is_critical,
     ...(w.explanation ? { explanation: w.explanation } : {}),
     ...(w.evidence_quote ? { evidence_quote: w.evidence_quote } : {}),
+    ...(w.requeue_after != null ? { requeue_after: w.requeue_after } : {}),
+    ...(w.is_retry !== undefined ? { is_retry: w.is_retry } : {}),
+    ...(w.retry_multiplier !== undefined ? { retry_multiplier: w.retry_multiplier } : {}),
+    ...(w.combo !== undefined ? { combo: w.combo } : {}),
+    ...(w.correct_answer ? { correct_answer: w.correct_answer } : {}),
   }
 }

@@ -1,15 +1,8 @@
-import { Crosshair, Flame, Hammer, Lock, Sword, WandSparkles, type LucideIcon } from 'lucide-react'
+import { Lock } from 'lucide-react'
+import { WEAPON_ICONS as ICONS } from './weaponIcons'
 import type { WeaponId } from '@/types/api'
+import { setEquippedWeapon, useEquippedWeapon } from './equipped'
 import { armoryEntries } from './weapons'
-
-/** Small line icons per weapon (lucide, no emoji). */
-const ICONS: Readonly<Record<WeaponId, LucideIcon>> = {
-  rusty_dagger: Sword,
-  arcane_staff: WandSparkles,
-  hunter_crossbow: Crosshair,
-  spectral_hammer: Hammer,
-  flame_sigil: Flame,
-}
 
 export interface ArmoryProps {
   /** `progress.weapons`: every weapon with its unlock level. Renders nothing when absent or empty. */
@@ -17,6 +10,8 @@ export interface ArmoryProps {
   /** The player's level (`progress.level`). */
   level: number | undefined
   className?: string
+  /** Lets the player pick an unlocked weapon (task 13.7). Locked weapons stay disabled. */
+  equippable?: boolean
 }
 
 /**
@@ -24,7 +19,8 @@ export interface ArmoryProps {
  * Locked weapons are marked with a lock icon and text, never by colour alone.
  * Used in the pause menu now and on the Dashboard later.
  */
-export function Armory({ weapons, level, className = '' }: ArmoryProps) {
+export function Armory({ weapons, level, className = '', equippable = false }: ArmoryProps) {
+  const equipped = useEquippedWeapon()
   if (!weapons || weapons.length === 0 || level === undefined) return null
   const rows = armoryEntries(weapons, level)
   if (rows.length === 0) return null
@@ -33,6 +29,11 @@ export function Armory({ weapons, level, className = '' }: ArmoryProps) {
       <h3 id="armory-title" className="mb-1 font-(family-name:--font-label) text-sm uppercase tracking-wide text-ink-muted">
         Armory
       </h3>
+      {equippable && (
+        <p className="mb-1 text-xs text-ink-muted" data-testid="armory-hint">
+          {equipped ? 'Your chosen weapon is used for every strike.' : 'Automatic: your best unlocked weapon is used.'}
+        </p>
+      )}
       <ul className="m-0 flex list-none flex-col gap-1 p-0">
         {rows.map((w) => {
           const Icon = w.unlocked ? ICONS[w.id] : Lock
@@ -56,6 +57,18 @@ export function Armory({ weapons, level, className = '' }: ArmoryProps) {
                     ? `Unlocked (level ${w.unlockLevel})`
                     : `Locked: unlocks at level ${w.unlockLevel}`}
               </span>
+              {equippable && w.unlocked && (
+                <button
+                  type="button"
+                  data-testid={`equip-${w.id}`}
+                  aria-pressed={equipped === w.id}
+                  aria-label={equipped === w.id ? `Unequip ${w.name}` : `Equip ${w.name}`}
+                  onClick={() => setEquippedWeapon(equipped === w.id ? null : (w.id as WeaponId))}
+                  className="shrink-0 rounded border border-gold px-2 py-0.5 text-xs font-semibold text-ink hover:bg-bg aria-pressed:bg-gold aria-pressed:text-bg"
+                >
+                  {equipped === w.id ? 'Equipped' : 'Equip'}
+                </button>
+              )}
             </li>
           )
         })}

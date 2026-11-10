@@ -6,6 +6,7 @@ export type ThemeId =
   | 'clockwork_crypt'
   | 'pumpkin_workshop'
   | 'boss_hall'
+  | 'haunted_hall'
 
 /** Global cap on atmosphere particles shown at once (all themes). */
 export const MAX_PARTICLES = 24
@@ -246,6 +247,35 @@ export const THEMES: Readonly<Record<ThemeId, RoomTheme>> = {
     torchGlows: ['red', 'purple', 'purple', 'red'],
     fog: 2,
   },
+  // The Haunted Hall (Daily Haunt): cold blue-violet stone, drifting ghost fog and floating candles.
+  haunted_hall: {
+    id: 'haunted_hall',
+    floor: [0x12152b, 0x191c38],
+    palette: stone(0x141730, [0x12152b, 0x191c38, 0x20244a], 0x3a3f7a, 0x161a38, 0x9fb0ff),
+    decor: [
+      ...entryDecor,
+      { sprite: 'decor_column', slot: { at: 'west', offset: 200 } },
+      { sprite: 'decor_column', slot: { at: 'east', offset: 200 } },
+    ],
+    lights: [
+      { x: 640, y: 300, radius: 190, glow: 'cool', min: 0.6, max: 1.0, seed: 61 },
+      { x: 330, y: 380, radius: 110, glow: 'purple', min: 0.5, max: 0.95, seed: 62 },
+      { x: 950, y: 380, radius: 110, glow: 'purple', min: 0.5, max: 0.95, seed: 63 },
+    ],
+    // Six candles hang in the air; they bob on their own (still under reduced motion).
+    pieces: [
+      { kind: 'candle', x: 250, y: 260, count: 1 },
+      { kind: 'candle', x: 470, y: 200, count: 1 },
+      { kind: 'candle', x: 810, y: 200, count: 1 },
+      { kind: 'candle', x: 1030, y: 260, count: 1 },
+      { kind: 'candle', x: 360, y: 560, count: 1 },
+      { kind: 'candle', x: 920, y: 560, count: 1 },
+    ],
+    particles: { kind: 'mist', count: 14, color: 0x7f8cff },
+    light: { tint: 0x7a6cff, alpha: 0.08 },
+    torchGlows: ['cool', 'purple', 'purple', 'cool'],
+    fog: 1.6,
+  },
 }
 
 export const THEME_IDS = Object.keys(THEMES) as ThemeId[]
@@ -255,6 +285,7 @@ const KIND_THEME: Readonly<Record<string, ThemeId>> = {
   toxic_slime: 'witch_lab',
   gear_golem: 'clockwork_crypt',
   memory_eater: 'pumpkin_workshop',
+  revenant: 'haunted_hall',
 }
 
 /**

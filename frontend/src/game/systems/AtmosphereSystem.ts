@@ -129,7 +129,7 @@ export class AtmosphereSystem {
       })
     }
 
-    if (!reduced && (theme.id === 'boss_hall' || theme.id === 'clockwork_crypt')) {
+    if (!reduced && (theme.id === 'boss_hall' || theme.id === 'clockwork_crypt' || theme.id === 'haunted_hall')) {
       // Heavier fog (theme.fog > 1) is bigger and denser; the blob count stays at FOG_COUNT.
       const heavy = theme.fog ?? 1
       this.roomOrigin = origin

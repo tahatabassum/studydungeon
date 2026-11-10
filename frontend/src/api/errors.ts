@@ -1,18 +1,39 @@
+/** One entry of a FastAPI 422 `detail` array: the field it names and the message. */
+export interface FieldIssue {
+  field: string
+  message: string
+}
+
+/** Extra facts an error response can carry. */
+export interface ApiErrorExtra {
+  /** Raw `Retry-After` header (seconds or an HTTP date), kept as sent. */
+  retryAfter?: string
+  /** 422 array detail, one entry per invalid field (C24). */
+  fields?: FieldIssue[]
+}
+
 export class ApiError extends Error {
+  retryAfter?: string
+  fields?: FieldIssue[]
+
   constructor(
     public status: number,
     message: string,
     /** The backend's machine code from `{detail:{code,message}}`, when it sent one. */
     public code?: string,
+    extra?: ApiErrorExtra,
   ) {
     super(message)
     this.name = 'ApiError'
+    if (extra?.retryAfter !== undefined) this.retryAfter = extra.retryAfter
+    if (extra?.fields !== undefined) this.fields = extra.fields
   }
 }
 
 export interface ParsedErrorBody {
   message?: string
   code?: string
+  fields?: FieldIssue[]
 }
 
 /**
@@ -27,7 +48,13 @@ export function parseErrorBody(body: unknown): ParsedErrorBody {
   if (Array.isArray(detail)) {
     const first = detail[0] as { msg?: unknown; loc?: unknown } | undefined
     const msg = first && typeof first.msg === 'string' ? first.msg : 'Invalid request'
-    return { message: msg, code: 'VALIDATION_ERROR' }
+    const fields: FieldIssue[] = []
+    for (const item of detail as Array<{ msg?: unknown; loc?: unknown }>) {
+      if (!item || typeof item.msg !== 'string' || !Array.isArray(item.loc)) continue
+      const last = item.loc[item.loc.length - 1]
+      if (typeof last === 'string') fields.push({ field: last, message: item.msg })
+    }
+    return { message: msg, code: 'VALIDATION_ERROR', ...(fields.length > 0 ? { fields } : {}) }
   }
   if (detail && typeof detail === 'object') {
     const d = detail as { code?: unknown; message?: unknown }
@@ -54,6 +81,13 @@ const FRIENDLY: Readonly<Record<string, string>> = {
   ROOM_NOT_FOUND: 'That room could not be found.',
   DUNGEON_NOT_FOUND: 'That dungeon could not be found.',
   GUEST_FORBIDDEN: 'Guests can only play the public demo dungeon. Sign up to use your own notes.',
+  FILE_TOO_LARGE: 'That file is larger than 15 MB. Try a smaller file.',
+  UNSUPPORTED_FILE_TYPE: 'That file type is not supported. Use PDF, DOCX, PPTX, TXT, PNG or JPEG.',
+  QUOTA_EXCEEDED: 'You already have 5 documents. Delete an older one before uploading another.',
+  DOCUMENT_NOT_FOUND: 'That document could not be found.',
+  NOT_RETRYABLE: 'Only failed or rejected documents can be retried.',
+  NO_CHUNKS_AVAILABLE: 'There is no readable text in that document yet.',
+  GENERATION_FAILED: 'The floors could not be summoned. Try again in a moment.',
   VALIDATION_ERROR: 'The request was not accepted. Please check your input and try again.',
 }
 

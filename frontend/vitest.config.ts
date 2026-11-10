@@ -12,6 +12,9 @@ export default defineConfig({
     globals: false,
     passWithNoTests: true,
     testTimeout: 20000,
+    // jsdom + Phaser-free but heavy flows time out their 1 s waitFor when every core is busy.
+    maxWorkers: 4,
+    setupFiles: ['./src/setupTests.ts'],
     include: ['src/**/*.test.{ts,tsx}'],
   },
 });

@@ -294,7 +294,11 @@ describe('error bodies (C16, C18, C24, C28)', () => {
     expect(parseErrorBody({ detail: 'nope' })).toEqual({ message: 'nope' })
     expect(parseErrorBody(wireErrors.code)).toEqual({ message: 'Cannot finish run until boss monster is defeated.', code: 'BOSS_NOT_CLEARED' })
     expect(parseErrorBody(wireErrors.validation).code).toBe('VALIDATION_ERROR')
-    expect(parseErrorBody(wireErrors.fastapi422)).toEqual({ message: 'Field required', code: 'VALIDATION_ERROR' })
+    expect(parseErrorBody(wireErrors.fastapi422)).toEqual({
+      message: 'Field required',
+      code: 'VALIDATION_ERROR',
+      fields: [{ field: 'dungeon_id', message: 'Field required' }],
+    })
     expect(parseErrorBody(null)).toEqual({})
     expect(parseErrorBody('text')).toEqual({})
   })

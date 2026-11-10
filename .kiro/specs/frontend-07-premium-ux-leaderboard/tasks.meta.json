@@ -15,6 +15,22 @@
     "9.6 Write property test for revenant counting": {
       "status": "passed",
       "lastRunTimestamp": 1794150080894
+    },
+    "11.3 Write property tests for the leaderboard": {
+      "status": "passed",
+      "lastRunTimestamp": 1794166780702
+    },
+    "11.7 Write property tests for mastery and count-up": {
+      "status": "passed",
+      "lastRunTimestamp": 1794166781405
+    },
+    "13.3 Write property test for auth helpers": {
+      "status": "passed",
+      "lastRunTimestamp": 1794217910399
+    },
+    "13.7 Write property tests for the Offline_Module": {
+      "status": "passed",
+      "lastRunTimestamp": 1794217911147
     }
   },
   "executionHistory": {
@@ -677,6 +693,374 @@
         "executionId": "fdbc56d6-1d78-4ea1-8f22-1be4619ef016",
         "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
         "timestamp": 1794150633409
+      }
+    ],
+    "10. STOP: Phase 4 checkpoint, revenants review": [
+      {
+        "executionId": "7b6bb361-e050-4914-bedd-7b3a4211b614",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794165035737
+      },
+      {
+        "executionId": "7b6bb361-e050-4914-bedd-7b3a4211b614",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794165141670
+      },
+      {
+        "executionId": "d194a1d8-34c0-47b4-911a-d1a47c2d4076",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794254758531
+      }
+    ],
+    "11.1 Add leaderboard, run summary and progress additions through the contract": [
+      {
+        "executionId": "7b6bb361-e050-4914-bedd-7b3a4211b614",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794165037703
+      },
+      {
+        "executionId": "5c4decb0-1678-4ed8-8d50-00dc8ce626cb",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794168795107
+      },
+      {
+        "executionId": "0e10c729-4d54-4737-a0f9-44dec91538b6",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794214716655
+      },
+      {
+        "executionId": "0e10c729-4d54-4737-a0f9-44dec91538b6",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794215159085
+      }
+    ],
+    "11.2 Implement ranking, provisional rank and board view": [
+      {
+        "executionId": "7b6bb361-e050-4914-bedd-7b3a4211b614",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794165038560
+      },
+      {
+        "executionId": "0e10c729-4d54-4737-a0f9-44dec91538b6",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794215175649
+      }
+    ],
+    "11.3 Write property tests for the leaderboard": [
+      {
+        "executionId": "7b6bb361-e050-4914-bedd-7b3a4211b614",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794165038996
+      },
+      {
+        "executionId": "0e10c729-4d54-4737-a0f9-44dec91538b6",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794215176057
+      }
+    ],
+    "11.4 Implement polling": [
+      {
+        "executionId": "7b6bb361-e050-4914-bedd-7b3a4211b614",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794165039732
+      },
+      {
+        "executionId": "0e10c729-4d54-4737-a0f9-44dec91538b6",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794215176430
+      }
+    ],
+    "11.5 Build the Leaderboard screen": [
+      {
+        "executionId": "7b6bb361-e050-4914-bedd-7b3a4211b614",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794165040675
+      },
+      {
+        "executionId": "0e10c729-4d54-4737-a0f9-44dec91538b6",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794215177271
+      }
+    ],
+    "11.6 Implement mastery and count-up logic": [
+      {
+        "executionId": "7b6bb361-e050-4914-bedd-7b3a4211b614",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794165041853
+      },
+      {
+        "executionId": "0e10c729-4d54-4737-a0f9-44dec91538b6",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794215178056
+      }
+    ],
+    "11.7 Write property tests for mastery and count-up": [
+      {
+        "executionId": "7b6bb361-e050-4914-bedd-7b3a4211b614",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794165042466
+      },
+      {
+        "executionId": "0e10c729-4d54-4737-a0f9-44dec91538b6",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794215178863
+      }
+    ],
+    "11.8 Build the Scorecard": [
+      {
+        "executionId": "7b6bb361-e050-4914-bedd-7b3a4211b614",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794165042930
+      },
+      {
+        "executionId": "0e10c729-4d54-4737-a0f9-44dec91538b6",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794215180050
+      }
+    ],
+    "11.9 Build the Dashboard": [
+      {
+        "executionId": "7b6bb361-e050-4914-bedd-7b3a4211b614",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794165043741
+      },
+      {
+        "executionId": "0e10c729-4d54-4737-a0f9-44dec91538b6",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794215180937
+      }
+    ],
+    "11.10 Verify and log Phase 5": [
+      {
+        "executionId": "7b6bb361-e050-4914-bedd-7b3a4211b614",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794165044396
+      },
+      {
+        "executionId": "0e10c729-4d54-4737-a0f9-44dec91538b6",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794215182078
+      }
+    ],
+    "11. Phase 5: Scorecard, leaderboard and dashboard": [
+      {
+        "executionId": "0e10c729-4d54-4737-a0f9-44dec91538b6",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794215182271
+      }
+    ],
+    "12. STOP: Phase 5 checkpoint, scorecard, leaderboard and dashboard review": [
+      {
+        "executionId": "0e10c729-4d54-4737-a0f9-44dec91538b6",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794215182894
+      }
+    ],
+    "13.1 Add auth through the contract": [
+      {
+        "executionId": "0e10c729-4d54-4737-a0f9-44dec91538b6",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794215183713
+      },
+      {
+        "executionId": "0e10c729-4d54-4737-a0f9-44dec91538b6",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794218013415
+      }
+    ],
+    "13.2 Implement auth validation and error mapping": [
+      {
+        "executionId": "0e10c729-4d54-4737-a0f9-44dec91538b6",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794218013739
+      }
+    ],
+    "13.3 Write property test for auth helpers": [
+      {
+        "executionId": "0e10c729-4d54-4737-a0f9-44dec91538b6",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794218015155
+      }
+    ],
+    "13.4 Build the Login and Register screens": [
+      {
+        "executionId": "0e10c729-4d54-4737-a0f9-44dec91538b6",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794218015515
+      }
+    ],
+    "13.5 Build the Waking up loader": [
+      {
+        "executionId": "0e10c729-4d54-4737-a0f9-44dec91538b6",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794218016850
+      }
+    ],
+    "13.6 Build the Offline_Module": [
+      {
+        "executionId": "0e10c729-4d54-4737-a0f9-44dec91538b6",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794218017345
+      }
+    ],
+    "13.7 Write property tests for the Offline_Module": [
+      {
+        "executionId": "0e10c729-4d54-4737-a0f9-44dec91538b6",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794218018551
+      }
+    ],
+    "13.8 Add boundary tests": [
+      {
+        "executionId": "0e10c729-4d54-4737-a0f9-44dec91538b6",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794218019361
+      }
+    ],
+    "13.9 Verify and log Phase 6": [
+      {
+        "executionId": "0e10c729-4d54-4737-a0f9-44dec91538b6",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794218020546
+      }
+    ],
+    "13. Phase 6: Auth and offline demo fallback": [
+      {
+        "executionId": "0e10c729-4d54-4737-a0f9-44dec91538b6",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794218020735
+      }
+    ],
+    "14. STOP: Phase 6 checkpoint, auth and offline review": [
+      {
+        "executionId": "0e10c729-4d54-4737-a0f9-44dec91538b6",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794218021392
+      }
+    ],
+    "15.1 Implement badge rules and wire them into mock and offline": [
+      {
+        "executionId": "4f1ebcc1-e4c0-4a9b-b872-1448e7f0db55",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794227865861
+      },
+      {
+        "executionId": "3a9649b9-e828-48d9-b6d8-92dd2673d110",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794251873026
+      },
+      {
+        "executionId": "d194a1d8-34c0-47b4-911a-d1a47c2d4076",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794254737735
+      }
+    ],
+    "15.2 Write property test for badge rules": [
+      {
+        "executionId": "d194a1d8-34c0-47b4-911a-d1a47c2d4076",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794254751742
+      }
+    ],
+    "15.3 Add the intro story and taunt lines": [
+      {
+        "executionId": "d194a1d8-34c0-47b4-911a-d1a47c2d4076",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794254752607
+      }
+    ],
+    "15.4 Build the share card": [
+      {
+        "executionId": "d194a1d8-34c0-47b4-911a-d1a47c2d4076",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794254753752
+      }
+    ],
+    "15.5 Write property test for the post text": [
+      {
+        "executionId": "d194a1d8-34c0-47b4-911a-d1a47c2d4076",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794254754588
+      }
+    ],
+    "15.6 Add share and lore tests": [
+      {
+        "executionId": "d194a1d8-34c0-47b4-911a-d1a47c2d4076",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794254755377
+      }
+    ],
+    "15.7 Verify and log Phase 7": [
+      {
+        "executionId": "d194a1d8-34c0-47b4-911a-d1a47c2d4076",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794254756553
+      }
+    ],
+    "15. Phase 7: Badges, lore and share card": [
+      {
+        "executionId": "d194a1d8-34c0-47b4-911a-d1a47c2d4076",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794254756631
+      }
+    ],
+    "16. STOP: Phase 7 checkpoint, badges, lore and share review": [
+      {
+        "executionId": "d194a1d8-34c0-47b4-911a-d1a47c2d4076",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794254757361
+      }
+    ],
+    "17.1 Add the upload contract and mock": [
+      {
+        "executionId": "d194a1d8-34c0-47b4-911a-d1a47c2d4076",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794257313091
+      },
+      {
+        "executionId": "1f928e9a-6115-4b7b-8199-46ee012a4155",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794316823744
+      },
+      {
+        "executionId": "1f928e9a-6115-4b7b-8199-46ee012a4155",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794318343206
+      }
+    ],
+    "17. Phase 8 (optional): Upload wizard": [
+      {
+        "executionId": "1f928e9a-6115-4b7b-8199-46ee012a4155",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794318343505
+      }
+    ],
+    "17.2 Build the upload wizard": [
+      {
+        "executionId": "1f928e9a-6115-4b7b-8199-46ee012a4155",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794318343865
+      }
+    ],
+    "17.3 Hide the wizard for guests and test it": [
+      {
+        "executionId": "1f928e9a-6115-4b7b-8199-46ee012a4155",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794318344265
+      }
+    ],
+    "17.4 Verify and log Phase 8": [
+      {
+        "executionId": "1f928e9a-6115-4b7b-8199-46ee012a4155",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794318344642
+      }
+    ],
+    "18. STOP: Phase 8 checkpoint, final review": [
+      {
+        "executionId": "1f928e9a-6115-4b7b-8199-46ee012a4155",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794318344986
       }
     ]
   }

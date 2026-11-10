@@ -45,6 +45,7 @@ vi.mock('@/game/GameCanvas', () => ({
 }))
 
 import App from '@/App'
+import { OpenLegacyPlay } from '@/pages/OpenLegacyPlay'
 import { SessionProvider } from '@/state/SessionContext'
 
 const sent = (): ToGameEvent[] => h.events as ToGameEvent[]
@@ -99,11 +100,11 @@ describe('haunted memories (revenants)', () => {
     render(
       <MemoryRouter initialEntries={['/']}>
         <SessionProvider>
+          <OpenLegacyPlay />
           <App />
         </SessionProvider>
       </MemoryRouter>,
     )
-    await user.click(screen.getByRole('button', { name: /try the demo/i }))
     await vi.waitFor(() => expect(sent().some((e) => e.type === 'load-dungeon')).toBe(true))
     await vi.waitFor(() => expect(gameBridge()).toBeTruthy())
     await vi.waitFor(() => expect(counter()).toBe(0))
@@ -122,7 +123,9 @@ describe('haunted memories (revenants)', () => {
       const ok = i !== 3
       const qid = await answer(dialog, ok)
       if (!ok) missed = qid
-      advance(ok ? 1200 : 2000)
+      // A wrong answer opens the Memory scroll and waits for the player (Continue); a right one auto-advances.
+      if (ok) advance(1200)
+      else await user.click(await within(dialog).findByRole('button', { name: 'Continue' }))
     }
 
     // Defeated: room cleared, gate opens, and exactly one Revenant (the missed question) is sent.
@@ -179,18 +182,18 @@ describe('haunted memories (revenants)', () => {
     // The backend rejects attempts on a cleared room (C19), so room Revenants are hidden.
     const real: ApiClient = {
       ...createMockAdapter({ seedRevenants: true }),
-      capabilities: { roomRevenants: false, floors: false, modes: false, dailyHaunt: false },
+      capabilities: { roomRevenants: false, floors: false, modes: false, dailyHaunt: false, leaderboard: false },
     }
     h.api = real
     const clearSpy = vi.spyOn(real, 'clearRoom')
     render(
       <MemoryRouter initialEntries={['/']}>
         <SessionProvider>
+          <OpenLegacyPlay />
           <App />
         </SessionProvider>
       </MemoryRouter>,
     )
-    await user.click(screen.getByRole('button', { name: /try the demo/i }))
     await vi.waitFor(() => expect(gameBridge()).toBeTruthy())
     await vi.waitFor(() => expect(counter()).toBe(12))
 
@@ -212,11 +215,11 @@ describe('haunted memories (revenants)', () => {
     render(
       <MemoryRouter initialEntries={['/']}>
         <SessionProvider>
+          <OpenLegacyPlay />
           <App />
         </SessionProvider>
       </MemoryRouter>,
     )
-    await user.click(screen.getByRole('button', { name: /try the demo/i }))
     await vi.waitFor(() => expect(gameBridge()).toBeTruthy())
     await vi.waitFor(() => expect(counter()).toBe(0))
     expect(sent().some((e) => e.type === 'spawn-revenants')).toBe(false)

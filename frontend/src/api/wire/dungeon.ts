@@ -1,5 +1,7 @@
 import { z } from 'zod'
 import type { Dungeon, Question, Room } from '../../types/api'
+import { withFloors } from '../floorMapping'
+import { finalBossSchema, floorSchema } from '../schemas'
 import { kindFromMonsterType, questionTypeFromOptions } from './kinds'
 
 /** `GET /dungeons/{id}` (DungeonDetailView). Answers, explanations and quotes are never in it. */
@@ -19,6 +21,8 @@ export const wireRoomSchema = z.object({
   monster_hp: z.number().int().positive(),
   is_boss: z.boolean(),
   questions: z.array(wireQuestionSchema),
+  /** PROPOSED (frontend-08) */
+  floor_id: z.string().optional(),
 })
 
 export const wireDungeonSchema = z.object({
@@ -27,6 +31,9 @@ export const wireDungeonSchema = z.object({
   is_public_demo: z.boolean().optional(),
   created_at: z.string().optional(),
   rooms: z.array(wireRoomSchema).min(1),
+  /** PROPOSED (frontend-08): absent on today's backend, which makes one legacy Floor (D17). */
+  floors: z.array(floorSchema).optional(),
+  final_boss: finalBossSchema.optional(),
 })
 
 export type WireDungeon = z.output<typeof wireDungeonSchema>
@@ -54,6 +61,7 @@ export function mapDungeon(w: WireDungeon): Dungeon {
         label: r.topic_name,
         order: r.room_number,
         is_boss: r.is_boss,
+        ...(r.floor_id !== undefined ? { floor_id: r.floor_id } : {}),
         monster: {
           id: `monster-${r.id}`,
           name: r.monster_name,
@@ -64,5 +72,12 @@ export function mapDungeon(w: WireDungeon): Dungeon {
         },
       }
     })
-  return { id: w.id, name: w.title, rooms, questions }
+  return withFloors({
+    id: w.id,
+    name: w.title,
+    rooms,
+    questions,
+    ...(w.floors !== undefined ? { floors: w.floors } : {}),
+    ...(w.final_boss !== undefined ? { final_boss: w.final_boss } : {}),
+  })
 }

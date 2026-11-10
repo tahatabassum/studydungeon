@@ -218,7 +218,7 @@ describe('createHttpClient', () => {
 
   it('declares real-mode capabilities: no room Revenants, floors, modes or Daily Haunt', () => {
     const api = createHttpClient('', fakeFetch(json({})) as unknown as typeof fetch)
-    expect(api.capabilities).toEqual({ roomRevenants: false, floors: false, modes: false, dailyHaunt: false })
+    expect(api.capabilities).toEqual({ roomRevenants: false, floors: false, modes: false, dailyHaunt: false, leaderboard: false })
   })
 
   it('parses {detail:{code,message}} into ApiError.code and a friendly message', async () => {

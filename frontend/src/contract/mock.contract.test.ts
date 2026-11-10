@@ -6,8 +6,9 @@ import { defineContractSuite } from './suite'
 
 defineContractSuite({
   label: 'Mock_Adapter',
-  makeClient: () => createMockAdapter(),
+  makeClient: () => createMockAdapter({ upload: { processingMs: 30, stepMs: 20 } }),
   correctAnswer: (qid) => answerKey[qid]?.correct,
+  uploads: true,
 })
 
 describe('contract: Mock_Adapter real balance (C12, C13)', () => {

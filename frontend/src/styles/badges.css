@@ -1,0 +1,91 @@
+/* Badge medals: code-drawn (lucide line icons on CSS discs). Locked badges carry a lock icon and text. */
+
+.sd-badge-grid:not(.grid-cols-4) {
+  grid-template-columns: repeat(auto-fill, minmax(6.5rem, 1fr));
+}
+.sd-badge__label { overflow-wrap: anywhere; }
+.sd-badge {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.2rem;
+  padding: 0.5rem 0.35rem;
+  border-radius: 0.5rem;
+  border: 1px solid var(--color-deep);
+  text-align: center;
+  font-size: var(--sd-text-xs);
+  line-height: 1.2;
+}
+.sd-badge__medal {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 50%;
+}
+.sd-badge__label {
+  font-family: var(--font-label);
+  font-weight: 600;
+}
+.sd-badge__hint {
+  color: var(--color-ink-muted);
+  font-size: 0.7rem;
+}
+
+.sd-badge--earned {
+  border-color: var(--color-gold);
+  background: color-mix(in srgb, var(--color-gold) 12%, var(--color-panel));
+  color: var(--color-ink);
+}
+.sd-badge--earned .sd-badge__medal {
+  background: radial-gradient(circle at 35% 30%, var(--color-bone), var(--color-gold) 55%, var(--color-ember));
+  color: var(--color-bg);
+  box-shadow: 0 0 10px color-mix(in srgb, var(--color-gold) 55%, transparent);
+}
+
+.sd-badge--locked {
+  border-style: dashed;
+  border-color: var(--color-ink-muted);
+  background: var(--color-bg);
+  color: var(--color-ink-muted);
+}
+.sd-badge--locked .sd-badge__medal {
+  background: var(--color-surface-2);
+  color: var(--color-ink-muted);
+  border: 1px solid var(--color-deep);
+}
+
+.sd-badge__mini {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: 50%;
+  border: 1px solid var(--color-gold);
+  background: var(--color-bg);
+  color: var(--color-gold);
+}
+
+/* Unlock flourish (Scorecard): each earned medal pops in turn and a glint passes once. Transform and opacity only. */
+.sd-badge-grid[data-flourish='true'] .sd-badge--earned {
+  animation: sd-badge-pop 0.5s cubic-bezier(0.2, 1.5, 0.4, 1) calc(0.6s + var(--i, 0) * 0.12s) both;
+}
+.sd-badge-grid[data-flourish='true'] .sd-badge--earned .sd-badge__medal {
+  animation: sd-badge-glint 0.9s ease-out calc(0.8s + var(--i, 0) * 0.12s) both;
+}
+@keyframes sd-badge-pop {
+  from { opacity: 0; transform: scale(0.6); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes sd-badge-glint {
+  0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--color-gold) 80%, transparent); }
+  100% { box-shadow: 0 0 10px color-mix(in srgb, var(--color-gold) 55%, transparent); }
+}
+[data-reduced='true'] .sd-badge-grid .sd-badge,
+[data-reduced='true'] .sd-badge-grid .sd-badge__medal { animation: none; }
+@media (prefers-reduced-motion: reduce) {
+  .sd-badge-grid .sd-badge,
+  .sd-badge-grid .sd-badge__medal { animation: none; }
+}

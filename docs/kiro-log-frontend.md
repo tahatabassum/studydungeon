@@ -213,3 +213,219 @@ Presentation kept working: the boss enrage line is half of the boss's own max HP
 
 - Typecheck, lint and build pass. `test:contract`: 1 file passed (14 tests) and 1 skipped (the real-backend file). Full suite: 90 files passed, 1 skipped; 654 tests passed, 1 skipped.
 - Not verified: any run against Person A's backend (no backend was reachable), and no browser was driven.
+
+## Phase 1B: floors data model and mock campaign (frontend-08, tasks 3.4 to 3.17, rest of 3.18, 3.19)
+
+Branch `feature/frontend-campaign`. Frontend only, mock mode is the target (`VITE_USE_MOCKS=true` in `.env.local`). Not committed.
+
+What changed:
+
+- Domain model and schemas (additive): `Floor`, `FloorStatus`, `FinalBoss`, `TopicInfo`, `RunMode`, `FloorRank`, `MasteryBand`, `StartRunRequest`, `DueReviewsResponse`, `GenerationStatus`, `ChestReward`, plus optional attempt (`requeue_after`, `is_retry`, `retry_multiplier`, `combo`, `correct_answer`), finish (`floor_rank`, `mastery_by_topic`, `chest_rewards`), run (`mode`, `run_seed`, `revenants`) and progress fields.
+- ApiClient: `startRun(string | StartRunRequest)` (old callers unchanged), `getDueReviews()` new shape with the old `getDueReviews(dungeonId)` bare array kept as a thin adapter, `getGenerationStatus`, `retryFloor`.
+- Http_Client: legacy mapping (no `floors` gives one Floor "The Crypt", D17), capabilities start all off and `floors` turns on only when the backend sends floors (D26), `startRun` still sends only `{dungeon_id}` (D18), `retryFloor` rejects with 501.
+- Mock: exactly 2 Floors plus the Final_Boss (D13), floor-scoped runs with mode and seed, floor locking, rank/mastery/chest on finish, second chance (half damage and XP, requeue hint, `correct_answer` after a miss) for runs started with a request only, Daily Haunt summary and run, generation status and `retryFloor`, optional `failedFloorIds` switch.
+- Pure modules: `seededRng`, `pool`, `draw`, `requeue`, `mockMastery`, `mockGeneration`, `mockFloors`, `mockHaunt`, `src/learning/{mastery,rank}.ts`, `src/haunt/hauntSelection.ts`.
+- Fixtures with 1/3/10/25 floors (test and DEV route only) and the lazy `/dev/floors` route registered only when `import.meta.env.DEV`.
+- Tests: property tests for Properties 2 to 10 (100 runs each), mock campaign tests, Http_Client floor tests, contract suite cases (floors, mode start, generation status, new due shape, finish additions), extended import boundary (campaign, learning, haunt, rewards, tutorial), `realModeBoundary.test.ts` (real mode loads no mock module, fixtures unreachable outside the DEV page), dev route test (present with DEV true, absent with false).
+
+Verification (real output, frontend/):
+
+- `npm run typecheck`: clean.
+- `npm run lint`: clean.
+- `npm test`: 101 files passed, 1 skipped; 703 tests passed, 1 skipped (was 576 before frontend-08).
+- `npm run test:contract`: 19 passed, 1 skipped (the HTTP suite, which needs a real backend).
+- `npm run build`: succeeded; no DevFloors chunk, and the strings "Sample question", "Floor fixtures" and "/dev/floors" are absent from `dist`.
+
+Deferred: floor map UI, per-floor play wiring and generation polling (Phase 2); migrating the HUD counter off the bare-array due method (Phase 3).
+
+## Phase 2: floor map and campaign flow (frontend-08, tasks 5.1 to 5.11)
+Branch `feature/frontend-campaign`. Frontend only, mock mode is the target. Not committed.
+What changed:
+- Pure logic `src/campaign/floorLayout.ts` (`layoutFloors`, `visibleRange`, `nextFocus`, `nextPlayable`, path segments and chunks) and `floorRooms.ts` (`floorDungeon`: one Floor's rooms, renumbered 1..n, last room is the boss, ids unchanged).
+- UI, DOM and SVG only: `FloorMap` (winding glowing path in 5-segment chunks, windowing above 12 nodes, roving tabindex with arrows/Home/End/PageUp/PageDown/Enter, Continue, header "Your notes became N floors", empty state, live region), `FloorNode` (stone seal with `MasteryBar` ring, boss icon, rank seal, status chip, spinner, Retry), `FinalBossNode`, `FogOverlay` (gradient layers, CSS transform drift, static under Reduced_Motion), `src/learning/MasteryBar.tsx`, `src/styles/campaign.css`.
+- `useGenerationStatus`: polls every 2.5 s only while a floor is generating, pauses on hidden tabs, stops at terminal status, gives up after 10 minutes with a Retry; polite announcements.
+- Flow: landing "Try the Demo" goes to `/campaign/:dungeonId` (`CampaignPage`, refetches on every visit). A floor opens `/campaign/:dungeonId/play/:floorId`, which runs the existing `PlayPage` with `usePlaySession({dungeonId, floorId})`: `startRun({dungeon_id, floor_id, mode:'floor'})`, only that Floor's rooms go to Phaser (no `src/game` change needed; the layout already accepts any room subset), the Floor_Boss is the boss room, "Room X of Y" counts inside the floor. Boss cleared finishes the run, shows the victory overlay (title and buttons set for the floor), "Back to the map" refetches. Final_Boss uses the same path. A rejected start returns to the map with the Backend or mock message. `/play` still plays the whole dungeon.
+- Real mode: single legacy Floor "The Crypt"; header, mastery ring and Final_Boss are hidden when `capabilities.floors` is false.
+- `/dev/floors` now renders the real FloorMap on fixtures (1/3/10/25), with simulated generation and `fail=1` to force a failure and try Retry.
+- Tests: Properties 11 to 13 (100+ runs), FloorMap examples (status rendering, fog, Retry, Continue, keyboard, windowing, poller), campaign flow with the mock, floorRooms and layout subset tests, contrast checks for the new map text, dev route test updated. Tests of the play experience itself now enter through `OpenLegacyPlay` (`/play`) because the landing page leads to the map.
+Visual check (headless Edge over CDP, temp files deleted): `/dev/floors?floors=3`, `?floors=25` (top, middle, end) and the demo map at 1366x768, 1920x1080 and 390x844. Fixed after inspection: hard-edged square in the fog (removed the tiled noise image) and overflowing plates for summoning/failed floors on narrow screens (shorter text, Retry beside the chip).
+Verification (real output, frontend/): typecheck clean; lint clean; `npm test` 105 files passed, 1 skipped, 740 tests passed, 1 skipped (was 703); `npm run test:contract` 19 passed, 1 skipped; `npm run build` succeeded.
+Measured map fps at 25 floors: not measured (no GPU profiling in headless mode). At most about 8 nodes and 2 path chunks render at once; motion is CSS transform/opacity only.
+Deferred: floor bosses use the Exam Warden look in Phaser (boss style is keyed on the boss flag); a real legacy floor never shows "cleared" because the Backend has no floor status; scorecard redesign (frontend-07 P5).
+
+## frontend-07 Phase 5: scorecard, leaderboard, dashboard (tasks 11.1 to 11.10)
+
+Resumed after two cancelled runs. Most files already existed and were uncommitted; nothing was restarted or duplicated. Audit of the tree: all Phase 5 modules were present and complete, so no source change was needed. Frontend only, mock mode, no new dependency, no commit or push.
+
+What exists, by route:
+- Scorecard (`src/scorecard`, replaces the VictoryOverlay content after a floor, the final boss or a /play run; sample at `/dev/scorecard` in development only): score count-up, accuracy ring, XP bar with level-up effect, weapon unlocked, badges earned (catalog and icons), mastery bars, S/A/B/C floor rank reveal, weak concepts with source, chest rewards, buttons (Back to the map, Play again, View leaderboard, Share card disabled with a tooltip until Phase 7, Create account for guests), error state with Retry, instant under reduced motion, aria-live announcements.
+- `/leaderboard` (`src/leaderboard`): readable by guests, All-time and This week tabs, top-3 podium, rows, pinned "me" row, provisional guest rank with a call to action, 8 "Ghost Rival - demo" entries, 30 s poll only while mounted and visible, skeleton, empty and error states, honest "coming soon" in real mode. Comparator, provisional insert and view are pure functions with property tests.
+- `/dashboard` (`src/pages/DashboardPage.tsx`, `src/dashboard`): level and XP, Continue to the next playable floor, Play Demo, top-5 preview, recent runs, HauntedCounter, badges grid, Armory, mastery bars, upload and settings placeholders, Daily Haunt slot, guest variant, skeletons, error cards with Retry. Linked from the landing page and the campaign map header.
+- Contract cases for the leaderboard are in `src/contract/suite.ts` and run in `mock.contract.test.ts`.
+
+Verification (all green): typecheck, lint, `test:contract` (20 passed, 1 skipped real-HTTP), build.
+Grouped runs: api+contract 187 passed 1 skipped; game 158; components/encounter/art/audio/design/weapons/shell/demo/config 299; leaderboard/scorecard/dashboard/badges/learning/haunt 56; pages/campaign/state 115.
+Full `npm test`: 115 files passed, 1 skipped, 815 tests passed, 55.6 s. It completes.
+
+Hang finding: the full suite did not hang in this run and no file stalled. Every file creates its own jsdom (116 environments, about 400 s of summed worker time, 75% of the run), so the run looks stalled when the output is a long wall of progress lines or when it is run from a slow terminal. No real-timer leak was found in the leaderboard poll or the generation poll: both tests use fake timers and the hooks clear their intervals on unmount. Possible mitigation (not applied, config change): `pool: 'vmThreads'` or sharing the jsdom environment.
+
+Deferred: Share card (Phase 7). No screenshot checks were done.
+
+## frontend-07 Phase 6: auth and offline demo fallback (tasks 13.1 to 13.9)
+
+Frontend only, mock mode is the target, real mode compiles with the real auth shapes. No new dependency, no commit or push. Built on the uncommitted Phase 5 and frontend-08 P1-P2 tree (floors, map, scorecard, leaderboard, dashboard); none of that was redone.
+
+Auth (13.1 to 13.4):
+- `ApiClient` gained `register`, `login`, `logout`, `getMe` (types `Credentials`, `AuthMe`). Http_Client uses the real bodies (C22): register 201 bare user, login 200 bare user, logout 200 `{success:true}`, `GET /auth/me` bare user with `expires_at` (401 gives null). Wire schemas are in `src/api/wire` (`WIRE_ENDPOINTS` register, login, logout, getMe); domain schemas and fixtures (`user.json`, `me.json`) added.
+- `ApiError` now carries `retryAfter` (raw header) and `fields` (the FastAPI 422 array, C24). One existing assertion in `wire.test.ts` was extended for `fields`.
+- `src/api/mock/mockAuth.ts`: in-memory user table with the Backend rules; 401, 409, 422 (array detail), 429 with Retry-After (5 wrong passwords, or the name `ratelimit`), 500 (`servererror`). A demo session counts as a session for `getMe`.
+- `src/auth/`: `validation.ts` (C23: username 3-32, letters/digits/underscore, lowercased, not `guest_` or `system` prefixes; register password 8-128; login non-empty), `errors.ts` (`mapAuthError`, friendly text for 401/409/422/429/5xx/network), `retryAfter.ts` (default 10 s), `useRetryAfter.ts`, `AuthForm.tsx`, `LoginPage.tsx`, `RegisterPage.tsx` (replace and delete `LoginPlaceholder`). Two fields, show/hide toggle, field messages, status area, submit disabled and counting down during Retry-After, success goes to `/dashboard`. Cookie session only: tests assert localStorage and sessionStorage stay empty after login and register.
+- `SessionContext` calls `getMe` on load (a session set meanwhile wins; failures leave the user signed out) and has `setUser`, `restoring`.
+- "Create account" calls to action now go to `/register` (guest banner link, scorecard, leaderboard, dashboard). Two existing tests were updated for this (DashboardPage, LeaderboardPage: `/login` became `/register`). Dashboard has a Log out button for signed-in players.
+- Contract: auth cases added to `src/contract/suite.ts` (register, 409, 422, login 401/200, me, logout); run for the mock and, with a backend, for the real client.
+
+Waking up and Offline demo (13.5, 13.6):
+- `src/pages/WakingUp.tsx` (title "Waking up the dungeon...", 8 rotating tips) is shown on the landing page and the dashboard while `POST /demo/session` is pending.
+- `useStartDemo.ts` was extended (not duplicated; `useDemoStart.ts` re-exports it): after 8 s it sets `offerOffline` while the request continues; `chooseOffline` does the only dynamic `import('@/offline')`, installs the adapter with the new `setApiOverride` in `src/api/index.ts`, and opens the map. A late success or failure after that is ignored.
+- `OfflineLabel` (in `App`) shows "Offline demo - progress is not saved" while an override is installed. Guest banner text unchanged.
+- Dev-only `VITE_MOCK_DELAY_MS` delays only the mock `startDemoSession` (documented in `.env.example`).
+- `src/offline/`: `index.ts` (`createOfflineAdapter`, injectable clock and ids), `adapter.ts`, `rules.ts` (wraps `src/demo/rules.ts`), `rivals.ts` (8 Ghost Rivals), `demoDungeon.json` (from `docs/handoff/demo_dungeon.sample.json`: Floor 1 = CPU and Storage, Floor 2 = Networking, Final_Boss = The Exam Warden 220 HP). It serves the floors surface (floors, scoped `startRun`, requeue, `floor_rank`, `mastery_by_topic`, chest rewards) and works on the campaign map.
+- To avoid duplicating rules and keep the offline chunk free of mock code, the pure helpers moved from `src/api/mock` to `src/learning`: `seededRng`, `draw`, `requeue`, `masteryStore` (was mockMastery), `floors` (was mockFloors), plus a new `level.ts` (level formula, was inline in the mock). Imports and their tests were updated; `buildFloors` takes an optional `finalBossRoomId`.
+
+Tests (13.3, 13.7, 13.8): `auth.property.test.ts` (Property 17), `offline.property.test.ts` (Property 18 against an independent reference model, Property 19 determinism with `Math.random` forbidden), `src/test/boundary.test.ts` (no static import of `src/offline`; the single dynamic import sits in `chooseOffline`; offline imports no mock; no `Math.random`; real mode loads no mock or offline; no browser storage in auth/api/session), `importBoundary.test.ts` extended (`auth`, `pages`; `offline` and `leaderboard` were already forbidden), palette contrast pairs for the new text, plus unit tests for the forms, mock auth, Http_Client auth, the loader, the 8 s offer and the offline adapter (contract suite and campaign map).
+
+Verification (all green): typecheck; lint (needed `.shots/**` and `tmp-shot.mjs`, leftover screenshot artifacts from an earlier session, added to the ESLint ignores because `eslint .` was reading a 34k-error browser profile); `test:contract` 25 passed, 1 skipped (real HTTP); build (separate `offline-*.js` chunk, 14 kB, loaded only from the choice handler). Full `npm test`: 125 files passed, 1 skipped; 909 tests passed, 6 skipped (the real-HTTP contract and the offline suite's auth cases), about 80 s.
+
+Deferred: offline weak concepts use the room number as the "page" (the sample has no page numbers); offline plays with the Rusty Dagger only and has no reviews or Daily Haunt (capabilities off); a real-backend run of the auth contract cases was not done; no browser check was done.
+
+## Phase 3: Daily Haunt and run modes (frontend-08, tasks 7.1 to 7.8)
+
+Frontend only, mock mode is the target. No new dependency, no commit or push. A previous attempt failed on a network error; its partial files under `src/haunt` were audited and continued, not duplicated.
+- 7.1: `getDueReviews()` returns `{due_count, next_due_at, daily_streak, items}` in the Http_Client mapper, the mock and the offline adapter. The HUD `HauntedCounter` and `usePlaySession` read the summary. A thin adapter stays only where it is still needed: the `getDueReviews(dungeonId)` overload that returns the bare array for the per-room Revenant spawn mapping.
+- 7.2: `/haunt/:dungeonId` (`HauntPage`) starts `startRun({dungeon_id, floor_id: null, mode: 'daily_haunt'})` and reuses the play flow. `hauntHall.ts` builds the Haunted Hall (display-only room id, one Revenant per due item) through `spawn-revenants`, with `revenantLook`, `RevenantSystem`, the portrait, intro line and rest effect. The player walks up to each ghost and answers in the EncounterPopup. The exit opens when every ghost is laid to rest. New events are additive, and Phaser imports no api or state. The mock accepts attempts in `daily_haunt` runs and serves at most 8 items; the UI shows whatever arrives. Real mode and the offline demo hide it through capabilities with an honest "coming soon".
+- 7.3: `HauntFinale` shows "N memories laid to rest" and the backend `daily_streak`, with celebration effects that are static under reduced motion. Buttons go to the dashboard and the map.
+- 7.4: `DailyHauntButton` (due count and streak) sits in the Dashboard slot (`DashboardHaunt`) and the `CampaignPage` header. When nothing is due, `HauntCelebration` shows the next due time, worded honestly.
+- 7.5 and 7.6: `ModePicker` (Weak Topics, Exam, Replay Floor) maps to `startRun` bodies through `modes.ts`, reachable from the map and the dashboard (`ModePickerButton`). `ExamTimer` is off by default with 10, 20 and 30 minute options, polite announcements at 5 and 1 minute, no pulse under reduced motion, and `finishRun` at zero. Replay lists only cleared floors. All modes reuse the campaign play flow (`ModePlayPage`) and return to the map with the scorecard. The mock supports each mode: `weak_topics` picks the lowest-mastery topics, `exam` covers every topic.
+- 7.7: tests in `src/haunt` (`haunt.test.ts`, `HauntFlow.test.tsx`, `ModesFlow.test.tsx`, `motion.test.tsx`, `hauntSelection.property.test.ts`) and `mockModes.test.ts`: only due items, empty state with next due time, finale text, mode bodies, timer off by default, keyboard-only completion.
+- Test stability: the full suite showed 1 to 3 timeouts per run, a different test each time, all in the first test of a file with a cold lazy chunk. Each passed alone. Fixed with `maxWorkers: 4` and a new `src/setupTests.ts` (RTL `asyncUtilTimeout` 8 s and a longer default for `vi.waitFor`).
+Verification (all green): typecheck; lint; `test:contract` 25 passed, 1 skipped (real HTTP); build; full `npm test`: 130 files passed, 1 skipped; 943 tests passed, 6 skipped.
+Deferred: no browser check was done; the real Backend has no Daily Haunt or run-mode support, so those stay behind capabilities.
+
+## Phase 4: learning loop (frontend-08, tasks 9.1 to 9.8)
+
+Frontend only, mock mode is the target. No new dependency, no commit or push. The tree held no partial Phase 4 files (`git status` showed none of MemoryScroll, RequeueNotice, ProgressPanel, StreakCalendar or an honest-copy test), so everything below is new. Floors, mastery, scorecard, dashboard, haunt and the EncounterPopup were reused.
+
+What changed:
+- 9.1 Second chance. `runReducer` gains `pendingRequeue` (pure helpers in `src/state/pendingRequeue.ts`). A wrong result with a numeric `requeue_after` adds `{questionId, remaining}`; each ordinary question presented counts every entry down by one; an entry at 0 is presented next, through the same `usePlaySession` selection (`chooseQuestion`), with the "Second chance" tag. The gap is only copied from the response, never computed. `RequeueNotice` ("The question returns...", with "After N more questions." or "It is the next one.") shows on later questions and inside the scroll. `combatMachine` transitions are untouched.
+- Decision: if the room monster dies before the return is due, the pending question is dropped (the reducer clears it on `room-cleared` and on entering another room). It is not carried to the next room: the monster that asks it is gone, and a question from another topic would confuse the mastery shown. Several misses can wait at once (an array, not one slot) so none is lost.
+- 9.2 `MemoryScroll` (`src/learning`): CSS parchment between two rods, unrolled top to bottom in 450 ms (instant under Reduced_Motion, in-app and OS). It shows `correct_answer` when present, the explanation, the quote and "From your notes: page X" (reusing `SourceLine`; the quote gets its own line when a page exists), then Quick retry and Continue. A polite live region is filled after mount; focus goes to Quick retry (to Continue when no retry is possible, for example when the player has fallen). It lives inside `.sd-speech__scroll`, which already keeps clear of the portrait. Quick retry (`quickRetry` in `usePlaySession`) asks the same question again with a new attempt id and cancels its pending return.
+- Behaviour change, deliberate: a wrong answer no longer auto-advances after 2000 ms. A timed dismissal would take the scroll away before it can be read (WCAG 2.2.1), so the player chooses Quick retry or Continue (Enter/Space on the focused button). Correct answers still auto-advance after 1200 ms. Two existing tests encoded the old wrong-answer timer and were updated: `PlayFlow.smoke` (wrong answer) and `PlayFlow.revenant` (clicks Continue after the miss).
+- 9.3 Retry rules: `src/learning/retryRules.ts` words `retry_multiplier` ("Retry: half damage" for 0.5, "full damage" for 1, "N percent damage" otherwise; "Second chance" when `is_retry` has no multiplier). Damage and XP are shown as received. `realModeBoundary.test.ts` now also proves that no screen, hook or reducer imports `offline/rules`, `demo/rules` or the learning requeue/draw/mastery/seed/rank modules, and that the display files contain no retry constants or multiplication.
+- 9.4 Mastery bars: the Scorecard topics and the Dashboard topics already used `MasteryBar` with band labels; the gap was the floor map. Ready and cleared nodes now show per-topic bars with band labels in a tooltip on hover or focus (`aria-hidden`; the seal label already speaks the average).
+- 9.5 Progress panel: `ProgressPanel` and `StreakCalendar` (a table, weekdays down, 12 weeks across; each day has a text label, reviewed days also carry a check mark). Four blocks (notes conquered, memory strength, review streak, weakest concepts with page refs) each hide when their field is absent; the panel itself disappears when none is present. It is a card on the Dashboard (player and guest views). The mock supplies the PROPOSED fields (`src/api/mock/mockProgress.ts` plus `getProgress`); memory strength follows the mock EMA mastery, the calendar follows the Daily Haunt streak.
+- 9.6 `src/learning/honestCopy.test.ts` scans `learning`, `haunt`, `campaign`, `scorecard`, `dashboard` and `tutorial` (no tutorial folder exists yet) for banned phrases (guarantee, never forget, will remember, 100% memor, remember forever and a few close variants). No copy failed.
+- 9.7 Tests: `learningLoop.test.tsx` (scroll with and without `correct_answer`, whisper, pending-return helpers and reducer, retry wording, band labels, panel blocks hidden, scroll inside the panel scroller, four viewports with the existing `stageLayout` math), `LearningLoop.flow.test.tsx` (miss, scroll, focus on Retry, polite announcement, whisper, return after 3 questions with the Second chance tag, "Retry: half damage" from the response, Quick retry, keyboard Tab/Enter), `FloorTopics.test.tsx`, `mockProgress.test.ts`, a Dashboard test for the panel, and palette checks (scroll text on every parchment tone, whisper, tag, calendar, tooltip).
+
+Real mode: `requeue_after`, `is_retry`, `retry_multiplier` and `correct_answer` are all optional; absent fields hide their line, and no reward or gap is computed locally.
+
+Results (run in `frontend/`):
+- `npm run typecheck`: pass. `npm run lint`: pass.
+- `npm test`: 135 files passed, 1 skipped; 990 tests passed, 6 skipped (HTTP contract cases that need a backend).
+- `npm run test:contract`: 25 passed, 1 skipped.
+- `npm run build`: pass.
+
+Not verified: no browser was driven, so the scroll's look and the portrait clearance at 1024x635, 1366x768, 1920x1080 and 390x844 were checked with the `stageLayout` geometry and the CSS rules, not on screen. No real-backend run.
+Deferred: a `/progress` route (the Dashboard card is the entry point); carrying a pending question to the next room; a tutorial step for the Memory scroll (Phase 6).
+
+## Phase 5: game feel and ranks (frontend-08, tasks 11.1 to 11.12)
+Frontend only, mock mode is the target. No new dependency, no commit or push. A previous attempt died on a network error; `git status` showed it had already written most of Phase 5 (effectPlan, comboTier, ComboMeter, HitStopSystem, BossDeathSystem, LootBurstSystem, frameStats, ChestOverlay, chestView and their tests, plus wiring in GameScene, EffectsSystem, Monster, Player, usePlaySession, Hud, Scorecard, FloorNode, sfx). This run reviewed that work, did not duplicate it, and filled the gaps.
+What exists:
+- 11.1 `src/game/fx/effectPlan.ts` `planHit` (pure, no Phaser import, returns shared frozen plans so a hit allocates nothing). Reduced motion gives all zeros. Hit-stop 60 ms and shake 140 ms only on criticals and boss kills; flash is a single flash, alpha capped by `FLASH_ALPHA_MAX` 0.35.
+- 11.3 `comboTier` (tiers at 3/5/8/12: Combo, Hot, Blazing, Legendary) in `src/game/fx/comboTier.ts`, re-exported from `src/learning/combo.ts`. HUD `ComboMeter` shows `combo ?? streak`, escalates by border, glow, pips and name, has an aria-label, and is static under reduced motion. Additive `set-combo` event tints the player aura.
+- 11.5 `HitStopSystem` (one reusable slot, tween and anim time scale, restored on the wall clock), camera shake, monster knockback and snappier damage pops, all from `planHit`.
+- 11.6 `BossDeathSystem` (pooled sparks, max 60; one shake, one flash at 0.35 max; dissolve; about 900 ms; 200 ms fade under reduced motion) and `LootBurstSystem` (pool of 24). Additive events `play-boss-death`, `loot-burst`, `boss-death-done`. The Scorecard and Chest wait for `boss-death-done` with a fallback timeout. New synthesized cues `bossfall` and `loot` in `sfx`, quiet, respecting mute.
+- 11.7 Floor rank letter on the Scorecard seal and the cleared map node, from `floor_rank` only; hidden when absent.
+- 11.8 `ChestOverlay` (framer-motion, lists exactly `chest_rewards`, skipped when empty or missing, Collect focused, focus trapped, Esc closes, static under reduced motion).
+- 11.2, 11.4, 11.9 property tests: Property 16 and Property 14 in `src/game/fx/effectPlan.test.ts`, Property 15 in `src/rewards/ChestOverlay.test.tsx`.
+- 11.10 SKIPPED (optional presentation-only room events).
+Changed this run: the debug report (fps average and 1% low over 10 s, particles, pooled objects, texture MiB) now comes with `?debug=1` alone; `?report=0` turns it off (was `&report=1`). `rendererQuery.test` updated.
+Real mode: rank and chest are hidden when `floor_rank` or `chest_rewards` are absent; nothing is computed locally.
+### Phase 5 performance notes (no browser was driven here; fps cells are for you to fill in)
+Budget math from the code (objects alive at the peak, not counting the room's static sprites):
+| Scene | Pooled or animated objects | Notes | Avg fps | 1% low |
+| --- | --- | --- | --- | --- |
+| Boss room, death sequence | up to 60 sparks + 1 flash rect + up to 24 loot pieces + 1 weapon fx (pool max 16) + ambient (max 24 particles) | about 125 objects at the very peak, all pooled; one-shot tweens, no per-frame work except the existing systems | ____ | ____ |
+| Full revenant room | 3 ghosts x 2 images + 1 prompt text + up to 6 rest sparks + ambient (max 24) | about 40 objects | ____ | ____ |
+| 25-floor map (DOM) | 25 nodes, one SVG path set, no canvas; windowed rendering by scroll position; no animation under reduced motion | DOM only, Phaser is not running | ____ | ____ |
+- Texture memory is unchanged: sparks and loot reuse the one 12 px `spark` texture. Read it from `/play?debug=1`.
+- Per-frame allocation: `planHit` returns frozen shared plans, `HitStopSystem` stores two numbers, `FrameStats` uses preallocated Float32Arrays, bursts use pools and deterministic angles from the index (no random objects). No remaining per-frame allocation found in the Phase 5 code.
+
+## Phase 7: badges, lore, share card (frontend-07, tasks 15.1 to 15.7)
+Frontend only, mock mode is the target. No new dependency, no commit or push. Earlier runs had already written most of Phase 7; this run reviewed it, did not duplicate it, and fixed the gaps.
+What exists:
+- 15.1 `src/badges/rules.ts` `evaluateBadges` (pure). Badges: first_blood, streak_5, perfect_room, no_damage, boss_slayer, memory_keeper (3 revenants, Daily Haunt rests included), speed_reader (off unless `VITE_BADGE_SPEED_READER`), dungeon_master (all floors plus the Final_Boss cleared, and the finishing run was clean: boss_slayer and no_damage). Only the mock finishRun, the offline adapter and tests import it. Scorecard shows earned badges with a flourish (static under reduced motion); the Dashboard shows the grid. Real mode shows `badges_earned` as received and hides what is absent.
+- 15.2 Property 19 in `rules.property.test.ts`.
+- 15.3 `src/lore`: `IntroStory` (skippable, 3 to 5 original funny-spooky cards, code-drawn art, keyboard and screen-reader friendly), shown once via `sd.introSeen` from the landing page. Hook for frontend-08 P6: `hasSeenIntro`/`markIntroSeen` and `TUTORIAL_FLAG_KEY` (`sd.tutorialSeen`) in `intro.ts`. Every portrait kind, revenant included, has at least 3 taunts (tested).
+- 15.4 `src/share`: `renderShareCard` (1200x630 canvas, awaits `document.fonts.load`), `buildPostText` (starts with `#KiroweenHackathon26`), `ShareDialog` (preview, Download via toBlob, Copy with readonly textarea fallback, "Could not create the image" on a null blob). The Scorecard Share card button is enabled.
+- 15.5 Property 21 in `postText.property.test.ts`. 15.6 share and lore tests, plus a scan that src/share has no http, fetch( or remote image src.
+Fixed this run: two share tests failed because `userEvent.setup()` replaced the stubbed clipboard; the stub is now set after setup.
+ASSETS_LICENSES.md updated (code-drawn art, self-hosted OFL fonts).
+## Phase 6: tutorial, polish, a11y, responsive, docs (frontend-08, tasks 13.1 to 13.8)
+Frontend only, mock mode is the target, no new dependency, no commit or push.
+
+### What exists
+- 13.1 `src/tutorial/tutorialFlag.ts` (`hasSeenTutorial`, `markTutorialSeen`, `needsFirstRun`). `markTutorialSeen` writes `sd.tutorialSeen` and `sd.introSeen`; both hold "1" (UI state only). `steps.ts` holds the five steps (move, engage, answer, memory scroll, Daily Haunt).
+- 13.2 `TutorialFlow` merges the intro story and the steps into one first-run flow, mounted from the landing page's Try the Demo. Choice: a scripted, self-contained practice encounter (DOM corridor, one sample question, the real `MemoryScroll`) rather than coach-marks over the real first floor. It needs no API, run or generated content, so it behaves the same in mock, real and offline mode. Skip is on every step (button or Esc) and also covers the intro cards (the existing lore test expects Skip intro to go straight in). Later visits show nothing; "How to play" on the title screen replays it without starting a run. `setupTests.ts` now sets both flags so existing flows start as returning visitors.
+- 13.3 Title polish (How to play link), Dashboard and Leaderboard top links are now a labelled `nav`. Five new synthesized cues in `sfx.ts` (requeue, scroll, combo, finale, chest) wired to: a wrong answer with `requeue_after`, the memory scroll opening, a combo tier rising, the Daily Haunt finale, the chest opening. Boss death (`bossfall`) and loot already existed. Mute is handled in the engine (Property 16 covers all cues); the cue count test is now 19.
+- 13.7 Equip: `src/weapons/equipped.ts` (in-memory store), `Armory equippable` (pause menu and dashboard card) with Equip/Unequip toggle buttons for unlocked weapons only. Attempts send `weapon_id`; the mock rejects a locked weapon with `WEAPON_LOCKED`; the real client already maps it to `weapon_name` and falls back to the dagger. `usePlaySession` clears the choice on WEAPON_LOCKED/UNKNOWN_WEAPON so the friendly message shows once. `equipped_weapon` was already noted as PROPOSED in `docs/handoff/B-to-A.md`, so nothing was added there.
+
+### Accessibility findings and fixes (13.4)
+- Keyboard: the tutorial plays fully by keyboard (arrows or WASD, E, number keys, Enter, Esc), tested. Floor, Daily Haunt and mode flows already had keyboard tests (CampaignFlow, HauntFlow, ModesFlow, LearningLoop.flow); they still pass. Equip buttons work with Enter (tested).
+- Labels: floor and Final Boss nodes already carry `aria-label`; the new equip buttons have "Equip/Unequip <weapon>" labels and `aria-pressed`; the tutorial dialog is labelled and its instruction is the description, with a polite live region for feedback.
+- Contrast: Phase 6 pairs added to `palette.test.ts` (all pass).
+- Reduced motion: tutorial hero pop is off under reduced motion (class and media query); chest and finale unchanged. Mute: all new cues go through the muted engine.
+- Fixed: Dashboard/Leaderboard action links had no landmark; they are now `nav aria-label="Page links"`.
+- Not verified: real screen reader output, a manual full-floor playthrough in a browser.
+
+### Responsive check (13.5)
+- Headless Edge screenshots of /, /dashboard and /leaderboard at 1366x768 and 2560x1440 (landing and dashboard viewed): no clipping; content centres at 2560. Headless Edge cannot go below about 500px wide, so the 390px captures were cropped by the tool, not by the page; those were not used as evidence. 390 and the in-game screens (play with popup, scroll, chest, share dialog, tutorial) rely on CSS reasoning: the tutorial uses `max-w-xl`, a flex corridor with `min-width: 0` cells, and `max-height: calc(100dvh - 8rem)` with scroll; the play layout is covered by the existing stageLayout and viewport math tests. 1536x864 and 1920x1080 were not captured separately (between the sizes checked).
+- Side effect to note: my screenshot clean-up ended all running Edge processes once, which can close the user's own Edge windows. Temp files were removed.
+
+### Verification (13.8)
+- `npm run typecheck`: clean. `npm run lint`: clean. `npm run build`: built (the PLUGIN_TIMINGS lines are warnings only).
+- `npm run test:contract`: 2 files passed, 1 skipped, 25 tests passed, 1 skipped.
+- Full `vitest --run`: first run after the tutorial landed had 18 failures (flows that click Try the Demo met the new tutorial; fixed in `setupTests.ts`) and 2 storage tests that needed the new flag removed (fixed; `client.auth.test.ts`, `mockAuth.test.ts`).
+- Final full run (mock mode, after all fixes): 145 files passed, 1 skipped (146); 1065 tests passed, 6 skipped (1071); 334.6 s. No failures.
+- Final checks, same session: typecheck clean; lint clean (also with the `.shots/**` and `tmp-shot.mjs` ESLint ignores removed); `test:contract` 2 files passed, 1 skipped, 25 tests passed, 1 skipped; build succeeded.
+- Clean-up: `frontend/.shots/` and `frontend/tmp-shot.mjs` deleted, and their ESLint ignore entries removed.
+
+### frontend-08 summary by phase
+- P0 baseline; P1A real-backend matching (wire and contract); P1B floors data model and mock campaign; P2 floor map and campaign flow; P3 Daily Haunt and run modes; P4 learning loop (memory scroll, requeue, combo, honest copy); P5 game feel, ranks, boss death and Chest; P6 tutorial, polish, equip, docs.
+- Specs: frontend-08-campaign-learning-loop (requirements, design D1 to D26, tasks), with frontend-07 as its base.
+- Hooks: steering and the honest-copy scan (`honestCopy.test.ts` now covers `src/tutorial`), the importBoundary, events, scans, tokens, colors and palette tests act as guard rails.
+- PBT: floor layout, floor mapping, haunt selection, learning loop, combat machine, sfx mute gating (Property 16, now 19 cues), weapons and effect plans.
+- Sub-agents: none used in this phase.
+
+## frontend-07 Phase 8: Upload wizard (17.1 to 17.4)
+- Contract: the earlier PROPOSED `POST /uploads` and `uploadNotes` idea is superseded by the real document endpoints (frontend-08 C29). New ApiClient methods: `uploadDocument` (`POST /documents`, multipart, 202), `getDocumentStatus` (processing, accepted, rejected, failed, with `chunks_count`), `getDocumentTopics`, `generateDungeon` (201, returns the mapped dungeon) and `retryDocument`. Wire schemas and mappers are in `src/api/wire/documents.ts`; domain schemas are in `schemas.ts`. The Http_Client sends a `FormData` body without a JSON content type. `B-to-A.md` was not changed: no new need appeared.
+- Mock: `src/api/mock/mockUpload.ts`. Status moves from processing to accepted, rejected (with a reason) or failed after a delay. Triggers: a name with meme, receipt or invoice is rejected; a .txt under 500 bytes is rejected; a name with "broken" fails (Retry works). Errors use the real codes: 413 FILE_TOO_LARGE, 415 UNSUPPORTED_FILE_TYPE, 400 QUOTA_EXCEEDED (5 documents), 403 GUEST_FORBIDDEN, 401 without a session. `generateDungeon` creates a dungeon (two topics per floor, plus a final boss) that `getDungeon`, `getGenerationStatus` and `retryFloor` of the mock adapter serve, so its floors show on the campaign map and move from Summoning to Ready every 4 s.
+- Offline demo: the document methods reject with 501 and `capabilities.uploads` is false, so the page says uploading needs the server.
+- UI: `src/upload/*`, route `/upload`, linked from the Dashboard "Upload notes" button (it was a disabled placeholder). Drag and drop plus a real file input in a label (Tab, then Enter or Space). Browser checks (type, 15 MB, empty file) are hints only; the server decides. Steps: Upload, Read, Check relevance, Detect topics, Summon floors; they move on the server's verdict, never on a timer. A rejection stops "Check relevance" and shows the server's reason; a failure stops "Read". Topics are listed, "Summon dungeon" leads to "Your notes became N floors" and "Open the campaign map". The result reuses `useGenerationStatus` and the `StatusChip` floor status UI. Polite live region for each phase; the rune seal and the spinner are code-drawn and static under reduced motion (OS setting and the in-app flag).
+- Guests: `/upload` shows "Create an account to upload your own notes" with a link to `/register`; the wizard is not rendered.
+- Tests: `src/upload/Upload.test.tsx` (flow, drag and drop, rejection reason, failed read and retry, type and size hints, oversize, quota, offline, guest gate, keyboard, reduced motion, pure steps), `client.documents.test.ts`, the contract suite (6 document cases on the mock), and upload contrast pairs in `palette.test.ts`. The dashboard link test was updated.
+- Real mode: compiles and uses only the real endpoints (no mock import). Not exercised against the live backend (needs a registered account, real files and an AI provider).
+- Deferred: running a floor of an uploaded dungeon (the mock `startRun` only knows the demo dungeon; real mode plays through the existing run flow); deleting or listing documents (`GET /documents`, `DELETE /documents/{id}`) has no UI; real PDF page counting is server side only.
+### Verification (17.4)
+- `npm run typecheck`: clean. `npm run lint`: clean. `npm run build`: built.
+- `npm run test:contract`: 2 files passed, 1 skipped, 31 tests passed, 1 skipped.
+- Full `npm test` (mock mode): 148 files, 147 passed and 1 skipped; 1096 tests passed, 12 skipped (1108); 255 s. The 6 extra skips are the document contract cases on the offline and real-HTTP suites, which do not run them.
+
+## Layout pass: one screen, no page scrollbar (steps 1 to 4)
+Goal: every main screen fits the viewport (1366x650 up to 2560x1440) with no page scrollbar, vertical or horizontal, using the full width. Presentation only; the API, types, routes, mock switch, game code and backend were not touched.
+- Step 1, root cause: the title screen, login, register and upload used `min-height: 100dvh` or `min-h-screen` with stacked blocks and padding, so at about 650 px the content grew past the viewport. `overflow-hidden` on the root could not clip a box that grows. The campaign map was already 100dvh; its header was capped at 55dvh and scrolled inside. No 100vw cause existed.
+- Step 1, fix: `PageShell variant="fit"` (exactly 100dvh, flex column, fixed clipped decorations, only the body may scroll). The default `scroll` variant stays, so the Dashboard and Leaderboard are unchanged.
+- Step 2: the title screen uses a 100dvh layout with its own classes.
+- Step 3: login, register and the upload wizard use the fit shell.
+- Step 4: the campaign map is now a horizontal winding map (see "Layout pass: horizontal floor map" in the frontend-08 design). Header row plus toolbar row across the screen, floor cards with topics in normal flow (the hidden "Entry Hall / Alchemist's Lab" rows are fixed), "+N more" popover, horizontal scroll inside the map only with snapping, arrows, pointer drag, wheel and keyboard, horizontal virtualization.
+- Verification of step 4 (headless Edge with its own profile, document scroll size against the window): demo map at 1366x650, 1366x768, 1536x864, 1920x1080 (and 2560x1440): no page scrollbar either way; `/dev/floors?floors=25` at 1366x650 and 1920x1080: none; cards never overlapped. At 1000x540 the screen scrolls inside itself (allowed). The Dashboard, Leaderboard and game files hash the same before and after.
+- Lesson: when a screen must fit, give the root a fixed height and let one region flex (`flex: 1; min-height: 0`); `min-height` hides the problem until a short window.

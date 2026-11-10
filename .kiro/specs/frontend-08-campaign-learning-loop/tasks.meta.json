@@ -59,6 +59,717 @@
         "executionId": "f7b388dd-bf51-4ce0-ae22-6360d4abb095",
         "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
         "timestamp": 1794159030180
+      },
+      {
+        "executionId": "7b6bb361-e050-4914-bedd-7b3a4211b614",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794159970278
+      },
+      {
+        "executionId": "7b6bb361-e050-4914-bedd-7b3a4211b614",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794161193019
+      }
+    ],
+    "3.4 Add the floors Domain_Model, schemas and ApiClient surface": [
+      {
+        "executionId": "7b6bb361-e050-4914-bedd-7b3a4211b614",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794159957952
+      },
+      {
+        "executionId": "7b6bb361-e050-4914-bedd-7b3a4211b614",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794161180230
+      }
+    ],
+    "3.5 Write property test for the legacy floor mapping": [
+      {
+        "executionId": "7b6bb361-e050-4914-bedd-7b3a4211b614",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794159958175
+      },
+      {
+        "executionId": "7b6bb361-e050-4914-bedd-7b3a4211b614",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794161180961
+      }
+    ],
+    "3.6 Build the mock question pool, seeded draw and requeue as pure modules": [
+      {
+        "executionId": "7b6bb361-e050-4914-bedd-7b3a4211b614",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794159958313
+      },
+      {
+        "executionId": "7b6bb361-e050-4914-bedd-7b3a4211b614",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794161181243
+      }
+    ],
+    "3.7 Write property test for the seeded draw": [
+      {
+        "executionId": "7b6bb361-e050-4914-bedd-7b3a4211b614",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794159959265
+      },
+      {
+        "executionId": "7b6bb361-e050-4914-bedd-7b3a4211b614",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794161182203
+      }
+    ],
+    "3.8 Write property test for requeue": [
+      {
+        "executionId": "7b6bb361-e050-4914-bedd-7b3a4211b614",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794159960289
+      },
+      {
+        "executionId": "7b6bb361-e050-4914-bedd-7b3a4211b614",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794161183016
+      }
+    ],
+    "3.9 Build mock mastery, ranks, floors, generation status and Daily Haunt selection": [
+      {
+        "executionId": "7b6bb361-e050-4914-bedd-7b3a4211b614",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794159961296
+      },
+      {
+        "executionId": "7b6bb361-e050-4914-bedd-7b3a4211b614",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794161184342
+      }
+    ],
+    "3.10 Write property test for mastery bounds": [
+      {
+        "executionId": "7b6bb361-e050-4914-bedd-7b3a4211b614",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794159962289
+      },
+      {
+        "executionId": "7b6bb361-e050-4914-bedd-7b3a4211b614",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794161184972
+      }
+    ],
+    "3.11 Write property test for mastery bands": [
+      {
+        "executionId": "7b6bb361-e050-4914-bedd-7b3a4211b614",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794159963253
+      },
+      {
+        "executionId": "7b6bb361-e050-4914-bedd-7b3a4211b614",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794161186831
+      }
+    ],
+    "3.12 Write property test for floor rank": [
+      {
+        "executionId": "7b6bb361-e050-4914-bedd-7b3a4211b614",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794159964243
+      },
+      {
+        "executionId": "7b6bb361-e050-4914-bedd-7b3a4211b614",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794161187190
+      }
+    ],
+    "3.13 Write property test for Daily Haunt selection": [
+      {
+        "executionId": "7b6bb361-e050-4914-bedd-7b3a4211b614",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794159965270
+      },
+      {
+        "executionId": "7b6bb361-e050-4914-bedd-7b3a4211b614",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794161188032
+      }
+    ],
+    "3.14 Write property test for generation status": [
+      {
+        "executionId": "7b6bb361-e050-4914-bedd-7b3a4211b614",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794159965918
+      },
+      {
+        "executionId": "7b6bb361-e050-4914-bedd-7b3a4211b614",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794161188903
+      }
+    ],
+    "3.15 Add Floor fixtures with 1, 3, 10 and 25 Floors": [
+      {
+        "executionId": "7b6bb361-e050-4914-bedd-7b3a4211b614",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794159967092
+      },
+      {
+        "executionId": "7b6bb361-e050-4914-bedd-7b3a4211b614",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794161189991
+      }
+    ],
+    "3.16 Write property test for fixtures": [
+      {
+        "executionId": "7b6bb361-e050-4914-bedd-7b3a4211b614",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794159968395
+      },
+      {
+        "executionId": "7b6bb361-e050-4914-bedd-7b3a4211b614",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794161190868
+      }
+    ],
+    "3.17 Add the development-only route `/dev/floors`": [
+      {
+        "executionId": "7b6bb361-e050-4914-bedd-7b3a4211b614",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794159969194
+      },
+      {
+        "executionId": "7b6bb361-e050-4914-bedd-7b3a4211b614",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794161192045
+      }
+    ],
+    "3.19 Run Phase 1 verification and update the log": [
+      {
+        "executionId": "7b6bb361-e050-4914-bedd-7b3a4211b614",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794159970942
+      },
+      {
+        "executionId": "7b6bb361-e050-4914-bedd-7b3a4211b614",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794161193827
+      }
+    ],
+    "3. Phase 1: Floors data model and adapters": [
+      {
+        "executionId": "7b6bb361-e050-4914-bedd-7b3a4211b614",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794161194018
+      }
+    ],
+    "4. STOP: Phase 1 checkpoint, data model and reconciliation review": [
+      {
+        "executionId": "7b6bb361-e050-4914-bedd-7b3a4211b614",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794161194890
+      },
+      {
+        "executionId": "7b6bb361-e050-4914-bedd-7b3a4211b614",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794161207517
+      }
+    ],
+    "5.1 Implement the pure floor map logic": [
+      {
+        "executionId": "7b6bb361-e050-4914-bedd-7b3a4211b614",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794161208482
+      },
+      {
+        "executionId": "7b6bb361-e050-4914-bedd-7b3a4211b614",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794165010041
+      }
+    ],
+    "5.2 Write property test for virtualization": [
+      {
+        "executionId": "7b6bb361-e050-4914-bedd-7b3a4211b614",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794161209629
+      },
+      {
+        "executionId": "7b6bb361-e050-4914-bedd-7b3a4211b614",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794165010478
+      }
+    ],
+    "5.3 Write property test for keyboard navigation": [
+      {
+        "executionId": "7b6bb361-e050-4914-bedd-7b3a4211b614",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794161210458
+      },
+      {
+        "executionId": "7b6bb361-e050-4914-bedd-7b3a4211b614",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794165010831
+      }
+    ],
+    "5.4 Write property test for Continue": [
+      {
+        "executionId": "7b6bb361-e050-4914-bedd-7b3a4211b614",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794161211683
+      },
+      {
+        "executionId": "7b6bb361-e050-4914-bedd-7b3a4211b614",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794165011110
+      }
+    ],
+    "5.5 Build the node components": [
+      {
+        "executionId": "7b6bb361-e050-4914-bedd-7b3a4211b614",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794161212282
+      },
+      {
+        "executionId": "7b6bb361-e050-4914-bedd-7b3a4211b614",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794165011600
+      }
+    ],
+    "5.6 Build `FloorMap`": [
+      {
+        "executionId": "7b6bb361-e050-4914-bedd-7b3a4211b614",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794161213294
+      },
+      {
+        "executionId": "7b6bb361-e050-4914-bedd-7b3a4211b614",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794165012577
+      }
+    ],
+    "5.7 Add generation status polling and live announcements": [
+      {
+        "executionId": "7b6bb361-e050-4914-bedd-7b3a4211b614",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794161214541
+      },
+      {
+        "executionId": "7b6bb361-e050-4914-bedd-7b3a4211b614",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794165013339
+      }
+    ],
+    "5.8 Wire the campaign flow": [
+      {
+        "executionId": "7b6bb361-e050-4914-bedd-7b3a4211b614",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794161215298
+      },
+      {
+        "executionId": "7b6bb361-e050-4914-bedd-7b3a4211b614",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794165014607
+      }
+    ],
+    "5.9 Wire the demo and the dev route": [
+      {
+        "executionId": "7b6bb361-e050-4914-bedd-7b3a4211b614",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794161216081
+      },
+      {
+        "executionId": "7b6bb361-e050-4914-bedd-7b3a4211b614",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794165015430
+      }
+    ],
+    "5.10 Write example tests for the map and flow": [
+      {
+        "executionId": "7b6bb361-e050-4914-bedd-7b3a4211b614",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794161217572
+      },
+      {
+        "executionId": "7b6bb361-e050-4914-bedd-7b3a4211b614",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794165016566
+      }
+    ],
+    "5.11 Run Phase 2 verification and update the log": [
+      {
+        "executionId": "7b6bb361-e050-4914-bedd-7b3a4211b614",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794161217947
+      },
+      {
+        "executionId": "7b6bb361-e050-4914-bedd-7b3a4211b614",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794165017417
+      }
+    ],
+    "5. Phase 2: Floor map and campaign flow": [
+      {
+        "executionId": "7b6bb361-e050-4914-bedd-7b3a4211b614",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794165017627
+      }
+    ],
+    "6. STOP: Phase 2 checkpoint, floor map and campaign review": [
+      {
+        "executionId": "7b6bb361-e050-4914-bedd-7b3a4211b614",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794165018187
+      },
+      {
+        "executionId": "7b6bb361-e050-4914-bedd-7b3a4211b614",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794165034939
+      }
+    ],
+    "7.1 Move the Frontend to the new due-reviews shape": [
+      {
+        "executionId": "0e10c729-4d54-4737-a0f9-44dec91538b6",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794218022769
+      },
+      {
+        "executionId": "4f1ebcc1-e4c0-4a9b-b872-1448e7f0db55",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794221501794
+      },
+      {
+        "executionId": "4f1ebcc1-e4c0-4a9b-b872-1448e7f0db55",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794223035156
+      }
+    ],
+    "7.2 Implement the Daily Haunt run": [
+      {
+        "executionId": "4f1ebcc1-e4c0-4a9b-b872-1448e7f0db55",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794223036153
+      }
+    ],
+    "7.5 Build the mode picker and exam timer": [
+      {
+        "executionId": "4f1ebcc1-e4c0-4a9b-b872-1448e7f0db55",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794223037401
+      }
+    ],
+    "7.3 Add the \"memories laid to rest\" finale and the daily streak": [
+      {
+        "executionId": "4f1ebcc1-e4c0-4a9b-b872-1448e7f0db55",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794223038690
+      }
+    ],
+    "7.4 Add the Dashboard Daily Haunt button and empty state": [
+      {
+        "executionId": "4f1ebcc1-e4c0-4a9b-b872-1448e7f0db55",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794223039749
+      }
+    ],
+    "7.6 Implement Replay Floor and Weak Topics flows": [
+      {
+        "executionId": "4f1ebcc1-e4c0-4a9b-b872-1448e7f0db55",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794223040943
+      }
+    ],
+    "7.7 Write example tests for Daily Haunt and modes": [
+      {
+        "executionId": "4f1ebcc1-e4c0-4a9b-b872-1448e7f0db55",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794223042044
+      }
+    ],
+    "7.8 Run Phase 3 verification and update the log": [
+      {
+        "executionId": "4f1ebcc1-e4c0-4a9b-b872-1448e7f0db55",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794223043355
+      }
+    ],
+    "7. Phase 3: Daily Haunt and run modes": [
+      {
+        "executionId": "4f1ebcc1-e4c0-4a9b-b872-1448e7f0db55",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794223043545
+      }
+    ],
+    "8. STOP: Phase 3 checkpoint, Daily Haunt and modes review": [
+      {
+        "executionId": "4f1ebcc1-e4c0-4a9b-b872-1448e7f0db55",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794223044222
+      }
+    ],
+    "9.1 Add the second chance to the run reducer and play flow": [
+      {
+        "executionId": "4f1ebcc1-e4c0-4a9b-b872-1448e7f0db55",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794223067748
+      },
+      {
+        "executionId": "4f1ebcc1-e4c0-4a9b-b872-1448e7f0db55",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794225077544
+      }
+    ],
+    "9.2 Build the Memory_Scroll": [
+      {
+        "executionId": "4f1ebcc1-e4c0-4a9b-b872-1448e7f0db55",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794225077883
+      }
+    ],
+    "9.3 Show retry rules from the response only": [
+      {
+        "executionId": "4f1ebcc1-e4c0-4a9b-b872-1448e7f0db55",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794225078336
+      }
+    ],
+    "9.4 Add Mastery_Bars everywhere": [
+      {
+        "executionId": "4f1ebcc1-e4c0-4a9b-b872-1448e7f0db55",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794225079339
+      }
+    ],
+    "9.5 Build the Progress panel and streak calendar": [
+      {
+        "executionId": "4f1ebcc1-e4c0-4a9b-b872-1448e7f0db55",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794225080271
+      }
+    ],
+    "9.6 Add the honest-copy lint test": [
+      {
+        "executionId": "4f1ebcc1-e4c0-4a9b-b872-1448e7f0db55",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794225081156
+      }
+    ],
+    "9.7 Write example tests for the learning loop": [
+      {
+        "executionId": "4f1ebcc1-e4c0-4a9b-b872-1448e7f0db55",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794225082341
+      }
+    ],
+    "9.8 Run Phase 4 verification and update the log": [
+      {
+        "executionId": "4f1ebcc1-e4c0-4a9b-b872-1448e7f0db55",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794225083795
+      }
+    ],
+    "9. Phase 4: Learning loop": [
+      {
+        "executionId": "4f1ebcc1-e4c0-4a9b-b872-1448e7f0db55",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794225083985
+      }
+    ],
+    "10. STOP: Phase 4 checkpoint, learning loop review": [
+      {
+        "executionId": "4f1ebcc1-e4c0-4a9b-b872-1448e7f0db55",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794225084291
+      }
+    ],
+    "11.1 Implement the pure effect plan": [
+      {
+        "executionId": "4f1ebcc1-e4c0-4a9b-b872-1448e7f0db55",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794225103095
+      },
+      {
+        "executionId": "4f1ebcc1-e4c0-4a9b-b872-1448e7f0db55",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794227854837
+      }
+    ],
+    "11.3 Build the Combo_Meter": [
+      {
+        "executionId": "4f1ebcc1-e4c0-4a9b-b872-1448e7f0db55",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794227856935
+      }
+    ],
+    "11.2 Write property test for effect plans": [
+      {
+        "executionId": "4f1ebcc1-e4c0-4a9b-b872-1448e7f0db55",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794227857555
+      }
+    ],
+    "11.4 Write property test for combo tiers": [
+      {
+        "executionId": "4f1ebcc1-e4c0-4a9b-b872-1448e7f0db55",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794227858416
+      }
+    ],
+    "11.5 Add hit-stop, shake, knockback and snappy damage pops": [
+      {
+        "executionId": "4f1ebcc1-e4c0-4a9b-b872-1448e7f0db55",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794227859349
+      }
+    ],
+    "11.6 Add the boss death sequence and loot burst": [
+      {
+        "executionId": "4f1ebcc1-e4c0-4a9b-b872-1448e7f0db55",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794227860390
+      }
+    ],
+    "11.7 Show the Floor_Rank": [
+      {
+        "executionId": "4f1ebcc1-e4c0-4a9b-b872-1448e7f0db55",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794227861770
+      }
+    ],
+    "11.8 Build the Chest overlay": [
+      {
+        "executionId": "4f1ebcc1-e4c0-4a9b-b872-1448e7f0db55",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794227862795
+      }
+    ],
+    "11.9 Write property test for the Chest view model": [
+      {
+        "executionId": "4f1ebcc1-e4c0-4a9b-b872-1448e7f0db55",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794227863334
+      }
+    ],
+    "11.11 Run the performance pass": [
+      {
+        "executionId": "4f1ebcc1-e4c0-4a9b-b872-1448e7f0db55",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794227864402
+      }
+    ],
+    "11.12 Run Phase 5 verification and update the log": [
+      {
+        "executionId": "4f1ebcc1-e4c0-4a9b-b872-1448e7f0db55",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794227865837
+      }
+    ],
+    "11. Phase 5: Game feel and ranks": [
+      {
+        "executionId": "4f1ebcc1-e4c0-4a9b-b872-1448e7f0db55",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794227866541
+      }
+    ],
+    "12. STOP: Phase 5 checkpoint, game feel review": [
+      {
+        "executionId": "4f1ebcc1-e4c0-4a9b-b872-1448e7f0db55",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794227867231
+      },
+      {
+        "executionId": "d194a1d8-34c0-47b4-911a-d1a47c2d4076",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794256688737
+      }
+    ],
+    "13.1 Implement the tutorial flag and steps": [
+      {
+        "executionId": "d194a1d8-34c0-47b4-911a-d1a47c2d4076",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794254759366
+      },
+      {
+        "executionId": "d194a1d8-34c0-47b4-911a-d1a47c2d4076",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794256681675
+      }
+    ],
+    "13.2 Build `TutorialFlow` merged with the intro story": [
+      {
+        "executionId": "d194a1d8-34c0-47b4-911a-d1a47c2d4076",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794256682586
+      }
+    ],
+    "13.3 Polish the title and menu, and add consistent sounds": [
+      {
+        "executionId": "d194a1d8-34c0-47b4-911a-d1a47c2d4076",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794256683541
+      }
+    ],
+    "13.4 Run the accessibility pass": [
+      {
+        "executionId": "d194a1d8-34c0-47b4-911a-d1a47c2d4076",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794256684573
+      }
+    ],
+    "13.5 Run the responsive check": [
+      {
+        "executionId": "d194a1d8-34c0-47b4-911a-d1a47c2d4076",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794256685624
+      },
+      {
+        "executionId": "8d84fa5a-9319-4349-9a2e-49a51e3d577d",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794319749596
+      },
+      {
+        "executionId": "8d84fa5a-9319-4349-9a2e-49a51e3d577d",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794324873374
+      }
+    ],
+    "13.6 Update README, kiro log and licences": [
+      {
+        "executionId": "d194a1d8-34c0-47b4-911a-d1a47c2d4076",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794256686423
+      }
+    ],
+    "13.7 Add the optional equipped-weapon selection in the Armory": [
+      {
+        "executionId": "d194a1d8-34c0-47b4-911a-d1a47c2d4076",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794256687577
+      }
+    ],
+    "13.8 Run Phase 6 verification and update the log": [
+      {
+        "executionId": "d194a1d8-34c0-47b4-911a-d1a47c2d4076",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794256689213
+      },
+      {
+        "executionId": "d194a1d8-34c0-47b4-911a-d1a47c2d4076",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794256714037
+      }
+    ],
+    "14. STOP: Phase 6 checkpoint, final review": [
+      {
+        "executionId": "d194a1d8-34c0-47b4-911a-d1a47c2d4076",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794256712175
+      },
+      {
+        "executionId": "d194a1d8-34c0-47b4-911a-d1a47c2d4076",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794256713113
+      }
+    ],
+    "13. Phase 6: Tutorial, polish and documentation": [
+      {
+        "executionId": "d194a1d8-34c0-47b4-911a-d1a47c2d4076",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794256714232
       }
     ]
   }

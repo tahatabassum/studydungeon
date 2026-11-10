@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import type { DueReview } from '../../types/api'
+import type { DueReview, DueReviewsResponse } from '../../types/api'
 import { questionTypeFromOptions } from './kinds'
 
 /** `GET /reviews/due`: a bare array across all dungeons (C20). */
@@ -38,4 +38,9 @@ export function mapDueReviews(
     })
   }
   return out
+}
+
+/** Today's backend sends a bare array: wrap it in the new shape. Streak and next due time are unknown. */
+export function mapDueSummary(items: DueReview[]): DueReviewsResponse {
+  return { due_count: items.length, next_due_at: null, daily_streak: 0, items }
 }

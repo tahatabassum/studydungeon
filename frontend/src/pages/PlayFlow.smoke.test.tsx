@@ -43,6 +43,7 @@ vi.mock('@/game/GameCanvas', () => ({
 }))
 
 import App from '@/App'
+import { OpenLegacyPlay } from '@/pages/OpenLegacyPlay'
 import { SessionProvider } from '@/state/SessionContext'
 
 const sent = (): ToGameEvent[] => h.events as ToGameEvent[]
@@ -80,11 +81,11 @@ async function startDemo() {
   render(
     <MemoryRouter initialEntries={['/']}>
       <SessionProvider>
+        <OpenLegacyPlay />
         <App />
       </SessionProvider>
     </MemoryRouter>,
   )
-  await user.click(screen.getByRole('button', { name: /try the demo/i }))
   await vi.waitFor(() => expect(sent().some((e) => e.type === 'load-dungeon')).toBe(true))
   await vi.waitFor(() => expect(gameBridge()).toBeTruthy())
 }
@@ -179,7 +180,7 @@ describe('play flow smoke test', () => {
     await vi.waitFor(() => expect(promptOf(dialog)).not.toBe(Q1_PROMPT))
   })
 
-  it('wrong answer: HP 90, no XP, source line, then auto-advances after 2000 ms', async () => {
+  it('wrong answer: HP 90, no XP, source line, then the Memory scroll waits for Continue', async () => {
     const dialog = await startAndEncounter()
 
     await user.click(within(dialog).getByRole('button', { name: /Monitor$/ }))
@@ -195,7 +196,10 @@ describe('play flow smoke test', () => {
     )
     expect(screen.getByText('XP 0')).toBeTruthy()
 
-    advance(2000)
+    // The Memory scroll opens and waits: no timer takes it away. Continue moves on.
+    advance(5000)
+    expect(promptOf(dialog)).toBe(Q1_PROMPT)
+    await user.click(await within(dialog).findByRole('button', { name: 'Continue' }))
     await vi.waitFor(() => expect(promptOf(dialog)).not.toBe(Q1_PROMPT))
     expect(screen.getByRole('dialog')).toBe(dialog)
     expect(sent().filter((e) => e.type === 'apply-result')).toHaveLength(1)

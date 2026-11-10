@@ -16,8 +16,22 @@ export type Cue =
   | 'miss'
   | 'boss'
   | 'rest'
+  | 'bossfall'
+  | 'loot'
+  | 'requeue'
+  | 'scroll'
+  | 'combo'
+  | 'finale'
+  | 'chest'
 
 export const CUES: readonly Cue[] = [
+  'requeue',
+  'scroll',
+  'combo',
+  'finale',
+  'chest',
+  'bossfall',
+  'loot',
   'rest',
   'miss',
   'boss',
@@ -49,6 +63,13 @@ const MIN_GAP_MS: Record<Cue, number> = {
   miss: 200,
   boss: 1500,
   rest: 600,
+  bossfall: 1500,
+  loot: 60,
+  requeue: 400,
+  scroll: 400,
+  combo: 300,
+  finale: 1500,
+  chest: 800,
 }
 
 /** Narrow slice of the Web Audio API that the engine uses (lets tests inject a fake). */
@@ -271,9 +292,42 @@ export class SfxEngine {
         this.tone(ctx, out, 'sawtooth', 65, 62, t, 0.9, 0.25)
         this.tone(ctx, out, 'triangle', 98, 92, t + 0.15, 0.8, 0.18)
         break
+      case 'bossfall':
+        // A low falling groan under a soft rumble of noise, about 0.9 s. Quiet.
+        this.tone(ctx, out, 'sawtooth', 110, 38, t, 0.9, 0.22)
+        this.noiseBurst(ctx, out, t + 0.05, 0.7, 0.18, 420)
+        break
+      case 'loot':
+        // A tiny two-note coin tink.
+        this.tone(ctx, out, 'sine', 1320, 1320, t, 0.07, 0.12)
+        this.tone(ctx, out, 'sine', 1760, 1760, t + 0.05, 0.1, 0.1)
+        break
+      case 'requeue':
+        // Two soft low taps: the question will come back.
+        this.tone(ctx, out, 'sine', 330, 330, t, 0.1, 0.14)
+        this.tone(ctx, out, 'sine', 330, 330, t + 0.12, 0.1, 0.12)
+        break
+      case 'scroll':
+        // A paper rustle: a short, soft, filtered breath.
+        this.noiseBurst(ctx, out, t, 0.22, 0.14, 2400)
+        this.tone(ctx, out, 'sine', 523, 587, t + 0.05, 0.16, 0.08)
+        break
+      case 'combo':
+        // A quick rising two-note lift.
+        this.tone(ctx, out, 'triangle', 784, 784, t, 0.09, 0.16)
+        this.tone(ctx, out, 'triangle', 1175, 1175, t + 0.07, 0.14, 0.16)
+        break
+      case 'finale':
+        // Warm rising arpeggio, longer than the victory cue.
+        ;[392, 494, 587, 784, 988].forEach((f, i) => this.tone(ctx, out, 'sine', f, f, t + i * 0.13, 0.5, 0.18))
+        break
+      case 'chest':
+        // Creaking lid, then a bright tink.
+        this.tone(ctx, out, 'sawtooth', 140, 220, t, 0.25, 0.14)
+        this.tone(ctx, out, 'sine', 1568, 1568, t + 0.26, 0.2, 0.14)
+        break
     }
   }
 }
-
 /** Shared engine used by the app. */
 export const sfx = new SfxEngine()

@@ -1,0 +1,204 @@
+/* Upload wizard: a rune-sealed drop zone, five steps and stone cards. CSS only; the art is inline SVG. */
+
+.sd-up {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(0.5rem, 1.6vh, 1rem);
+  width: 100%;
+  /* Full width inside the fit body; the drop zone takes the height left under the steps. */
+  flex: 1 1 auto;
+  min-height: 0;
+}
+.sd-up > .sd-card,
+.sd-up > .sd-up__result { flex: 0 1 auto; min-height: 0; overflow-y: auto; scrollbar-width: thin; scrollbar-color: var(--color-witch) transparent; }
+
+/* Steps */
+.sd-up__steps {
+  display: grid;
+  /* One horizontal row of five. */
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  flex: 0 0 auto;
+  gap: 0.5rem;
+  margin: 0;
+  padding: clamp(0.4rem, 1.2vh, 0.75rem);
+  list-style: none;
+  border: 1px solid var(--color-deep);
+  border-radius: 0.6rem;
+  background: var(--color-panel);
+}
+.sd-up__step {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  grid-template-areas: 'mark label' '. state';
+  column-gap: 0.5rem;
+  align-items: center;
+  padding: 0.4rem 0.5rem;
+  border-radius: 0.4rem;
+  color: var(--color-ink-muted);
+}
+.sd-up__step-mark {
+  grid-area: mark;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.6rem;
+  height: 1.6rem;
+  border-radius: 50%;
+  border: 2px solid currentColor;
+}
+.sd-up__step-label { grid-area: label; font-family: var(--font-label); font-weight: 700; font-size: var(--sd-text-sm); }
+.sd-up__step-state { grid-area: state; font-size: var(--sd-text-sm); }
+.sd-up__step[data-state='active'] { color: var(--color-ghost); }
+.sd-up__step[data-state='active'] .sd-up__step-mark svg { animation: sd-up-spin 1.6s linear infinite; }
+.sd-up__step[data-state='done'] { color: var(--color-toxic); }
+.sd-up__step[data-state='stopped'] { color: color-mix(in srgb, var(--color-danger), var(--color-ink) 45%); }
+@keyframes sd-up-spin { to { transform: rotate(360deg); } }
+
+/* Drop zone */
+.sd-up__drop {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  gap: clamp(0.25rem, 1.2vh, 0.5rem);
+  padding: clamp(0.75rem, 3vh, 1.75rem) 1rem;
+  text-align: center;
+  border: 2px dashed var(--color-magic);
+  border-radius: 0.75rem;
+  background:
+    radial-gradient(circle at 50% 0%, color-mix(in srgb, var(--color-pumpkin) 14%, transparent), transparent 70%),
+    var(--color-panel);
+  transition: border-color 160ms ease, background-color 160ms ease;
+}
+.sd-up__drop[data-over='true'] {
+  border-color: var(--color-accent);
+  background:
+    radial-gradient(circle at 50% 0%, color-mix(in srgb, var(--color-pumpkin) 28%, transparent), transparent 75%),
+    var(--color-deep);
+}
+.sd-up__drop[data-disabled='true'] { opacity: 0.6; }
+.sd-up__seal {
+  color: var(--color-gold);
+  filter: drop-shadow(0 0 8px color-mix(in srgb, var(--color-gold) 45%, transparent));
+  animation: sd-up-pulse 3.2s ease-in-out infinite;
+}
+@keyframes sd-up-pulse {
+  0%, 100% { opacity: 0.85; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.05); }
+}
+.sd-up__drop-title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.6rem;
+  color: var(--color-gold);
+}
+.sd-up__pick { position: relative; }
+.sd-up__pick:focus-within { outline: 3px solid var(--color-accent); outline-offset: 2px; }
+.sd-up__input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  border: 0;
+  white-space: nowrap;
+}
+.sd-up__formats { max-width: 30rem; }
+
+/* Chosen file and messages */
+.sd-up__file-row { display: flex; align-items: center; gap: 0.5rem; min-width: 0; }
+.sd-up__file-row svg { color: var(--color-gold); flex: none; }
+.sd-up__file-name { color: var(--color-bone); font-weight: 600; overflow-wrap: anywhere; }
+.sd-up__hint {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin: 0;
+  font-size: var(--sd-text-sm);
+  color: var(--color-ember);
+}
+.sd-up__error {
+  margin: 0;
+  font-size: var(--sd-text-sm);
+  color: color-mix(in srgb, var(--color-danger), var(--color-ink) 45%);
+}
+
+/* Topics */
+.sd-up__topics {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.sd-up__topics li {
+  display: flex;
+  flex-direction: column;
+  padding: 0.4rem 0.6rem;
+  border-left: 3px solid var(--color-gold);
+  background: color-mix(in srgb, var(--color-bg) 40%, transparent);
+}
+.sd-up__topic-name { color: var(--color-bone); font-weight: 600; }
+
+/* Result */
+.sd-up__result {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 1rem;
+  border: 1px solid var(--color-gold);
+  border-radius: 0.75rem;
+  background: linear-gradient(180deg, var(--color-panel), var(--color-surface-2));
+  box-shadow: 0 0 16px color-mix(in srgb, var(--color-gold) 28%, transparent);
+}
+.sd-up__result-h {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.9rem;
+  font-weight: 400;
+  color: var(--color-gold);
+}
+.sd-up__floors {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.sd-up__floor {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.4rem 0.6rem;
+  border-radius: 0.4rem;
+  background: var(--color-panel);
+  color: var(--color-bone);
+}
+
+/* Static under reduced motion (the OS setting and the in-app flag). */
+@media (prefers-reduced-motion: reduce) {
+  .sd-up__seal,
+  .sd-up__step[data-state='active'] .sd-up__step-mark svg { animation: none; }
+  .sd-up__drop { transition: none; }
+}
+.sd-up[data-reduced='true'] .sd-up__seal,
+.sd-up[data-reduced='true'] .sd-up__step[data-state='active'] .sd-up__step-mark svg { animation: none; }
+.sd-up[data-reduced='true'] .sd-up__drop { transition: none; }
+
+/* Narrow windows: the five steps compact to icon plus label so the row stays one line. */
+@media (max-width: 720px) {
+  .sd-up__step { grid-template-columns: 1fr; grid-template-areas: 'mark' 'label' 'state'; justify-items: center; text-align: center; }
+  .sd-up__step-label,
+  .sd-up__step-state { font-size: var(--sd-text-xs); }
+}
+@media (max-height: 700px) {
+  .sd-up__seal { width: 48px; height: 48px; }
+}

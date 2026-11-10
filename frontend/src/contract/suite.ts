@@ -18,6 +18,19 @@ export interface ContractSuiteOptions {
    * read-only and single-attempt checks and skips the full play-through (clear and finish).
    */
   correctAnswer?: (questionId: string) => string | undefined
+  /** Set to false for a client that has no accounts (the Offline_Adapter). Default true. */
+  auth?: boolean
+  /**
+   * Mock only: also run the document pipeline cases (C29). The client must finish processing quickly
+   * (a few tens of ms); the real backend needs real files and an AI provider, so it is left out.
+   */
+  uploads?: boolean
+}
+
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
+
+function textFile(name: string, bytes = 800): File {
+  return new File(['a'.repeat(bytes)], name, { type: 'text/plain' })
 }
 
 function expectSchema<K extends keyof typeof ENDPOINT_SCHEMAS>(key: K, data: unknown): void {
@@ -91,6 +104,29 @@ export function defineContractSuite(opts: ContractSuiteOptions): void {
       expect(run.monster_hp).toBe(first.monster.max_hp)
     })
 
+    it('GET /dungeons/{id} carries floors: unique ids, contiguous indexes, known rooms (a legacy backend gets one floor)', async () => {
+      const floors = dungeon.floors ?? []
+      expect(floors.length).toBeGreaterThan(0)
+      expect(new Set(floors.map((f) => f.id)).size).toBe(floors.length)
+      expect(floors.map((f) => f.index)).toEqual(floors.map((_, i) => i + 1))
+      const roomIds = new Set(dungeon.rooms.map((r) => r.id))
+      for (const f of floors) {
+        expect(f.room_ids.length).toBeGreaterThan(0)
+        for (const id of f.room_ids) expect(roomIds.has(id)).toBe(true)
+        expect(f.boss.hp).toBeGreaterThan(0)
+      }
+      if (api.capabilities?.floors === false || dungeon.floors?.[0]?.id === 'floor-legacy') {
+        expect(floors).toHaveLength(1)
+        expect(floors[0].title).toBe('The Crypt')
+      }
+    })
+
+    it('GET /dungeons/{id} generation status lists every floor with a known status', async () => {
+      const status = await api.getGenerationStatus(dungeon.id)
+      expectSchema('getGenerationStatus', status)
+      expect(status.floors.map((f) => f.id)).toEqual((dungeon.floors ?? []).map((f) => f.id))
+    })
+
     it('GET /runs/{id} rehydrates the same run (room, player HP, monster HP)', async () => {
       const again = await api.getRun(run.id)
       expectSchema('getRun', again)
@@ -115,6 +151,30 @@ export function defineContractSuite(opts: ContractSuiteOptions): void {
       expect(b).toEqual(a)
     })
 
+    it('POST /runs with a mode starts a floor run when modes are supported, else the plain dungeon run', async () => {
+      const floor = dungeon.floors![0]
+      const scoped = await api.startRun({ dungeon_id: dungeon.id, floor_id: floor.id, mode: 'floor' })
+      expectSchema('startRun', scoped)
+      expect(scoped.dungeon_id).toBe(dungeon.id)
+      if (api.capabilities?.modes !== false) {
+        expect(scoped.mode).toBe('floor')
+        expect(scoped.current_room_id).toBe(floor.room_ids[0])
+      } else {
+        // Today's backend ignores floor and mode (D18): the whole dungeon starts at its first room.
+        expect(scoped.mode).toBeUndefined()
+      }
+    })
+
+    it('GET /reviews/due without an argument returns the new shape; due_count never exceeds the items listed plus the cap', async () => {
+      const summary = await api.getDueReviews()
+      expectSchema('getDueSummary', summary)
+      expect(summary.items.length).toBeLessThanOrEqual(summary.due_count)
+      expect(summary.daily_streak).toBeGreaterThanOrEqual(0)
+      const ids = new Set(summary.items.map((i) => i.id))
+      expect(ids.size).toBe(summary.items.length)
+      for (const i of summary.items) expect(Object.keys(i.question).sort()).toEqual(['id', 'options', 'prompt', 'type'])
+    })
+
     it('GET /progress returns a positive level and total XP; xp_to_next is positive when present', async () => {
       const p = await api.getProgress()
       expectSchema('getProgress', p)
@@ -125,6 +185,26 @@ export function defineContractSuite(opts: ContractSuiteOptions): void {
       for (const w of p.weapons ?? []) expect(w.unlock_level).toBeGreaterThanOrEqual(1)
       // The dagger is always unlocked.
       if (p.unlocked_weapons !== undefined) expect(p.unlocked_weapons).toContain('rusty_dagger')
+    })
+
+    it('GET /leaderboard returns a ranked board with a me block, or is declared unsupported', async () => {
+      if (api.capabilities?.leaderboard === false) {
+        await expect(api.getLeaderboard({ dungeonId: dungeon.id, period: 'all' })).rejects.toMatchObject({ status: 501 })
+        return
+      }
+      for (const period of ['all', 'week'] as const) {
+        const board = await api.getLeaderboard({ dungeonId: dungeon.id, period, limit: 20 })
+        expectSchema('getLeaderboard', board)
+        expect(board.entries.length).toBeLessThanOrEqual(20)
+        // Ranks are 1..n in comparator order: score never rises down the list.
+        board.entries.forEach((e, i) => expect(e.rank).toBe(i + 1))
+        for (let i = 1; i < board.entries.length; i += 1) {
+          expect(board.entries[i].score).toBeLessThanOrEqual(board.entries[i - 1].score)
+        }
+        expect(new Set(board.entries.map((e) => e.id)).size).toBe(board.entries.length)
+        // me.rank and me.entry are both null or both set.
+        expect(board.me.rank === null).toBe(board.me.entry === null)
+      }
     })
 
     it('GET /reviews/due returns questions without answers; room_id is a known room or empty (another dungeon)', async () => {
@@ -174,6 +254,142 @@ export function defineContractSuite(opts: ContractSuiteOptions): void {
       expect(summary.total).toBeGreaterThanOrEqual(summary.correct)
       expect(summary.accuracy).toBeGreaterThanOrEqual(0)
       expect(summary.accuracy).toBeLessThanOrEqual(1)
+      // frontend-08 additions are optional; when present they are well formed.
+      for (const m of summary.mastery_by_topic ?? []) {
+        expect(m.mastery).toBeGreaterThanOrEqual(0)
+        expect(m.mastery).toBeLessThanOrEqual(100)
+      }
+      if (summary.floor_rank !== undefined) expect(['S', 'A', 'B', 'C']).toContain(summary.floor_rank)
+      for (const c of summary.chest_rewards ?? []) expect(c.label.length).toBeGreaterThan(0)
+      // frontend-07 Phase 5 additions are optional; when present they are well formed.
+      if (summary.leaderboard_rank !== undefined) expect(summary.leaderboard_rank).toBeGreaterThanOrEqual(1)
+      if (summary.level_up) expect(summary.level_up.to).toBeGreaterThan(summary.level_up.from)
+      for (const w of summary.weak_concepts ?? []) expect(w.text.length).toBeGreaterThan(0)
+    })
+
+    // Auth cases come last: logging out ends the guest session the cases above use.
+    describe.skipIf(opts.auth === false)('auth (C22 to C24)', () => {
+      const stamp = Date.now().toString(36)
+      const username = `Contract_${stamp}`
+      const password = 'correct-horse-9'
+
+      it('POST /auth/register returns a bare non-guest user with a lowercase username', async () => {
+        const user = await api.register({ username, password })
+        expectSchema('register', user)
+        expect(user.is_guest).toBe(false)
+        expect(user.username).toBe(username.toLowerCase())
+      })
+
+      it('POST /auth/register with a taken username is 409', async () => {
+        await expect(api.register({ username, password })).rejects.toMatchObject({ status: 409 })
+      })
+
+      it('POST /auth/register with a short password or short username is 422 with a message', async () => {
+        const weak = api.register({ username: `weak_${stamp}`, password: 'short' })
+        await expect(weak).rejects.toMatchObject({ status: 422 })
+        await expect(api.register({ username: 'ab', password })).rejects.toMatchObject({ status: 422 })
+      })
+
+      it('POST /auth/login rejects a wrong password with 401 and accepts the right one', async () => {
+        await expect(api.login({ username, password: 'not-the-password' })).rejects.toMatchObject({ status: 401 })
+        const user = await api.login({ username: username.toUpperCase(), password })
+        expectSchema('login', user)
+        expect(user.username).toBe(username.toLowerCase())
+      })
+
+      it('GET /auth/me returns the user with expires_at, and null after POST /auth/logout', async () => {
+        const me = await api.getMe()
+        expect(me).not.toBeNull()
+        expectSchema('getMe', me)
+        expect(me!.user.username).toBe(username.toLowerCase())
+        await api.logout()
+        expect(await api.getMe()).toBeNull()
+      })
+    })
+
+    // Document cases register their own user, after the auth cases ended the previous session.
+    describe.skipIf(!opts.uploads)('documents (C29)', () => {
+      const name = `docs_${Date.now().toString(36)}`
+
+      async function settled(id: string) {
+        for (let i = 0; i < 100; i += 1) {
+          const s = await api.getDocumentStatus(id)
+          if (s.status !== 'processing') return s
+          await sleep(10)
+        }
+        throw new Error('document stayed in processing')
+      }
+
+      it('POST /documents as a guest is 403 GUEST_FORBIDDEN', async () => {
+        await api.startDemoSession()
+        await expect(api.uploadDocument(textFile('notes.txt'))).rejects.toMatchObject({ status: 403, code: 'GUEST_FORBIDDEN' })
+      })
+
+      it('upload, status, topics and generate-dungeon follow the real shapes', async () => {
+        await api.register({ username: name, password: 'correct-horse-9' })
+        const sent = await api.uploadDocument(textFile('Cell biology.txt'))
+        expectSchema('uploadDocument', sent)
+        expect(sent.status).toBe('processing')
+
+        expect((await api.getDocumentStatus(sent.id)).status).toBe('processing')
+        const done = await settled(sent.id)
+        expectSchema('getDocumentStatus', done)
+        expect(done.status).toBe('accepted')
+        expect(done.chunks_count).toBeGreaterThan(0)
+        expect(done.rejection_reason).toBeNull()
+
+        const topics = await api.getDocumentTopics(sent.id)
+        expectSchema('getDocumentTopics', topics)
+        expect(topics.length).toBeGreaterThan(0)
+        expect(topics.map((t) => t.order_index)).toEqual([...topics.map((t) => t.order_index)].sort((a, b) => a - b))
+
+        const dungeon = await api.generateDungeon(sent.id)
+        expectSchema('generateDungeon', dungeon)
+        expect(dungeon.floors!.length).toBeGreaterThan(0)
+        const again = await api.getDungeon(dungeon.id)
+        expect(again.floors!.map((f) => f.id)).toEqual(dungeon.floors!.map((f) => f.id))
+        const status = await api.getGenerationStatus(dungeon.id)
+        expect(status.floors.map((f) => f.id)).toEqual(dungeon.floors!.map((f) => f.id))
+      })
+
+      it('a document that fails the relevance check is rejected with a reason and can be retried', async () => {
+        const sent = await api.uploadDocument(textFile('lunch receipt.txt'))
+        const verdict = await settled(sent.id)
+        expect(verdict.status).toBe('rejected')
+        expect((verdict.rejection_reason ?? '').length).toBeGreaterThan(0)
+        expect(verdict.chunks_count).toBe(0)
+        expect(await api.getDocumentTopics(sent.id)).toEqual([])
+        await expect(api.generateDungeon(sent.id)).rejects.toMatchObject({ status: 400, code: 'NO_CHUNKS_AVAILABLE' })
+        const retried = await api.retryDocument(sent.id)
+        expectSchema('retryDocument', retried)
+        expect(retried.status).toBe('processing')
+      })
+
+      it('retry on an accepted document is 400 NOT_RETRYABLE; an unknown document is 404', async () => {
+        const sent = await api.uploadDocument(textFile('Chemistry.txt'))
+        await settled(sent.id)
+        await expect(api.retryDocument(sent.id)).rejects.toMatchObject({ status: 400, code: 'NOT_RETRYABLE' })
+        await expect(api.getDocumentStatus('missing')).rejects.toMatchObject({ status: 404, code: 'DOCUMENT_NOT_FOUND' })
+      })
+
+      it('an oversize file is 413 FILE_TOO_LARGE and an unsupported type is 415 UNSUPPORTED_FILE_TYPE', async () => {
+        const big = textFile('big.pdf', 10)
+        Object.defineProperty(big, 'size', { value: 16 * 1024 * 1024 })
+        await expect(api.uploadDocument(big)).rejects.toMatchObject({ status: 413, code: 'FILE_TOO_LARGE' })
+        await expect(api.uploadDocument(textFile('virus.exe'))).rejects.toMatchObject({ status: 415, code: 'UNSUPPORTED_FILE_TYPE' })
+      })
+
+      it('the sixth stored document is 400 QUOTA_EXCEEDED', async () => {
+        let last: unknown = null
+        for (let i = 0; i < 6 && last === null; i += 1) {
+          try {
+            await api.uploadDocument(textFile(`extra ${i}.txt`))
+          } catch (err) {
+            last = err
+          }
+        }
+        expect(last).toMatchObject({ status: 400, code: 'QUOTA_EXCEEDED' })
+      })
     })
   })
 }

@@ -1,0 +1,155 @@
+{
+  "source": "docs/handoff/demo_dungeon.sample.json",
+  "id": "demo-dungeon",
+  "name": "Computer Systems & Architecture (Offline Demo)",
+  "rooms": [
+    {
+      "id": "room-cpu",
+      "label": "Central Processing Unit (CPU)",
+      "order": 1,
+      "is_boss": false,
+      "monster": {
+        "id": "monster-cpu",
+        "name": "Silicon Golem",
+        "kind": "gear_golem",
+        "max_hp": 80,
+        "question_ids": ["off-cpu-1", "off-cpu-2"]
+      }
+    },
+    {
+      "id": "room-storage",
+      "label": "Primary & Secondary Storage",
+      "order": 2,
+      "is_boss": false,
+      "monster": {
+        "id": "monster-storage",
+        "name": "Memory Wraith",
+        "kind": "paper_wraith",
+        "max_hp": 90,
+        "question_ids": ["off-sto-1", "off-sto-2"]
+      }
+    },
+    {
+      "id": "room-net",
+      "label": "Computer Networking & Protocols",
+      "order": 3,
+      "is_boss": false,
+      "monster": {
+        "id": "monster-net",
+        "name": "Packet Spectre",
+        "kind": "memory_eater",
+        "max_hp": 85,
+        "question_ids": ["off-net-1"]
+      }
+    },
+    {
+      "id": "room-exam",
+      "label": "The Final Architecture Exam",
+      "order": 4,
+      "is_boss": true,
+      "monster": {
+        "id": "monster-exam",
+        "name": "The Exam Warden",
+        "kind": "exam_warden",
+        "max_hp": 220,
+        "question_ids": ["off-exam-1"]
+      }
+    }
+  ],
+  "floors": [
+    { "id": "floor-1", "index": 1, "title": "The Hardware Halls", "room_ids": ["room-cpu", "room-storage"] },
+    { "id": "floor-2", "index": 2, "title": "The Packet Maze", "room_ids": ["room-net"] }
+  ],
+  "final_boss_room_id": "room-exam",
+  "questions": [
+    {
+      "id": "off-cpu-1",
+      "type": "mcq",
+      "difficulty": "easy",
+      "prompt": "Which component of the CPU carries out mathematical and logical calculations?",
+      "options": ["Control Unit", "Arithmetic Logic Unit (ALU)", "Program Counter", "Memory Data Register"]
+    },
+    {
+      "id": "off-cpu-2",
+      "type": "mcq",
+      "difficulty": "medium",
+      "prompt": "What is the primary function of CPU registers?",
+      "options": [
+        "Permanent secondary storage",
+        "High-speed temporary internal storage",
+        "Displaying pixels to monitors",
+        "Cooling down processor cores"
+      ]
+    },
+    {
+      "id": "off-sto-1",
+      "type": "mcq",
+      "difficulty": "easy",
+      "prompt": "Why is RAM classified as volatile memory?",
+      "options": [
+        "It can easily physically break",
+        "It loses its data when power is turned off",
+        "It operates at slower speeds than magnetic disks",
+        "It can only be written to once"
+      ]
+    },
+    {
+      "id": "off-sto-2",
+      "type": "mcq",
+      "difficulty": "medium",
+      "prompt": "Which technology do SSDs utilize for non-volatile storage?",
+      "options": ["Spinning magnetic platters", "Flash memory", "Cathode ray tubes", "Dynamic optical laser pits"]
+    },
+    {
+      "id": "off-net-1",
+      "type": "mcq",
+      "difficulty": "easy",
+      "prompt": "What does the Domain Name System (DNS) do on the Internet?",
+      "options": [
+        "Encrypts browser passwords",
+        "Translates domain names into numerical IP addresses",
+        "Compresses web images",
+        "Blocks unauthorized network ports"
+      ]
+    },
+    {
+      "id": "off-exam-1",
+      "type": "mcq",
+      "difficulty": "hard",
+      "prompt": "In von Neumann computer architecture, which subsystem interconnects the CPU, memory, and I/O devices?",
+      "options": ["System Bus", "Power Supply Unit", "Audio Codec", "Cooling Heatsink"]
+    }
+  ],
+  "answers": {
+    "off-cpu-1": {
+      "correct_option": 1,
+      "evidence_quote": "The Arithmetic Logic Unit (ALU) performs basic mathematical arithmetic and logic operations.",
+      "explanation": "The ALU is responsible for calculations and boolean evaluations inside the CPU."
+    },
+    "off-cpu-2": {
+      "correct_option": 1,
+      "evidence_quote": "Registers provide fast, temporary storage directly inside the processor.",
+      "explanation": "Registers are tiny, ultra-fast memory cells located within the CPU core."
+    },
+    "off-sto-1": {
+      "correct_option": 1,
+      "evidence_quote": "Random Access Memory (RAM) is volatile main memory that loses all stored data when electrical power is disconnected.",
+      "explanation": "Volatile memory requires continuous electrical power to preserve stored bits."
+    },
+    "off-sto-2": {
+      "correct_option": 1,
+      "evidence_quote": "Solid State Drives (SSDs) utilize flash memory to retain non-volatile data persistently across reboots.",
+      "explanation": "SSDs use semiconductor flash memory instead of spinning magnetic disks."
+    },
+    "off-net-1": {
+      "correct_option": 1,
+      "evidence_quote": "Domain Name System (DNS) translates human-readable domain names into numerical IP addresses.",
+      "explanation": "DNS acts as the phonebook of the internet."
+    },
+    "off-exam-1": {
+      "correct_option": 0,
+      "evidence_quote": "A complete von Neumann computer architecture tightly integrates the processor, main memory, and input/output mechanisms via system buses to execute algorithms reliably.",
+      "explanation": "System buses carry address, data, and control signals between components."
+    }
+  }
+}

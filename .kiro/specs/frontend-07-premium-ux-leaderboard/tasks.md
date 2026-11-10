@@ -255,174 +255,174 @@ Rules for every task:
     - Run typecheck, lint, tests, contract tests and build; record fps and particle counts with 3 revenants present; update kiro log
     - _Requirements: 20.1, 20.2, 20.7, 1.8_
 
-- [ ] 10. STOP: Phase 4 checkpoint, revenants review
+- [x] 10. STOP: Phase 4 checkpoint, revenants review
   - Summarize the changes. Tell the user to answer a question wrong, clear the room monster and see the revenant, and to start the app with `VITE_MOCK_SEED_REVENANTS=true` to see three at once. Check the counter, the intro line and the rest effect. Wait for approval, then commit Phase 4 separately.
   - _Requirements: 20.6, 20.8_
 
-- [ ] 11. Phase 5: Scorecard, leaderboard and dashboard
+- [x] 11. Phase 5: Scorecard, leaderboard and dashboard
   - Dependency note: depends on frontend-08 P1-P2 (Floors, `floor_rank`, `mastery_by_topic`, `chest_rewards`, `Mastery_Band`). Build on the floor and mastery model; see frontend-08 design.md "Build order". Do not redefine those types here and do not duplicate frontend-08 work.
-  - [ ] 11.1 Add leaderboard, run summary and progress additions through the contract
+  - [x] 11.1 Add leaderboard, run summary and progress additions through the contract
     - Add `LeaderboardEntry`, `LeaderboardResponse`, `ApiClient.getLeaderboard`, schemas, fixtures, contract cases; add PROPOSED `RunSummary` fields (`badges_earned`, `leaderboard_rank`, `weapon_unlocked`, `level_up`, `topic_mastery`, `weak_concepts`) and PROPOSED progress fields (`badges`, `recent_runs`)
     - Create `src/api/mock/mockLeaderboard.ts` with 8 seeded Ghost_Rivals and ranking of the player's finished runs
     - Create the badge catalog `src/badges/badges.ts` and `src/badges/BadgeGrid.tsx` (ids, labels, icons from lucide-react)
     - Floors note: `mastery_by_topic` (frontend-08 P1) supersedes the PROPOSED `topic_mastery` shape; reuse the frontend-08 `RunSummary` additions (`floor_rank`, `chest_rewards`) instead of adding duplicates, and use the wire mappers from frontend-08 task 3.1
     - _Requirements: 11.9, 17.8, 17.9, 15.1_
 
-  - [ ] 11.2 Implement ranking, provisional rank and board view
+  - [x] 11.2 Implement ranking, provisional rank and board view
     - Create `src/leaderboard/ranking.ts` (comparator, `rankEntries`), `src/leaderboard/provisional.ts` (`insertProvisional`), `src/leaderboard/view.ts` (`buildBoardView` with pinned me row and rival labels)
     - _Requirements: 11.5, 11.6, 11.7, 11.9_
 
-  - [ ]* 11.3 Write property tests for the leaderboard
+  - [x]* 11.3 Write property tests for the leaderboard
     - **Property 14: Ranking is a total, permutation-invariant order**
     - **Property 15: Provisional rank insertion**
     - **Property 16: Board view pins me and labels rivals**
     - Create `src/leaderboard/leaderboard.property.test.ts`
     - **Validates: Requirements 11.5, 11.6, 11.7, 11.9**
 
-  - [ ] 11.4 Implement polling
+  - [x] 11.4 Implement polling
     - Create `src/leaderboard/useLeaderboard.ts` (fetch on mount, every 30 s only while mounted and visible, clears on unmount, keeps old rows on a failed poll, exposes loading, empty and error states); add a fake-timer test; no websockets
     - _Requirements: 11.10, 11.11, 11.12_
 
-  - [ ] 11.5 Build the Leaderboard screen
+  - [x] 11.5 Build the Leaderboard screen
     - Create `src/leaderboard/LeaderboardPage.tsx`, `Podium.tsx`, `Row.tsx`, `Avatar.tsx` (themed avatar by kind), tabs All-time and This week, top-3 podium, rows with rank, avatar, name, level, score, accuracy, best streak and badge icons, pinned highlighted me row, guest call to action "Create an account to claim your spot", "Ghost Rival - demo" labels, skeleton, empty and error states; add the `/leaderboard` route readable by guests; personal dungeons show only the player's own best runs
     - _Requirements: 11.1, 11.2, 11.3, 11.4, 11.6, 11.8, 11.9, 11.11_
 
-  - [ ] 11.6 Implement mastery and count-up logic
+  - [x] 11.6 Implement mastery and count-up logic
     - Floors note: `classifyMastery` must re-export or delegate to `masteryBand` from `src/learning/mastery.ts` (frontend-08 task 3.9) so there is one set of band boundaries
     - Create `src/scorecard/mastery.ts` (`classifyMastery`) and `src/scorecard/useCountUp.ts` with pure `countUpValue`
     - _Requirements: 10.1, 10.3, 10.9_
 
-  - [ ]* 11.7 Write property tests for mastery and count-up
+  - [x]* 11.7 Write property tests for mastery and count-up
     - **Property 12: Mastery bands**
     - **Property 13: Count-up is monotone and ends at the target**
     - Create `src/scorecard/scorecard.property.test.ts`
     - **Validates: Requirements 10.1, 10.3, 10.9**
 
-  - [ ] 11.8 Build the Scorecard
+  - [x] 11.8 Build the Scorecard
     - Floors note: scope the Scorecard to a Floor run; show `floor_rank` and `mastery_by_topic` bars (use `MasteryBar` from frontend-08 task 5.5) and leave a slot for the frontend-08 Chest (P5) and rank reveal; return to the Floor_Map after the run
     - Create `src/scorecard/Scorecard.tsx` replacing `VictoryOverlay`: score count-up, accuracy ring, XP bar with level-up effect, weapon unlocked, badges earned, topic mastery bars with Weak, Learning and Strong labels (text plus color), weak concepts with Source_Line, animated rank reveal, buttons Play again, View leaderboard, Share card (opens the Phase 7 dialog; disabled with a tooltip until then) and Create account for guests; finishRun failure shows an error with Retry; results and rank announced in the aria-live region
     - Update `usePlaySession.ts`, `PlayPage.tsx` and tests
     - _Requirements: 10.1, 10.2, 10.3, 10.4, 10.5, 10.6, 10.7, 10.8, 10.9, 10.10, 19.8_
 
-  - [ ] 11.9 Build the Dashboard
+  - [x] 11.9 Build the Dashboard
     - Floors note: Continue Dungeon opens the frontend-08 Floor_Map (`/campaign/:dungeonId`) and its Continue shortcut; show Mastery_Bars per Floor/Topic; reserve the Daily Haunt button area (added by frontend-08 P3, task 7.4)
     - Create `src/pages/DashboardPage.tsx` and `src/dashboard/*`: level and XP bar, Continue Dungeon, Play Demo (starts the demo session), top-5 preview with "you" highlighted, recent runs, `HauntedCounter`, `BadgeGrid`, `Armory`, links to upload and settings; skeletons while pending, error card with Retry; guest variant with demo card, provisional stats and call to action; add the `/dashboard` route and make `LandingPage` link to it
     - _Requirements: 12.1, 12.2, 12.3, 12.4, 12.5, 7.5, 9.4_
 
-  - [ ] 11.10 Verify and log Phase 5
+  - [x] 11.10 Verify and log Phase 5
     - Run typecheck, lint, tests, contract tests and build; record fps for the Scorecard animations; update kiro log
     - _Requirements: 20.1, 20.2, 20.7, 1.8_
 
-- [ ] 12. STOP: Phase 5 checkpoint, scorecard, leaderboard and dashboard review
+- [x] 12. STOP: Phase 5 checkpoint, scorecard, leaderboard and dashboard review
   - Summarize the changes. Tell the user to finish a run to see the Scorecard, open `/leaderboard` as guest and as a player, switch tabs, wait 30 s to see a refresh in the network panel, and open `/dashboard`. Wait for approval, then commit Phase 5 separately.
   - _Requirements: 20.6, 20.8_
 
-- [ ] 13. Phase 6: Auth and offline demo fallback
+- [x] 13. Phase 6: Auth and offline demo fallback
   - Dependency note: depends on frontend-08 P1-P2 (floors data model, Floor_Map); build the offline demo with floors; see frontend-08 design.md "Build order". The real auth bodies are bare objects (not `{user: ...}`), logout is 200 `{success: true}`, and `/auth/me` returns `expires_at`; see frontend-08 design.md C22 to C24, C27.
-  - [ ] 13.1 Add auth through the contract
+  - [x] 13.1 Add auth through the contract
     - Reconciliation note: use the real Backend shapes (frontend-08 C22) in schemas, mock and fixtures; username 3 to 32 and password 8 to 128 (C23); handle the 422 array detail (C24)
     - Add `Credentials`, `ApiClient.register`, `login`, `logout`, `getMe`, schemas, fixtures, contract cases and `src/api/mock/mockAuth.ts` (in-memory table, 401/409/422/429 simulation); cookie session only, no token storage
     - _Requirements: 13.5, 17.8, 17.9_
 
-  - [ ] 13.2 Implement auth validation and error mapping
+  - [x] 13.2 Implement auth validation and error mapping
     - Create `src/auth/validation.ts` (username 3 to 20 letters/digits/underscore, register password 10 to 72 with a letter and a digit, login password non-empty), `src/auth/errors.ts` (`mapAuthError` for 401, 409, 422, 429, 5xx) and `src/auth/retryAfter.ts` (`parseRetryAfter`, default 10)
     - _Requirements: 13.3, 13.4, 13.7_
 
-  - [ ]* 13.3 Write property test for auth helpers
+  - [x]* 13.3 Write property test for auth helpers
     - **Property 17: Auth validation and messages**
     - Create `src/auth/auth.property.test.ts`
     - **Validates: Requirements 13.1, 13.3, 13.4, 13.7**
 
-  - [ ] 13.4 Build the Login and Register screens
+  - [x] 13.4 Build the Login and Register screens
     - Create `src/auth/LoginPage.tsx` and `RegisterPage.tsx` replacing `LoginPlaceholder.tsx`: exactly two fields, show/hide password, themed layout, field-level messages, friendly status errors, submit disabled for Retry-After, navigate to the Dashboard on success; extend `SessionContext` with `getMe` on load
     - Add tests including empty `localStorage` and `sessionStorage` after login
     - _Requirements: 13.1, 13.2, 13.3, 13.4, 13.5, 13.6, 13.7_
 
-  - [ ] 13.5 Build the Waking up loader
+  - [x] 13.5 Build the Waking up loader
     - Reconciliation note: the loader pings `GET /health` (`{status: "healthy"}`) with backoff, then calls `POST /demo/session` (A-to-B Day 3); copy reads "Waking up the dungeon..."
     - Create `src/pages/WakingUp.tsx` with rotating tips and `src/state/useDemoStart.ts` (8 s timer offers the Offline demo while the request continues; late success ignored after Offline is chosen); add `setApiOverride` to `src/api/index.ts`; use it from the Landing page demo start; add the dev-only `VITE_MOCK_DELAY_MS` option passed to the mock adapter's `delayMs` for `startDemoSession`; keep the guest banner text "Playing as guest. Progress is temporary. Create an account to save." in `GuestBanner.tsx`
     - _Requirements: 14.1, 14.2, 14.3, 14.8_
 
-  - [ ] 13.6 Build the Offline_Module
+  - [x] 13.6 Build the Offline_Module
     - Floors note: serve 2 Floors plus the Final_Boss from `docs/handoff/demo_dungeon.sample.json` (Floor 1 = CPU and Storage, Floor 2 = Networking, Final_Boss = The Exam Warden; frontend-08 D13); the offline adapter implements the frontend-08 floors surface (`floors`, `startRun` with `floor_id`, `floor_rank`, `mastery_by_topic`) using the shared pure helpers (`drawQuestions`, `masteryBand`, `rankFor`) and is labeled offline; the sample bundles correct answers for offline play only
     - Create `src/offline/index.ts` (exports `createOfflineAdapter`), `adapter.ts`, `rules.ts` (wraps `src/demo/rules.ts` profiles and `applyAnswer`; injected clock and ids, no `Math.random`), `rivals.ts` (8 bundled Ghost_Rivals), `demoDungeon.json` (copy of the placeholder; note in B-to-A.md that `demo_dungeon.sample.json` will replace it when supplied); shell label "Offline demo - progress is not saved"; loaded only via dynamic `import('@/offline')` in the explicit choice handler
     - _Requirements: 14.3, 14.4, 14.5, 14.6, 14.7, 1.2_
 
-  - [ ]* 13.7 Write property tests for the Offline_Module
+  - [x]* 13.7 Write property tests for the Offline_Module
     - **Property 18: Offline rules conform to the game rules**
     - **Property 19: Offline determinism**
     - Create `src/offline/offline.property.test.ts` with a reference model of the working rules
     - **Validates: Requirements 14.5, 1.2**
 
-  - [ ] 13.8 Add boundary tests
+  - [x] 13.8 Add boundary tests
     - Create `src/test/boundary.test.ts` that fails when any file outside `src/offline/**` and tests statically imports `src/offline`, and extend `src/game/importBoundary.test.ts` to also forbid `offline` and `leaderboard` imports from `src/game`; add the Offline label and banner render tests
     - _Requirements: 14.7, 20.4, 20.5, 1.4_
 
-  - [ ] 13.9 Verify and log Phase 6
+  - [x] 13.9 Verify and log Phase 6
     - Run typecheck, lint, tests, contract tests and build; confirm the production build keeps `src/offline` in a separate chunk; update kiro log
     - _Requirements: 20.1, 20.7, 14.7, 1.8_
 
-- [ ] 14. STOP: Phase 6 checkpoint, auth and offline review
+- [x] 14. STOP: Phase 6 checkpoint, auth and offline review
   - Summarize the changes. Tell the user to register and log in on the mock (try a short password, a taken username, and the mock 429 trigger), then simulate a slow server (set `VITE_MOCK_DELAY_MS=12000` as added in 13.5) to see the loader and the Offline demo choice. Wait for approval, then commit Phase 6 separately.
   - _Requirements: 20.6, 20.8_
 
-- [ ] 15. Phase 7: Badges, lore and share card
+- [x] 15. Phase 7: Badges, lore and share card
   - Dependency note: depends on frontend-08 P1-P5 (floors, mastery, ranks, `chest_rewards`); see frontend-08 design.md "Build order". The intro story built here is merged with the frontend-08 P6 tutorial into one first-run flow (flag keys `sd.introSeen` and `sd.tutorialSeen`); build the story as a reusable step so frontend-08 task 13.2 can compose it.
-  - [ ] 15.1 Implement badge rules and wire them into mock and offline
+  - [x] 15.1 Implement badge rules and wire them into mock and offline
     - Floors note: badge rules may use floor data (floor clear, `floor_rank` S, mastery Strong); in the Http_Client path badges come only from `badges_earned`; chest badge rewards come from `chest_rewards`
     - Create `src/badges/rules.ts` (`evaluateBadges`, D19 flag for speed_reader); use it in the Mock_Adapter and the Offline_Module summaries (`badges_earned`, memory_keeper after 3 revenants); the Http_Client path displays only the backend list
     - _Requirements: 15.1, 15.2, 15.3_
 
-  - [ ]* 15.2 Write property test for badge rules
+  - [x]* 15.2 Write property test for badge rules
     - **Property 20: Badge rules**
     - Create `src/badges/rules.property.test.ts`
     - **Validates: Requirements 15.1, 15.2, 15.3**
 
-  - [ ] 15.3 Add the intro story and taunt lines
+  - [x] 15.3 Add the intro story and taunt lines
     - Create `src/lore/intro.ts` and `src/lore/IntroStory.tsx` (skippable, shown once per browser using `sd.introSeen`, text only, Reduced_Motion respected); mount it before the first run; encounter taunts already come from `lines.json`
     - _Requirements: 15.4_
 
-  - [ ] 15.4 Build the share card
+  - [x] 15.4 Build the share card
     - Floors note: the card may show the Floor reached, `floor_rank` and the notes conquered percent (measured numbers only, no memorization claims)
     - Create `src/share/renderShareCard.ts` (1200x630 canvas with score, rank, badges, dungeon name; awaits `document.fonts.load` for the @fontsource families), `src/share/postText.ts` (`buildPostText` starting with `#KiroweenHackathon26`), `src/share/ShareDialog.tsx` (Download PNG, Copy post text, selectable fallback textarea on clipboard rejection, error on null blob); enable the Scorecard Share card button
     - _Requirements: 15.5, 15.6, 15.7, 15.8, 15.9_
 
-  - [ ]* 15.5 Write property test for the post text
+  - [x]* 15.5 Write property test for the post text
     - **Property 21: Share post text**
     - Create `src/share/postText.property.test.ts`
     - **Validates: Requirements 15.7**
 
-  - [ ] 15.6 Add share and lore tests
+  - [x] 15.6 Add share and lore tests
     - Add tests for the clipboard rejection fallback, a source scan that fails on remote URLs, `fetch(` or remote images in `src/share/**`, and the intro shown once
     - _Requirements: 15.4, 15.8, 15.9_
 
-  - [ ] 15.7 Verify and log Phase 7
+  - [x] 15.7 Verify and log Phase 7
     - Run typecheck, lint, tests, contract tests and build; update kiro log and `ASSETS_LICENSES.md`
     - _Requirements: 20.1, 20.7, 1.8_
 
-- [ ] 16. STOP: Phase 7 checkpoint, badges, lore and share review
+- [x] 16. STOP: Phase 7 checkpoint, badges, lore and share review
   - Summarize the changes. Tell the user to clear localStorage key `sd.introSeen` to replay the intro, finish a run, earn badges, open Share card, download the PNG and paste the copied text. Wait for approval, then commit Phase 7 separately.
   - _Requirements: 20.6, 20.8_
 
-- [ ] 17. Phase 8 (optional): Upload wizard
+- [x] 17. Phase 8 (optional): Upload wizard
   - Dependency note: depends on frontend-08 P1-P2; reuse the frontend-08 floor-generation status UI (`useGenerationStatus`, generating and failed node states) for progress. The real endpoints are `POST /documents`, `GET /documents/{id}/status`, `GET /documents/{id}/topics` and `POST /documents/{id}/generate-dungeon` (frontend-08 design.md C29); they supersede the PROPOSED `POST /uploads`.
-  - [ ]* 17.1 Add the upload contract and mock
+  - [x]* 17.1 Add the upload contract and mock
     - Add PROPOSED `uploadNotes` to the ApiClient, schemas, fixtures and mock steps (reading, extracting, relevance check, topic detection); accepted formats text read from one constant marked pending until `api-contract.md` is published
     - _Requirements: 16.2, 17.8, 17.9_
 
-  - [ ]* 17.2 Build the upload wizard
+  - [x]* 17.2 Build the upload wizard
     - Create `src/upload/UploadWizard.tsx`: drag and drop plus file picker, accepted formats text, progress steps, relevance result with the rejection reason, detected topics; route from the Dashboard link
     - _Requirements: 16.1, 16.2, 16.3_
 
-  - [ ]* 17.3 Hide the wizard for guests and test it
+  - [x]* 17.3 Hide the wizard for guests and test it
     - Show "Create an account to upload your own notes" for guests; add component tests for drag and drop, rejection reason and guest state
     - _Requirements: 16.4, 16.1, 16.3_
 
-  - [ ]* 17.4 Verify and log Phase 8
+  - [x]* 17.4 Verify and log Phase 8
     - Run typecheck, lint, tests, contract tests and build; update kiro log
     - _Requirements: 20.1, 20.7, 1.8_
 
-- [ ] 18. STOP: Phase 8 checkpoint, final review
+- [x] 18. STOP: Phase 8 checkpoint, final review
   - Summarize the changes and the whole feature. Give the user the final checks: all commands green, `npm run test:contract` on the mock, and the steps to switch to the real API (`VITE_USE_MOCKS=false`, `VITE_API_BASE_URL=<url>`, rerun `npm run test:contract` and fix what it reveals). Wait for approval, then commit Phase 8 separately and ask about merging.
   - _Requirements: 17.6, 17.10, 20.6, 20.8_
 

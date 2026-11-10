@@ -10,6 +10,7 @@ const EXPECTED: Record<string, ThemeId> = {
   toxic_slime: 'witch_lab',
   gear_golem: 'clockwork_crypt',
   memory_eater: 'pumpkin_workshop',
+  revenant: 'haunted_hall',
 }
 const KNOWN = Object.keys(EXPECTED)
 

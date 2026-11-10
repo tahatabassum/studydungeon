@@ -64,6 +64,11 @@ export class WeaponFxSystem {
     return this.pool.activeCount
   }
 
+  /** Pooled Graphics created so far (high-water mark; for the debug report). */
+  get createdCount(): number {
+    return this.pool.createdCount + this.flashes.createdCount
+  }
+
   /**
    * Plays the strike for `weaponId` (unknown or absent gives the dagger) on the target.
    * `side` is -1 when the player stands left of the monster, 1 when right; shots come from that side.

@@ -49,6 +49,15 @@ export type ToGameEvent =
    * at most 3, and never block the gate. An empty list clears any shown Revenants.
    */
   | { type: 'spawn-revenants'; roomId: string; revenants: RevenantSpawn[] }
+  /** Additive, display-only: the combo tier (0 to 4) from the Backend streak; Phaser tints the player aura. */
+  | { type: 'set-combo'; tier: 0 | 1 | 2 | 3 | 4 }
+  /**
+   * Additive, display-only: the boss in this room was just defeated. The scene plays the death sequence
+   * when the killing blow lands and answers with `boss-death-done`.
+   */
+  | { type: 'play-boss-death'; roomId: string }
+  /** Additive, display-only: a burst of coins or soul gems (at a world position, else at the player). */
+  | { type: 'loot-burst'; x?: number; y?: number }
 
 export type FromGameEvent =
   | { type: 'ready' }
@@ -63,6 +72,8 @@ export type FromGameEvent =
   | { type: 'revenant-engaged'; revenantId: string }
   /** Additive: a Revenant was laid to rest after a correct answer (the "memory laid to rest" effect played). */
   | { type: 'revenant-rested'; revenantId: string }
+  /** Additive: the boss death sequence ended (React then shows the Scorecard and the Chest). */
+  | { type: 'boss-death-done'; roomId: string }
 
 export interface GameBridge {
   /** React side: send an event to the game. Queued until the game is ready. */

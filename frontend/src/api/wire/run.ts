@@ -1,5 +1,6 @@
 import { z } from 'zod'
 import type { ClearRoomResponse, Run, RunSummary } from '../../types/api'
+import { chestRewardSchema, floorRankSchema } from '../schemas'
 
 /** `POST /runs` (201) and `GET /runs/{id}`: RunDetailResponse (C8, C21). */
 export const wireRunRoomSchema = z.object({
@@ -70,6 +71,10 @@ export const wireFinishSchema = z.object({
   accuracy: z.number().min(0).max(1),
   mastery_band: z.string(),
   status: z.string().optional(),
+  // PROPOSED (frontend-08): absent on today's backend.
+  floor_rank: floorRankSchema.optional(),
+  mastery_by_topic: z.array(z.object({ topic_id: z.string(), title: z.string(), mastery: z.number() })).optional(),
+  chest_rewards: z.array(chestRewardSchema).optional(),
 })
 
 export function mapFinish(w: z.output<typeof wireFinishSchema>): RunSummary {
@@ -80,5 +85,8 @@ export function mapFinish(w: z.output<typeof wireFinishSchema>): RunSummary {
     total: w.total_attempts,
     accuracy: w.accuracy,
     mastery_band: w.mastery_band,
+    ...(w.floor_rank !== undefined ? { floor_rank: w.floor_rank } : {}),
+    ...(w.mastery_by_topic !== undefined ? { mastery_by_topic: w.mastery_by_topic } : {}),
+    ...(w.chest_rewards !== undefined ? { chest_rewards: w.chest_rewards } : {}),
   }
 }

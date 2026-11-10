@@ -1,19 +1,25 @@
 import type { z } from 'zod'
 import type { ApiCapabilities, ApiClient } from './ApiClient'
 import { ContractError, formatIssuePath } from './ContractError'
-import { ApiError, parseErrorBody } from './errors'
-import type { AnswerResult, Dungeon, ProgressInfo } from '../types/api'
+import { ApiError, parseErrorBody, type ApiErrorExtra } from './errors'
+import type { AnswerResult, DueReview, Dungeon, ProgressInfo } from '../types/api'
 import { bestWeaponAmong, weaponNameFromId } from '../weapons/weapons'
 import {
   WIRE_ENDPOINTS,
   mapAttempt,
   mapClear,
   mapDemoSession,
+  mapDocumentStatus,
+  mapDocumentTopics,
+  mapDocumentUpload,
   mapDueReviews,
+  mapDueSummary,
   mapDungeon,
   mapFinish,
+  mapMe,
   mapProgress,
   mapRun,
+  mapUser,
   unlockedWeaponIds,
   type WireRun,
 } from './wire'
@@ -26,18 +32,23 @@ export const HTTP_CAPABILITIES: ApiCapabilities = Object.freeze({
   floors: false,
   modes: false,
   dailyHaunt: false,
+  leaderboard: false,
 })
 
-async function errorParts(res: Response): Promise<{ message: string; code?: string }> {
+async function errorParts(res: Response): Promise<{ message: string; code?: string; extra: ApiErrorExtra }> {
+  const extra: ApiErrorExtra = {}
+  const retryAfter = res.headers?.get?.('Retry-After')
+  if (retryAfter) extra.retryAfter = retryAfter
   try {
     const parsed = parseErrorBody(await res.json())
-    const out: { message: string; code?: string } = { message: parsed.message ?? res.statusText }
+    const out: { message: string; code?: string; extra: ApiErrorExtra } = { message: parsed.message ?? res.statusText, extra }
     if (parsed.code !== undefined) out.code = parsed.code
+    if (parsed.fields !== undefined) extra.fields = parsed.fields
     return out
   } catch {
     // body is not JSON; fall through
   }
-  return { message: res.statusText }
+  return { message: res.statusText, extra }
 }
 
 /** What the client remembers about a run: the wire does not repeat these values in every response. */
@@ -58,6 +69,12 @@ export function createHttpClient(baseUrl: string, fetchImpl: typeof fetch = fetc
   const runs = new Map<string, RunCtx>()
   /** Weapon ids the backend reported as unlocked in GET /progress (the dagger until then). */
   let unlockedWeapons: string[] = ['rusty_dagger']
+  /** D26: starts as HTTP_CAPABILITIES (all off) and turns a flag on only when the backend proves it. */
+  let caps: ApiCapabilities = HTTP_CAPABILITIES
+
+  async function dueList(): Promise<DueReview[]> {
+    return mapDueReviews(await request('getDueReviews', 'GET', '/reviews/due'), (q) => roomOfQuestion.get(q))
+  }
 
   async function request<K extends EndpointKey>(
     key: K,
@@ -68,18 +85,20 @@ export function createHttpClient(baseUrl: string, fetchImpl: typeof fetch = fetc
     const { endpoint, schema } = WIRE_ENDPOINTS[key]
     let res: Response
     try {
+      // A FormData body is multipart: the browser sets the Content-Type with its boundary.
+      const multipart = typeof FormData !== 'undefined' && body instanceof FormData
       res = await fetchImpl(`${base}${path}`, {
         method,
         credentials: 'include',
-        headers: { Accept: 'application/json', 'Content-Type': 'application/json' },
-        ...(body !== undefined ? { body: JSON.stringify(body) } : {}),
+        headers: multipart ? { Accept: 'application/json' } : { Accept: 'application/json', 'Content-Type': 'application/json' },
+        ...(body !== undefined ? { body: multipart ? (body as FormData) : JSON.stringify(body) } : {}),
       })
     } catch {
       throw new ApiError(0, 'Network error')
     }
     if (!res.ok) {
-      const { message, code } = await errorParts(res)
-      throw new ApiError(res.status, message, code)
+      const { message, code, extra } = await errorParts(res)
+      throw new ApiError(res.status, message, code, extra)
     }
     let data: unknown
     try {
@@ -107,7 +126,10 @@ export function createHttpClient(baseUrl: string, fetchImpl: typeof fetch = fetc
   }
 
   async function loadDungeon(id: string): Promise<Dungeon> {
-    const dungeon = mapDungeon(await request('getDungeon', 'GET', `/dungeons/${enc(id)}`))
+    const wireDungeon = await request('getDungeon', 'GET', `/dungeons/${enc(id)}`)
+    // D26: floors exist only when the backend sent them (the legacy single Floor is built by the mapper).
+    if (wireDungeon.floors && wireDungeon.floors.length > 0 && !caps.floors) caps = Object.freeze({ ...caps, floors: true })
+    const dungeon = mapDungeon(wireDungeon)
     dungeonsSeen.add(dungeon.id)
     for (const room of dungeon.rooms) for (const qid of room.monster.question_ids) roomOfQuestion.set(qid, room.id)
     return dungeon
@@ -135,13 +157,36 @@ export function createHttpClient(baseUrl: string, fetchImpl: typeof fetch = fetc
   }
 
   return {
-    capabilities: HTTP_CAPABILITIES,
+    get capabilities() {
+      return caps
+    },
 
     startDemoSession: async () => mapDemoSession(await request('startDemoSession', 'POST', '/demo/session')),
 
+    // Auth (C22): bare bodies, the session is the httpOnly cookie. Nothing is kept in JS storage.
+    register: async (credentials) => mapUser(await request('register', 'POST', '/auth/register', credentials)),
+
+    login: async (credentials) => mapUser(await request('login', 'POST', '/auth/login', credentials)),
+
+    logout: async () => {
+      await request('logout', 'POST', '/auth/logout')
+    },
+
+    getMe: async () => {
+      try {
+        return mapMe(await request('getMe', 'GET', '/auth/me'))
+      } catch (err) {
+        // No session cookie (or an expired one) is the normal "signed out" answer, not a failure.
+        if (err instanceof ApiError && err.status === 401) return null
+        throw err
+      }
+    },
+
     getDungeon: (id) => loadDungeon(id),
 
-    startRun: async (dungeonId) => {
+    startRun: async (request_) => {
+      // D18: floor_id and mode are not sent until the backend supports them.
+      const dungeonId = typeof request_ === 'string' ? request_ : request_.dungeon_id
       const wire = await request('startRun', 'POST', '/runs', { dungeon_id: dungeonId })
       rememberRun(wire)
       return mapRun(wire)
@@ -199,6 +244,44 @@ export function createHttpClient(baseUrl: string, fetchImpl: typeof fetch = fetc
     getProgress: () => loadProgress(),
 
     // The backend list is global (no dungeon filter): room_id is resolved against the loaded dungeon.
-    getDueReviews: async () => mapDueReviews(await request('getDueReviews', 'GET', '/reviews/due'), (q) => roomOfQuestion.get(q)),
+    getDueReviews: (async (dungeonId?: string) => {
+      const items = await dueList()
+      // Thin adapter: with a dungeon id the old bare-array shape, without one the new shape.
+      return dungeonId === undefined ? mapDueSummary(items) : items
+    }) as ApiClient['getDueReviews'],
+
+    // Today's backend has no per-floor status: report the floors of the dungeon as mapped.
+    getGenerationStatus: async (dungeonId) => {
+      const d = await loadDungeon(dungeonId)
+      return { dungeon_id: d.id, floors: (d.floors ?? []).map((f) => ({ id: f.id, status: f.status })) }
+    },
+
+    retryFloor: async () => {
+      throw new ApiError(501, 'Retrying a floor is not supported yet.', 'UNSUPPORTED')
+    },
+
+    // Documents (C29): the real upload pipeline.
+    uploadDocument: async (file) => {
+      const form = new FormData()
+      form.append('file', file, file.name)
+      return mapDocumentUpload(await request('uploadDocument', 'POST', '/documents', form))
+    },
+
+    getDocumentStatus: async (id) => mapDocumentStatus(await request('getDocumentStatus', 'GET', `/documents/${enc(id)}/status`)),
+
+    getDocumentTopics: async (id) => mapDocumentTopics(await request('getDocumentTopics', 'GET', `/documents/${enc(id)}/topics`)),
+
+    generateDungeon: async (id) => {
+      const dungeon = mapDungeon(await request('generateDungeon', 'POST', `/documents/${enc(id)}/generate-dungeon`))
+      dungeonsSeen.add(dungeon.id)
+      return dungeon
+    },
+
+    retryDocument: async (id) => mapDocumentUpload(await request('retryDocument', 'POST', `/documents/${enc(id)}/retry`)),
+
+    // The backend has no leaderboard endpoint yet (capabilities.leaderboard is false); the UI never calls this.
+    getLeaderboard: async () => {
+      throw new ApiError(501, 'The leaderboard is not available yet.', 'UNSUPPORTED')
+    },
   }
 }

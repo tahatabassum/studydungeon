@@ -1,0 +1,746 @@
+/*
+ * Floor map: a horizontal winding glowing path, stone-and-parchment floor cards, fog over locked floors.
+ * DOM, SVG and CSS only. Everything that moves is a CSS transform or opacity (no per-frame JS) and
+ * stops under prefers-reduced-motion (global rule) and under data-reduced="true" (in-app flag).
+ *
+ * Layout: header row, toolbar row, then the map filling the rest of the viewport (flex: 1, min-height: 0).
+ * The page never scrolls; only the map scrolls, sideways. Below about 1100x560 the whole screen may
+ * scroll inside itself with a thin themed scrollbar.
+ */
+
+.sd-map {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  height: 100dvh;
+  overflow: hidden;
+  color: var(--color-ink);
+  font-family: var(--font-body);
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-witch) transparent;
+}
+
+.sd-map__atmosphere {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+.sd-map__atmosphere .sd-moon {
+  /* Low in the sky behind the map, so it never sits under the header buttons. */
+  top: auto;
+  bottom: 7%;
+  right: 4%;
+  opacity: 0.4;
+  width: clamp(5rem, 12vw, 9rem);
+}
+.sd-map__vignette {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at 50% 40%, transparent 50%, rgb(0 0 0 / 0.55) 100%);
+}
+
+/* ---------- Header row ---------- */
+
+.sd-map__header {
+  position: relative;
+  z-index: 5;
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.25rem 1.5rem;
+  width: 100%;
+  padding: max(clamp(0.3rem, 1.2vh, 0.8rem), env(safe-area-inset-top, 0px)) clamp(0.75rem, 3vw, 2.5rem) 0;
+}
+.sd-map__lead {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  min-width: 0;
+  flex: 1 1 24rem;
+}
+.sd-map__actions {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.5rem 1rem;
+}
+.sd-map__back {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  min-height: clamp(1.6rem, 3.6vh, 2.5rem);
+  font-family: var(--font-label);
+  font-size: var(--sd-text-sm);
+  color: var(--color-ink-muted);
+  text-decoration: none;
+  border-radius: 0.375rem;
+}
+.sd-map__back:hover {
+  color: var(--color-ink);
+  text-decoration: underline;
+}
+.sd-map__back:focus-visible,
+.sd-map__continue:focus-visible {
+  outline: 3px solid var(--color-accent);
+  outline-offset: 3px;
+}
+.sd-map__title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(1.45rem, 5vh, 2.9rem);
+  line-height: 1.05;
+  font-weight: 400;
+  color: var(--color-gold);
+  text-shadow: 0 0 16px color-mix(in srgb, var(--color-pumpkin) 55%, transparent);
+  overflow-wrap: anywhere;
+}
+.sd-map__sub {
+  margin: 0;
+  font-family: var(--font-label);
+  font-size: var(--sd-text-sm);
+  color: var(--color-ink-muted);
+  overflow-wrap: anywhere;
+}
+.sd-map__continue {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: clamp(2.25rem, 5.4vh, 2.75rem);
+  padding: 0.4rem 1.25rem;
+  font-family: var(--font-label);
+  font-weight: 700;
+  font-size: var(--sd-text-md);
+  border-radius: 0.5rem;
+  border: 2px solid var(--color-pumpkin);
+  background: linear-gradient(180deg, var(--color-pumpkin), var(--color-ember));
+  color: var(--color-bg);
+  cursor: pointer;
+  box-shadow:
+    0 0 14px 2px color-mix(in srgb, var(--color-pumpkin) 55%, transparent),
+    inset 0 0 8px color-mix(in srgb, var(--color-bone) 35%, transparent);
+}
+.sd-map__continue:hover:enabled {
+  filter: brightness(1.08);
+}
+.sd-map__continue:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+  box-shadow: none;
+}
+
+/* ---------- Toolbar row: Daily Haunt, memory info, practice modes, Continue hint ---------- */
+
+.sd-map__toolbar {
+  position: relative;
+  z-index: 5;
+  flex: none;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.35rem 1rem;
+  margin: clamp(0.25rem, 1vh, 0.6rem) clamp(0.75rem, 3vw, 2.5rem) 0;
+  padding: 0.3rem 0.75rem;
+  border-radius: 0.6rem;
+  border: 1px solid color-mix(in srgb, var(--color-deep) 80%, transparent);
+  background: color-mix(in srgb, var(--color-panel) 70%, transparent);
+}
+.sd-map__toolbar .sd-haunt--compact { flex-wrap: wrap; }
+.sd-map__toolbar .sd-haunt-cta { padding: 0.3rem 0.8rem; }
+.sd-map__toolbar .sd-celebrate { padding: 0.2rem 0.6rem; gap: 0.5rem; }
+.sd-map__toolbar .sd-celebrate__art { width: 1.9rem; height: 1.9rem; }
+.sd-map__toolbar .sd-ghost-btn { min-height: 2.25rem; padding-block: 0.3rem; }
+.sd-map__notice {
+  margin: 0 0 0 auto;
+  font-size: var(--sd-text-sm);
+  color: var(--color-ink-muted);
+  text-align: right;
+  overflow-wrap: anywhere;
+}
+.sd-map__alerts {
+  position: relative;
+  z-index: 5;
+  flex: none;
+  display: grid;
+  gap: 0.35rem;
+  margin: 0.35rem clamp(0.75rem, 3vw, 2.5rem) 0;
+}
+.sd-map__alert {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin: 0;
+  padding: 0.35rem 0.75rem;
+  border-radius: 0.5rem;
+  border: 1px solid var(--color-danger);
+  background: color-mix(in srgb, var(--color-danger) 16%, var(--color-surface-2));
+  color: var(--color-ink);
+  font-size: var(--sd-text-sm);
+}
+
+/* ---------- Stage, scroller and path ---------- */
+
+.sd-map__stage {
+  position: relative;
+  z-index: 1;
+  /* Basis 0: the map takes whatever the header and toolbar leave, and its own content never sets that height. */
+  flex: 1 1 0;
+  min-height: 0;
+  display: grid;
+  grid-template-rows: minmax(0, 1fr);
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: stretch;
+  padding-inline: clamp(0.25rem, 1vw, 0.75rem);
+}
+.sd-map__scroll {
+  position: relative;
+  min-width: 0;
+  min-height: 0;
+  overflow-x: auto;
+  overflow-y: auto;
+  /* Snap to the nodes, loosely: a drag or the wheel can stop between two nodes. */
+  scroll-snap-type: x proximity;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-witch) transparent;
+  cursor: grab;
+  -webkit-user-select: none;
+  user-select: none;
+}
+.sd-map__scroll[data-dragging='true'] {
+  cursor: grabbing;
+  /* While dragging, snapping would fight the pointer. It resumes on release. */
+  scroll-snap-type: none;
+}
+.sd-map__col {
+  position: relative;
+  flex: none;
+  margin-inline: auto;
+}
+.sd-map__svg {
+  position: absolute;
+  left: 0;
+  top: 0;
+  overflow: visible;
+  pointer-events: none;
+}
+.sd-map__rows {
+  position: absolute;
+  inset: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* Prev and next buttons sit in their own columns, so they never cover a card. */
+.sd-map__arrow {
+  align-self: center;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  margin-inline: 0.25rem;
+  padding: 0;
+  border-radius: 50%;
+  border: 2px solid var(--color-accent);
+  background: var(--color-panel);
+  color: var(--color-ink);
+  cursor: pointer;
+  box-shadow: 0 0 12px color-mix(in srgb, var(--color-accent) 35%, transparent);
+}
+.sd-map__arrow:hover:enabled {
+  background: var(--color-deep);
+}
+.sd-map__arrow:focus-visible {
+  outline: 3px solid var(--color-accent);
+  outline-offset: 3px;
+}
+.sd-map__arrow:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+/* Nothing to scroll: the arrows leave the layout's sight but keep their column, so the map does not jump. */
+.sd-map__stage[data-overflow='false'] .sd-map__arrow {
+  visibility: hidden;
+}
+
+.sd-path {
+  fill: none;
+  stroke-linecap: round;
+}
+.sd-path--halo {
+  stroke-width: 16;
+  opacity: 0.22;
+}
+.sd-path--core {
+  stroke-width: 4;
+}
+.sd-path--spark {
+  stroke-width: 2;
+  stroke: var(--color-bone);
+  stroke-dasharray: 2 14;
+}
+.sd-path[data-state='done'] { stroke: var(--color-ember); }
+.sd-path[data-state='active'] { stroke: var(--color-pumpkin); }
+.sd-path[data-state='pending'] { stroke: var(--color-ghost); }
+.sd-path[data-state='broken'] { stroke: var(--color-blood-red); }
+.sd-path[data-state='dim'] { stroke: var(--color-witch); }
+.sd-path--core[data-state='dim'],
+.sd-path--core[data-state='pending'],
+.sd-path--core[data-state='broken'] { stroke-dasharray: 3 11; opacity: 0.8; }
+.sd-path--halo[data-state='dim'] { opacity: 0.12; }
+.sd-path--spark { opacity: 0.85; }
+.sd-path--spark[data-state='active'] { stroke: var(--color-bone); animation: sd-path-flow 1.4s linear infinite; }
+.sd-path--spark:not([data-state='active']):not([data-state='done']) { display: none; }
+@keyframes sd-path-flow {
+  to { stroke-dashoffset: -32; }
+}
+[data-reduced='true'] .sd-path--spark,
+[data-reduced='true'] .sd-fnode__halo {
+  animation: none;
+}
+
+/* ---------- Nodes: a seal on the path and a card under it ---------- */
+
+.sd-fnode {
+  position: absolute;
+  top: 0;
+  height: 100%;
+  scroll-snap-align: center;
+}
+/* A node with an open "+N more" popover rises above its neighbours. */
+.sd-fnode:has(.sd-topics[data-open='true']) {
+  z-index: 20;
+}
+.sd-fnode__stage {
+  position: absolute;
+}
+.sd-fnode__halo {
+  position: absolute;
+  inset: -14px;
+  border-radius: 50%;
+  pointer-events: none;
+  opacity: 0;
+}
+.sd-fnode[data-status='ready'] .sd-fnode__halo,
+.sd-fnode[data-status='cleared'] .sd-fnode__halo {
+  opacity: 0.8;
+  background: radial-gradient(circle, color-mix(in srgb, var(--color-pumpkin) 60%, transparent) 0%, transparent 68%);
+}
+.sd-fnode[data-status='ready'] .sd-fnode__halo {
+  animation: sd-halo 2.6s ease-in-out infinite;
+}
+.sd-fnode[data-status='cleared'] .sd-fnode__halo {
+  opacity: 0.5;
+  background: radial-gradient(circle, color-mix(in srgb, var(--color-toxic) 40%, transparent) 0%, transparent 68%);
+}
+.sd-fnode[data-status='failed'] .sd-fnode__halo {
+  opacity: 0.55;
+  background: radial-gradient(circle, color-mix(in srgb, var(--color-blood-red) 55%, transparent) 0%, transparent 68%);
+}
+@keyframes sd-halo {
+  0%, 100% { opacity: 0.45; transform: scale(0.96); }
+  50% { opacity: 0.95; transform: scale(1.06); }
+}
+
+.sd-fnode__seal {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border-radius: 50%;
+  border: 3px solid var(--color-deep);
+  cursor: pointer;
+  color: var(--color-bone);
+  background:
+    radial-gradient(circle at 35% 30%, color-mix(in srgb, var(--color-witch) 55%, var(--color-deep)) 0%, var(--color-surface-2) 70%),
+    var(--color-surface-2);
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--color-pumpkin) 45%, transparent),
+    0 6px 16px rgb(0 0 0 / 0.6),
+    inset 0 0 12px color-mix(in srgb, var(--color-bg) 70%, transparent);
+  transition: transform var(--sd-dur-fast) ease, box-shadow var(--sd-dur-fast) ease;
+}
+.sd-fnode__seal:hover { transform: scale(1.04); }
+.sd-fnode__seal:focus-visible {
+  outline: 3px solid var(--color-accent);
+  outline-offset: 4px;
+}
+.sd-fnode[data-status='ready'] .sd-fnode__seal {
+  border-color: var(--color-pumpkin);
+}
+.sd-fnode[data-status='cleared'] .sd-fnode__seal {
+  border-color: var(--color-ember);
+}
+.sd-fnode[data-status='failed'] .sd-fnode__seal {
+  border-color: var(--color-blood-red);
+  border-style: dashed;
+}
+.sd-fnode[data-status='locked'] .sd-fnode__seal {
+  cursor: not-allowed;
+  filter: saturate(0.5);
+}
+.sd-fnode[data-status='generating'] .sd-fnode__seal {
+  cursor: progress;
+}
+.sd-fnode__num {
+  position: relative;
+  font-family: var(--font-display);
+  font-size: calc(var(--seal-r, 42px) * 0.9);
+  line-height: 1;
+  color: var(--color-bone);
+  text-shadow: 0 0 10px color-mix(in srgb, var(--color-pumpkin) 50%, transparent);
+}
+
+.sd-fnode__boss {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.7rem;
+  height: 1.7rem;
+  border-radius: 50%;
+  border: 2px solid var(--color-pumpkin);
+  background: var(--color-surface-2);
+  color: var(--color-bone);
+  pointer-events: none;
+}
+
+.sd-fnode__rank {
+  position: absolute;
+  bottom: -6px;
+  right: -6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.1rem;
+  height: 2.1rem;
+  border-radius: 50%;
+  border: 2px solid var(--color-gold);
+  background: var(--color-bg);
+  font-family: var(--font-display);
+  font-size: 1.35rem;
+  line-height: 1;
+  pointer-events: none;
+  box-shadow: 0 0 10px color-mix(in srgb, var(--color-gold) 45%, transparent);
+}
+.sd-fnode__rank[data-rank='S'] { color: var(--color-gold); }
+.sd-fnode__rank[data-rank='A'] { color: var(--color-toxic); }
+.sd-fnode__rank[data-rank='B'] { color: var(--color-ember); }
+.sd-fnode__rank[data-rank='C'] { color: var(--color-bone); }
+
+/* Spinner ring while a floor is being summoned. */
+.sd-fnode__summon {
+  position: absolute;
+  inset: -8px;
+  border-radius: 50%;
+  border: 3px solid color-mix(in srgb, var(--color-ghost) 25%, transparent);
+  border-top-color: var(--color-ghost);
+  pointer-events: none;
+  animation: sd-spin 1.1s linear infinite;
+}
+@keyframes sd-spin {
+  to { transform: rotate(360deg); }
+}
+[data-reduced='true'] .sd-fnode__summon {
+  animation: none;
+  border-style: dotted;
+}
+
+/* ---------- Floor card (title, status, boss, topics), all in normal flow ---------- */
+
+.sd-fcard {
+  position: absolute;
+  left: 0;
+  right: 0;
+  margin-inline: auto;
+  width: var(--card-w, 224px);
+  display: flex;
+  flex-direction: column;
+  gap: clamp(0.1rem, 0.5vh, 0.25rem);
+  padding: clamp(0.35rem, 1.1vh, 0.65rem) clamp(0.5rem, 1.2vh, 0.75rem);
+  border-radius: 0.5rem;
+  border: 2px solid var(--color-deep);
+  background:
+    repeating-linear-gradient(0deg, transparent 0 15px, color-mix(in srgb, var(--color-bg) 40%, transparent) 15px 16px),
+    linear-gradient(180deg, var(--color-panel), var(--color-surface-2));
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--color-pumpkin) 30%, transparent),
+    0 0 10px color-mix(in srgb, var(--color-witch) 55%, transparent);
+  cursor: pointer;
+}
+.sd-fnode[data-status='ready'] .sd-fcard { border-color: color-mix(in srgb, var(--color-pumpkin) 60%, var(--color-deep)); }
+.sd-fnode[data-status='locked'] .sd-fcard { cursor: default; }
+.sd-fcard--final { align-items: flex-start; }
+.sd-fnode__eyebrow {
+  margin: 0;
+  font-family: var(--font-label);
+  font-size: clamp(0.62rem, 1.5vh, 0.7rem);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-ink-muted);
+}
+.sd-fnode__name {
+  margin: 0;
+  font-family: var(--font-label);
+  font-weight: 700;
+  font-size: clamp(0.85rem, 2.2vh, 1.05rem);
+  line-height: 1.2;
+  color: var(--color-bone);
+  overflow-wrap: anywhere;
+  /* Two lines at most; the full title is in the tooltip and in the DOM. */
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  overflow: hidden;
+}
+.sd-fnode__meta {
+  margin: 0;
+  font-size: clamp(0.7rem, 1.7vh, 0.78rem);
+  color: var(--color-ink-muted);
+}
+.sd-fnode__meta--boss {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.sd-fnode__row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.25rem 0.5rem;
+}
+
+/* Topics with mastery */
+.sd-topics {
+  position: relative;
+  margin-top: 0.1rem;
+  padding-top: clamp(0.2rem, 0.8vh, 0.35rem);
+  border-top: 1px solid color-mix(in srgb, var(--color-deep) 90%, transparent);
+}
+.sd-topics__list {
+  display: grid;
+  gap: clamp(0.1rem, 0.6vh, 0.25rem);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.sd-topic {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  min-width: 0;
+}
+.sd-topic__ring {
+  flex: none;
+  display: inline-flex;
+  line-height: 0;
+}
+.sd-topic__text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  flex: 1 1 auto;
+}
+.sd-topic__name {
+  display: block;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  color: var(--color-ink);
+  font-size: clamp(0.72rem, 1.8vh, 0.8rem);
+  line-height: 1.25;
+}
+.sd-topic__band {
+  color: var(--color-ink-muted);
+  font-size: clamp(0.66rem, 1.6vh, 0.72rem);
+  font-weight: 600;
+  line-height: 1.2;
+}
+.sd-topics__more {
+  margin-top: 0.2rem;
+  min-height: 1.6rem;
+  padding: 0.1rem 0.6rem;
+  border-radius: 999px;
+  border: 1px solid var(--color-gold);
+  background: transparent;
+  color: var(--color-gold);
+  font-family: var(--font-label);
+  font-size: 0.74rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+.sd-topics__more:hover,
+.sd-topics__more[aria-expanded='true'] {
+  background: var(--color-deep);
+}
+.sd-topics__more:focus-visible,
+.sd-topics__pop:focus-visible {
+  outline: 3px solid var(--color-accent);
+  outline-offset: 2px;
+}
+/* The popover opens upward from the button, above every neighbour, inside the map. */
+.sd-topics__pop {
+  position: absolute;
+  left: -0.5rem;
+  right: -0.5rem;
+  bottom: calc(100% - 1.5rem);
+  z-index: 30;
+  max-height: min(40vh, 16rem);
+  overflow-y: auto;
+  padding: 0.55rem 0.65rem;
+  border-radius: 0.5rem;
+  border: 2px solid var(--color-accent);
+  background: var(--color-panel);
+  color: var(--color-ink);
+  box-shadow: 0 10px 24px rgb(0 0 0 / 0.65);
+  cursor: default;
+}
+
+.sd-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.1rem 0.5rem;
+  border-radius: 999px;
+  border: 1px solid currentColor;
+  font-family: var(--font-label);
+  font-size: 0.72rem;
+  font-weight: 700;
+  line-height: 1.4;
+}
+.sd-chip[data-status='locked'] { color: var(--color-ink-muted); }
+.sd-chip[data-status='ready'] { color: var(--color-pumpkin); }
+.sd-chip[data-status='generating'] { color: var(--color-ghost); }
+.sd-chip[data-status='failed'] { color: color-mix(in srgb, var(--color-danger), var(--color-ink) 45%); }
+.sd-chip[data-status='cleared'] { color: var(--color-toxic); }
+
+.sd-fnode__retry {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  min-height: 1.9rem;
+  padding: 0.15rem 0.7rem;
+  border-radius: 0.375rem;
+  border: 2px solid var(--color-blood-red);
+  background: transparent;
+  color: var(--color-ink);
+  font-family: var(--font-label);
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+.sd-fnode__retry:hover { background: color-mix(in srgb, var(--color-danger) 28%, transparent); }
+.sd-fnode__retry:focus-visible {
+  outline: 3px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+/* ---------- Fog over locked floors ---------- */
+
+.sd-fogveil {
+  position: absolute;
+  inset: -26px -34px;
+  pointer-events: none;
+  overflow: hidden;
+  border-radius: 50%;
+  -webkit-mask-image: radial-gradient(closest-side, #000 62%, transparent 100%);
+  mask-image: radial-gradient(closest-side, #000 62%, transparent 100%);
+}
+.sd-fogveil__layer {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: -40%;
+  width: 180%;
+  opacity: 0.92;
+  background:
+    radial-gradient(ellipse 22% 38% at 30% 45%, color-mix(in srgb, var(--color-bone) 55%, var(--color-indigo)) 0%, transparent 100%),
+    radial-gradient(ellipse 20% 34% at 52% 58%, color-mix(in srgb, var(--color-ink-muted) 70%, var(--color-indigo)) 0%, transparent 100%),
+    radial-gradient(ellipse 24% 40% at 70% 40%, color-mix(in srgb, var(--color-ghost) 28%, var(--color-ink-muted)) 0%, transparent 100%),
+    radial-gradient(ellipse 30% 45% at 48% 50%, color-mix(in srgb, var(--color-ink-muted) 55%, var(--color-indigo)) 0%, transparent 100%);
+  animation: sd-fogveil-drift 16s ease-in-out infinite alternate;
+  will-change: transform;
+}
+.sd-fogveil__layer--b {
+  opacity: 0.6;
+  animation-duration: 23s;
+  animation-direction: alternate-reverse;
+  transform: scaleX(-1);
+}
+@keyframes sd-fogveil-drift {
+  from { transform: translateX(-14%); }
+  to { transform: translateX(14%); }
+}
+[data-reduced='true'] .sd-fogveil__layer {
+  animation: none;
+  will-change: auto;
+  transform: translateX(0);
+}
+
+/* ---------- Empty state ---------- */
+
+.sd-map__empty {
+  position: relative;
+  z-index: 1;
+  margin: 3rem auto;
+  max-width: 28rem;
+  padding: 1.5rem;
+  text-align: center;
+}
+.sd-map__empty h2 {
+  margin: 0 0 0.5rem;
+  font-family: var(--font-display);
+  font-size: 2rem;
+  font-weight: 400;
+  color: var(--color-gold);
+}
+
+/* ---------- Dev fixtures page: a control strip under the map instead of an overlay ---------- */
+
+.sd-dev-wrap {
+  position: relative;
+  height: 100dvh;
+  overflow: hidden;
+  background: var(--color-bg);
+}
+.sd-dev-wrap > .sd-map { height: calc(100dvh - 2.25rem); }
+.sd-dev-bar {
+  position: relative;
+  z-index: 6;
+  height: 2.25rem;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+/* ---------- Small windows ---------- */
+
+@media (max-width: 640px) {
+  .sd-map__arrow { width: 2.25rem; height: 2.25rem; margin-inline: 0.1rem; }
+  .sd-map__notice { margin-left: 0; text-align: left; }
+}
+
+/* Below about 1100x560 the map keeps a usable height and the screen scrolls inside itself. */
+@media (max-height: 560px), (max-width: 1100px) {
+  .sd-map {
+    overflow-y: auto;
+    overflow-x: hidden;
+  }
+  .sd-map__stage {
+    flex: 1 0 29rem;
+    min-height: 29rem;
+  }
+}

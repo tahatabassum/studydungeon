@@ -10,6 +10,18 @@ export interface User {
   is_guest: boolean
 }
 
+/** Body of register and login. The Backend normalizes the username (lowercase) and is the validator. */
+export interface Credentials {
+  username: string
+  password: string
+}
+
+/** `GET /auth/me`: the signed-in user and when the session ends (null when it does not expire). */
+export interface AuthMe {
+  user: User
+  expires_at: string | null
+}
+
 export interface DemoSessionResponse {
   user: User
   dungeon_id: string
@@ -48,6 +60,47 @@ export interface Room {
   order: number
   is_boss: boolean
   monster: Monster
+  /** PROPOSED (frontend-08): the Floor this room belongs to. */
+  floor_id?: string
+}
+
+export type FloorStatus = 'locked' | 'ready' | 'generating' | 'failed' | 'cleared'
+export type RunMode = 'floor' | 'daily_haunt' | 'weak_topics' | 'exam' | 'replay_floor'
+export type FloorRank = 'S' | 'A' | 'B' | 'C'
+export type MasteryBand = 'weak' | 'learning' | 'strong'
+
+export interface TopicInfo {
+  id: string
+  title: string
+  /** 0 to 100, from the backend (or the mock). */
+  mastery: number
+}
+
+export interface FloorBoss {
+  id: string
+  name: string
+  hp: number
+  kind?: string
+}
+
+/** PROPOSED (frontend-08): a group of topics ending in a Floor_Boss. */
+export interface Floor {
+  id: string
+  /** 1-based, contiguous. */
+  index: number
+  title: string
+  status: FloorStatus
+  topics: TopicInfo[]
+  boss: FloorBoss
+  rank: FloorRank | null
+  room_ids: string[]
+}
+
+export interface FinalBoss {
+  id: string
+  name: string
+  hp: number
+  unlocked: boolean
 }
 
 export interface Dungeon {
@@ -55,6 +108,16 @@ export interface Dungeon {
   name: string
   rooms: Room[]
   questions: Question[]
+  /** Absent means a backend without floors: the mapper builds one legacy Floor (D17). */
+  floors?: Floor[]
+  final_boss?: FinalBoss
+}
+
+/** PROPOSED (frontend-08): body of POST /runs. */
+export interface StartRunRequest {
+  dungeon_id: string
+  floor_id: string | null
+  mode: RunMode
 }
 
 export interface Run {
@@ -66,6 +129,14 @@ export interface Run {
   /** Real backend only (resume data): the run's score and streak so far. */
   score?: number
   streak?: number
+  /** PROPOSED (frontend-08) */
+  mode?: RunMode
+  /** PROPOSED (frontend-08): seed of the question draw; display and tests only. */
+  run_seed?: string
+  /** PROPOSED (frontend-08): Daily Haunt items for a daily_haunt run. */
+  revenants?: DueReview[]
+  /** PROPOSED (frontend-08): the rooms a weak_topics or exam run covers, in play order. */
+  room_ids?: string[]
 }
 
 /** Request body for an attempt. Carries no correctness or damage fields. */
@@ -98,6 +169,16 @@ export interface AnswerResult {
   weapon_id?: string
   /** PROPOSED (pending Person A): presentation-only critical flag; damage is unchanged. */
   is_critical?: boolean
+  /** PROPOSED (frontend-08): the question returns after this many further questions; null or absent means never. */
+  requeue_after?: number | null
+  /** PROPOSED (frontend-08): this answer was a second chance. */
+  is_retry?: boolean
+  /** PROPOSED (frontend-08): multiplier already applied to damage and XP on a retry. */
+  retry_multiplier?: number
+  /** PROPOSED (frontend-08): combo counter, display only. */
+  combo?: number
+  /** PROPOSED (frontend-08): revealed only after a wrong answer. */
+  correct_answer?: string
 }
 
 export interface ClearRoomResponse {
@@ -126,6 +207,19 @@ export interface RunSummary {
   topic_mastery?: { room_id: string; label: string; percent: number }[]
   /** PROPOSED (pending Person A): concepts answered wrongly, with source page. */
   weak_concepts?: { text: string; page: number }[]
+  /** PROPOSED (frontend-08) */
+  floor_rank?: FloorRank
+  /** PROPOSED (frontend-08) */
+  mastery_by_topic?: { topic_id: string; title: string; mastery: number }[]
+  /** PROPOSED (frontend-08) */
+  chest_rewards?: ChestReward[]
+}
+
+export interface ChestReward {
+  id: string
+  kind: 'xp' | 'coins' | 'weapon' | 'badge'
+  label: string
+  amount?: number
 }
 
 export interface ProgressInfo {
@@ -143,6 +237,16 @@ export interface ProgressInfo {
   recent_runs?: { id: string; dungeon_name: string; score: number; accuracy: number; finished_at: string }[]
   /** PROPOSED (pending Person A) */
   due_review_count?: number
+  /** PROPOSED (frontend-08) */
+  notes_conquered_percent?: number
+  /** PROPOSED (frontend-08) */
+  memory_strength?: { topic_id: string; title: string; strength: number }[]
+  /** PROPOSED (frontend-08) */
+  streak_calendar?: { date: string; reviewed: boolean }[]
+  /** PROPOSED (frontend-08) */
+  weak_concepts?: { text: string; page: number | null; source_ref?: string }[]
+  /** PROPOSED (frontend-08) */
+  equipped_weapon?: WeaponId
 }
 
 /**
@@ -154,6 +258,79 @@ export interface DueReview {
   question: Question
   room_id: string
   times_missed?: number
+}
+
+/** PROPOSED (frontend-08): GET /reviews/due, new shape. */
+export interface DueReviewsResponse {
+  due_count: number
+  next_due_at: string | null
+  daily_streak: number
+  items: DueReview[]
+}
+
+/** PROPOSED (frontend-08): per-floor generation status. */
+export interface GenerationStatus {
+  dungeon_id: string
+  floors: { id: string; status: FloorStatus }[]
+}
+
+/** Real document pipeline (frontend-08 C29): `GET /documents/{id}/status` values. */
+export type DocumentStatusValue = 'processing' | 'accepted' | 'rejected' | 'failed'
+
+/** `POST /documents` (202): the document was accepted for processing. */
+export interface DocumentUpload {
+  id: string
+  status: DocumentStatusValue
+  message: string
+}
+
+/** `GET /documents/{id}/status`. `chunks_count` is 0 until the document is accepted. */
+export interface DocumentStatus {
+  id: string
+  status: DocumentStatusValue
+  rejection_reason: string | null
+  chunks_count: number
+  relevance_score: number | null
+  readability_score: number | null
+}
+
+/** `GET /documents/{id}/topics`: one detected topic. */
+export interface DocumentTopic {
+  id: string
+  name: string
+  description: string
+  order_index: number
+}
+
+/** PROPOSED (pending Person A): one row of the leaderboard. `rank` is 1-based; `id` is the last tie-break. */
+export interface LeaderboardEntry {
+  id: string
+  rank: number
+  display_name: string
+  is_guest: boolean
+  is_seeded_rival: boolean
+  level: number
+  score: number
+  /** Ratio from 0 to 1. */
+  accuracy: number
+  best_streak: number
+  badge_ids: BadgeId[]
+}
+
+export type LeaderboardPeriod = 'all' | 'week'
+
+/** PROPOSED (pending Person A): GET /leaderboard?dungeon_id=&period=&limit= */
+export interface LeaderboardQuery {
+  dungeonId: string
+  period: LeaderboardPeriod
+  limit?: number
+}
+
+/** PROPOSED (pending Person A): GET /leaderboard. `me.rank` and `me.entry` are null without a stored run. */
+export interface LeaderboardResponse {
+  entries: LeaderboardEntry[]
+  me: { rank: number | null; is_provisional: boolean; entry: LeaderboardEntry | null }
+  updated_at: string
 }
 
 /** PROPOSED (pending Person A) */

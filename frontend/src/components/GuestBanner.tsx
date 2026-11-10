@@ -79,7 +79,7 @@ export function GuestBanner({ isGuest, onCreateAccount, autoHideMs, onDone }: Gu
           </Button>
         ) : (
           <a
-            href="/login"
+            href="/register"
             target="_blank"
             rel="noopener noreferrer"
             className="shrink-0 rounded-md border border-gold px-2 text-xs font-semibold leading-tight text-gold hover:border-accent hover:text-accent"
