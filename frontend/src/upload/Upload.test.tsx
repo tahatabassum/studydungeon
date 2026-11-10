@@ -73,8 +73,8 @@ describe('upload wizard flow', () => {
     expect(screen.getByText(/Up to 15 MB and 30 pages, with at least 500 characters of text\./)).toBeTruthy()
 
     await user.upload(await picker(), txt('Cell biology.txt'))
-    expect(within(screen.getByTestId('staged-file')).getByText('Cell biology.txt')).toBeTruthy()
-    await user.click(screen.getByRole('button', { name: 'Upload notes' }))
+    // Choosing the file starts the upload; there is no second click and no manual button.
+    expect(screen.queryByRole('button', { name: 'Upload notes' })).toBeNull()
 
     const topics = await screen.findByTestId('upload-topics', undefined, WAIT)
     const items = within(topics).getAllByRole('listitem')
@@ -104,7 +104,8 @@ describe('upload wizard flow', () => {
     expect(map.name).toBe('Physics Dungeon')
   })
 
-  it('accepts a dropped file and keeps only the first of several', async () => {
+  it('starts uploading a dropped file at once and keeps only the first of several', async () => {
+    const send = vi.spyOn(adapter, 'uploadDocument')
     renderUpload()
     const zone = await screen.findByTestId('dropzone')
     fireEvent.dragOver(zone)
@@ -112,6 +113,8 @@ describe('upload wizard flow', () => {
     fireEvent.drop(zone, { dataTransfer: { files: [txt('first.txt'), txt('second.txt')] } })
     const staged = await screen.findByTestId('staged-file')
     expect(within(staged).getByText('first.txt')).toBeTruthy()
+    await waitFor(() => expect(send).toHaveBeenCalledTimes(1))
+    expect((send.mock.calls[0][0] as File).name).toBe('first.txt')
     expect(within(staged).queryByText('second.txt')).toBeNull()
     expect(within(staged).getByText(/Only one file at a time/)).toBeTruthy()
   })
@@ -120,7 +123,6 @@ describe('upload wizard flow', () => {
     const user = userEvent.setup()
     renderUpload()
     await user.upload(await picker(), txt('lunch receipt.txt'))
-    await user.click(screen.getByRole('button', { name: 'Upload notes' }))
     const verdict = await screen.findByTestId('upload-verdict', undefined, WAIT)
     expect(within(verdict).getByRole('heading').textContent).toBe('These notes were rejected')
     expect(within(verdict).getByTestId('rejection-reason').textContent).toMatch(/does not look like study material/)
@@ -137,7 +139,6 @@ describe('upload wizard flow', () => {
     const user = userEvent.setup()
     renderUpload()
     await user.upload(await picker(), txt('broken scan.txt'))
-    await user.click(screen.getByRole('button', { name: 'Upload notes' }))
     const verdict = await screen.findByTestId('upload-verdict', undefined, WAIT)
     expect(within(verdict).getByRole('heading').textContent).toBe('These notes could not be read')
     await user.click(within(verdict).getByRole('button', { name: 'Check again' }))
@@ -147,14 +148,18 @@ describe('upload wizard flow', () => {
 
 describe('upload errors and hints', () => {
   it('hints at an unsupported type before sending, then shows the server answer', async () => {
+    const spy = vi.spyOn(adapter, 'uploadDocument')
     const user = userEvent.setup()
     renderUpload()
     // The picker filters by extension; a drop does not, so the hint and the server are what stop it.
     fireEvent.drop(await screen.findByTestId('dropzone'), { dataTransfer: { files: [new File(['MZ'], 'virus.exe')] } })
     expect(screen.getByTestId('file-hint').textContent).toMatch(/not on the list/)
+    // A hinted file is not sent on its own; the player can still send it and the server decides.
+    expect(spy).not.toHaveBeenCalled()
     const send = screen.getByRole('button', { name: 'Upload notes' }) as HTMLButtonElement
     expect(send.disabled).toBe(false)
     await user.click(send)
+    expect(spy).toHaveBeenCalledTimes(1)
     expect((await screen.findByTestId('upload-error')).textContent).toMatch(/not supported/)
     expect(screen.getByRole('button', { name: 'Try again' })).toBeTruthy()
   })
@@ -175,7 +180,6 @@ describe('upload errors and hints', () => {
     const user = userEvent.setup()
     renderUpload()
     await user.upload(await picker(), txt('sixth.txt'))
-    await user.click(screen.getByRole('button', { name: 'Upload notes' }))
     expect((await screen.findByTestId('upload-error')).textContent).toMatch(/already have 5 documents/)
   })
 
@@ -213,9 +217,6 @@ describe('keyboard and announcements', () => {
     expect(document.activeElement).toBe(input)
 
     await user.upload(input, txt('Algebra.txt'))
-    const send = screen.getByRole('button', { name: 'Upload notes' })
-    send.focus()
-    await user.keyboard('{Enter}')
     const live = screen.getByTestId('upload-live')
     expect(live.getAttribute('aria-live')).toBe('polite')
     expect(live.getAttribute('role')).toBe('status')

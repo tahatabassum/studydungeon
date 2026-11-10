@@ -105,27 +105,27 @@ export function OverlayFrame({
       aria-describedby={describedBy}
       onKeyDown={onKeyDown}
       data-reduced={reduced ? 'true' : undefined}
-      className={`fixed inset-0 ${zClass} flex overflow-y-auto bg-bg/85 p-4`}
+      className={`fixed inset-0 ${zClass} flex overflow-hidden bg-bg/85 p-[clamp(0.5rem,2vh,1rem)]`}
       initial={reduced ? false : { opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={reduced ? { duration: 0 } : { duration: 0.25 }}
     >
       {backdrop}
       <motion.div
-        className={`m-auto w-full ${widthClass}`}
+        className={`m-auto flex max-h-full min-h-0 w-full flex-col ${widthClass}`}
         initial={reduced ? false : { scale: 0.95 }}
         animate={{ scale: 1 }}
         transition={reduced ? { duration: 0 } : { duration: 0.25 }}
       >
-        <StoneFrame className="p-1">
-          <div className="rounded-md border border-deep px-6 py-5">
-            <div className="mb-3 text-center">
-              <h2 id={titleId} className="font-(family-name:--font-display) text-3xl text-gold">
+        <StoneFrame className="flex min-h-0 flex-col p-1">
+          <div className="flex min-h-0 flex-col rounded-md border border-deep px-[clamp(1rem,3vw,1.5rem)] py-[clamp(0.6rem,2.2vh,1.25rem)]">
+            <div className="mb-[clamp(0.25rem,1vh,0.75rem)] shrink-0 text-center">
+              <h2 id={titleId} className="font-(family-name:--font-display) text-[clamp(1.6rem,4.5vh,1.875rem)] leading-tight text-gold">
                 {title}
               </h2>
             </div>
-            <span aria-hidden="true" className="sd-bone-divider mb-3" />
-            <div className="flex flex-col items-center gap-4 text-center">
+            <span aria-hidden="true" className="sd-bone-divider mb-[clamp(0.25rem,1vh,0.75rem)] shrink-0" />
+            <div className="sd-overlay-body flex min-h-0 flex-col items-center gap-[clamp(0.5rem,1.6vh,1rem)] overflow-y-auto text-center">
               {character && (
                 <div aria-hidden="true" className="flex items-end justify-center gap-3">
                   {character}

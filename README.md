@@ -113,3 +113,13 @@ Screens show measured numbers only. They never promise that anything will be mem
 
 ### Mock mode versus real mode
 Mock mode implements the whole campaign in the browser, including fields marked PROPOSED in `docs/handoff/B-to-A.md`. Real mode talks to the backend in this repository, sends only the fields it supports and hides features whose capability is missing, with a short "coming soon" note. Both modes pass the same contract tests where the contract exists.
+
+### Mobile play
+
+StudyDungeon plays on a phone with touch only. Touch controls turn on for a coarse pointer, at the first touch, or with `?touch=1` on a desktop (for testing). Desktop and keyboard play are unchanged.
+
+- Move with the stick at the bottom-left. Tap the Engage button at the bottom-right when it names a target ("Fight Paper Wraith", "Face the memory").
+- Answers, Next, Retreat and Continue are buttons of at least 44px. The Pause button in the top bar does what Esc does.
+- Portrait works, with a dismissible hint to rotate. The page never scrolls or bounces during play; pinch zoom stays available on other screens.
+- Upload from the phone: tap to choose a file (PDF, DOCX, PPTX, TXT, PNG or JPEG; you can also take a photo of your notes). In mock mode an uploaded dungeon is fully playable: summon it, open the map, play each floor and the final boss.
+- Fullscreen is hidden where the browser has no Fullscreen API (iOS).

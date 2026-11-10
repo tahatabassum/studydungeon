@@ -14,6 +14,8 @@ export class InteractionSystem {
   private readonly prompt: Phaser.GameObjects.Text
   private pulse: Phaser.Tweens.Tween | null = null
   private armed = true
+  private touchPressed = false
+  private targetName: string | null = null
   private readonly getMonster: () => Monster | null
 
   constructor(
@@ -55,6 +57,21 @@ export class InteractionSystem {
     }
   }
 
+  /** Touch: the Engage button was pressed. Consumed on the next update, like a fresh E or Space press. */
+  requestEngage(): void {
+    this.touchPressed = true
+  }
+
+  /** Touch wording for the in-world prompt (called on a mode change, never per frame). */
+  setTouchMode(on: boolean): void {
+    this.prompt.setText(on ? 'Tap Engage' : 'Press E to engage')
+  }
+
+  /** Name of the living monster in range while exploring, else null. Allocation free. */
+  get engageName(): string | null {
+    return this.targetName
+  }
+
   update(): void {
     const phase = this.getPhase()
     const pressed = this.consumeKeys()
@@ -63,12 +80,14 @@ export class InteractionSystem {
     if (phase !== 'exploring' || !held) this.armed = true
     if (phase !== 'exploring') {
       this.prompt.setVisible(false)
+      this.targetName = null
       return
     }
     const monster = this.getMonster()
     const alive = !!monster && monster.alive
     const inRange =
       !!monster && isWithinRange({ x: this.player.x, y: this.player.y }, monster.position)
+    this.targetName = alive && inRange && monster ? monster.name : null
     this.prompt.setVisible(alive && inRange)
     if (monster && shouldEngage({ phase, inRange, alive, pressed, armed: this.armed })) {
       this.armed = false
@@ -85,7 +104,9 @@ export class InteractionSystem {
   private consumeKeys(): boolean {
     const e = this.keyE ? Phaser.Input.Keyboard.JustDown(this.keyE) : false
     const s = this.keySpace ? Phaser.Input.Keyboard.JustDown(this.keySpace) : false
-    return e || s
+    const t = this.touchPressed
+    this.touchPressed = false
+    return e || s || t
   }
 
   destroy(): void {

@@ -9,8 +9,45 @@
   flex: 1 1 auto;
   min-height: 0;
 }
+/*
+ * Cards after the steps (chosen file, reading, verdict, topics, result): a comfortable width, centred
+ * in the height that is left (auto margins), with roomier padding and gaps. A card that is too tall
+ * scrolls inside itself.
+ */
 .sd-up > .sd-card,
-.sd-up > .sd-up__result { flex: 0 1 auto; min-height: 0; overflow-y: auto; scrollbar-width: thin; scrollbar-color: var(--color-witch) transparent; }
+.sd-up > .sd-up__result {
+  flex: 0 1 auto;
+  min-height: 0;
+  width: 100%;
+  max-width: 42rem;
+  align-self: center;
+  margin-block: auto;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-witch) transparent;
+}
+.sd-up > .sd-card {
+  gap: clamp(0.6rem, 1.8vh, 1rem);
+  padding: clamp(0.9rem, 2.8vh, 1.5rem) clamp(1rem, 3vw, 1.75rem);
+}
+.sd-up > .sd-card .sd-card__text { font-size: var(--sd-text-md); line-height: 1.5; }
+.sd-up > .sd-card .sd-dash__actions { gap: 0.75rem; margin-top: 0.15rem; }
+.sd-up__sending {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin: 0;
+  color: var(--color-ghost);
+  font-family: var(--font-label);
+  font-weight: 700;
+}
+.sd-up__sending-dot {
+  width: 0.7rem;
+  height: 0.7rem;
+  border-radius: 50%;
+  background: var(--color-ghost);
+  animation: sd-up-pulse 1.4s ease-in-out infinite;
+}
 
 /* Steps */
 .sd-up__steps {
@@ -150,8 +187,8 @@
 .sd-up__result {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
-  padding: 1rem;
+  gap: clamp(0.6rem, 2.2vh, 1.25rem);
+  padding: clamp(1rem, 3.4vh, 2rem) clamp(1rem, 3.5vw, 2rem);
   border: 1px solid var(--color-gold);
   border-radius: 0.75rem;
   background: linear-gradient(180deg, var(--color-panel), var(--color-surface-2));
@@ -160,28 +197,42 @@
 .sd-up__result-h {
   margin: 0;
   font-family: var(--font-display);
-  font-size: 1.9rem;
+  font-size: clamp(1.7rem, 5vh, 2.3rem);
+  line-height: 1.1;
   font-weight: 400;
   color: var(--color-gold);
+}
+.sd-up__result-sub {
+  margin: calc(-1 * clamp(0.15rem, 0.8vh, 0.4rem)) 0 0;
+  font-family: var(--font-label);
+  font-size: clamp(1rem, 2.4vh, 1.2rem);
+  color: var(--color-ink-muted);
 }
 .sd-up__floors {
   display: flex;
   flex-direction: column;
-  gap: 0.35rem;
+  flex: 0 1 auto;
+  min-height: 0;
+  gap: clamp(0.4rem, 1.2vh, 0.7rem);
   margin: 0;
-  padding: 0;
+  padding: 4px;
   list-style: none;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-witch) transparent;
 }
 .sd-up__floor {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 0.75rem;
-  padding: 0.4rem 0.6rem;
-  border-radius: 0.4rem;
+  padding: clamp(0.5rem, 1.6vh, 0.85rem) clamp(0.7rem, 2vw, 1.1rem);
+  border: 1px solid var(--color-deep);
+  border-radius: 0.5rem;
   background: var(--color-panel);
   color: var(--color-bone);
 }
+.sd-up__result-cta { display: flex; justify-content: center; padding-top: clamp(0.1rem, 0.8vh, 0.5rem); }
 
 /* Static under reduced motion (the OS setting and the in-app flag). */
 @media (prefers-reduced-motion: reduce) {

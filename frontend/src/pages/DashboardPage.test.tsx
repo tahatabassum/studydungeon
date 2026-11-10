@@ -68,6 +68,7 @@ describe('DashboardPage, signed-in player', () => {
     expect(within(cont).getByTestId('continue-link').getAttribute('href')).toBe('/campaign/demo-dungeon/play/floor-1')
     expect(within(cont).getByRole('link', { name: /Open the map/ }).getAttribute('href')).toBe('/campaign/demo-dungeon')
     expect(within(cont).getByRole('button', { name: 'Play Demo' })).toBeTruthy()
+    expect(within(cont).getByRole('link', { name: /Upload notes/ }).getAttribute('href')).toBe('/upload')
 
     const board = await screen.findByTestId('board-preview')
     await vi.waitFor(() => expect(within(board).getAllByRole('listitem')).toHaveLength(5))
@@ -78,7 +79,7 @@ describe('DashboardPage, signed-in player', () => {
     expect(within(screen.getByTestId('badges-card')).getAllByRole('listitem')).toHaveLength(8)
     expect(screen.getByTestId('armory')).toBeTruthy()
     const links = screen.getByTestId('links-card')
-    expect(within(links).getByRole('link', { name: /Upload notes/ }).getAttribute('href')).toBe('/upload')
+    expect(within(links).queryByRole('link', { name: /Upload notes/ })).toBeNull()
     expect(within(links).getByRole('button', { name: /Settings/ }).getAttribute('aria-disabled')).toBe('true')
   })
 
@@ -213,6 +214,7 @@ describe('DashboardPage, guest', () => {
     expect(within(stats).getByRole('button', { name: /Create account/ })).toBeTruthy()
     expect(screen.queryByTestId('level-card')).toBeNull()
     expect(screen.queryByTestId('links-card')).toBeNull()
+    expect(within(screen.getByTestId('demo-card')).getByRole('link', { name: /Upload notes/ }).getAttribute('href')).toBe('/register')
   })
 
   it('shows this tab’s runs and a provisional rank on the demo board', async () => {

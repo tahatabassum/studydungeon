@@ -99,6 +99,14 @@ export class GameScene extends Phaser.Scene {
   private monsters = new Map<string, Monster>() // room id -> monster
   private activeMonster: Monster | null = null
 
+  /** Touch input: last joystick vector and mode (re-applied when the actors are rebuilt). */
+  private touchX = 0
+  private touchY = 0
+  private touchMode = false
+  /** Last engage target sent to React (emit only on change). */
+  private engageKind: 'monster' | 'revenant' | null = null
+  private engageName: string | null = null
+
   private bridge: GameBridge | undefined
   private built: Phaser.GameObjects.GameObject[] = []
 
@@ -270,6 +278,7 @@ export class GameScene extends Phaser.Scene {
     this.hitStop?.update()
     this.movement?.update(time)
     this.interaction?.update()
+    this.publishEngage()
     this.tracker?.update()
     this.lighting?.update(time)
     this.pieces?.update(time)
@@ -279,6 +288,26 @@ export class GameScene extends Phaser.Scene {
     const id = this.tracker?.currentRoomId
     if (id && !this.hallRooms.has(id) && this.monsters.get(id)?.alive === false) this.gates.get(id)?.setOpenable()
     this.debug?.update(time, delta)
+  }
+
+  /**
+   * Tells React whether Engage is possible. Compares primitives and emits only when the target changes,
+   * so nothing is allocated or sent per frame.
+   */
+  private publishEngage(): void {
+    const monsterName = this.interaction?.engageName ?? null
+    let kind: 'monster' | 'revenant' | null = null
+    let name: string | null = null
+    if (monsterName !== null) {
+      kind = 'monster'
+      name = monsterName
+    } else if (this.revenants?.canEngage) {
+      kind = 'revenant'
+    }
+    if (kind === this.engageKind && name === this.engageName) return
+    this.engageKind = kind
+    this.engageName = name
+    this.bridge?.emit(name !== null ? { type: 'engage-available', kind, name } : { type: 'engage-available', kind })
   }
 
   /** Loot burst with its soft coin sound (muted sound stays silent). Falls back to the player position. */
@@ -363,6 +392,21 @@ export class GameScene extends Phaser.Scene {
         break
       case 'loot-burst':
         this.burstLoot(e.x, e.y)
+        break
+      case 'set-move-input':
+        this.touchX = e.x
+        this.touchY = e.y
+        this.movement?.setTouchVector(e.x, e.y)
+        break
+      case 'engage-request':
+        // The same code paths as E or Space: shouldEngage for monsters, tryEngage for Revenants.
+        this.interaction?.requestEngage()
+        this.revenants?.requestEngage()
+        break
+      case 'set-touch-mode':
+        this.touchMode = e.value
+        this.interaction?.setTouchMode(e.value)
+        this.revenants?.setTouchMode(e.value)
         break
     }
   }
@@ -550,6 +594,7 @@ export class GameScene extends Phaser.Scene {
     for (const g of this.gates.values()) obstacles.push(g.zone)
     for (const m of this.monsters.values()) obstacles.push(m.zone)
     this.movement = new MovementSystem(this, player, () => this.phase === 'exploring', obstacles)
+    this.movement.setTouchVector(this.touchX, this.touchY)
 
     this.tracker = new RoomTracker(
       layout,
@@ -576,6 +621,7 @@ export class GameScene extends Phaser.Scene {
       wrapped,
       this.reducedMotion,
     )
+    this.interaction.setTouchMode(this.touchMode)
 
     this.cameras.main.stopFollow()
     this.cameras.main.centerOn(layout.spawn.x, layout.spawn.y)

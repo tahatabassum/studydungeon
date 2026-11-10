@@ -42,10 +42,11 @@ export function PauseMenu({
       title="Paused"
       titleId="pause-title"
       returnFocusTo={returnFocusTo}
-      widthClass="max-w-sm"
+      widthClass="max-w-3xl"
       character={<PixelSprite map={CHARACTER_SPRITES.friendly_ghost} scale={3} />}
     >
-      <div className="flex w-full flex-col items-stretch gap-3 font-(family-name:--font-label)">
+      <div className={`sd-pause${weapons && weapons.length > 0 && level !== undefined ? '' : ' sd-pause--solo'} font-(family-name:--font-label)`}>
+        <div className="sd-pause__actions">
         <Button onClick={onResume}>Resume</Button>
         {onRetreat && (
           <Button variant="secondary" onClick={onRetreat}>
@@ -63,7 +64,6 @@ export function PauseMenu({
             {muted ? 'Sound on' : 'Mute'}
           </Button>
         )}
-        <Armory weapons={weapons} level={level} equippable />
         <Button variant="secondary" onClick={onRestart}>
           Restart
         </Button>
@@ -72,6 +72,8 @@ export function PauseMenu({
             Exit
           </Button>
         )}
+        </div>
+        <Armory weapons={weapons} level={level} equippable />
       </div>
     </OverlayFrame>
   )

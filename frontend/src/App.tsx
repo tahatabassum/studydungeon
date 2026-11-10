@@ -16,6 +16,7 @@ import RegisterPage from './auth/RegisterPage';
 import PlayPage from './pages/PlayPage';
 import UploadPage from './upload/UploadPage';
 import { useSession } from './state/SessionContext';
+import { useTouchMode } from './touch/useTouchMode';
 
 function RequireSession({ children }: { children: ReactNode }) {
   const { user } = useSession();
@@ -23,6 +24,8 @@ function RequireSession({ children }: { children: ReactNode }) {
 }
 
 export default function App() {
+  // Sets html[data-touch] on touch devices (or ?touch=1) so every screen gets 44px targets.
+  useTouchMode();
   return (
     <>
       <OfflineLabel />
