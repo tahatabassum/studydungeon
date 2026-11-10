@@ -281,7 +281,8 @@ export function FloorMap({
 
   const onPointerDown = (e: ReactPointerEvent<HTMLDivElement>) => {
     const el = scrollerRef.current
-    if (!el || e.pointerType === 'touch' || e.button !== 0) return
+    // The custom drag is for a mouse only; touch and pen keep native scrolling and snap.
+    if (!el || e.pointerType !== 'mouse' || e.button !== 0) return
     swallowClick.current = false
     drag.current = { id: e.pointerId, startX: e.clientX, startLeft: el.scrollLeft, next: el.scrollLeft, moved: false, raf: null }
   }

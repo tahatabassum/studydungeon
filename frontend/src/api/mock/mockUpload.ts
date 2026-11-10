@@ -8,11 +8,14 @@ import type {
   DocumentUpload,
   FinalBoss,
   Floor,
+  FloorRank,
   GenerationStatus,
   Question,
   Room,
 } from '../../types/api'
 import { createGenerationSim, GENERATION_STEP_MS, type GenerationSim } from './mockGeneration'
+import type { FloorDef } from '../../learning/floors'
+import type { AnswerKeyEntry } from './answerKey'
 import { syntheticPool } from './pool'
 
 /**
@@ -52,7 +55,31 @@ interface GeneratedDungeon {
   startedAt: number
   sim: GenerationSim
   base: Omit<Dungeon, 'floors'> & { floors: Floor[]; final_boss: FinalBoss }
+  /** Private answer key (never part of the public Dungeon shape). */
+  answers: Map<string, AnswerKeyEntry>
+  floorDefs: FloorDef[]
+  finalBossRoomId: string
 }
+
+/** What the adapter knows about play, overlaid on a generated dungeon's floors. */
+export interface GeneratedPlayState {
+  cleared: ReadonlySet<string>
+  ranks: ReadonlyMap<string, FloorRank>
+  masteryOf(topicId: string): number
+}
+
+/** A generated dungeon as a run needs it. Rooms and questions are copies; the answer key is private to the mock. */
+export interface GeneratedSource {
+  id: string
+  rooms: Room[]
+  questions: Question[]
+  answers: ReadonlyMap<string, AnswerKeyEntry>
+  floorDefs: readonly FloorDef[]
+  finalBossRoomId: string
+}
+
+/** Monster looks used by generated rooms (the existing kinds; the Exam Warden is kept for the final boss). */
+const PLAY_KINDS = ['paper_wraith', 'toxic_slime', 'gear_golem', 'memory_eater'] as const
 
 export interface MockUploadOptions {
   now: () => number
@@ -86,9 +113,14 @@ export interface MockUpload {
   getDocumentTopics(id: string): Promise<DocumentTopic[]>
   generateDungeon(id: string): Promise<Dungeon>
   retryDocument(id: string): Promise<DocumentUpload>
-  /** The generated dungeon with its floors as of now, or undefined when `id` is not one of ours. */
-  dungeon(id: string): Dungeon | undefined
-  generationStatus(id: string): GenerationStatus | undefined
+  /**
+   * The generated dungeon with its floors as of now, or undefined when `id` is not one of ours.
+   * `play` overlays what was cleared so far (a cleared floor, its rank and its topic mastery).
+   */
+  dungeon(id: string, play?: GeneratedPlayState): Dungeon | undefined
+  /** What a run needs to play a generated dungeon: rooms, questions, the private answer key and the floors. */
+  source(id: string): GeneratedSource | undefined
+  generationStatus(id: string, play?: GeneratedPlayState): GenerationStatus | undefined
   /** True when `floorId` belongs to a generated dungeon; retries it if it failed. */
   retryFloor(floorId: string): boolean | undefined
 }
@@ -150,8 +182,19 @@ export function createMockUpload(options: MockUploadOptions): MockUpload {
     const questions: Question[] = []
     const floors: Floor[] = []
     let order = 0
+    const answers = new Map<string, AnswerKeyEntry>()
+    const floorDefs: FloorDef[] = []
     const addRoom = (rid: string, label: string, monster: string, hp: number, isBoss: boolean, floorId?: string): Room => {
       const pool = syntheticPool(rid, label)
+      // Synthetic "Sample question" content: the right option rotates so a key is never guessable by position.
+      pool.forEach((q, i) => {
+        answers.set(q.id, {
+          correct: q.options[i % q.options.length],
+          explanation: `Sample explanation for ${label}.`,
+          page: i + 1,
+          chunk_id: `${id}-chunk-${order + 1}`,
+        })
+      })
       questions.push(...pool)
       order += 1
       const room: Room = {
@@ -160,7 +203,14 @@ export function createMockUpload(options: MockUploadOptions): MockUpload {
         order,
         is_boss: isBoss,
         ...(floorId ? { floor_id: floorId } : {}),
-        monster: { id: `monster-${rid}`, name: monster, max_hp: hp, question_ids: pool.map((q) => q.id), kind: 'unknown' },
+        monster: {
+          id: `monster-${rid}`,
+          name: monster,
+          max_hp: hp,
+          question_ids: pool.map((q) => q.id),
+          // Existing monster looks only: the final room is the Exam Warden, the rest cycle through the others.
+          kind: isBoss ? 'exam_warden' : PLAY_KINDS[(order - 1) % PLAY_KINDS.length],
+        },
       }
       rooms.push(room)
       return room
@@ -174,13 +224,14 @@ export function createMockUpload(options: MockUploadOptions): MockUpload {
         addRoom(`${id}-r${i + k + 1}`, t.name, k === group.length - 1 ? `Warden ${n}` : `Guardian ${n}`, k === group.length - 1 ? 90 : 80, false, floorId),
       )
       const boss = own[own.length - 1]
+      floorDefs.push({ id: floorId, index: n, title: `Floor ${n}`, roomIds: own.map((r) => r.id) })
       floors.push({
         id: floorId,
         index: n,
         title: `Floor ${n}`,
         status: 'locked',
         topics: own.map((r) => ({ id: r.id, title: r.label, mastery: 0 })),
-        boss: { id: boss.monster.id, name: boss.monster.name, hp: boss.monster.max_hp, kind: 'unknown' },
+        boss: { id: boss.monster.id, name: boss.monster.name, hp: boss.monster.max_hp, kind: boss.monster.kind },
         rank: null,
         room_ids: own.map((r) => r.id),
       })
@@ -193,12 +244,25 @@ export function createMockUpload(options: MockUploadOptions): MockUpload {
       startedAt: now(),
       sim: createGenerationSim(floors.length, { stepMs }),
       base: { id, name: `${titleOf(doc.name)} Dungeon`, rooms, questions, floors, final_boss },
+      answers,
+      floorDefs,
+      finalBossRoomId: finalRoom.id,
     }
   }
 
-  function view(g: GeneratedDungeon): Dungeon {
+  function view(g: GeneratedDungeon, play?: GeneratedPlayState): Dungeon {
     const statuses = g.sim.statuses(now() - g.startedAt)
-    const floors = g.base.floors.map((f, i) => ({ ...f, status: statuses[i] }))
+    const floors = g.base.floors.map((f, i): Floor => {
+      const def = g.floorDefs[i]
+      // Play state overlays the generation status: a floor whose boss room was cleared is cleared.
+      const cleared = play !== undefined && play.cleared.has(def.roomIds[def.roomIds.length - 1])
+      return {
+        ...f,
+        status: cleared ? 'cleared' : statuses[i],
+        rank: play?.ranks.get(f.id) ?? null,
+        topics: f.topics.map((t) => ({ ...t, mastery: play ? play.masteryOf(t.id) : t.mastery })),
+      }
+    })
     return structuredClone({
       ...g.base,
       floors,
@@ -282,15 +346,28 @@ export function createMockUpload(options: MockUploadOptions): MockUpload {
       return { id, status: 'processing', message: 'Document re-queued for processing.' }
     },
 
-    dungeon(id) {
+    dungeon(id, play) {
       const g = dungeons.get(id)
-      return g ? view(g) : undefined
+      return g ? view(g, play) : undefined
     },
 
-    generationStatus(id) {
+    source(id) {
       const g = dungeons.get(id)
       if (!g) return undefined
-      const d = view(g)
+      return {
+        id,
+        rooms: structuredClone(g.base.rooms),
+        questions: structuredClone(g.base.questions),
+        answers: g.answers,
+        floorDefs: g.floorDefs,
+        finalBossRoomId: g.finalBossRoomId,
+      }
+    },
+
+    generationStatus(id, play) {
+      const g = dungeons.get(id)
+      if (!g) return undefined
+      const d = view(g, play)
       return { dungeon_id: id, floors: (d.floors ?? []).map((f) => ({ id: f.id, status: f.status })) }
     },
 

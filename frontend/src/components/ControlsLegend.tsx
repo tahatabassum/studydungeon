@@ -1,14 +1,27 @@
 import { useState } from 'react'
 import { ControlsHint } from './ControlsHint'
+import '../styles/touch.css'
 
 export interface ControlsLegendProps {
   /** Compact (below 640 px): the legend collapses behind a toggle. */
   compact: boolean
+  /** Touch mode: one short line with touch wording, floating above the on-screen controls. */
+  touch?: boolean
 }
 
 /** Bottom controls legend floating over the stage; collapsible in compact mode. */
-export function ControlsLegend({ compact }: ControlsLegendProps) {
+export function ControlsLegend({ compact, touch = false }: ControlsLegendProps) {
   const [open, setOpen] = useState(false)
+
+  if (touch) {
+    return (
+      <div className="sd-hud-bottom sd-hud-bottom--touch">
+        <div className="sd-legend">
+          <ControlsHint touch />
+        </div>
+      </div>
+    )
+  }
 
   if (!compact) {
     return (

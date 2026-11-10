@@ -1,6 +1,6 @@
 import Phaser from 'phaser'
 import type { Player } from '../entities/Player'
-import { movementVector } from './movementVector'
+import { combineMovement, movementVector } from './movementVector'
 import { sfx } from '@/audio/sfx'
 
 export const PLAYER_SPEED = 180
@@ -35,6 +35,15 @@ export class MovementSystem {
   private readonly keys: Keys | null
   private readonly colliders: Phaser.Physics.Arcade.Collider[] = []
   private captured = false
+  private touchX = 0
+  private touchY = 0
+  private readonly mix = { x: 0, y: 0 }
+
+  /** Virtual joystick vector from React (length at most 1). (0, 0) releases it. */
+  setTouchVector(x: number, y: number): void {
+    this.touchX = x
+    this.touchY = y
+  }
 
   constructor(
     private readonly scene: Phaser.Scene,
@@ -56,16 +65,23 @@ export class MovementSystem {
 
     let dx = 0
     let dy = 0
-    if (exploring && this.keys) {
-      const k = this.keys
-      const v = movementVector({
-        up: k.w.isDown || k.up.isDown,
-        down: k.s.isDown || k.down.isDown,
-        left: k.a.isDown || k.left.isDown,
-        right: k.d.isDown || k.right.isDown,
-      })
-      dx = v.x
-      dy = v.y
+    if (exploring) {
+      let kx = 0
+      let ky = 0
+      if (this.keys) {
+        const k = this.keys
+        const v = movementVector({
+          up: k.w.isDown || k.up.isDown,
+          down: k.s.isDown || k.down.isDown,
+          left: k.a.isDown || k.left.isDown,
+          right: k.d.isDown || k.right.isDown,
+        })
+        kx = v.x
+        ky = v.y
+      }
+      const out = combineMovement(kx, ky, this.touchX, this.touchY, this.mix)
+      dx = out.x
+      dy = out.y
     }
     if (dx !== 0 || dy !== 0) sfx.play('footstep') // rate-limited inside the engine
     this.player.setVelocity(dx * PLAYER_SPEED, dy * PLAYER_SPEED)

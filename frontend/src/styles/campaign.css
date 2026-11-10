@@ -4,8 +4,7 @@
  * stops under prefers-reduced-motion (global rule) and under data-reduced="true" (in-app flag).
  *
  * Layout: header row, toolbar row, then the map filling the rest of the viewport (flex: 1, min-height: 0).
- * The page never scrolls; only the map scrolls, sideways. Below about 1100x560 the whole screen may
- * scroll inside itself with a thin themed scrollbar.
+ * The page never scrolls; only the map scrolls, sideways, and only when the floors do not fit.
  */
 
 .sd-map {
@@ -202,7 +201,8 @@
   min-width: 0;
   min-height: 0;
   overflow-x: auto;
-  overflow-y: auto;
+  /* Sideways only: the stage and cards are sized to the height this box has. */
+  overflow-y: hidden;
   /* Snap to the nodes, loosely: a drag or the wheel can stop between two nodes. */
   scroll-snap-type: x proximity;
   overscroll-behavior: contain;
@@ -733,14 +733,14 @@
   .sd-map__notice { margin-left: 0; text-align: left; }
 }
 
-/* Below about 1100x560 the map keeps a usable height and the screen scrolls inside itself. */
-@media (max-height: 560px), (max-width: 1100px) {
+/* Only on very short windows (under 480 px tall) the screen scrolls inside itself, never the page. */
+@media (max-height: 480px) {
   .sd-map {
     overflow-y: auto;
     overflow-x: hidden;
   }
   .sd-map__stage {
-    flex: 1 0 29rem;
-    min-height: 29rem;
+    flex: 1 0 20rem;
+    min-height: 20rem;
   }
 }

@@ -895,21 +895,24 @@ export function usePlaySession(scope?: PlayScope) {
     setTimeout(focusGame, 0)
   }, [bridge, focusGame])
 
-  // Esc toggles pause while exploring/paused.
+  // Esc and the HUD Pause button toggle pause while exploring/paused.
+  const togglePause = useCallback(() => {
+    // The exit confirmation owns Esc while open (it cancels back to the pause menu).
+    if (document.querySelector('[role="alertdialog"]')) return
+    const { phase, combat: c } = stateRef.current
+    if (phase === 'paused') dispatch({ type: 'resume' })
+    else if (phase === 'exploring' || (phase === 'encounter' && c === 'question')) {
+      dispatch({ type: 'pause' })
+    }
+  }, [])
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key !== 'Escape' || e.repeat) return
-      // The exit confirmation owns Esc while open (it cancels back to the pause menu).
-      if (document.querySelector('[role="alertdialog"]')) return
-      const { phase, combat: c } = stateRef.current
-      if (phase === 'paused') dispatch({ type: 'resume' })
-      else if (phase === 'exploring' || (phase === 'encounter' && c === 'question')) {
-        dispatch({ type: 'pause' })
-      }
+      togglePause()
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [])
+  }, [togglePause])
 
   // Return focus to the game after resuming.
   const prevPhase = useRef(state.phase)
@@ -1021,6 +1024,7 @@ export function usePlaySession(scope?: PlayScope) {
     skipWait,
     restart,
     resume,
+    togglePause,
     retreat,
   }
   return [session, gameWrapRef] as const

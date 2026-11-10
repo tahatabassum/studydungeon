@@ -63,6 +63,10 @@ export function ContinueCard({ dungeonId, dungeon, onPlayDemo, demoPending, demo
         <button type="button" className="sd-ghost-btn" onClick={onPlayDemo} disabled={demoPending} aria-busy={demoPending || undefined}>
           Play Demo
         </button>
+        <Link to="/upload" className="sd-cta" data-testid="upload-link">
+          <Upload aria-hidden="true" size={18} />
+          Upload notes
+        </Link>
       </div>
       {demoError && (
         <p role="alert" className="sd-card__muted">
@@ -133,7 +137,7 @@ export function MasteryCard({ dungeon }: { dungeon: DashboardDungeon }) {
   )
 }
 
-/** Upload opens the wizard at /upload; settings is a placeholder until a later phase. */
+/** Settings is a placeholder until a later phase. Upload notes sits in the Dungeon card at the top. */
 export function LinksCard() {
   return (
     <section className="sd-card" aria-labelledby="dash-links-title" data-testid="links-card">
@@ -141,10 +145,6 @@ export function LinksCard() {
         More
       </h2>
       <div className="sd-dash__actions">
-        <Link to="/upload" className="sd-ghost-btn">
-          <Upload aria-hidden="true" size={16} />
-          Upload notes
-        </Link>
         <button type="button" className="sd-ghost-btn" aria-disabled="true" aria-describedby="dash-soon">
           <Settings aria-hidden="true" size={16} />
           Settings
@@ -183,7 +183,14 @@ export function DemoCard({
           <Play aria-hidden="true" size={18} />
           Play Demo
         </button>
+        <Link to="/register" className="sd-ghost-btn" data-testid="upload-gate-link" aria-describedby="dash-upload-gate">
+          <Upload aria-hidden="true" size={16} />
+          Upload notes
+        </Link>
       </div>
+      <p id="dash-upload-gate" className="sd-card__muted">
+        Create an account to upload your own notes.
+      </p>
       {error && (
         <p role="alert" className="sd-card__muted">
           {error}

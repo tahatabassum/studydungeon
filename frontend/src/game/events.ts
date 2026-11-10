@@ -58,6 +58,15 @@ export type ToGameEvent =
   | { type: 'play-boss-death'; roomId: string }
   /** Additive, display-only: a burst of coins or soul gems (at a world position, else at the player). */
   | { type: 'loot-burst'; x?: number; y?: number }
+  /**
+   * Additive (touch play): the virtual joystick vector, each axis in -1..1 and its length at most 1.
+   * Sent only when it changes; (0, 0) on release, cancel and blur. The keyboard wins when a key is down.
+   */
+  | { type: 'set-move-input'; x: number; y: number }
+  /** Additive (touch play): the Engage button was pressed. Handled exactly like E or Space. */
+  | { type: 'engage-request' }
+  /** Additive, display-only: touch controls are active, so in-world prompts use touch wording. */
+  | { type: 'set-touch-mode'; value: boolean }
 
 export type FromGameEvent =
   | { type: 'ready' }
@@ -74,6 +83,11 @@ export type FromGameEvent =
   | { type: 'revenant-rested'; revenantId: string }
   /** Additive: the boss death sequence ended (React then shows the Scorecard and the Chest). */
   | { type: 'boss-death-done'; roomId: string }
+  /**
+   * Additive: whether the player can engage something right now (a monster or a Revenant in range).
+   * Emitted only when the target changes. `name` is the monster's name for kind 'monster'.
+   */
+  | { type: 'engage-available'; kind: 'monster' | 'revenant' | null; name?: string }
 
 export interface GameBridge {
   /** React side: send an event to the game. Queued until the game is ready. */

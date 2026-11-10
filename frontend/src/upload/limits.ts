@@ -12,7 +12,21 @@ export const MAX_DOCUMENTS = 5
 export const FORMAT_LABELS = ['PDF', 'DOCX', 'PPTX', 'TXT', 'PNG', 'JPEG'] as const
 /** File extensions the picker offers (JPEG covers .jpg and .jpeg). */
 export const ACCEPT_EXTENSIONS = ['pdf', 'docx', 'pptx', 'txt', 'png', 'jpg', 'jpeg'] as const
-export const ACCEPT_ATTR = ACCEPT_EXTENSIONS.map((e) => `.${e}`).join(',')
+/**
+ * MIME types next to the extensions: phone pickers use them (image types also offer the camera).
+ * They list exactly the same six formats.
+ */
+export const ACCEPT_MIME_TYPES = [
+  'application/pdf',
+  'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+  'text/plain',
+  'image/png',
+  'image/jpeg',
+] as const
+export const ACCEPT_ATTR = [...ACCEPT_EXTENSIONS.map((e) => `.${e}`), ...ACCEPT_MIME_TYPES].join(',')
+
+export const PHOTO_HINT = 'You can also take a photo of your notes (PNG or JPEG).'
 
 export const FORMATS_TEXT = `Accepted formats: ${FORMAT_LABELS.join(', ')}.`
 export const LIMITS_TEXT = `Up to ${MAX_UPLOAD_MB} MB and ${MAX_PAGES} pages, with at least ${MIN_CHARS} characters of text.`

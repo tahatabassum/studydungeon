@@ -65,6 +65,31 @@ describe('MovementSystem', () => {
     expect(y).toBeCloseTo(-s)
   })
 
+  it('moves with the touch vector at the same speed scale, and the keyboard wins when pressed', () => {
+    const { sys, player, keys } = setup(true)
+    sys.setTouchVector(0.5, 0)
+    sys.update(0)
+    expect(player.setVelocity).toHaveBeenLastCalledWith(PLAYER_SPEED * 0.5, 0)
+    sys.setTouchVector(3, 4) // a vector over length 1 is clamped, never faster than the keyboard
+    sys.update(0)
+    const [x, y] = player.setVelocity.mock.calls.at(-1) as [number, number]
+    expect(Math.hypot(x, y)).toBeCloseTo(PLAYER_SPEED)
+    keys().a.isDown = true
+    sys.update(0)
+    expect(player.setVelocity).toHaveBeenLastCalledWith(-PLAYER_SPEED, 0)
+    keys().a.isDown = false
+    sys.setTouchVector(0, 0)
+    sys.update(0)
+    expect(player.setVelocity).toHaveBeenLastCalledWith(0, 0)
+  })
+
+  it('ignores the touch vector when not exploring', () => {
+    const { sys, player } = setup(false)
+    sys.setTouchVector(1, 0)
+    sys.update(0)
+    expect(player.setVelocity).toHaveBeenLastCalledWith(0, 0)
+  })
+
   it('zeroes velocity when not exploring', () => {
     const { sys, player, keys } = setup(false)
     keys().w.isDown = true

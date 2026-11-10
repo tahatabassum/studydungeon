@@ -91,3 +91,54 @@
 [data-reduced='true'].sd-lowhp {
   animation: none;
 }
+
+/*
+ * Overlay dialogs: the fixed backdrop never scrolls. Long content scrolls inside the dialog body
+ * (thin themed scrollbar). Padding and negative margin leave room for focus rings.
+ */
+.sd-overlay-body {
+  padding: 4px;
+  margin: -4px;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-witch) transparent;
+}
+.sd-overlay-body::-webkit-scrollbar { width: 8px; }
+.sd-overlay-body::-webkit-scrollbar-thumb { background: var(--color-witch); border-radius: 4px; }
+.sd-overlay-body::-webkit-scrollbar-track { background: transparent; }
+
+/* Pause menu: compact controls, actions left and Armory right when there is room. */
+.sd-pause {
+  display: grid;
+  width: 100%;
+  grid-template-columns: minmax(0, 1fr);
+  gap: clamp(0.5rem, 1.6vh, 1rem);
+  align-items: start;
+}
+.sd-pause__actions {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(0.35rem, 1.2vh, 0.75rem);
+}
+.sd-pause button.sd-control {
+  padding-block: clamp(0.3rem, 1.1vh, 0.6rem);
+  padding-inline: 1.25rem;
+  font-size: clamp(0.95rem, 2.4vh, 1.1rem);
+}
+.sd-pause__actions > button.sd-control:first-child {
+  padding-block: clamp(0.45rem, 1.6vh, 0.9rem);
+  font-size: clamp(1.05rem, 3vh, 1.35rem);
+}
+.sd-pause [data-testid='armory'] ul { gap: clamp(0.15rem, 0.6vh, 0.25rem); }
+.sd-pause [data-testid='armory'] li { padding-block: clamp(0.15rem, 0.5vh, 0.25rem); }
+.sd-pause [data-testid='armory'] button.sd-control,
+.sd-pause [data-testid='armory'] button {
+  font-size: 0.75rem;
+}
+.sd-pause--solo { max-width: 20rem; margin-inline: auto; }
+@media (min-width: 640px) {
+  .sd-pause:not(.sd-pause--solo) {
+    grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.4fr);
+    gap: 1.25rem;
+  }
+}
