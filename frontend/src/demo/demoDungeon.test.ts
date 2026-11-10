@@ -42,7 +42,7 @@ describe('demo dungeon', () => {
       ['Memory Eater', 'memory_eater'],
       ['The Exam Warden', 'exam_warden'],
     ])
-    expect(rooms.map((r) => r.monster.max_hp)).toEqual([60, 60, 60, 60, 120])
+    expect(rooms.map((r) => r.monster.max_hp)).toEqual([80, 90, 85, 85, 220])
     expect(rooms.map((r) => r.order)).toEqual([1, 2, 3, 4, 5])
     expect(rooms[0].id).toBe('room-1')
     expect(rooms[0].monster.id).toBe('monster-1')

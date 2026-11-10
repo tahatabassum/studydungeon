@@ -50,7 +50,9 @@ describe('Property 6: Mock run invariants across rooms', () => {
               expect(r.player_hp_remaining).toBe(Math.max(0, playerBefore - cost))
               expect(r.monster_hp_remaining).toBe(roomBefore)
             } else {
-              expect(r.monster_hp_remaining).toBe(Math.max(0, roomBefore - 20))
+              // Damage varies with weapon, hard questions and criticals; the HP drop is exactly what was dealt.
+              expect(r.damage_dealt).toBeGreaterThan(0)
+              expect(r.monster_hp_remaining).toBe(Math.max(0, roomBefore - r.damage_dealt))
               expect(r.player_hp_remaining).toBe(playerBefore)
             }
             playerHp = r.player_hp_remaining

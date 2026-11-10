@@ -47,24 +47,145 @@
   to { transform: translateX(6%); }
 }
 
+/*
+ * Flying pixel bats. The wrapper flies (transform only); the wings flap (transform only). They live in
+ * the fixed, clipped sky layer, so they can never add a scrollbar. Each bat is configured by custom
+ * properties: --bat-top, --bat-size, --bat-dur, --bat-delay, --bat-rest.
+ */
 .sd-bat {
   position: absolute;
+  top: var(--bat-top, 10%);
+  left: 0;
+  width: var(--bat-size, 28px);
   color: var(--color-witch);
-  filter: drop-shadow(0 0 2px var(--color-magic));
-  left: 8%;
-  animation: sd-bat-cross 16s linear infinite;
+  filter: drop-shadow(0 0 3px var(--color-magic));
+  will-change: transform;
+  animation: var(--bat-fly, sd-bat-ltr) var(--bat-dur, 20s) linear var(--bat-delay, 0s) infinite;
 }
-.sd-bat--1 { top: 14%; width: 2.2rem; animation-duration: 15s; }
-.sd-bat--2 { top: 26%; width: 1.6rem; animation-duration: 21s; animation-delay: -7s; }
-.sd-bat--3 { top: 36%; width: 1.9rem; animation-duration: 18s; animation-delay: -12s; }
+.sd-bat--rtl { --bat-fly: sd-bat-rtl; }
+.sd-bat__svg { display: block; width: 100%; height: auto; image-rendering: pixelated; }
+.sd-bat--rtl .sd-bat__svg { transform: scaleX(-1); }
+.sd-bat__wing {
+  transform-box: fill-box;
+  animation: sd-bat-flap 0.42s steps(2, jump-none) infinite alternate;
+}
+.sd-bat__wing--l { transform-origin: 100% 100%; }
+.sd-bat__wing--r { transform-origin: 0% 100%; }
 
-@keyframes sd-bat-cross {
-  0% { transform: translate(-10vw, 0) scaleY(1); }
-  25% { transform: translate(25vw, -2vh) scaleY(0.8); }
-  50% { transform: translate(55vw, 1vh) scaleY(1); }
-  75% { transform: translate(85vw, -3vh) scaleY(0.8); }
-  100% { transform: translate(115vw, 0) scaleY(1); }
+@keyframes sd-bat-ltr {
+  0% { transform: translate3d(-8vw, 0, 0); }
+  25% { transform: translate3d(23vw, -2.5vh, 0); }
+  50% { transform: translate3d(54vw, 1.5vh, 0); }
+  75% { transform: translate3d(85vw, -2vh, 0); }
+  100% { transform: translate3d(112vw, 0, 0); }
 }
+@keyframes sd-bat-rtl {
+  0% { transform: translate3d(112vw, 0, 0); }
+  25% { transform: translate3d(85vw, 2vh, 0); }
+  50% { transform: translate3d(54vw, -2vh, 0); }
+  75% { transform: translate3d(23vw, 2.5vh, 0); }
+  100% { transform: translate3d(-8vw, 0, 0); }
+}
+@keyframes sd-bat-flap {
+  from { transform: scaleY(1); }
+  to { transform: scaleY(0.35); }
+}
+
+/* Paused while the tab is hidden (set from the visibilitychange listener). */
+[data-tab-hidden='true'] .sd-bat,
+[data-tab-hidden='true'] .sd-bat__wing {
+  animation-play-state: paused;
+}
+
+/* Landing layout: exactly one dynamic viewport tall, no page scrollbar. */
+.sd-landing {
+  height: 100vh;
+  height: 100dvh;
+}
+.sd-landing__sky {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+.sd-landing__bar { padding: clamp(0.25rem, 1.2vh, 1rem) clamp(16px, 3vw, 48px); flex: 0 0 auto; }
+.sd-landing__foot { padding: clamp(0.15rem, 0.8vh, 1rem) 1rem; flex: 0 0 auto; }
+.sd-landing__main {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  padding: 0 clamp(16px, 3vw, 48px);
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-witch) transparent;
+}
+.sd-landing__content {
+  /* Auto margins centre it when there is room and fall back to the top edge when the main area scrolls. */
+  margin: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: clamp(0.6rem, 3vh, 2rem);
+  width: 100%;
+  max-width: 64rem;
+  padding: 4px;
+  text-align: center;
+}
+.sd-landing__hero { display: flex; flex-direction: column; align-items: center; gap: clamp(0.3rem, 1.4vh, 1rem); }
+.sd-landing__title { margin: 0; font-size: clamp(2.5rem, min(11vh, 11vw), 5.5rem); line-height: 1; }
+.sd-landing__tag { margin: 0; max-width: 36rem; font-size: clamp(1rem, 2.4vh, 1.25rem); }
+.sd-landing__actions { display: flex; flex-direction: column; align-items: center; gap: clamp(0.5rem, 1.6vh, 0.85rem); }
+.sd-landing__how { margin: 0 0 clamp(0.4rem, 1.4vh, 1rem); font-size: clamp(1.4rem, 4vh, 1.875rem); line-height: 1.1; }
+.sd-landing__cards {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: clamp(0.5rem, 1.6vw, 1rem);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.sd-landing__card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  padding: clamp(0.6rem, 2vh, 1.25rem);
+}
+@media (max-width: 640px) {
+  .sd-landing__cards { grid-template-columns: minmax(0, 1fr); }
+  .sd-landing__card { flex-direction: row; align-items: center; gap: 0.75rem; }
+}
+
+/* "How to play" secondary button: ghost pill, ink on bg is above 11:1. */
+.sd-ghost-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 2.5rem;
+  padding: 0.35rem 1.1rem;
+  font-family: var(--font-label);
+  font-size: var(--sd-text-sm);
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--color-ink);
+  background: color-mix(in srgb, var(--color-panel) 55%, transparent);
+  border: 1.5px solid var(--color-magic);
+  border-radius: 999px;
+  cursor: pointer;
+  transition: border-color var(--sd-dur-fast) ease, box-shadow var(--sd-dur-fast) ease, background-color var(--sd-dur-fast) ease;
+}
+.sd-ghost-pill:hover {
+  border-color: var(--color-accent);
+  background: var(--color-deep);
+  box-shadow: var(--sd-glow-accent);
+}
+.sd-ghost-pill:focus-visible {
+  outline: 3px solid var(--color-accent);
+  outline-offset: 3px;
+}
+.sd-ghost-pill svg { color: var(--color-accent); }
 
 /* Gentle flicker only (opacity stays above 0.8, no strobing). */
 .sd-title-flicker {
@@ -94,7 +215,13 @@
 
 [data-reduced='true'] .sd-fog,
 [data-reduced='true'] .sd-bat,
+[data-reduced='true'] .sd-bat__wing,
 [data-reduced='true'] .sd-title-flicker,
 [data-reduced='true'] .sd-pumpkin-btn {
   animation: none;
+}
+/* Reduced motion: bats rest in place instead of flying. */
+[data-reduced='true'] .sd-bat { left: var(--bat-rest, 10%); }
+@media (prefers-reduced-motion: reduce) {
+  .sd-bat { left: var(--bat-rest, 10%); }
 }

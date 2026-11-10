@@ -1,0 +1,28 @@
+/* First-run tutorial: a scripted practice encounter. Fits 390px wide; motion is off under reduced motion. */
+.sd-tutorial { display: flex; flex-direction: column; align-items: center; gap: 0.75rem; width: 100%; max-height: calc(100dvh - 8rem); overflow-y: auto; }
+.sd-tutorial__count { font-size: var(--sd-text-xs); color: var(--color-ink-muted); }
+.sd-tutorial__text { max-width: 30rem; line-height: 1.5; color: var(--color-ink); text-align: center; }
+.sd-tutorial__corridor { display: flex; gap: 0.25rem; width: 100%; max-width: 22rem; }
+.sd-tutorial__cell { position: relative; display: flex; flex: 1 1 0; min-width: 0; height: 3rem; align-items: center; justify-content: center; border: 1px solid var(--color-ink-muted); border-radius: 0.4rem; background: var(--color-deep); }
+.sd-tutorial__hero { color: var(--color-gold); animation: sd-tutorial-pop 0.2s ease-out both; }
+.sd-tutorial__monster { color: var(--color-bone); }
+.sd-tutorial__quiz { display: flex; flex-direction: column; align-items: center; gap: 0.6rem; width: 100%; }
+.sd-tutorial__question { font-weight: 600; color: var(--color-ink); text-align: center; }
+.sd-tutorial__options { display: flex; flex-direction: column; gap: 0.4rem; width: 100%; max-width: 22rem; }
+.sd-tutorial__option { display: flex; align-items: center; gap: 0.6rem; min-height: 2.75rem; padding: 0.4rem 0.75rem; border: 2px solid var(--color-gold); border-radius: 0.5rem; background: var(--color-panel); color: var(--color-ink); text-align: left; cursor: pointer; }
+.sd-tutorial__option:hover:not(:disabled), .sd-tutorial__option:focus-visible { background: var(--color-deep); }
+.sd-tutorial__option:focus-visible { outline: 3px solid var(--color-gold); outline-offset: 2px; }
+.sd-tutorial__option[aria-pressed='true'] { border-color: var(--color-toxic); }
+.sd-tutorial__option:disabled { cursor: default; }
+.sd-tutorial__num { display: inline-flex; width: 1.5rem; height: 1.5rem; align-items: center; justify-content: center; border-radius: 9999px; background: var(--color-deep); color: var(--color-ink); font-size: var(--sd-text-xs); }
+.sd-tutorial__note { max-width: 28rem; text-align: center; color: var(--color-ink); line-height: 1.5; }
+.sd-tutorial__live { min-height: 1.25rem; font-size: var(--sd-text-xs); color: var(--color-ink-muted); text-align: center; }
+.sd-tutorial__actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 0.5rem; }
+@keyframes sd-tutorial-pop {
+  from { transform: scale(0.7); opacity: 0.4; }
+  to { transform: none; opacity: 1; }
+}
+.sd-tutorial[data-reduced='true'] .sd-tutorial__hero { animation: none; }
+@media (prefers-reduced-motion: reduce) {
+  .sd-tutorial__hero { animation: none; }
+}

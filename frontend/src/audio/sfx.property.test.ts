@@ -127,7 +127,9 @@ describe('sfx', () => {
     expect(CUES).toContain('miss')
     expect(CUES).toContain('boss')
     expect(CUES).toContain('rest')
-    expect(CUES.length).toBe(12)
+    expect(CUES).toContain('bossfall')
+    expect(CUES).toContain('loot')
+    expect(CUES.length).toBe(19)
   })
 
   it('rate limits repeated footsteps', () => {

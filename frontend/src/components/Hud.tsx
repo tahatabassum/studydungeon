@@ -5,6 +5,8 @@ import { getSprite } from '../art/sprites'
 import { ICONS } from '../art/sprites/icons'
 import { PixelSprite } from './PixelSprite'
 import { HauntedCounter } from './HauntedCounter'
+import { ComboMeter } from './ComboMeter'
+import { comboValue } from '../learning/combo'
 import { isLowHealth } from './hudHelpers'
 import { ProgressBar } from './ProgressBar'
 import { StoneFrame } from './StoneFrame'
@@ -37,6 +39,10 @@ export interface HudProps {
   compact?: boolean
   /** Haunted memories due; the counter renders only when provided. */
   hauntedDue?: number
+  /** What the rooms are called in the progress line (default "Room"; the Haunted Hall says "Hall"). */
+  roomNoun?: string
+  /** Backend combo; the Combo_Meter shows `combo ?? streak`. */
+  combo?: number
 }
 
 export function Hud({
@@ -58,6 +64,8 @@ export function Hud({
   showMonster = true,
   compact = false,
   hauntedDue,
+  roomNoun,
+  combo,
 }: HudProps) {
   const reduceMotion = useReducedMotion()
   const lowHealth = isLowHealth(playerHp, maxPlayerHp)
@@ -72,6 +80,7 @@ export function Hud({
             rooms={rooms}
             currentRoomId={currentRoomId}
             clearedRoomIds={clearedRoomIds ?? []}
+            noun={roomNoun}
           />
         </div>
       )}
@@ -130,6 +139,10 @@ export function Hud({
         {!compact && level !== undefined && totalXp !== undefined && xpToNext !== undefined && (
           <span className="text-xs text-ink/80">{`Total ${totalXp} XP · ${xpToNext} to next`}</span>
         )}
+        {/* Real mode sends no xp_to_next: show the total only. */}
+        {!compact && level !== undefined && totalXp !== undefined && xpToNext === undefined && (
+          <span className="text-xs text-ink/80">{`Total ${totalXp} XP`}</span>
+        )}
         {streak !== undefined && streak > 0 && (
           <span className="flex items-center gap-1 text-accent">
             <Flame aria-hidden="true" className="size-4" />
@@ -137,6 +150,7 @@ export function Hud({
           </span>
         )}
       </motion.div>
+      <ComboMeter value={comboValue(combo, streak ?? 0)} />
       {hauntedDue !== undefined && <HauntedCounter count={hauntedDue} compact={compact} />}
     </div>
   )

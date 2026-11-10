@@ -85,7 +85,7 @@ describe('runReducer properties', () => {
           expect(after.playerHp).toBe(result.player_hp_remaining)
           expect(after.monsterHp).toBe(result.monster_hp_remaining)
           expect(after.streak).toBe(result.streak)
-          expect(after.xp).toBe(xp + result.xp_delta)
+          expect(after.xp).toBe(xp + (result.xp_delta ?? 0))
           expect(after.score).toBe(score + result.score_delta)
           expect(after.phase).toBe('resolving')
           expect(after.combat).toBe('result')

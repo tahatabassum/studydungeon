@@ -1,0 +1,13 @@
+{
+  "entries": [
+    { "id": "rival-1", "rank": 1, "display_name": "Lady Lantern", "is_guest": false, "is_seeded_rival": true, "level": 9, "score": 4200, "accuracy": 0.96, "best_streak": 18, "badge_ids": ["dungeon_master", "boss_slayer"] },
+    { "id": "u_42", "rank": 2, "display_name": "Sam", "is_guest": false, "is_seeded_rival": false, "level": 4, "score": 3900, "accuracy": 0.9, "best_streak": 11, "badge_ids": ["first_blood", "streak_5"] },
+    { "id": "rival-2", "rank": 3, "display_name": "Count Quill", "is_guest": false, "is_seeded_rival": true, "level": 8, "score": 3650, "accuracy": 0.92, "best_streak": 15, "badge_ids": [] }
+  ],
+  "me": {
+    "rank": 2,
+    "is_provisional": false,
+    "entry": { "id": "u_42", "rank": 2, "display_name": "Sam", "is_guest": false, "is_seeded_rival": false, "level": 4, "score": 3900, "accuracy": 0.9, "best_streak": 11, "badge_ids": ["first_blood", "streak_5"] }
+  },
+  "updated_at": "2026-01-01T12:00:00.000Z"
+}

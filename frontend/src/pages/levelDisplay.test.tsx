@@ -4,7 +4,6 @@
  */
 import { useEffect } from 'react'
 import { act, cleanup, render, screen } from '@testing-library/react'
-import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { ApiClient } from '@/api'
@@ -33,20 +32,20 @@ vi.mock('@/game/GameCanvas', () => ({
 }))
 
 import App from '@/App'
+import { OpenLegacyPlay } from '@/pages/OpenLegacyPlay'
 import { SessionProvider } from '@/state/SessionContext'
 
 let adapter: ApiClient
 
 async function startDemo() {
-  const user = userEvent.setup()
   render(
     <MemoryRouter initialEntries={['/']}>
       <SessionProvider>
+        <OpenLegacyPlay />
         <App />
       </SessionProvider>
     </MemoryRouter>,
   )
-  await user.click(screen.getByRole('button', { name: /try the demo/i }))
   await screen.findByText('XP 0')
   await vi.waitFor(() => expect(h.bridge).toBeTruthy())
 }

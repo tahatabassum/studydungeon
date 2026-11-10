@@ -1,3 +1,5 @@
+import { ApiError, friendlyMessage } from './errors'
+
 /**
  * Thrown when a response does not match its zod schema. The message names the endpoint
  * and the failing field path, e.g.
@@ -30,5 +32,6 @@ export function describeError(err: unknown, fallback: string): string {
   if (err instanceof ContractError) {
     return `The server sent an unexpected response (${err.endpoint}, field ${err.path}).`
   }
+  if (err instanceof ApiError) return friendlyMessage(err.code, err.status) ?? fallback
   return fallback
 }

@@ -65,3 +65,51 @@ alembic check
 
 ### License
 - StudyDungeon is licensed under the MIT License. Copyright (c) 2026 M Taha Tabassum.
+
+## Frontend (React, Vite, Phaser)
+
+The frontend lives in `frontend/`. It runs fully in mock mode, so no backend is needed to play.
+
+### Run it in mock mode
+```bash
+cd frontend
+npm install
+npm run dev          # http://localhost:5173, mock mode by default (VITE_USE_MOCKS=true)
+npm run typecheck    # tsc --noEmit
+npm run lint         # eslint
+npm test             # vitest --run (unit and property tests)
+npm run test:contract  # contract suite against the mock adapter
+npm run build        # typecheck, then vite build
+```
+
+### Features
+- Campaign: a floor map with locked, active, cleared and generating floors, a Final Boss and a Chest after a floor clear.
+- Floors and rooms: each floor groups topics; clearing a floor unlocks the next one and shows a rank.
+- Daily Haunt: a short review of memories that are due, ending with a finale and the daily streak.
+- Run modes: weak topics, exam (with timer) and floor replay.
+- Learning loop: a memory scroll after a wrong answer, a quick retry, missed questions coming back later, and a combo meter.
+- Leaderboard and dashboard: readable by guests, with progress, mastery, review streak, Armory and badges.
+- Auth: register, login and logout with a cookie session, plus a guest demo.
+- Offline demo: if the backend is asleep or unreachable, the player can continue with a clearly labelled offline demo.
+- Share card: a 1200x630 image and post text made after a run (Download or Copy).
+- First run: intro cards, then a five-step tutorial (move, engage, answer, memory scroll, Daily Haunt). Skippable at every step, shown once (`sd.introSeen`, `sd.tutorialSeen`). "How to play" on the title screen replays it.
+- Armory: pick an unlocked weapon to equip. The choice is UI state only and is sent as the weapon on each attempt.
+
+### Environment variables
+| Variable | Meaning |
+| --- | --- |
+| `VITE_USE_MOCKS` | `true` (default in `.env.example`) uses the in-browser mock; anything else uses the real backend. |
+| `VITE_API_BASE` | Base URL of the real backend, for example `http://localhost:8000` or `/api`. Wins over the older `VITE_API_BASE_URL`. |
+| `VITE_MOCK_DELAY_MS` | Dev only: extra latency (0 to 60000 ms) on the mock demo session, to see the waking-up screen. |
+| `VITE_MOCK_SEED_REVENANTS` | `true` seeds a few due memories in the mock so the Daily Haunt and Revenants can be seen at once. |
+| `VITE_BADGE_SPEED_READER` | `true` turns on the optional speed_reader badge. |
+
+### Dev routes
+- `/dev/floors`: the floor map with every floor state, for visual checks.
+- `/dev/scorecard`: the Scorecard with sample data, for visual checks.
+
+### Honest-copy rule
+Screens show measured numbers only. They never promise that anything will be memorized or remembered, and a test scans the copy-bearing folders for banned phrases. Fields the backend does not send (rank, chest, XP and so on) are hidden in real mode, never invented.
+
+### Mock mode versus real mode
+Mock mode implements the whole campaign in the browser, including fields marked PROPOSED in `docs/handoff/B-to-A.md`. Real mode talks to the backend in this repository, sends only the fields it supports and hides features whose capability is missing, with a short "coming soon" note. Both modes pass the same contract tests where the contract exists.

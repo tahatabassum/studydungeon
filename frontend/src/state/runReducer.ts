@@ -6,6 +6,7 @@
 import type { GamePhase } from '@/game/events'
 import type { AnswerResult, Run, RunSummary } from '@/types/api'
 import type { CombatState } from './combatMachine'
+import { addPending, removePending, tickPending, type PendingRequeue } from './pendingRequeue'
 
 /** Minimal room shape the reducer needs; the full Room type is assignable to it. */
 export interface RoomInfo {
@@ -52,6 +53,12 @@ export interface RunState {
    * A Revenant result updates the player's HP, streak, XP and score but never the room monster's HP.
    */
   revenantActive: boolean
+  /**
+   * Missed questions that return after the gap the Backend gave (`requeue_after`). Display bookkeeping only.
+   * They live inside the room they were missed in: clearing the room or entering another one drops them
+   * (the room monster is gone, so there is nothing left to ask them with).
+   */
+  pendingRequeue: PendingRequeue[]
 }
 
 export const initialRunState: RunState = {
@@ -76,12 +83,20 @@ export const initialRunState: RunState = {
   clearedRoomIds: [],
   summary: null,
   revenantActive: false,
+  pendingRequeue: [],
 }
 
 export type RunAction =
   /** Without 
 ooms (legacy), a single room is assumed and maxMonsterHp is used. */
-  | { type: 'run-started'; run: RunInfo; rooms?: readonly RoomInfo[]; maxMonsterHp?: number }
+  | {
+      type: 'run-started'
+      run: RunInfo
+      rooms?: readonly RoomInfo[]
+      maxMonsterHp?: number
+      /** The room whose clearing ends the run when no room is flagged as the boss (the Haunted Hall's last hall). */
+      finalRoomId?: string
+    }
   | { type: 'room-entered'; roomId: string }
   /** `revenant` marks an optional haunted-memory encounter that must not touch the room monster. */
   | { type: 'encounter-started'; revenant?: boolean }
@@ -92,13 +107,19 @@ ooms (legacy), a single room is assumed and maxMonsterHp is used. */
   | { type: 'answer-failed' }
   | { type: 'advance' }
   | { type: 'retreat' }
-  | { type: 'result-received'; result: AnswerResult }
+  /** `questionId` lets a `requeue_after` in the result be tracked against the question that was missed. */
+  | { type: 'result-received'; result: AnswerResult; questionId?: string }
+  /** An ordinary question was presented (or `returned`, the requeued one): the others come one question closer. */
+  | { type: 'requeue-presented'; returned?: string }
+  /** The question is being retried right now (Quick retry): it no longer waits for its turn. */
+  | { type: 'requeue-cancel'; questionId: string }
   | { type: 'result-settled' }
   /** 
 oomId defaults to the current room. */
   | { type: 'room-cleared'; roomId?: string; xpDelta: number }
   | { type: 'gate-opened'; roomId?: string }
-  | { type: 'run-finished'; summary: RunSummary }
+  /** `forced` ends the run before its last room is cleared (the Exam timer reaching zero). */
+  | { type: 'run-finished'; summary: RunSummary; forced?: boolean }
   | { type: 'pause' }
   | { type: 'resume' }
   | { type: 'reset' }
@@ -124,7 +145,7 @@ function startRun(action: Extract<RunAction, { type: 'run-started' }>): RunState
     maxMonsterHp: roomMaxHp[currentRoomId],
     currentRoomId,
     roomOrder,
-    bossRoomId: sorted.find((r) => r.is_boss)?.id ?? null,
+    bossRoomId: sorted.find((r) => r.is_boss)?.id ?? action.finalRoomId ?? null,
     roomHp,
     roomMaxHp,
   }
@@ -146,6 +167,7 @@ export function runReducer(state: RunState, action: RunAction): RunState {
         currentRoomId: id,
         monsterHp: state.roomHp[id] ?? 0,
         maxMonsterHp: state.roomMaxHp[id] ?? 0,
+        pendingRequeue: [],
       }
     }
 
@@ -184,6 +206,14 @@ export function runReducer(state: RunState, action: RunAction): RunState {
     case 'result-received': {
       if (state.combat !== 'submitting') return state
       const r = action.result
+      // The gap is the Backend's: copy it, never compute one. A Revenant is a review, not a room question.
+      let pendingRequeue = state.pendingRequeue
+      if (!state.revenantActive && action.questionId) {
+        pendingRequeue = removePending(pendingRequeue, action.questionId)
+        if (!r.correct && typeof r.requeue_after === 'number') {
+          pendingRequeue = addPending(pendingRequeue, action.questionId, r.requeue_after)
+        }
+      }
       if (state.revenantActive) {
         // A Revenant result: copy the player-side values only. The room monster keeps its HP (0).
         return {
@@ -193,7 +223,7 @@ export function runReducer(state: RunState, action: RunAction): RunState {
           prevPlayerHp: state.playerHp,
           playerHp: r.player_hp_remaining,
           streak: r.streak,
-          xp: state.xp + r.xp_delta,
+          xp: state.xp + (r.xp_delta ?? 0),
           score: state.score + r.score_delta,
           lastResult: r,
         }
@@ -206,9 +236,10 @@ export function runReducer(state: RunState, action: RunAction): RunState {
         playerHp: r.player_hp_remaining,
         monsterHp: r.monster_hp_remaining,
         streak: r.streak,
-        xp: state.xp + r.xp_delta,
+        xp: state.xp + (r.xp_delta ?? 0),
         score: state.score + r.score_delta,
         lastResult: r,
+        pendingRequeue,
         roomHp: state.currentRoomId
           ? { ...state.roomHp, [state.currentRoomId]: r.monster_hp_remaining }
           : state.roomHp,
@@ -222,6 +253,12 @@ export function runReducer(state: RunState, action: RunAction): RunState {
       if (state.monsterHp <= 0 && !state.revenantActive) return { ...state, combat: 'monster_defeated' }
       return { ...state, combat: 'next' }
 
+    case 'requeue-presented':
+      return { ...state, pendingRequeue: tickPending(state.pendingRequeue, action.returned) }
+
+    case 'requeue-cancel':
+      return { ...state, pendingRequeue: removePending(state.pendingRequeue, action.questionId) }
+
     case 'room-cleared': {
       if (state.phase === 'defeated' || state.phase === 'paused' || state.phase === 'victory') return state
       const id = action.roomId ?? state.currentRoomId
@@ -233,6 +270,7 @@ export function runReducer(state: RunState, action: RunAction): RunState {
         combat: null,
         xp: state.xp + action.xpDelta,
         clearedRoomIds: [...state.clearedRoomIds, id],
+        pendingRequeue: [],
       }
     }
 
@@ -241,6 +279,10 @@ export function runReducer(state: RunState, action: RunAction): RunState {
       return { ...state, phase: 'exploring' }
 
     case 'run-finished':
+      if (action.forced === true) {
+        if (state.summary) return state
+        return { ...state, summary: action.summary, phase: 'victory', prevPhase: null, combat: null, revenantActive: false }
+      }
       if (!state.bossRoomId || !state.clearedRoomIds.includes(state.bossRoomId)) return state
       return { ...state, summary: action.summary, phase: 'victory', prevPhase: null }
 

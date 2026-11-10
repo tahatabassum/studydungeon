@@ -139,6 +139,27 @@ describe('createGameBridge', () => {
     ])
   })
 
+  it('delivers the additive game-feel events in both directions', () => {
+    const bridge = createGameBridge()
+    const to: ToGameEvent[] = []
+    const from: FromGameEvent[] = []
+    bridge.onToGame((e) => to.push(e))
+    bridge.on((e) => from.push(e))
+    bridge.send({ type: 'set-combo', tier: 3 })
+    bridge.send({ type: 'play-boss-death', roomId: 'room-4' })
+    bridge.send({ type: 'loot-burst' })
+    bridge.send({ type: 'loot-burst', x: 10, y: 20 })
+    bridge.emit({ type: 'ready' })
+    bridge.emit({ type: 'boss-death-done', roomId: 'room-4' })
+    expect(to).toEqual([
+      { type: 'set-combo', tier: 3 },
+      { type: 'play-boss-death', roomId: 'room-4' },
+      { type: 'loot-burst' },
+      { type: 'loot-burst', x: 10, y: 20 },
+    ])
+    expect(from.slice(1)).toEqual([{ type: 'boss-death-done', roomId: 'room-4' }])
+  })
+
   it('delivers room-entered and gate-opened to React', () => {
     const bridge = createGameBridge()
     const got: FromGameEvent[] = []

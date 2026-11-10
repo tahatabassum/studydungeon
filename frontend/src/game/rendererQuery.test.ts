@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { debugRequested, rendererFromSearch } from './rendererQuery'
+import { debugRequested, rendererFromSearch, reportRequested } from './rendererQuery'
 
 describe('query switches', () => {
   it('renderer=canvas forces canvas, anything else is auto', () => {
@@ -13,4 +13,12 @@ describe('query switches', () => {
     expect(debugRequested('?debug=0')).toBe(false)
     expect(debugRequested('')).toBe(false)
   })
+
+  it('the performance report comes with debug=1 unless report=0', () => {
+    expect(reportRequested('?debug=1&report=1')).toBe(true)
+    expect(reportRequested('?report=1')).toBe(false)
+    expect(reportRequested('?debug=1')).toBe(true)
+    expect(reportRequested('?debug=1&report=0')).toBe(false)
+  })
 })
+

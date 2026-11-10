@@ -44,6 +44,8 @@ export class Monster {
   private auraTween: Phaser.Tweens.Tween | null = null
   private breathTween: Phaser.Tweens.Tween | null = null
   private readonly feetY: number
+  /** When above 0, defeat() dissolves the body over this many ms (boss death sequence). */
+  private dissolveMs = 0
   private eyes: Phaser.GameObjects.Image[] = []
   private readonly parts: Phaser.GameObjects.GameObject[]
 
@@ -333,6 +335,29 @@ export class Monster {
     })
   }
 
+  /**
+   * Knockback on a hit: the sprite is pushed `px` away from the player and springs back. Skipped when reduced
+   * or `px` is 0. Uses the same tween target as nudge, so it never moves the collision zone.
+   */
+  knockback(dir: -1 | 1, px: number): void {
+    if (this.reducedMotion || px <= 0 || !this.alive || !this.sprite.active) return
+    this.scene.tweens.add({
+      targets: this.sprite,
+      x: this.position.x + dir * px,
+      duration: 70,
+      yoyo: true,
+      ease: 'Cubic.easeOut',
+    })
+  }
+
+  /**
+   * Boss death: the next defeat() dissolves the body over `ms` (a plain fade under reduced motion)
+   * instead of the normal erosion frames. Call before the monster is defeated. Display only.
+   */
+  prepareDissolve(ms: number): void {
+    this.dissolveMs = ms
+  }
+
   /** Scale/fade-in the first time the player enters this room. Static under reduced motion. */
   playIntro(): void {
     if (this.reducedMotion || !this.alive || !this.sprite.active) return
@@ -368,6 +393,26 @@ export class Monster {
     this.defeat()
   }
 
+  /**
+   * Removes the monster at once, with no animation: used for display-only rooms that hold no monster
+   * (the Haunted Hall). Marks it not alive, hides every part and disables the collision body. Idempotent.
+   */
+  retire(): void {
+    if (!this.alive) return
+    this.alive = false
+    const body = this.zone.body as Phaser.Physics.Arcade.StaticBody | null
+    if (body) body.enable = false
+    this.bobTween?.stop()
+    this.bobTween = null
+    this.auraTween?.stop()
+    this.auraTween = null
+    this.breathTween?.stop()
+    this.breathTween = null
+    for (const p of this.parts) {
+      if (p !== this.zone) (p as Phaser.GameObjects.GameObject & { setVisible(v: boolean): unknown }).setVisible(false)
+    }
+  }
+
   /** Erosion frames then fade out; marks not alive and disables the collision body. Idempotent. */
   defeat(): void {
     if (!this.alive) return
@@ -377,6 +422,27 @@ export class Monster {
     this.label.setVisible(false)
     this.bar.setVisible(false)
     for (const e of this.eyes) e.setVisible(false)
+    if (this.dissolveMs > 0) {
+      this.breathTween?.stop()
+      this.breathTween = null
+      this.bobTween?.stop()
+      this.bobTween = null
+      this.auraTween?.stop()
+      this.auraTween = null
+      this.sprite.off(Phaser.Animations.Events.ANIMATION_COMPLETE, this.backToIdle)
+      this.sprite.clearTint()
+      // Reduced motion: a plain fade. Otherwise the body lifts and thins out while it fades.
+      this.scene.tweens.add({
+        targets: this.sprite,
+        alpha: 0,
+        scaleY: this.reducedMotion ? this.sprite.scaleY : this.sprite.scaleY * 1.14,
+        scaleX: this.reducedMotion ? this.sprite.scaleX : this.sprite.scaleX * 0.9,
+        duration: this.dissolveMs,
+        ease: 'Sine.easeIn',
+      })
+      this.scene.tweens.add({ targets: this.aura, alpha: 0, duration: this.dissolveMs })
+      return
+    }
     if (this.reducedMotion) {
       this.sprite.setAlpha(0)
       this.aura.setAlpha(0)

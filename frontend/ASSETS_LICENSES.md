@@ -32,3 +32,16 @@ copied or traced, and no image files are used. They carry the same license as th
 - The five weapon strike effects (dagger slash, staff bolt, crossbow arrow, hammer shockwave, flame sigil burst) and the critical-hit star are drawn in code with Phaser Graphics (`src/game/systems/WeaponFxSystem.ts`) from the project palette. No image, sprite or audio files were added.
 - The enraged boss ambient variant is synthesized at runtime with the Web Audio API (`src/audio/ambient.ts`).
 - Armory icons are `lucide-react` line icons (ISC licence, already a dependency). No emoji. No new dependencies.
+
+## Game feel and ranks (frontend-08 Phase 5)
+- The boss death sparks and embers, the loot burst (coins and soul gems), the combo aura tint and the damage-number pop reuse the code-drawn 12 px `spark` dot texture (`src/game/systems/sparkTexture.ts`) and the project palette. No image, sprite or audio files were added.
+- Two new sound cues, `bossfall` (falling groan under a soft noise rumble) and `loot` (two-note coin tink), are synthesized at runtime with the Web Audio API in `src/audio/sfx.ts` (oscillators and filtered noise). They are quiet and follow the mute switch.
+- The Chest in `src/rewards/ChestOverlay.tsx` is an inline SVG drawn in code; its reward icons are `lucide-react` line icons (ISC licence, already a dependency). The Combo meter is CSS only. No emoji. No new dependencies.
+
+## Badges, intro story and share card (frontend-07 Phase 7)
+- Badge icons, the intro story illustrations and the 1200x630 share card art are code-drawn (inline SVG and canvas paths). No image files, no remote images, no new assets.
+- The share card text uses only the self-hosted Fontsource fonts listed above (Pirata One, Cinzel, Inter; SIL Open Font License 1.1), loaded with `document.fonts.load` before drawing. No external font host is contacted.
+## Tutorial, polish and equip (frontend-08 Phase 6)
+- The tutorial scene (a five-cell corridor, hero and monster) uses `lucide-react` line icons (ISC licence, already a dependency) and CSS only. The sample memory scroll is the existing code-drawn component.
+- Five new sound cues, `requeue`, `scroll`, `combo`, `finale` and `chest`, are synthesized at runtime with the Web Audio API in `src/audio/sfx.ts` (oscillators and filtered noise). They are quiet and follow the mute switch.
+- No image, sprite or audio files were added. No emoji. No new dependencies.

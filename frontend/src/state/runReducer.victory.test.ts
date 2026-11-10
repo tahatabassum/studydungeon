@@ -80,7 +80,7 @@ describe('Property 10: Reducer copies authoritative values and gates victory', (
           expect(next.monsterHp).toBe(result.monster_hp_remaining)
           expect(next.roomHp[roomId]).toBe(result.monster_hp_remaining)
           expect(next.streak).toBe(result.streak)
-          expect(next.xp).toBe(xp + result.xp_delta)
+          expect(next.xp).toBe(xp + (result.xp_delta ?? 0))
           expect(next.score).toBe(score + result.score_delta)
         },
       ),

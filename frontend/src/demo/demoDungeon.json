@@ -1,366 +1,366 @@
 {
-    "id":  "demo-dungeon",
-    "name":  "Computer Basics Crypt",
-    "rooms":  [
-                  {
-                      "id":  "room-1",
-                      "label":  "Entry Hall",
-                      "order":  1,
-                      "is_boss":  false,
-                      "monster":  {
-                                      "id":  "monster-1",
-                                      "name":  "Paper Wraith",
-                                      "kind":  "paper_wraith",
-                                      "max_hp":  60,
-                                      "question_ids":  [
-                                                           "q1",
-                                                           "q2",
-                                                           "q3",
-                                                           "q4"
-                                                       ]
-                                  }
-                  },
-                  {
-                      "id":  "room-2",
-                      "label":  "Alchemist\u0027s Lab",
-                      "order":  2,
-                      "is_boss":  false,
-                      "monster":  {
-                                      "id":  "monster-2",
-                                      "name":  "Toxic Slime",
-                                      "kind":  "toxic_slime",
-                                      "max_hp":  60,
-                                      "question_ids":  [
-                                                           "m1",
-                                                           "m2",
-                                                           "m3",
-                                                           "m4"
-                                                       ]
-                                  }
-                  },
-                  {
-                      "id":  "room-3",
-                      "label":  "Clockwork Crypt",
-                      "order":  3,
-                      "is_boss":  false,
-                      "monster":  {
-                                      "id":  "monster-3",
-                                      "name":  "Gear Golem",
-                                      "kind":  "gear_golem",
-                                      "max_hp":  60,
-                                      "question_ids":  [
-                                                           "n1",
-                                                           "n2",
-                                                           "n3",
-                                                           "n4"
-                                                       ]
-                                  }
-                  },
-                  {
-                      "id":  "room-4",
-                      "label":  "Pumpkin Workshop",
-                      "order":  4,
-                      "is_boss":  false,
-                      "monster":  {
-                                      "id":  "monster-4",
-                                      "name":  "Memory Eater",
-                                      "kind":  "memory_eater",
-                                      "max_hp":  60,
-                                      "question_ids":  [
-                                                           "a1",
-                                                           "a2",
-                                                           "a3",
-                                                           "a4"
-                                                       ]
-                                  }
-                  },
-                  {
-                      "id":  "room-5",
-                      "label":  "Boss Room",
-                      "order":  5,
-                      "is_boss":  true,
-                      "monster":  {
-                                      "id":  "monster-5",
-                                      "name":  "The Exam Warden",
-                                      "kind":  "exam_warden",
-                                      "max_hp":  120,
-                                      "question_ids":  [
-                                                           "b1",
-                                                           "b3",
-                                                           "b5",
-                                                           "b7",
-                                                           "b2",
-                                                           "b4",
-                                                           "b6",
-                                                           "b8"
-                                                       ]
-                                  }
-                  }
-              ],
-    "questions":  [
-                      {
-                          "id":  "q1",
-                          "type":  "mcq",
-                          "prompt":  "Which component executes program instructions?",
-                          "options":  [
-                                          "CPU",
-                                          "Monitor",
-                                          "Keyboard",
-                                          "Power supply"
-                                      ]
-                      },
-                      {
-                          "id":  "q2",
-                          "type":  "mcq",
-                          "prompt":  "Which memory is volatile and loses its data when power is off?",
-                          "options":  [
-                                          "RAM",
-                                          "Hard disk",
-                                          "SSD",
-                                          "Optical disc"
-                                      ]
-                      },
-                      {
-                          "id":  "q3",
-                          "type":  "mcq",
-                          "prompt":  "What does the ALU perform?",
-                          "options":  [
-                                          "Arithmetic and logic operations",
-                                          "Screen rendering",
-                                          "Network routing",
-                                          "Long-term storage"
-                                      ]
-                      },
-                      {
-                          "id":  "q4",
-                          "type":  "mcq",
-                          "prompt":  "Which number system do computers use internally?",
-                          "options":  [
-                                          "Binary",
-                                          "Decimal",
-                                          "Roman",
-                                          "Hexadecimal only"
-                                      ]
-                      },
-                      {
-                          "id":  "m1",
-                          "type":  "mcq",
-                          "prompt":  "Which level of the memory hierarchy is the fastest?",
-                          "options":  [
-                                          "Disk",
-                                          "Registers",
-                                          "Main memory",
-                                          "Tape"
-                                      ]
-                      },
-                      {
-                          "id":  "m2",
-                          "type":  "mcq",
-                          "prompt":  "What is the main purpose of a cache?",
-                          "options":  [
-                                          "Reduce average memory access time",
-                                          "Store backups",
-                                          "Increase screen size",
-                                          "Encrypt files"
-                                      ]
-                      },
-                      {
-                          "id":  "m3",
-                          "type":  "mcq",
-                          "prompt":  "Moving down the memory hierarchy, capacity generally...",
-                          "options":  [
-                                          "Shrinks",
-                                          "Increases",
-                                          "Stays equal",
-                                          "Becomes zero"
-                                      ]
-                      },
-                      {
-                          "id":  "m4",
-                          "type":  "mcq",
-                          "prompt":  "Which statement about an SSD is true?",
-                          "options":  [
-                                          "It keeps data without power",
-                                          "It loses data when power is off",
-                                          "It is faster than registers",
-                                          "It has no storage cells"
-                                      ]
-                      },
-                      {
-                          "id":  "n1",
-                          "type":  "mcq",
-                          "prompt":  "What does an IP address identify?",
-                          "options":  [
-                                          "A device on a network",
-                                          "A file format",
-                                          "A screen resolution",
-                                          "A password"
-                                      ]
-                      },
-                      {
-                          "id":  "n2",
-                          "type":  "mcq",
-                          "prompt":  "Which device forwards packets between different networks?",
-                          "options":  [
-                                          "Router",
-                                          "Speaker",
-                                          "Scanner",
-                                          "Webcam"
-                                      ]
-                      },
-                      {
-                          "id":  "n3",
-                          "type":  "mcq",
-                          "prompt":  "Which protocol is commonly used to load web pages?",
-                          "options":  [
-                                          "HTTP",
-                                          "SMTP only",
-                                          "BIOS",
-                                          "HDMI"
-                                      ]
-                      },
-                      {
-                          "id":  "n4",
-                          "type":  "mcq",
-                          "prompt":  "What is the role of DNS?",
-                          "options":  [
-                                          "Translate names to IP addresses",
-                                          "Compress images",
-                                          "Cool the CPU",
-                                          "Format disks"
-                                      ]
-                      },
-                      {
-                          "id":  "a1",
-                          "type":  "mcq",
-                          "prompt":  "What is the time complexity of binary search on a sorted array?",
-                          "options":  [
-                                          "O(n)",
-                                          "O(log n)",
-                                          "O(n squared)",
-                                          "O(1) always"
-                                      ]
-                      },
-                      {
-                          "id":  "a2",
-                          "type":  "mcq",
-                          "prompt":  "Which data structure follows last in, first out order?",
-                          "options":  [
-                                          "Queue",
-                                          "Stack",
-                                          "Array of pairs",
-                                          "Graph"
-                                      ]
-                      },
-                      {
-                          "id":  "a3",
-                          "type":  "mcq",
-                          "prompt":  "Which sorting approach repeatedly swaps adjacent out-of-order items?",
-                          "options":  [
-                                          "Bubble sort",
-                                          "Binary search",
-                                          "Hashing",
-                                          "Compilation"
-                                      ]
-                      },
-                      {
-                          "id":  "a4",
-                          "type":  "mcq",
-                          "prompt":  "What must every algorithm have to be valid?",
-                          "options":  [
-                                          "Finite steps that solve the problem",
-                                          "Random output",
-                                          "Unlimited memory",
-                                          "A graphical interface"
-                                      ]
-                      },
-                      {
-                          "id":  "b1",
-                          "type":  "mcq",
-                          "prompt":  "Which part of a computer decodes and runs instructions?",
-                          "options":  [
-                                          "CPU",
-                                          "Router",
-                                          "Stack",
-                                          "Cache line only"
-                                      ]
-                      },
-                      {
-                          "id":  "b2",
-                          "type":  "mcq",
-                          "prompt":  "Binary digits can take how many distinct values?",
-                          "options":  [
-                                          "Two",
-                                          "Three",
-                                          "Ten",
-                                          "Sixteen"
-                                      ]
-                      },
-                      {
-                          "id":  "b3",
-                          "type":  "mcq",
-                          "prompt":  "Which storage level is typically smallest but fastest?",
-                          "options":  [
-                                          "Registers",
-                                          "Archive tape",
-                                          "Cloud backup",
-                                          "Optical disc"
-                                      ]
-                      },
-                      {
-                          "id":  "b4",
-                          "type":  "mcq",
-                          "prompt":  "A cache hit means the requested data was...",
-                          "options":  [
-                                          "Found in the cache",
-                                          "Missing everywhere",
-                                          "Deleted",
-                                          "Encrypted"
-                                      ]
-                      },
-                      {
-                          "id":  "b5",
-                          "type":  "mcq",
-                          "prompt":  "Which system translates a domain name into an address?",
-                          "options":  [
-                                          "DNS",
-                                          "ALU",
-                                          "Stack",
-                                          "Bubble sort"
-                                      ]
-                      },
-                      {
-                          "id":  "b6",
-                          "type":  "mcq",
-                          "prompt":  "What does a router do with a packet?",
-                          "options":  [
-                                          "Forwards it toward its destination",
-                                          "Prints it",
-                                          "Compresses the disk",
-                                          "Turns off the CPU"
-                                      ]
-                      },
-                      {
-                          "id":  "b7",
-                          "type":  "mcq",
-                          "prompt":  "Searching a sorted list by halving it each step is called...",
-                          "options":  [
-                                          "Binary search",
-                                          "Linear scan",
-                                          "Shuffling",
-                                          "Caching"
-                                      ]
-                      },
-                      {
-                          "id":  "b8",
-                          "type":  "mcq",
-                          "prompt":  "Pushing and popping items describes which structure?",
-                          "options":  [
-                                          "Stack",
-                                          "DNS table",
-                                          "Register file",
-                                          "Router"
-                                      ]
-                      }
-                  ]
+  "id": "demo-dungeon",
+  "name": "Computer Basics Crypt",
+  "rooms": [
+    {
+      "id": "room-1",
+      "label": "Entry Hall",
+      "order": 1,
+      "is_boss": false,
+      "monster": {
+        "id": "monster-1",
+        "name": "Paper Wraith",
+        "kind": "paper_wraith",
+        "max_hp": 80,
+        "question_ids": [
+          "q1",
+          "q2",
+          "q3",
+          "q4"
+        ]
+      }
+    },
+    {
+      "id": "room-2",
+      "label": "Alchemist's Lab",
+      "order": 2,
+      "is_boss": false,
+      "monster": {
+        "id": "monster-2",
+        "name": "Toxic Slime",
+        "kind": "toxic_slime",
+        "max_hp": 90,
+        "question_ids": [
+          "m1",
+          "m2",
+          "m3",
+          "m4"
+        ]
+      }
+    },
+    {
+      "id": "room-3",
+      "label": "Clockwork Crypt",
+      "order": 3,
+      "is_boss": false,
+      "monster": {
+        "id": "monster-3",
+        "name": "Gear Golem",
+        "kind": "gear_golem",
+        "max_hp": 85,
+        "question_ids": [
+          "n1",
+          "n2",
+          "n3",
+          "n4"
+        ]
+      }
+    },
+    {
+      "id": "room-4",
+      "label": "Pumpkin Workshop",
+      "order": 4,
+      "is_boss": false,
+      "monster": {
+        "id": "monster-4",
+        "name": "Memory Eater",
+        "kind": "memory_eater",
+        "max_hp": 85,
+        "question_ids": [
+          "a1",
+          "a2",
+          "a3",
+          "a4"
+        ]
+      }
+    },
+    {
+      "id": "room-5",
+      "label": "Boss Room",
+      "order": 5,
+      "is_boss": true,
+      "monster": {
+        "id": "monster-5",
+        "name": "The Exam Warden",
+        "kind": "exam_warden",
+        "max_hp": 220,
+        "question_ids": [
+          "b1",
+          "b3",
+          "b5",
+          "b7",
+          "b2",
+          "b4",
+          "b6",
+          "b8"
+        ]
+      }
+    }
+  ],
+  "questions": [
+    {
+      "id": "q1",
+      "type": "mcq",
+      "prompt": "Which component executes program instructions?",
+      "options": [
+        "CPU",
+        "Monitor",
+        "Keyboard",
+        "Power supply"
+      ]
+    },
+    {
+      "id": "q2",
+      "type": "mcq",
+      "prompt": "Which memory is volatile and loses its data when power is off?",
+      "options": [
+        "RAM",
+        "Hard disk",
+        "SSD",
+        "Optical disc"
+      ]
+    },
+    {
+      "id": "q3",
+      "type": "mcq",
+      "prompt": "What does the ALU perform?",
+      "options": [
+        "Arithmetic and logic operations",
+        "Screen rendering",
+        "Network routing",
+        "Long-term storage"
+      ]
+    },
+    {
+      "id": "q4",
+      "type": "mcq",
+      "prompt": "Which number system do computers use internally?",
+      "options": [
+        "Binary",
+        "Decimal",
+        "Roman",
+        "Hexadecimal only"
+      ]
+    },
+    {
+      "id": "m1",
+      "type": "mcq",
+      "prompt": "Which level of the memory hierarchy is the fastest?",
+      "options": [
+        "Disk",
+        "Registers",
+        "Main memory",
+        "Tape"
+      ]
+    },
+    {
+      "id": "m2",
+      "type": "mcq",
+      "prompt": "What is the main purpose of a cache?",
+      "options": [
+        "Reduce average memory access time",
+        "Store backups",
+        "Increase screen size",
+        "Encrypt files"
+      ]
+    },
+    {
+      "id": "m3",
+      "type": "mcq",
+      "prompt": "Moving down the memory hierarchy, capacity generally...",
+      "options": [
+        "Shrinks",
+        "Increases",
+        "Stays equal",
+        "Becomes zero"
+      ]
+    },
+    {
+      "id": "m4",
+      "type": "mcq",
+      "prompt": "Which statement about an SSD is true?",
+      "options": [
+        "It keeps data without power",
+        "It loses data when power is off",
+        "It is faster than registers",
+        "It has no storage cells"
+      ]
+    },
+    {
+      "id": "n1",
+      "type": "mcq",
+      "prompt": "What does an IP address identify?",
+      "options": [
+        "A device on a network",
+        "A file format",
+        "A screen resolution",
+        "A password"
+      ]
+    },
+    {
+      "id": "n2",
+      "type": "mcq",
+      "prompt": "Which device forwards packets between different networks?",
+      "options": [
+        "Router",
+        "Speaker",
+        "Scanner",
+        "Webcam"
+      ]
+    },
+    {
+      "id": "n3",
+      "type": "mcq",
+      "prompt": "Which protocol is commonly used to load web pages?",
+      "options": [
+        "HTTP",
+        "SMTP only",
+        "BIOS",
+        "HDMI"
+      ]
+    },
+    {
+      "id": "n4",
+      "type": "mcq",
+      "prompt": "What is the role of DNS?",
+      "options": [
+        "Translate names to IP addresses",
+        "Compress images",
+        "Cool the CPU",
+        "Format disks"
+      ]
+    },
+    {
+      "id": "a1",
+      "type": "mcq",
+      "prompt": "What is the time complexity of binary search on a sorted array?",
+      "options": [
+        "O(n)",
+        "O(log n)",
+        "O(n squared)",
+        "O(1) always"
+      ]
+    },
+    {
+      "id": "a2",
+      "type": "mcq",
+      "prompt": "Which data structure follows last in, first out order?",
+      "options": [
+        "Queue",
+        "Stack",
+        "Array of pairs",
+        "Graph"
+      ]
+    },
+    {
+      "id": "a3",
+      "type": "mcq",
+      "prompt": "Which sorting approach repeatedly swaps adjacent out-of-order items?",
+      "options": [
+        "Bubble sort",
+        "Binary search",
+        "Hashing",
+        "Compilation"
+      ]
+    },
+    {
+      "id": "a4",
+      "type": "mcq",
+      "prompt": "What must every algorithm have to be valid?",
+      "options": [
+        "Finite steps that solve the problem",
+        "Random output",
+        "Unlimited memory",
+        "A graphical interface"
+      ]
+    },
+    {
+      "id": "b1",
+      "type": "mcq",
+      "prompt": "Which part of a computer decodes and runs instructions?",
+      "options": [
+        "CPU",
+        "Router",
+        "Stack",
+        "Cache line only"
+      ]
+    },
+    {
+      "id": "b2",
+      "type": "mcq",
+      "prompt": "Binary digits can take how many distinct values?",
+      "options": [
+        "Two",
+        "Three",
+        "Ten",
+        "Sixteen"
+      ]
+    },
+    {
+      "id": "b3",
+      "type": "mcq",
+      "prompt": "Which storage level is typically smallest but fastest?",
+      "options": [
+        "Registers",
+        "Archive tape",
+        "Cloud backup",
+        "Optical disc"
+      ]
+    },
+    {
+      "id": "b4",
+      "type": "mcq",
+      "prompt": "A cache hit means the requested data was...",
+      "options": [
+        "Found in the cache",
+        "Missing everywhere",
+        "Deleted",
+        "Encrypted"
+      ]
+    },
+    {
+      "id": "b5",
+      "type": "mcq",
+      "prompt": "Which system translates a domain name into an address?",
+      "options": [
+        "DNS",
+        "ALU",
+        "Stack",
+        "Bubble sort"
+      ]
+    },
+    {
+      "id": "b6",
+      "type": "mcq",
+      "prompt": "What does a router do with a packet?",
+      "options": [
+        "Forwards it toward its destination",
+        "Prints it",
+        "Compresses the disk",
+        "Turns off the CPU"
+      ]
+    },
+    {
+      "id": "b7",
+      "type": "mcq",
+      "prompt": "Searching a sorted list by halving it each step is called...",
+      "options": [
+        "Binary search",
+        "Linear scan",
+        "Shuffling",
+        "Caching"
+      ]
+    },
+    {
+      "id": "b8",
+      "type": "mcq",
+      "prompt": "Pushing and popping items describes which structure?",
+      "options": [
+        "Stack",
+        "DNS table",
+        "Register file",
+        "Router"
+      ]
+    }
+  ]
 }

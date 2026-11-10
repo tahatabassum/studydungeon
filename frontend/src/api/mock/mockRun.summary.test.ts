@@ -64,7 +64,7 @@ describe('Property 8: Run summary consistency', () => {
             total += 1
             if (!wrong) correct += 1
             score += res.score_delta
-            xp += res.xp_delta
+            xp += res.xp_delta ?? 0
             hp = res.monster_hp_remaining
           }
           const clear = await api.clearRoom(run.id, room.id)
@@ -105,7 +105,7 @@ describe('Property 8: Run summary consistency', () => {
           question_id: qid,
           selected_answer: answerKey[qid].correct,
         })
-        answerXp += r.xp_delta
+        answerXp += r.xp_delta ?? 0
         hp = r.monster_hp_remaining
       }
       await api.clearRoom(run.id, room.id)

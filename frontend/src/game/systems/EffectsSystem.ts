@@ -15,6 +15,9 @@ import type { EncounterFxSystem } from './EncounterFxSystem'
 import { createOnceLatch } from './onceLatch'
 import type { BossPhaseSystem } from './BossPhaseSystem'
 import type { WeaponFxSystem, StrikeTarget } from './WeaponFxSystem'
+import type { HitStopSystem } from './HitStopSystem'
+import type { BossDeathSystem } from './BossDeathSystem'
+import { planHit } from '../fx/effectPlan'
 
 const PROJECTILE_MS = 250
 const LUNGE_MS = 160
@@ -29,6 +32,9 @@ const CURSE_COLOR = 0x8a2a5c
 export interface EffectsExtras {
   weapons?: WeaponFxSystem
   boss?: BossPhaseSystem
+  /** Phase 5 game feel: hit-stop on strong hits and the boss death sequence. */
+  hitStop?: HitStopSystem
+  bossDeath?: BossDeathSystem
 }
 
 export interface EffectsTargets {
@@ -77,7 +83,7 @@ export class EffectsSystem {
             strokeThickness: 4,
           })
           .setOrigin(0.5),
-      reset: (t) => t.setAlpha(1).setVisible(true).setActive(true),
+      reset: (t) => t.setAlpha(1).setScale(1).setVisible(true).setActive(true),
       max: TEXT_POOL,
     })
     this.tints = new ObjectPool({
@@ -97,6 +103,16 @@ export class EffectsSystem {
       return
     }
     this.timers.push(this.scene.time.delayedCall(ms, fn))
+  }
+
+  /** Pooled sparks alive now (for the debug report). */
+  get activeCount(): number {
+    return this.sparks.activeCount
+  }
+
+  /** Pooled objects created so far across the three pools (high-water mark; for the debug report). */
+  get createdCount(): number {
+    return this.sparks.createdCount + this.texts.createdCount + this.tints.createdCount
   }
 
   /** Drop pending work without emitting (used on reset / shutdown). */
@@ -131,6 +147,10 @@ export class EffectsSystem {
       ? { x: monster.position.x, y: monster.position.y, footY: monster.footY, unit: monster.isBoss ? 1.5 : 1 }
       : null
     const side: -1 | 1 = player && monster && player.x >= monster.position.x ? 1 : -1
+    // Hit feel (D22): strong only on a critical hit or the blow that kills the boss. Read from the result.
+    const bossKill = result.correct && result.monster_hp_remaining === 0 && monster?.isBoss === true
+    const hit = planHit({ critical: result.correct && result.is_critical === true, bossKill, reducedMotion: reduced })
+    if (!bossKill) this.extras.bossDeath?.disarm()
 
     let impact = 0
     if (has('projectile') && player && monster && !reduced) {
@@ -154,7 +174,10 @@ export class EffectsSystem {
       if (has('hit-flash')) monster?.flash()
       if (result.correct) monster?.playHit()
       if (result.correct && monster) {
-        monster.nudge(player && player.x < monster.position.x ? 6 : -6, 60)
+        // Knockback away from the player, then the strong-hit feel (hit-stop and shake; both 0 when reduced).
+        monster.knockback(player && player.x < monster.position.x ? 1 : -1, hit.knockbackPx)
+        if (hit.hitStopMs > 0) this.extras.hitStop?.trigger(hit.hitStopMs)
+        if (hit.shakeMs > 0) this.scene.cameras.main.shake(hit.shakeMs, hit.shakeIntensity)
       }
       const fb = feedbackPlan(result.correct, reduced)
       if (fb.kind === 'wisp' && monster) this.wispBurst(monster.position.x, monster.position.y - 10, fb)
@@ -167,7 +190,7 @@ export class EffectsSystem {
       // Critical hit: pooled white flash at alpha 0.35 (static marker when reduced). Damage is unchanged.
       if (result.correct && result.is_critical === true && weapons && target) weapons.critical(target, reduced)
       if (has('damage-number') && plan.damageText && monster) {
-        this.floatText(monster.position.x, monster.position.y - 40, plan.damageText, CSS_COLORS.ACCENT, reduced)
+        this.floatText(monster.position.x, monster.position.y - 40, plan.damageText, CSS_COLORS.ACCENT, reduced, hit.popScale)
       }
       if (has('monster-hp') && monster) {
         monster.setHp(result.monster_hp_remaining, true)
@@ -184,6 +207,12 @@ export class EffectsSystem {
     let end = impact + (reduced ? 0 : 320)
     if (has('monster-defeat')) {
       this.later(impact + (reduced ? 0 : 120), () => {
+        // The boss killing blow hands over to the boss death sequence (armed by play-boss-death).
+        const bossRoom = this.extras.bossDeath?.consumeArmed()
+        if (bossRoom && monster) {
+          this.extras.bossDeath?.play(bossRoom, monster)
+          return
+        }
         monster?.playDeath()
         if (monster && !reduced) this.burst(monster.position.x, monster.position.y)
       })
@@ -324,7 +353,11 @@ export class EffectsSystem {
     }
   }
 
-  private floatText(x: number, y: number, text: string, color: string, reduced: boolean): void {
+  /**
+   * Floating number. Snappy pop: it jumps to `popScale` in 90 ms (Back ease) and settles, then rises and
+   * fades in 450 ms (was 700). Reduced_Motion: static for 600 ms, no scale.
+   */
+  private floatText(x: number, y: number, text: string, color: string, reduced: boolean, popScale = 1): void {
     const t = this.texts.acquire()
     if (!t) return
     t.setText(text).setColor(color).setPosition(x, y).setDepth(30)
@@ -332,11 +365,17 @@ export class EffectsSystem {
       this.scene.time.delayedCall(600, () => this.texts.release(t))
       return
     }
+    if (popScale > 1) {
+      t.setScale(0.6)
+      this.scene.tweens.add({ targets: t, scale: popScale, duration: 90, ease: 'Back.easeOut' })
+      this.scene.tweens.add({ targets: t, scale: 1, delay: 90, duration: 90, ease: 'Sine.easeOut' })
+    }
     this.scene.tweens.add({
       targets: t,
-      y: y - 40,
+      y: y - 34,
       alpha: 0,
-      duration: 700,
+      delay: 120,
+      duration: 450,
       ease: 'Sine.easeOut',
       onComplete: () => this.texts.release(t),
     })

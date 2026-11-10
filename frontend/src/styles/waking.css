@@ -1,0 +1,84 @@
+/* "Waking up the dungeon..." overlay. CSS only; motion stops under prefers-reduced-motion (global rule). */
+
+.sd-waking {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  background:
+    radial-gradient(ellipse at 50% 40%, color-mix(in srgb, var(--color-deep) 70%, transparent), transparent 70%),
+    color-mix(in srgb, var(--color-bg) 94%, transparent);
+  color: var(--color-ink);
+}
+.sd-waking__card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.9rem;
+  width: 100%;
+  max-width: 28rem;
+  padding: 1.5rem 1.25rem;
+  text-align: center;
+  border: 2px solid var(--color-deep);
+  border-radius: 0.6rem;
+  background: linear-gradient(180deg, var(--color-panel), var(--color-surface-2));
+  box-shadow: var(--sd-elev-2), 0 0 24px color-mix(in srgb, var(--color-pumpkin) 25%, transparent);
+}
+.sd-waking__ghost {
+  animation: sd-waking-bob 2.4s ease-in-out infinite;
+  filter: drop-shadow(0 0 10px color-mix(in srgb, var(--color-ghost) 50%, transparent));
+}
+@keyframes sd-waking-bob {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+.sd-waking__title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 2rem;
+  font-weight: 400;
+  color: var(--color-gold);
+}
+.sd-waking__spinner { color: var(--color-accent); }
+.sd-waking__tip {
+  margin: 0;
+  min-height: 4.5rem;
+  font-family: var(--font-label);
+  font-size: var(--sd-text-md);
+  color: var(--color-ink);
+}
+.sd-waking__offline {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.6rem;
+  padding-top: 0.75rem;
+  border-top: 1px dashed var(--color-deep);
+}
+.sd-waking__note {
+  margin: 0;
+  font-size: var(--sd-text-sm);
+  color: var(--color-ink-muted);
+}
+.sd-offline-label {
+  position: fixed;
+  left: 50%;
+  bottom: max(0.5rem, env(safe-area-inset-bottom, 0px));
+  transform: translateX(-50%);
+  z-index: 55;
+  padding: 0.25rem 0.9rem;
+  font-family: var(--font-label);
+  font-size: var(--sd-text-sm);
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  color: var(--color-bg);
+  background: var(--color-accent);
+  border: 2px solid var(--color-pumpkin);
+  border-radius: 999px;
+  pointer-events: none;
+  box-shadow: 0 0 12px color-mix(in srgb, var(--color-pumpkin) 50%, transparent);
+}
+[data-reduced='true'] .sd-waking__ghost { animation: none; }

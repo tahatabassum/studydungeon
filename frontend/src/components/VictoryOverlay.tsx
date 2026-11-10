@@ -16,6 +16,12 @@ export interface VictoryOverlayProps {
   onRetry?(): void
   onPlayAgain(): void
   onExit(): void
+  /** Campaign floors: "<Boss> falls!" instead of the Exam Warden line. */
+  title?: string
+  /** Campaign floors: "Floor 1 cleared" instead of "Dungeon cleared". */
+  subtitle?: string
+  playAgainLabel?: string
+  exitLabel?: string
 }
 
 /** Formatting only: the backend values are shown as received (Req 8.4). */
@@ -29,6 +35,10 @@ export function VictoryOverlay({
   onRetry,
   onPlayAgain,
   onExit,
+  title = 'The Exam Warden falls!',
+  subtitle = 'Dungeon cleared',
+  playAgainLabel = 'Play again',
+  exitLabel = 'Exit',
 }: VictoryOverlayProps) {
   const showError = !summary && !pending && !!error
   const reduced = !!useReducedMotion()
@@ -45,7 +55,7 @@ export function VictoryOverlay({
 
   return (
     <OverlayFrame
-      title="The Exam Warden falls!"
+      title={title}
       titleId="victory-title"
       initialFocus="button[data-play-again]"
       backdrop={<VictoryFx />}
@@ -57,7 +67,7 @@ export function VictoryOverlay({
         </>
       }
     >
-      <p className="font-(family-name:--font-label) text-ink-muted">Dungeon cleared</p>
+      <p className="font-(family-name:--font-label) text-ink-muted">{subtitle}</p>
 
       {pending && !summary && (
         <div className="flex items-center gap-2 text-ink-muted">
@@ -102,10 +112,10 @@ export function VictoryOverlay({
 
       <div className="flex flex-wrap justify-center gap-3 font-(family-name:--font-label)">
         <Button data-play-again onClick={onPlayAgain}>
-          Play again
+          {playAgainLabel}
         </Button>
         <Button variant="secondary" onClick={onExit}>
-          Exit
+          {exitLabel}
         </Button>
       </div>
     </OverlayFrame>

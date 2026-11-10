@@ -105,14 +105,14 @@ export function OverlayFrame({
       aria-describedby={describedBy}
       onKeyDown={onKeyDown}
       data-reduced={reduced ? 'true' : undefined}
-      className={`fixed inset-0 ${zClass} flex items-center justify-center overflow-y-auto bg-bg/85 p-4`}
+      className={`fixed inset-0 ${zClass} flex overflow-y-auto bg-bg/85 p-4`}
       initial={reduced ? false : { opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={reduced ? { duration: 0 } : { duration: 0.25 }}
     >
       {backdrop}
       <motion.div
-        className={`w-full ${widthClass}`}
+        className={`m-auto w-full ${widthClass}`}
         initial={reduced ? false : { scale: 0.95 }}
         animate={{ scale: 1 }}
         transition={reduced ? { duration: 0 } : { duration: 0.25 }}

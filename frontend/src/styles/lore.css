@@ -1,0 +1,15 @@
+/* Intro story: code-drawn scenes and short cards. Motion is a fade only and is off under reduced motion. */
+.sd-intro { display: flex; flex-direction: column; align-items: center; gap: 0.75rem; width: 100%; }
+.sd-intro__card { display: flex; flex-direction: column; align-items: center; gap: 0.75rem; animation: sd-intro-in 0.35s ease-out both; }
+.sd-intro__art { width: 100%; max-width: 20rem; height: auto; border: 1px solid var(--color-deep); border-radius: 0.6rem; }
+.sd-intro__text { max-width: 30rem; line-height: 1.5; color: var(--color-ink); }
+.sd-intro__count { font-size: var(--sd-text-xs); color: var(--color-ink-muted); }
+.sd-intro__actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 0.5rem; }
+@keyframes sd-intro-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: none; }
+}
+.sd-intro[data-reduced='true'] .sd-intro__card { animation: none; }
+@media (prefers-reduced-motion: reduce) {
+  .sd-intro__card { animation: none; }
+}

@@ -4,6 +4,9 @@ import { PortraitCanvas } from '@/art/portraits/PortraitCanvas'
 import type { Pose } from '@/art/portraits/types'
 import { hashString } from '@/art/room/rng'
 import { SourceLine } from '@/components/SourceLine'
+import { MemoryScroll } from '@/learning/MemoryScroll'
+import { RequeueNotice } from '@/learning/RequeueNotice'
+import { retryNote } from '@/learning/retryRules'
 import { canAnswer, type CombatState } from '@/state/combatMachine'
 import { useReducedMotion } from '@/state/useReducedMotion'
 import type { AnswerResult, Question } from '@/types/api'
@@ -51,6 +54,12 @@ export interface EncounterPopupProps {
    * answer shows "Memory laid to rest" instead of damage. Pass `monsterKind="revenant"` for its portrait.
    */
   isRevenant?: boolean
+  /** The question on screen is a second chance (it returned, or Quick retry was used). */
+  secondChance?: boolean
+  /** Further questions until a missed question returns; null or absent when nothing is waiting. */
+  requeueRemaining?: number | null
+  /** Quick retry from the Memory scroll: presents the same question again. Absent hides the button. */
+  onQuickRetry?(): void
 }
 
 function isWaiting(c: CombatState | null): boolean {
@@ -102,6 +111,9 @@ function EncounterBody({
   onRetreat,
   keysEnabled,
   isRevenant = false,
+  secondChance = false,
+  requeueRemaining = null,
+  onQuickRetry,
 }: BodyProps) {
   const headingId = useId()
   const panelRef = useRef<HTMLDivElement>(null)
@@ -111,6 +123,12 @@ function EncounterBody({
   // Keyed by question id so a stale selection never leaks into the next question.
   const [selection, setSelection] = useState<{ qid: string; opt: string } | null>(null)
   const selected = selection && selection.qid === question.id ? selection.opt : null
+  // The same question can be asked again (Quick retry): the earlier pick must not carry over.
+  const [prevCombat, setPrevCombat] = useState(combat)
+  if (combat !== prevCombat) {
+    setPrevCombat(combat)
+    if (combat === 'question' && isWaiting(prevCombat) && selection) setSelection(null)
+  }
   // The taunt opens the encounter (first question only); the question types out after it.
   const [introId] = useState(question.id)
   const [tauntDone, setTauntDone] = useState(false)
@@ -123,6 +141,9 @@ function EncounterBody({
   const shownResult = showsResult(combat) ? (result ?? null) : null
   // Presentation only: the backend's is_critical flag enlarges the damage number; damage is unchanged.
   const critical = shownResult !== null && shownResult.correct && shownResult.is_critical === true
+  // The Memory scroll opens under a wrong answer once the hit animation is done.
+  const scrollOpen = waiting && shownResult !== null && !shownResult.correct
+  const retry = shownResult ? retryNote(shownResult) : null
 
   const lines = linesFor(monsterKind)
   const seed = hashString(question.id) + (shownResult?.streak ?? 0)
@@ -259,10 +280,23 @@ function EncounterBody({
         <PortraitCanvas kind={monsterKind} pose={pose} />
       </div>
       <SpeechPanel ref={panelRef} labelledBy={headingId}>
-        {isRevenant ? (
-          <p className="sd-speech__name">A haunted memory</p>
+        {isRevenant || monsterName ? (
+          <p className="sd-speech__name">
+            {isRevenant ? 'A haunted memory' : `${monsterName} blocks your way`}
+            {secondChance && (
+              <span className="sd-second-chance" data-testid="second-chance-tag">
+                Second chance
+              </span>
+            )}
+          </p>
         ) : (
-          monsterName && <p className="sd-speech__name">{monsterName} blocks your way</p>
+          secondChance && (
+            <p className="sd-speech__name">
+              <span className="sd-second-chance" data-testid="second-chance-tag">
+                Second chance
+              </span>
+            </p>
+          )
         )}
         {speakerLine !== null ? (
           <p className="sd-speech__line">{speakerLine}</p>
@@ -281,6 +315,8 @@ function EncounterBody({
             onDone={() => setTypedId(question.id)}
           />
         </h2>
+
+        {requeueRemaining !== null && !shownResult && !closing && <RequeueNotice remaining={requeueRemaining} />}
 
         <AnswerGrid
           options={options}
@@ -331,6 +367,14 @@ function EncounterBody({
                     : `You dealt ${shownResult.damage_dealt} damage`
                   : `You took ${damageReceived ?? 0} damage`}
               </p>
+              {retry !== null && (
+                <p
+                  data-testid="retry-note"
+                  className="rounded-full border border-deep/50 bg-deep/10 px-2 text-sm font-semibold text-bg"
+                >
+                  {retry}
+                </p>
+              )}
               {shownResult.correct && !isRevenant && (
                 <p className="m-0 inline-flex items-baseline gap-2 font-bold text-deep">
                   {/* The number is the backend's damage_dealt; a critical hit only enlarges it (1.5x). */}
@@ -352,12 +396,15 @@ function EncounterBody({
                 </p>
               )}
             </div>
-            <SourceLine
-              source={shownResult.source}
-              explanation={shownResult.explanation}
-              className="min-w-0 flex-1 basis-48 px-2 py-1"
-            />
-            {waiting && (
+            {!scrollOpen && (
+              <SourceLine
+                source={shownResult.source}
+                explanation={shownResult.explanation}
+                evidenceQuote={shownResult.evidence_quote}
+                className="min-w-0 flex-1 basis-48 px-2 py-1"
+              />
+            )}
+            {waiting && !scrollOpen && (
               <div ref={nextRef} className="ml-auto flex justify-end">
                 <button type="button" onClick={onNext} className="sd-speech__btn sd-speech__btn--primary">
                   Next
@@ -365,6 +412,15 @@ function EncounterBody({
               </div>
             )}
           </div>
+        )}
+        {shownResult && scrollOpen && !closing && (
+          <MemoryScroll
+            result={shownResult}
+            reduced={reduced}
+            returnsIn={requeueRemaining}
+            onRetry={combat === 'next' ? onQuickRetry : undefined}
+            onContinue={onNext}
+          />
         )}
       </SpeechPanel>
       </div>

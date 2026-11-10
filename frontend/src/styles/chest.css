@@ -1,0 +1,147 @@
+/*
+ * Chest overlay and Combo meter. Tokens only. Motion is limited to a lid swing and short fades; there are no
+ * flashes. Everything is static under data-reduced="true" and prefers-reduced-motion.
+ */
+
+.sd-chest {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%;
+}
+.sd-chest__art {
+  width: 7.5rem;
+  height: auto;
+  overflow: visible;
+}
+.sd-chest__body {
+  fill: color-mix(in srgb, var(--color-ember) 38%, var(--color-deep));
+  stroke: var(--color-deep);
+  stroke-width: 1.5;
+}
+.sd-chest__lid {
+  fill: color-mix(in srgb, var(--color-ember) 52%, var(--color-deep));
+  stroke: var(--color-deep);
+  stroke-width: 1.5;
+}
+.sd-chest__band {
+  fill: var(--color-gold);
+  opacity: 0.85;
+}
+.sd-chest__lock {
+  fill: var(--color-gold);
+  stroke: var(--color-deep);
+  stroke-width: 1;
+}
+.sd-chest__glow {
+  fill: color-mix(in srgb, var(--color-gold) 55%, transparent);
+  opacity: 0.7;
+}
+.sd-chest__lead {
+  font-family: var(--font-label);
+  color: var(--color-ink-muted);
+}
+.sd-chest__list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.sd-chest__list li {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.4rem 0.6rem;
+  border: 1px solid var(--color-deep);
+  border-radius: 0.4rem;
+  background: color-mix(in srgb, var(--color-panel) 80%, var(--color-bg));
+  color: var(--color-ink);
+  text-align: left;
+}
+.sd-chest__label {
+  flex: 1;
+}
+.sd-chest__amount {
+  color: var(--color-gold);
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+}
+
+/* Combo meter: five states, escalating by border, glow and pip count. Colour is never the only cue. */
+.sd-combo {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.15rem 0.5rem;
+  border: 2px solid var(--color-deep);
+  border-radius: 0.5rem;
+  background: color-mix(in srgb, var(--color-panel) 88%, var(--color-bg));
+  color: var(--color-ink);
+  font-size: 0.8rem;
+  font-weight: 700;
+  line-height: 1.2;
+}
+.sd-combo__pips {
+  display: inline-flex;
+  gap: 2px;
+}
+.sd-combo__pips i {
+  display: block;
+  width: 0.4rem;
+  height: 0.4rem;
+  transform: rotate(45deg);
+  background: currentColor;
+}
+.sd-combo__name {
+  font-family: var(--font-label);
+  letter-spacing: 0.04em;
+}
+.sd-combo__count {
+  font-variant-numeric: tabular-nums;
+}
+.sd-combo[data-tier='1'] {
+  border-color: var(--color-pumpkin);
+  color: var(--color-pumpkin);
+}
+.sd-combo[data-tier='2'] {
+  border-color: var(--color-ember);
+  color: var(--color-ember);
+  box-shadow: 0 0 6px color-mix(in srgb, var(--color-ember) 60%, transparent);
+}
+.sd-combo[data-tier='3'] {
+  border-color: var(--color-danger);
+  color: var(--color-ink);
+  background: color-mix(in srgb, var(--color-danger) 28%, var(--color-panel));
+  box-shadow: 0 0 10px color-mix(in srgb, var(--color-danger) 70%, transparent);
+}
+.sd-combo[data-tier='4'] {
+  border-color: var(--color-gold);
+  color: var(--color-gold);
+  background: color-mix(in srgb, var(--color-magic) 30%, var(--color-panel));
+  box-shadow:
+    0 0 12px color-mix(in srgb, var(--color-gold) 70%, transparent),
+    inset 0 0 8px color-mix(in srgb, var(--color-magic) 60%, transparent);
+}
+/* One slow breathing glow (about 0.8 Hz, far under 3 flashes per second), tiers 3 and 4 only. */
+.sd-combo[data-tier='3']:not([data-reduced='true']),
+.sd-combo[data-tier='4']:not([data-reduced='true']) {
+  animation: sd-combo-breathe 1.25s ease-in-out infinite;
+}
+@keyframes sd-combo-breathe {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.04);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .sd-combo {
+    animation: none !important;
+  }
+}

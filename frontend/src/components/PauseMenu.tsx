@@ -63,7 +63,7 @@ export function PauseMenu({
             {muted ? 'Sound on' : 'Mute'}
           </Button>
         )}
-        <Armory weapons={weapons} level={level} />
+        <Armory weapons={weapons} level={level} equippable />
         <Button variant="secondary" onClick={onRestart}>
           Restart
         </Button>

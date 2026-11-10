@@ -1,0 +1,124 @@
+/* Login and Register: one stone card with two fields. CSS only; the art is a code-drawn pixel sprite. */
+
+.sd-auth {
+  width: 100%;
+  max-width: 30rem;
+  /* Centred in the fit body; auto margins fall back to the top edge when the body must scroll. */
+  margin: auto;
+  flex: 0 0 auto;
+  padding: clamp(0.75rem, 2.4vh, 1.25rem) clamp(1rem, 2vw, 1.5rem);
+}
+.sd-auth__body {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: clamp(0.4rem, 1.4vh, 0.75rem);
+}
+.sd-auth__sprite {
+  align-self: center;
+  filter: drop-shadow(0 0 10px color-mix(in srgb, var(--color-pumpkin) 45%, transparent));
+}
+.sd-auth__heading {
+  margin: 0;
+  text-align: center;
+  font-family: var(--font-display);
+  font-size: clamp(1.4rem, 4vh, 1.9rem);
+  line-height: 1.1;
+  font-weight: 400;
+  color: var(--color-gold);
+}
+.sd-auth__blurb {
+  margin: 0;
+  text-align: center;
+  font-size: var(--sd-text-sm);
+  color: var(--color-ink-muted);
+}
+.sd-auth__form {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(0.5rem, 1.5vh, 0.9rem);
+}
+.sd-auth__field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+.sd-auth__field label {
+  font-family: var(--font-label);
+  font-size: var(--sd-text-sm);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-ink);
+}
+.sd-auth__field input {
+  width: 100%;
+  min-height: clamp(2.5rem, 6vh, 2.75rem);
+  padding: 0.35rem 0.75rem;
+  font: inherit;
+  font-size: var(--sd-text-md);
+  color: var(--color-ink);
+  background: var(--color-bg);
+  border: 2px solid var(--color-magic);
+  border-radius: 0.5rem;
+}
+.sd-auth__field input:focus-visible {
+  outline: 3px solid var(--color-accent);
+  outline-offset: 2px;
+}
+.sd-auth__field input[aria-invalid='true'] {
+  border-color: var(--color-danger);
+}
+.sd-auth__password {
+  position: relative;
+  display: flex;
+}
+.sd-auth__password input {
+  padding-right: 3rem;
+}
+.sd-auth__toggle {
+  position: absolute;
+  top: 50%;
+  right: 0.25rem;
+  transform: translateY(-50%);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  color: var(--color-ink);
+  background: transparent;
+  border: 0;
+  border-radius: 0.4rem;
+  cursor: pointer;
+}
+.sd-auth__toggle:hover { background: var(--color-deep); }
+.sd-auth__toggle:focus-visible {
+  outline: 3px solid var(--color-accent);
+  outline-offset: 1px;
+}
+.sd-auth__hint {
+  margin: 0;
+  font-size: var(--sd-text-sm);
+  color: var(--color-ink-muted);
+}
+.sd-auth__error {
+  margin: 0;
+  font-size: var(--sd-text-sm);
+  /* danger mixed 45% with ink: at least 4.5:1 on bg, surface-2 and panel (palette.test). */
+  color: color-mix(in srgb, var(--color-danger), var(--color-ink) 45%);
+}
+.sd-auth__status { min-height: 1.1rem; display: flex; flex-direction: column; gap: 0.25rem; }
+.sd-auth__error--status { font-weight: 600; }
+.sd-auth__submit { width: 100%; }
+.sd-auth__switch {
+  margin: 0;
+  text-align: center;
+  font-size: var(--sd-text-sm);
+  color: var(--color-ink-muted);
+}
+.sd-auth__switch a {
+  color: var(--color-gold);
+  font-weight: 600;
+}
+.sd-auth__switch a:hover { color: var(--color-accent); }

@@ -15,6 +15,8 @@ export interface RoomProgressProps {
   rooms: readonly RoomProgressRoom[]
   currentRoomId: string | null
   clearedRoomIds: readonly string[]
+  /** What the rooms are called in "Room 2 of 5" (the Haunted Hall says "Hall"). */
+  noun?: string
 }
 
 const STATE_TEXT: Record<RoomMarker, string> = {
@@ -30,7 +32,7 @@ const STATE_STYLE: Record<RoomMarker, string> = {
   locked: 'border-dashed border-ink-muted text-ink-muted bg-bg opacity-70',
 }
 
-export function RoomProgress({ rooms, currentRoomId, clearedRoomIds }: RoomProgressProps) {
+export function RoomProgress({ rooms, currentRoomId, clearedRoomIds, noun = 'Room' }: RoomProgressProps) {
   const reduce = useReducedMotion()
   const currentIndex = rooms.findIndex((r) => r.id === currentRoomId)
   const current = currentIndex >= 0 ? rooms[currentIndex] : undefined
@@ -38,7 +40,9 @@ export function RoomProgress({ rooms, currentRoomId, clearedRoomIds }: RoomProgr
   return (
     <StoneFrame className="flex h-full flex-wrap items-center gap-x-3 gap-y-0.5 px-2 py-1 pt-2 text-sm text-ink">
       <p className="font-semibold">
-        {current ? `Room ${currentIndex + 1} of ${rooms.length}: ${current.label}` : `${rooms.length} rooms`}
+        {current
+          ? `${noun} ${currentIndex + 1} of ${rooms.length}: ${current.label}`
+          : `${rooms.length} ${noun === 'Room' ? 'rooms' : `${noun.toLowerCase()}s`}`}
       </p>
       <ol aria-label="Dungeon progress" className="m-0 flex list-none items-center gap-1.5 p-0">
         {rooms.map((room) => {

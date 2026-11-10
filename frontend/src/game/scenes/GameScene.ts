@@ -19,6 +19,10 @@ import { EncounterFxSystem } from '../systems/EncounterFxSystem'
 import { WeaponFxSystem } from '../systems/WeaponFxSystem'
 import { BossPhaseSystem } from '../systems/BossPhaseSystem'
 import { RevenantSystem } from '../systems/RevenantSystem'
+import { HitStopSystem } from '../systems/HitStopSystem'
+import { BossDeathSystem } from '../systems/BossDeathSystem'
+import { LootBurstSystem } from '../systems/LootBurstSystem'
+import { sfx } from '@/audio/sfx'
 import { InteractionSystem } from '../systems/InteractionSystem'
 import { MovementSystem } from '../systems/MovementSystem'
 import { RoomTracker } from '../systems/RoomTracker'
@@ -62,6 +66,11 @@ export class GameScene extends Phaser.Scene {
   private encounterFx: EncounterFxSystem | null = null
   private weaponFx: WeaponFxSystem | null = null
   private bossPhase: BossPhaseSystem | null = null
+  private hitStop: HitStopSystem | null = null
+  private bossDeath: BossDeathSystem | null = null
+  private lootBurst: LootBurstSystem | null = null
+  /** Combo tier (0 to 4) last sent by React; tints the player aura. */
+  private comboTier: 0 | 1 | 2 | 3 | 4 = 0
   private revenants: RevenantSystem | null = null
   private tracker: RoomTracker | null = null
   private atmosphere: AtmosphereSystem | null = null
@@ -85,6 +94,8 @@ export class GameScene extends Phaser.Scene {
   private introduced = new Set<string>()
   /** Exit gate per room id (rooms without a following room have none). */
   private gates = new Map<string, Gate>()
+  /** Display-only rooms without a monster (the Haunted Hall); their gate opens only on an explicit event. */
+  private hallRooms = new Set<string>()
   private monsters = new Map<string, Monster>() // room id -> monster
   private activeMonster: Monster | null = null
 
@@ -103,6 +114,12 @@ export class GameScene extends Phaser.Scene {
       atmosphere: () => this.atmosphere,
       pieces: () => this.pieces,
     })
+    this.hitStop = new HitStopSystem(this)
+    this.lootBurst = new LootBurstSystem(this, () => this.reducedMotion)
+    this.bossDeath = new BossDeathSystem(this, this.bridge, () => this.reducedMotion, {
+      monsterOf: (id) => this.monsters.get(id) ?? null,
+      loot: (x, y) => this.burstLoot(x, y),
+    })
     this.effects = new EffectsSystem(
       this,
       this.bridge,
@@ -114,7 +131,7 @@ export class GameScene extends Phaser.Scene {
       }),
       () => this.reducedMotion,
       this.encounterFx,
-      { weapons: this.weaponFx, boss: this.bossPhase },
+      { weapons: this.weaponFx, boss: this.bossPhase, hitStop: this.hitStop, bossDeath: this.bossDeath },
     )
     this.revenants = new RevenantSystem(this, this.bridge, {
       player: () => this.player,
@@ -133,6 +150,18 @@ export class GameScene extends Phaser.Scene {
       ambientCount: () => this.atmosphere?.activeCount ?? 0,
       textureBytes: () => (this.baker?.estimatedBytes() ?? 0) + SHARED_TEXTURE_BYTES,
       revenants: () => (this.revenants ? `${this.revenants.activeCount} ghosts, ${this.revenants.fxCount} fx` : '0'),
+      particles: () =>
+        (this.atmosphere?.activeCount ?? 0) +
+        (this.effects?.activeCount ?? 0) +
+        (this.weaponFx?.activeCount ?? 0) +
+        (this.bossDeath?.activeCount ?? 0) +
+        (this.lootBurst?.activeCount ?? 0) +
+        (this.revenants?.fxCount ?? 0),
+      pooled: () =>
+        (this.effects?.createdCount ?? 0) +
+        (this.weaponFx?.createdCount ?? 0) +
+        (this.bossDeath?.createdCount ?? 0) +
+        (this.lootBurst?.createdCount ?? 0),
       viewport: () => {
         const { width, height } = this.scale
         return `viewport ${width}x${height}  zoom ${this.cameras.main.zoom}  canvas ${this.game.canvas.width}x${this.game.canvas.height}  hud ${hudMode(width)}`
@@ -152,6 +181,12 @@ export class GameScene extends Phaser.Scene {
       this.weaponFx = null
       this.bossPhase?.destroy()
       this.bossPhase = null
+      this.hitStop?.destroy()
+      this.hitStop = null
+      this.bossDeath?.destroy()
+      this.bossDeath = null
+      this.lootBurst?.destroy()
+      this.lootBurst = null
       this.revenants?.destroy()
       this.revenants = null
       this.atmosphere?.destroy()
@@ -231,7 +266,8 @@ export class GameScene extends Phaser.Scene {
     }
   }
 
-  update(time: number): void {
+  update(time: number, delta: number): void {
+    this.hitStop?.update()
     this.movement?.update(time)
     this.interaction?.update()
     this.tracker?.update()
@@ -241,8 +277,17 @@ export class GameScene extends Phaser.Scene {
     for (const m of this.monsters.values()) m.tick(time)
     // A gate glows once its room's monster is defeated (derived from existing state only).
     const id = this.tracker?.currentRoomId
-    if (id && this.monsters.get(id)?.alive === false) this.gates.get(id)?.setOpenable()
-    this.debug?.update(time)
+    if (id && !this.hallRooms.has(id) && this.monsters.get(id)?.alive === false) this.gates.get(id)?.setOpenable()
+    this.debug?.update(time, delta)
+  }
+
+  /** Loot burst with its soft coin sound (muted sound stays silent). Falls back to the player position. */
+  private burstLoot(x?: number, y?: number): void {
+    const px = x ?? this.player?.x
+    const py = y ?? this.player?.y
+    if (px === undefined || py === undefined) return
+    this.lootBurst?.burst(px, py)
+    sfx.play('loot')
   }
 
   private currentMonster(): Monster | null {
@@ -309,6 +354,16 @@ export class GameScene extends Phaser.Scene {
       case 'spawn-revenants':
         this.revenants?.spawn(e.roomId, e.revenants)
         break
+      case 'set-combo':
+        this.comboTier = e.tier
+        this.player?.setComboTier(e.tier)
+        break
+      case 'play-boss-death':
+        this.bossDeath?.arm(e.roomId)
+        break
+      case 'loot-burst':
+        this.burstLoot(e.x, e.y)
+        break
     }
   }
 
@@ -363,6 +418,9 @@ export class GameScene extends Phaser.Scene {
   }
 
   private teardown(): void {
+    this.hitStop?.release()
+    this.bossDeath?.reset()
+    this.lootBurst?.reset()
     this.effects?.reset()
     this.encounterFx?.reset()
     this.weaponFx?.reset()
@@ -380,6 +438,7 @@ export class GameScene extends Phaser.Scene {
     this.fallbackRooms.clear()
     this.roomInfo.clear()
     this.introduced.clear()
+    this.hallRooms.clear()
     this.destroyActors()
     for (const g of this.gates.values()) g.destroy()
     this.gates.clear()
@@ -471,15 +530,20 @@ export class GameScene extends Phaser.Scene {
 
     const player = new Player(this, layout.spawn, this.reducedMotion)
     this.player = player
+    player.setComboTier(this.comboTier)
     this.lighting?.follow(player)
     for (const b of layout.rooms) {
       const room = roomById.get(b.id)
       if (!room) continue
       const at = { x: MONSTER_SPAWN.x + b.rect.x, y: MONSTER_SPAWN.y + b.rect.y }
-      this.monsters.set(
-        b.id,
-        new Monster(this, room.monster, at, this.reducedMotion, b.isBoss),
-      )
+      const monster = new Monster(this, room.monster, at, this.reducedMotion, b.isBoss)
+      this.monsters.set(b.id, monster)
+      // A room with a 0 HP monster is display only (the Haunted Hall): no monster stands in it, so its
+      // Revenants can appear at once. Real rooms never have 0 HP.
+      if (room.monster.max_hp <= 0) {
+        monster.retire()
+        this.hallRooms.add(b.id)
+      }
     }
 
     const obstacles: Phaser.Types.Physics.Arcade.ArcadeColliderType[] = [walls]

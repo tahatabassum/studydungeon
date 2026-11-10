@@ -3,6 +3,15 @@ import type { Point } from '../world/RoomLayout'
 import { COLORS } from '../colors'
 import { PLAYER_IDLE_ANIM, PLAYER_IDLE_TEXTURE, PLAYER_WALK_ANIM } from '../textures/registerArt'
 
+/** Aura per combo tier: the resting gold glow, then warmer and larger. Alpha stays low. */
+const COMBO_AURA: readonly { color: number; alpha: number; scale: number }[] = [
+  { color: COLORS.ACCENT, alpha: 0.28, scale: 1 },
+  { color: COLORS.ACCENT, alpha: 0.4, scale: 1.2 },
+  { color: COLORS.EMBER, alpha: 0.46, scale: 1.4 },
+  { color: COLORS.DANGER, alpha: 0.5, scale: 1.6 },
+  { color: COLORS.MAGENTA, alpha: 0.55, scale: 1.8 },
+]
+
 /** Arcade sprite using the pixel-art player: idle bob when still, 2-frame walk while moving. */
 export class Player extends Phaser.Physics.Arcade.Sprite {
   private readonly glow: Phaser.GameObjects.Ellipse
@@ -45,6 +54,15 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
       }
     }
     this.glow.setPosition(this.x, this.y + 20)
+  }
+
+  /**
+   * Combo aura: tints (and slightly widens) the glow under the player by tier 0 to 4. Colour only; it never
+   * pulses or flashes, so it is the same under reduced motion. Display only.
+   */
+  setComboTier(tier: number): void {
+    const t = COMBO_AURA[Math.min(COMBO_AURA.length - 1, Math.max(0, Math.floor(tier)))]
+    this.glow.setFillStyle(t.color, t.alpha).setScale(t.scale)
   }
 
   /** Brief red hit tint (callers skip this for reduced motion). */
