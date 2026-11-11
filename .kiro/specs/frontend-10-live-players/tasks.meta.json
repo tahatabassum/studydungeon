@@ -705,6 +705,11 @@
         "executionId": "ecc691bd-a7a4-4df3-b7ae-19a6293c4cc5",
         "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
         "timestamp": 1794419669866
+      },
+      {
+        "executionId": "ecc691bd-a7a4-4df3-b7ae-19a6293c4cc5",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794424485362
       }
     ],
     "11.2 Add `getUploadQuota`, the notice field and the guest capability rules to the Http_Client": [
@@ -712,6 +717,11 @@
         "executionId": "7dd1e894-b558-4280-a9ab-eedc6135a578",
         "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
         "timestamp": 1794394395663
+      },
+      {
+        "executionId": "ecc691bd-a7a4-4df3-b7ae-19a6293c4cc5",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794424485940
       }
     ],
     "11.3 Build the mock quota and guest upload": [
@@ -719,6 +729,11 @@
         "executionId": "7dd1e894-b558-4280-a9ab-eedc6135a578",
         "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
         "timestamp": 1794394395776
+      },
+      {
+        "executionId": "ecc691bd-a7a4-4df3-b7ae-19a6293c4cc5",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794424485063
       }
     ],
     "11.4 Build the pure upload modules and the file rules": [
@@ -726,6 +741,11 @@
         "executionId": "7dd1e894-b558-4280-a9ab-eedc6135a578",
         "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
         "timestamp": 1794394395875
+      },
+      {
+        "executionId": "ecc691bd-a7a4-4df3-b7ae-19a6293c4cc5",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794424486938
       }
     ],
     "11.8 Open the upload page to guests and add the quota panel, notice and fallback": [
@@ -733,6 +753,11 @@
         "executionId": "7dd1e894-b558-4280-a9ab-eedc6135a578",
         "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
         "timestamp": 1794394395983
+      },
+      {
+        "executionId": "ecc691bd-a7a4-4df3-b7ae-19a6293c4cc5",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794424487938
       }
     ],
     "11.9 Add per-floor progress and the error states to the wizard": [
@@ -740,6 +765,11 @@
         "executionId": "7dd1e894-b558-4280-a9ab-eedc6135a578",
         "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
         "timestamp": 1794394396085
+      },
+      {
+        "executionId": "ecc691bd-a7a4-4df3-b7ae-19a6293c4cc5",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794424485204
       }
     ],
     "11.10 Write example tests for Phase 5": [
@@ -747,6 +777,11 @@
         "executionId": "7dd1e894-b558-4280-a9ab-eedc6135a578",
         "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
         "timestamp": 1794394396185
+      },
+      {
+        "executionId": "ecc691bd-a7a4-4df3-b7ae-19a6293c4cc5",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794424488959
       }
     ],
     "11.11 Extend the contract suite for Phase 5": [
@@ -754,6 +789,11 @@
         "executionId": "7dd1e894-b558-4280-a9ab-eedc6135a578",
         "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
         "timestamp": 1794394396308
+      },
+      {
+        "executionId": "ecc691bd-a7a4-4df3-b7ae-19a6293c4cc5",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794424489765
       }
     ],
     "11.12 Run Phase 5 verification": [
@@ -778,6 +818,11 @@
         "executionId": "7dd1e894-b558-4280-a9ab-eedc6135a578",
         "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
         "timestamp": 1794394396524
+      },
+      {
+        "executionId": "ecc691bd-a7a4-4df3-b7ae-19a6293c4cc5",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794424490722
       }
     ],
     "12. STOP: Phase 5 checkpoint, guest upload review": [
@@ -785,6 +830,11 @@
         "executionId": "7dd1e894-b558-4280-a9ab-eedc6135a578",
         "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
         "timestamp": 1794394396631
+      },
+      {
+        "executionId": "ecc691bd-a7a4-4df3-b7ae-19a6293c4cc5",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794424491775
       }
     ],
     "3.5 Write property test for the local name hints": [
@@ -947,6 +997,13 @@
         "executionId": "ecc691bd-a7a4-4df3-b7ae-19a6293c4cc5",
         "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
         "timestamp": 1794419667781
+      }
+    ],
+    "11. Phase 5: Upload path for guests": [
+      {
+        "executionId": "ecc691bd-a7a4-4df3-b7ae-19a6293c4cc5",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794424490856
       }
     ]
   }

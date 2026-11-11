@@ -253,17 +253,17 @@ Rules for every task:
 - [x] 10. STOP: Phase 4 checkpoint, player counter review
   - Summarize the changes, say how to view the title screen with `VITE_MOCK_PLAYER_COUNT=128` and what to check. Wait for approval, then commit Phase 4 separately.
 
-- [ ] 11. Phase 5: Upload path for guests
-  - [-] 11.1 Add the quota types and wire schemas
+- [x] 11. Phase 5: Upload path for guests
+  - [x] 11.1 Add the quota types and wire schemas
     - Add `QuotaReason`, `UploadQuota` and the optional `counts_for_ranking`, `ranking_note`, `dungeon_id` and `floors` fields on the document status in `src/types/api.ts`; create `src/api/wire/quota.ts` and extend the document status wire schema; register in `src/api/schemas.ts`
     - _Requirements: 15.3, 15.8, 15.9, 18.5_
-  - [~] 11.2 Add `getUploadQuota`, the notice field and the guest capability rules to the Http_Client
+  - [x] 11.2 Add `getUploadQuota`, the notice field and the guest capability rules to the Http_Client
     - In `ApiClient.ts` and `client.ts` add `getUploadQuota()` (turns `uploadQuota` and, for a guest, `guestUpload` on; 403 GUEST_FORBIDDEN on `POST /documents` turns `guestUpload` off) and the `{acceptAiNotice}` option that sends `accept_ai_notice=true`; in `src/api/errors.ts` map AI_BUSY, UPLOADS_PAUSED_TODAY, UPLOAD_LIMIT_PLAYER, UPLOAD_LIMIT_IP, QUOTA_EXCEEDED, AI_NOTICE_NOT_ACCEPTED, TOO_MANY_PAGES, TOO_MANY_SLIDES, TOO_MUCH_TEXT
     - _Requirements: 1.4, 1.10, 1.11, 15.5, 15.6, 15.7, 16.3, 16.5, 16.6_
-  - [~] 11.3 Build the mock quota and guest upload
+  - [x] 11.3 Build the mock quota and guest upload
     - Create `src/api/mock/mockQuota.ts` (guest limit 1 per day, stored limit 2, forced states through a dev switch, AI_BUSY switch, `accept_ai_notice` required, `counts_for_ranking` false below 3000 characters, per-floor `floors[]` on status); allow guests in the mock `uploadDocument`
     - _Requirements: 15.1, 15.3, 15.5, 15.9, 16.5_
-  - [~] 11.4 Build the pure upload modules and the file rules
+  - [x] 11.4 Build the pure upload modules and the file rules
     - Create `src/upload/quotaView.ts` and `limitErrors.ts`; extend the single constants module `src/upload/limits.ts` with `MAX_SLIDES`, `MAX_DOCX_CHARS`, the minimum characters, the stored document limits (hints) and a `rulesText()` built from the constants (design.md D23), with a TODO comment to read the limits from the server later (`GET /uploads/quota` or a future `GET /meta`); mark `MAX_DOCX_CHARS` as unconfirmed in a comment
     - _Requirements: 15.3, 15.4, 16.6, 16.7, 16.9_
   - [ ]* 11.5 Write property test for the quota view
@@ -275,26 +275,26 @@ Rules for every task:
   - [ ]* 11.7 Write property test for the wire mapping of all new shapes
     - **Property 9: Wire mapping of the new shapes is valid, private-free and loud**
     - **Validates: Requirements 3.6, 11.7, 18.5**
-  - [~] 11.8 Open the upload page to guests and add the quota panel, notice and fallback
+  - [x] 11.8 Open the upload page to guests and add the quota panel, notice and fallback
     - Update `src/upload/UploadPage.tsx` (gate only when there is no session or the guest capability is off), create `QuotaPanel.tsx` and `AiNotice.tsx` (draft text, checkbox, no retention promise), disable the drop zone until the box is ticked and while blocked, add "Play preloaded dungeons instead" using the resolver, and the create-account offer for a guest at the limit
     - _Requirements: 15.1, 15.2, 15.3, 15.4, 15.10, 15.11, 16.1, 16.2, 16.4, 17.1, 17.2, 17.3, 17.6_
-  - [~] 11.9 Add per-floor progress and the error states to the wizard
+  - [x] 11.9 Add per-floor progress and the error states to the wizard
     - Create `src/upload/FloorProgressList.tsx` reusing the generation status UI; update `UploadWizard.tsx`, `useUploadFlow.ts` and `SummonResult.tsx` to send the notice flag, show AI_BUSY, limit, stored-limit, AI notice and type-limit messages, the ranking note and the rules text, all rule text and error hints built from the constants of `src/upload/limits.ts` (no literal limit number in the components)
     - _Requirements: 15.5, 15.6, 15.7, 15.8, 15.9, 16.3, 16.5, 16.6, 16.7, 16.8, 16.9_
-  - [~] 11.10 Write example tests for Phase 5
+  - [x] 11.10 Write example tests for Phase 5
     - Guest wizard shown when proven and gate when off, each quota state, disabled drop zone, notice checkbox and field, AI_BUSY and limit messages with Retry-After, type-limit messages, per-floor rows, ranking note, fallback button target, copy lint for banned promises, rules text equals `rulesText()` and no literal limit number in `src/upload/*.tsx`
     - _Requirements: 15.1, 15.2, 15.4, 15.5, 15.6, 15.8, 15.9, 15.11, 16.1, 16.2, 16.3, 16.4, 16.6, 16.7, 16.9_
-  - [~] 11.11 Extend the contract suite for Phase 5
+  - [x] 11.11 Extend the contract suite for Phase 5
     - Add the quota and notice cases of the design table
     - _Requirements: 18.6_
   - [x] 11.12 Run Phase 5 verification
     - Run the five commands; check `/upload` in each state at the four sizes; confirm the counts
     - _Requirements: 17.1, 17.5, 19.1, 19.2_
-  - [~] 11.13 Update the docs for Phase 5
+  - [x] 11.13 Update the docs for Phase 5
     - Append to `docs/kiro-log-frontend.md` and `docs/handoff/B-to-A.md`
     - _Requirements: 19.3_
 
-- [~] 12. STOP: Phase 5 checkpoint, guest upload review
+- [x] 12. STOP: Phase 5 checkpoint, guest upload review
   - Summarize the changes, say how to view `/upload` as a guest in each quota state in mock mode and what to check. Wait for approval, then commit Phase 5 separately.
 
 ## Notes
