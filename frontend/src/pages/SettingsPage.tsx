@@ -7,7 +7,9 @@ import { displayHandle } from '../identity/handle'
 import { useSession } from '../state/SessionContext'
 import { useLogout } from '../state/useLogout'
 import { useReducedMotion } from '../state/useReducedMotion'
+import { HauntedBackdrop } from '../components/HauntedBackdrop'
 import '../styles/live.css'
+import '../styles/haunted.css'
 
 /** `/settings` (RequireSession): who you are, how sound and motion work, log out, and delete the account. */
 export default function SettingsPage() {
@@ -20,12 +22,13 @@ export default function SettingsPage() {
   return (
     <PageShell
       variant="fit"
-      className="sd-live"
+      className="sd-live sd-haunted"
+      decor={<HauntedBackdrop />}
       testId="settings-page"
       title="Settings"
       back={{ to: '/dashboard', label: 'Dashboard' }}
     >
-      <div className="sd-live__body sd-live__notice">
+      <div className="sd-live__body sd-live__notice sd-settings">
         <section className="sd-card" aria-labelledby="set-account">
           <h2 id="set-account" className="sd-card__h">
             Account

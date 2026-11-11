@@ -249,3 +249,8 @@
 @media (prefers-reduced-motion: reduce) {
   .sd-haunted-backdrop--menace { display: none; }
 }
+
+/* /settings: equal-width cards, small gap, centered actions */
+.sd-haunted .sd-settings { gap: 0.75rem; align-items: center; }
+.sd-haunted .sd-settings > .sd-card { width: 100%; }
+.sd-haunted .sd-settings .sd-dash__actions { justify-content: center; flex-wrap: wrap; }
