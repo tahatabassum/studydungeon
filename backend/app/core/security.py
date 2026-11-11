@@ -33,7 +33,7 @@ def create_session_token(
     user_id: str,
     session_version: int = 1,
     is_guest: bool = False,
-    expires_in_seconds: int = 86400,
+    expires_in_seconds: int = 2592000,  # 30 days default
 ) -> str:
     payload = {
         "sub": user_id,

@@ -202,6 +202,13 @@ async def submit_attempt(
             # Load question details if available
             q_res = await db.execute(select(Question).where(Question.id == a.question_id))
             cached_q = q_res.scalar_one_or_none()
+            remaining_hp = 0
+            if cached_q:
+                target_r = next((r for r in run.dungeon.rooms if r.topic_id == cached_q.topic_id), None)
+                if target_r:
+                    tot_dmg = sum(att.damage_dealt for att in run.attempts if att.question and att.question.topic_id == target_r.topic_id)
+                    remaining_hp = max(0, target_r.monster_hp - tot_dmg)
+
             return AttemptResponse(
                 attempt_id=a.id,
                 is_correct=a.is_correct,
@@ -211,7 +218,7 @@ async def submit_attempt(
                 current_hp=run.current_hp,
                 current_score=run.current_score,
                 current_streak=run.current_streak,
-                monster_hp_remaining=0,
+                monster_hp_remaining=remaining_hp,
                 explanation=cached_q.explanation if cached_q else "Idempotent replay.",
                 evidence_quote=cached_q.evidence_quote if cached_q else None,
             )
@@ -323,21 +330,42 @@ async def submit_attempt(
     )
     db.add(attempt)
 
-    # 6. SRS Queue Update
+    # 6. SRS Queue Update (P4: Upsert single ReviewItem per user & question)
+    existing_rev_res = await db.execute(
+        select(ReviewItem).where(ReviewItem.user_id == user.id, ReviewItem.question_id == question.id)
+    )
+    existing_rev = existing_rev_res.scalar_one_or_none()
+    current_rep = existing_rev.repetition if existing_rev else 0
+
     rep, interval, next_due = calculate_next_review_interval(
-        current_repetition=0,
+        current_repetition=current_rep,
         is_correct=is_correct,
         marked_hard=(question.difficulty == "hard"),
     )
-    review_item = ReviewItem(
-        user_id=user.id,
-        question_id=question.id,
-        due_at=next_due,
-        repetition=rep,
-        interval_days=interval,
-        last_result="correct" if is_correct else "wrong",
-    )
-    db.add(review_item)
+
+    if existing_rev:
+        existing_rev.repetition = rep
+        existing_rev.interval_days = interval
+        existing_rev.due_at = next_due
+        existing_rev.last_result = "correct" if is_correct else "wrong"
+    else:
+        review_item = ReviewItem(
+            user_id=user.id,
+            question_id=question.id,
+            due_at=next_due,
+            repetition=rep,
+            interval_days=interval,
+            last_result="correct" if is_correct else "wrong",
+        )
+        db.add(review_item)
+
+    # Compute actual remaining monster HP for current target room (P2 fix)
+    total_dmg_to_room = sum(
+        a.damage_dealt
+        for a in run.attempts
+        if a.question and target_room and a.question.topic_id == target_room.topic_id
+    ) + damage_dealt
+    monster_remaining = max(0, target_room.monster_hp - total_dmg_to_room) if target_room else 0
 
     await db.commit()
     await db.refresh(run)
@@ -351,7 +379,7 @@ async def submit_attempt(
         current_hp=run.current_hp,
         current_score=run.current_score,
         current_streak=run.current_streak,
-        monster_hp_remaining=0,
+        monster_hp_remaining=monster_remaining,
         explanation=question.explanation,
         evidence_quote=question.evidence_quote,
     )
@@ -394,6 +422,10 @@ async def clear_room(
     is_boss = (room.room_order == total_rooms - 1)
     xp_delta = 100 if is_boss else 25
 
+    # Persist room clear XP to run (P3 fix)
+    run.xp_earned += xp_delta
+    await db.commit()
+
     return {"success": True, "room_id": room.id, "xp_delta": xp_delta, "is_boss": is_boss}
 
 
@@ -432,6 +464,32 @@ async def finish_run(
     if run.status == "active":
         run.status = "completed"
         run.finished_at = datetime.utcnow()
+
+        # Update UserProgress (P3 fix)
+        prog_res = await db.execute(select(UserProgress).where(UserProgress.user_id == user.id))
+        user_prog = prog_res.scalar_one_or_none()
+        if not user_prog:
+            user_prog = UserProgress(user_id=user.id, total_xp=0, level=1, unlocked_weapons=["Rusty Dagger"])
+            db.add(user_prog)
+
+        user_prog.total_xp += run.xp_earned
+
+        # Level curve: 100 * level to reach level + 1
+        current_lvl = user_prog.level
+        xp_needed = 100 * current_lvl
+        while user_prog.total_xp >= xp_needed:
+            user_prog.level += 1
+            current_lvl = user_prog.level
+            xp_needed = 100 * current_lvl
+
+        # Check unlocked weapons
+        from app.services.combat import WEAPON_UNLOCK_RULES
+        unlocked_set = set(user_prog.unlocked_weapons or ["Rusty Dagger"])
+        for w_name, rule in WEAPON_UNLOCK_RULES.items():
+            if rule(level=user_prog.level, xp=user_prog.total_xp, cleared_rooms=total_rooms, boss_cleared=1):
+                unlocked_set.add(w_name)
+        user_prog.unlocked_weapons = list(unlocked_set)
+
         await db.commit()
 
     total_att = len(run.attempts)
