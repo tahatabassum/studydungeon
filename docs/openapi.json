@@ -171,14 +171,83 @@
           "Authentication"
         ],
         "summary": "Delete Me",
-        "description": "Deletes user account and cascades deletion of all documents, chunks, topics,\nquestions, dungeons, runs, attempts, and progress.\nProtected: Any user with is_system=True (or username 'system_demo') cannot be deleted.",
+        "description": "Deletes user account and cascades deletion of all documents, chunks, topics,\nquestions, dungeons, runs, attempts, and progress.\nProtected: Any user with is_system=True (or username 'system_demo') cannot be deleted.\nIf req is provided, requires confirm == 'DELETE' if confirm key is sent.",
         "operationId": "delete_me_auth_me_delete",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "anyOf": [
+                  {
+                    "$ref": "#/components/schemas/DeleteAccountRequest"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "title": "Req"
+              }
+            }
+          }
+        },
         "responses": {
           "200": {
             "description": "Successful Response",
             "content": {
               "application/json": {
                 "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/upgrade": {
+      "post": {
+        "tags": [
+          "Authentication"
+        ],
+        "summary": "Upgrade Guest Account",
+        "description": "Upgrades the current guest into a registered user in place (keeps user.id, public_id, points, runs).",
+        "operationId": "upgrade_guest_account_auth_upgrade_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpgradeGuestRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
               }
             }
           }
@@ -199,6 +268,88 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/DemoSessionResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/guests/name-check": {
+      "post": {
+        "tags": [
+          "Guests"
+        ],
+        "summary": "Check Guest Display Name",
+        "operationId": "check_guest_display_name_guests_name_check_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GuestNameCheckRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GuestNameCheckResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/guests": {
+      "post": {
+        "tags": [
+          "Guests"
+        ],
+        "summary": "Create Guest",
+        "operationId": "create_guest_guests_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateGuestRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreateGuestResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
                 }
               }
             }
@@ -828,6 +979,28 @@
         }
       }
     },
+    "/progress/scorecard": {
+      "get": {
+        "tags": [
+          "progress"
+        ],
+        "summary": "Get User Scorecard",
+        "description": "Returns user aggregate metrics and mastery band:\nWeak <50%, Learning 50-79%, Strong >=80%.",
+        "operationId": "get_user_scorecard_progress_scorecard_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScorecardResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/reviews/due": {
       "get": {
         "tags": [
@@ -972,6 +1145,60 @@
           "file"
         ],
         "title": "Body_upload_document_documents_post"
+      },
+      "CreateGuestRequest": {
+        "properties": {
+          "display_name": {
+            "type": "string",
+            "title": "Display Name"
+          },
+          "accept_public_notice": {
+            "type": "boolean",
+            "title": "Accept Public Notice",
+            "description": "Must accept public notice"
+          }
+        },
+        "type": "object",
+        "required": [
+          "display_name",
+          "accept_public_notice"
+        ],
+        "title": "CreateGuestRequest"
+      },
+      "CreateGuestResponse": {
+        "properties": {
+          "user": {
+            "$ref": "#/components/schemas/UserResponse"
+          },
+          "notice_version": {
+            "type": "string",
+            "title": "Notice Version"
+          }
+        },
+        "type": "object",
+        "required": [
+          "user",
+          "notice_version"
+        ],
+        "title": "CreateGuestResponse"
+      },
+      "DeleteAccountRequest": {
+        "properties": {
+          "confirm": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Confirm",
+            "description": "Optional 'DELETE' confirmation string"
+          }
+        },
+        "type": "object",
+        "title": "DeleteAccountRequest"
       },
       "DemoSessionResponse": {
         "properties": {
@@ -1246,6 +1473,65 @@
         ],
         "title": "DungeonSummary"
       },
+      "GuestNameCheckRequest": {
+        "properties": {
+          "display_name": {
+            "type": "string",
+            "title": "Display Name"
+          }
+        },
+        "type": "object",
+        "required": [
+          "display_name"
+        ],
+        "title": "GuestNameCheckRequest"
+      },
+      "GuestNameCheckResponse": {
+        "properties": {
+          "ok": {
+            "type": "boolean",
+            "title": "Ok"
+          },
+          "display_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Display Name"
+          },
+          "reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason"
+          },
+          "message": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Message"
+          }
+        },
+        "type": "object",
+        "required": [
+          "ok"
+        ],
+        "title": "GuestNameCheckResponse"
+      },
       "HTTPValidationError": {
         "properties": {
           "detail": {
@@ -1511,6 +1797,44 @@
         ],
         "title": "RunSummaryResponse"
       },
+      "ScorecardResponse": {
+        "properties": {
+          "user_id": {
+            "type": "string",
+            "title": "User Id"
+          },
+          "level": {
+            "type": "integer",
+            "title": "Level"
+          },
+          "total_score": {
+            "type": "integer",
+            "title": "Total Score"
+          },
+          "total_xp": {
+            "type": "integer",
+            "title": "Total Xp"
+          },
+          "accuracy": {
+            "type": "number",
+            "title": "Accuracy"
+          },
+          "mastery_band": {
+            "type": "string",
+            "title": "Mastery Band"
+          }
+        },
+        "type": "object",
+        "required": [
+          "user_id",
+          "level",
+          "total_score",
+          "total_xp",
+          "accuracy",
+          "mastery_band"
+        ],
+        "title": "ScorecardResponse"
+      },
       "StartRunRequest": {
         "properties": {
           "dungeon_id": {
@@ -1523,6 +1847,28 @@
           "dungeon_id"
         ],
         "title": "StartRunRequest"
+      },
+      "UpgradeGuestRequest": {
+        "properties": {
+          "username": {
+            "type": "string",
+            "maxLength": 32,
+            "minLength": 3,
+            "title": "Username"
+          },
+          "password": {
+            "type": "string",
+            "maxLength": 128,
+            "minLength": 8,
+            "title": "Password"
+          }
+        },
+        "type": "object",
+        "required": [
+          "username",
+          "password"
+        ],
+        "title": "UpgradeGuestRequest"
       },
       "UserLoginRequest": {
         "properties": {
@@ -1572,9 +1918,60 @@
             "type": "string",
             "title": "Id"
           },
+          "public_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Public Id"
+          },
           "username": {
-            "type": "string",
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
             "title": "Username"
+          },
+          "display_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Display Name"
+          },
+          "tag": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tag"
+          },
+          "handle": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Handle"
           },
           "is_guest": {
             "type": "boolean",
@@ -1601,7 +1998,6 @@
         "type": "object",
         "required": [
           "id",
-          "username",
           "is_guest",
           "created_at"
         ],

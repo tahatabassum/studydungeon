@@ -5,7 +5,7 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
-from app.api.auth import auth_router, demo_router
+from app.api.auth import auth_router, demo_router, guests_router
 from app.api.documents import documents_router
 from app.api.dungeons import dungeons_router
 from app.api.health import health_router
@@ -21,7 +21,15 @@ from app.core.errors import (
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Schema lifecycle is now managed by Alembic migrations
+    # Idempotent startup seed for demo & pack content (P1 fix)
+    try:
+        from app.core.database import AsyncSessionLocal
+        from app.demo.seed import seed_demo_dungeon
+        async with AsyncSessionLocal() as session:
+            await seed_demo_dungeon(session)
+    except Exception as e:
+        import logging
+        logging.getLogger("studydungeon").warning("Startup seed notice: %s", str(e))
     yield
 
 
@@ -35,9 +43,10 @@ def create_app() -> FastAPI:
     )
 
     # CORS
+    allowed_origins = list(set([settings.FRONTEND_ORIGIN] + settings.CORS_ORIGINS))
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=[settings.FRONTEND_ORIGIN, "http://localhost:3000", "http://127.0.0.1:5173"],
+        allow_origins=allowed_origins,
         allow_credentials=True,
         allow_methods=["*"],
         allow_headers=["*"],
@@ -52,6 +61,7 @@ def create_app() -> FastAPI:
     app.include_router(health_router)
     app.include_router(auth_router)
     app.include_router(demo_router)
+    app.include_router(guests_router)
     app.include_router(documents_router)
     app.include_router(dungeons_router)
     app.include_router(runs_router)
