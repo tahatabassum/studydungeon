@@ -219,7 +219,7 @@ Rules for every task:
   - Summarize the changes, say how to view `/leaderboard` in mock mode and what to check. Wait for approval, then commit Phase 3 separately.
 
 - [ ] 9. Phase 4: Player counter
-  - [~] 9.1 Add the player stats endpoint through the stack
+  - [x] 9.1 Add the player stats endpoint through the stack
     - Add `PlayerStats` to `src/types/api.ts`, `src/api/wire/stats.ts`, `getPlayerStats()` in `ApiClient.ts` and `client.ts` (`playerCounter` transitions), and the mock in `src/api/mock/mockStats.ts` (`VITE_MOCK_PLAYER_COUNT`, default 0); the Offline_Demo has no counter
     - _Requirements: 1.4, 14.9, 18.5_
   - [~] 9.2 Build the pure counter modules

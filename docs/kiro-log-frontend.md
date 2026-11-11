@@ -488,3 +488,10 @@ Frontend only; no backend file, `src/game`, `src/touch` or `styles/touch.css` to
 - Tests changed: `LeaderboardPage.test.tsx` fake client now sets `liveBoard: false` (legacy path); `client.board.test.ts` lint fix. New: `src/board/LiveBoard.test.tsx`, boundary cases, 2 contract cases for the live board.
 - Name clash note: the pure module is `youPanel.ts`, so the component is `YouPanelView.tsx` (Windows is case-insensitive).
 - Verification: typecheck and lint clean; `npm test` 1423 passed, 24 skipped; `test:contract` 43 passed, 1 skipped; build OK. Visual size checks were not run in this pass.
+
+## frontend-10 live players: Phase 4 (player counter), 2026-11-11
+Frontend only; no backend file, `src/game`, `src/touch` or `styles/touch.css` touched.
+- Built: `GET /stats/players` through the stack (`PlayerStats`, `getPlayerStats`, `playerCounter` capability, wire `stats.ts`, mock `mockStats.ts` returning `VITE_MOCK_PLAYER_COUNT` or 0; the Offline demo has no counter). `src/counter/`: `formatExplorerLine`, `explorerCountText`, `countUpValue` (800 ms), `shouldRefetch` and `fetchPlayerCount` (memory cache, `cache_seconds` or 300 s, failures not cached, one in-flight, reset with `resetClientCaches`), and `PlayerCounterLine` under the tagline on the title screen. It renders nothing without a valid count, sits in a zero-height box (no layout shift) and fades in; the animated span is `aria-hidden` and an `sr-only` span holds the final text.
+- Tests: `counter.property.test.ts` (Properties 13 to 15, 100 runs each), `counter.test.tsx`, one contract case.
+- To view: set `VITE_MOCK_PLAYER_COUNT=128` in `.env.local` and open the title screen.
+- Verification: typecheck and lint clean; `npm test` 1435 passed, 25 skipped; `test:contract` 44 passed, 1 skipped; build OK. Bug found while testing: the count-up used `performance.now()` as its start, which does not share a clock with the rAF timestamp in jsdom; it now takes the first frame time.

@@ -682,3 +682,7 @@ Each case is skipped when its endpoint answers 404, 405 or 501. Run against a di
 - The frontend reads `GET /leaderboard?board=preloaded|own_notes|overall&period=all|week` (PROPOSED): up to 20 `entries` with ranks 1..n, `public_id`, `handle`, `points`, `rooms_cleared`, `updated_at`, `next_refresh_at`, `week {timezone, starts_at, resets_at}` for the weekly board, and a `me` block (null without a session) with `rank`, `points`, `next_above`, `top20`. No username or internal id may appear. 404, 405 and 501 turn `liveBoard` off and the old demo board is shown.
 - Polling: no request before `next_refresh_at` plus up to 2 s, never two within 60 s per board and period, `Retry-After` is honored. The `me` block is treated as live and can be ahead of the table.
 - The contract suite has 2 new cases for this endpoint, skipped on a backend without it.
+#### Phase 4 update (frontend-10, 2026-11-11)
+- The frontend reads `GET /stats/players` (PROPOSED): `{players: int >= 0, updated_at, cache_seconds}` (extra totals optional). Public, no session needed. It caches the answer for `cache_seconds` (300 s if missing). 404, 405 and 501 turn `playerCounter` off and the title screen shows no line.
+- Wording: 1 to 9 players shows "Be among the first explorers" (no number); 10 or more shows "N explorers have braved the dungeon"; 0 shows nothing. The number is never rounded or offset.
+- The contract suite has 1 new case for this endpoint, skipped on a backend without it.

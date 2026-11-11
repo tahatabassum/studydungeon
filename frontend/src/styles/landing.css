@@ -225,3 +225,9 @@
 @media (prefers-reduced-motion: reduce) {
   .sd-bat { left: var(--bat-rest, 10%); }
 }
+
+/* Player counter: zero-height box so the line never shifts the layout; it fades in. */
+.sd-counter { position: relative; height: 0; width: 100%; }
+.sd-counter__line { position: absolute; top: 0.2rem; left: 0; right: 0; margin: 0; text-align: center; font-size: 0.8125rem; line-height: 1.2; color: var(--color-gold, #d9a441); opacity: 0.85; text-wrap: balance; animation: sd-counter-in 600ms ease-out both; }
+@keyframes sd-counter-in { from { opacity: 0; } to { opacity: 0.85; } }
+@media (prefers-reduced-motion: reduce) { .sd-counter__line { animation: none; } }

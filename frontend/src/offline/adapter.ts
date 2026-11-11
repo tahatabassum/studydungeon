@@ -494,6 +494,7 @@ export function createAdapter(options: OfflineOptions): ApiClient {
     listDungeons: async () => unsupported('The dungeon list'),
     getPacks: async () => unsupported('Preloaded packs'),
     getBoard: async () => unsupported('The live leaderboard'),
+    getPlayerStats: async () => unsupported('The player counter'),
   }
 }
 

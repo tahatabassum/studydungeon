@@ -22,6 +22,7 @@ import type {
   LeaderboardResponse,
   NameCheckResult,
   PacksResponse,
+  PlayerStats,
   ProgressInfo,
   Run,
   RunSummary,
@@ -92,6 +93,8 @@ export interface ApiClient {
   getPacks(): Promise<PacksResponse>
   /** GET /leaderboard?board=&period= (frontend-10, PROPOSED): the live board of real players with the me block. */
   getBoard(query: BoardQuery): Promise<BoardResponse>
+  /** GET /stats/players (frontend-10, PROPOSED): the number of players, for the title line. 501 when unsupported. */
+  getPlayerStats(): Promise<PlayerStats>
   /** GET /health ping to wake a cold server. Only the Http client defines it. */
   warmUp?(): Promise<void>
   /**

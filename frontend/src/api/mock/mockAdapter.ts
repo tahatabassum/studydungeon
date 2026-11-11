@@ -40,6 +40,7 @@ import { createMockPoints, type PointsBoard } from './mockPoints'
 import { createMockUpload, type GeneratedSource } from './mockUpload'
 import { createMasteryStore } from '../../learning/masteryStore'
 import { buildMockBoard } from './mockBoard'
+import { mockPlayerStats } from './mockStats'
 import { buildMockLeaderboard, runRankOnDemoBoard, type StoredRun } from './mockLeaderboard'
 import { createReviewStore } from './mockReviews'
 import { buildStreakCalendar, notesConqueredPercent } from './mockProgress'
@@ -954,6 +955,10 @@ export function createMockAdapter(options: MockAdapterOptions = {}): ApiClient {
       upload.clear()
       generatedCtx.clear()
       sessionName = 'Guest'
+    },
+    async getPlayerStats() {
+      await wait()
+      return mockPlayerStats()
     },
     async getPacks() {
       await wait()

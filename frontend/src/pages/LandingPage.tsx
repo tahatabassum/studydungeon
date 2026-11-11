@@ -9,6 +9,7 @@ import { PixelSprite } from '../components/PixelSprite';
 import { CHARACTER_SPRITES } from '../art/sprites';
 import { TutorialFlow } from '../tutorial/TutorialFlow';
 import { getApi } from '../api';
+import { PlayerCounterLine } from '../counter/PlayerCounterLine';
 
 const STEPS = [
   { icon: BookOpen, title: 'Upload notes', text: 'Feed your study notes to the library.' },
@@ -127,6 +128,7 @@ export default function LandingPage() {
           <section className="sd-landing__hero">
             <h1 className="sd-title-flicker sd-landing__title font-(family-name:--font-display) text-gold">StudyDungeon</h1>
             <p className="sd-landing__tag font-(family-name:--font-label) text-ink-muted">Turn your notes into a haunted dungeon.</p>
+            <PlayerCounterLine />
             <div className="sd-landing__actions">
               <Button className="sd-pumpkin-btn" onClick={tryDemo}>
                 Try the Demo

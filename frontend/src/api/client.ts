@@ -20,6 +20,7 @@ import {
   mapFinish,
   mapBoard,
   mapPacks,
+  mapPlayerStats,
   mapMe,
   mapNameCheck,
   mapProgress,
@@ -350,6 +351,9 @@ export function createHttpClient(baseUrl: string, fetchImpl: typeof fetch = fetc
       withCapability('liveBoard', async () =>
         mapBoard(await request('getBoard', 'GET', `/leaderboard?board=${enc(query.board)}&period=${enc(query.period)}`)),
       ),
+
+    // PROPOSED (frontend-10): the player counter.
+    getPlayerStats: () => withCapability('playerCounter', async () => mapPlayerStats(await request('getPlayerStats', 'GET', '/stats/players'))),
 
     // A cold-server wake-up ping: once per client, no cookies, never throws.
     warmUp: async () => {

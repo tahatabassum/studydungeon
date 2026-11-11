@@ -488,3 +488,13 @@ export interface PlayerPoints {
   own_notes: number
   overall: number
 }
+
+/** frontend-10 (PROPOSED): GET /stats/players. Only \players\ is used by the title line. */
+export interface PlayerStats {
+  players: number
+  rooms_cleared_total?: number
+  answers_total?: number
+  packs_completed_total?: number
+  updated_at?: string
+  cache_seconds?: number
+}

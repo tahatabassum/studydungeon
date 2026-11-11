@@ -441,6 +441,12 @@ export function defineContractSuite(opts: ContractSuiteOptions): void {
         expect(text).not.toMatch(/"(username|user_id|id)":/)
         expect(res.me).toBeNull()
       })
+      it('GET /stats/players returns a non-negative integer player count', async (ctx) => {
+        const c = await opts.makeFreshClient!()
+        const res = await provedOrSkip(ctx, c, 'playerCounter', () => c.getPlayerStats())
+        expect(Number.isInteger(res.players)).toBe(true)
+        expect(res.players).toBeGreaterThanOrEqual(0)
+      })
       it('GET /leaderboard with a session returns a me block', async (ctx) => {
         const c = await opts.makeFreshClient!()
         await c.startDemoSession()
