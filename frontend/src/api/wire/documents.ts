@@ -19,6 +19,11 @@ export const wireDocumentStatusSchema = z.object({
   readability_score: z.number().nullish(),
   rejection_reason: z.string().nullish(),
   chunks_count: z.number().int().nonnegative().optional(),
+  // frontend-10 (PROPOSED)
+  counts_for_ranking: z.boolean().optional(),
+  ranking_note: z.string().nullish(),
+  dungeon_id: z.string().nullish(),
+  floors: z.array(z.object({ id: z.string().min(1), status: z.enum(['locked', 'ready', 'generating', 'failed', 'cleared']) })).optional(),
 })
 
 /** `GET /documents/{id}/topics`: a bare array. */
@@ -43,6 +48,10 @@ export function mapDocumentStatus(w: z.output<typeof wireDocumentStatusSchema>):
     chunks_count: w.chunks_count ?? 0,
     relevance_score: w.relevance_score ?? null,
     readability_score: w.readability_score ?? null,
+    ...(w.counts_for_ranking !== undefined ? { counts_for_ranking: w.counts_for_ranking } : {}),
+    ...(w.ranking_note ? { ranking_note: w.ranking_note } : {}),
+    ...(w.dungeon_id ? { dungeon_id: w.dungeon_id } : {}),
+    ...(w.floors ? { floors: w.floors.map((f) => ({ id: f.id, status: f.status })) } : {}),
   }
 }
 

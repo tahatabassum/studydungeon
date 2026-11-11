@@ -3,9 +3,9 @@ import { Link } from 'react-router-dom'
 import { Map as MapIcon } from 'lucide-react'
 import { getApi } from '../api'
 import { campaignView } from '../campaign/floorRooms'
-import { StatusChip } from '../campaign/nodeParts'
 import { useGenerationStatus } from '../campaign/useGenerationStatus'
 import type { Dungeon } from '../types/api'
+import { FloorProgressList } from './FloorProgressList'
 
 export interface SummonResultProps {
   dungeon: Dungeon
@@ -28,14 +28,7 @@ export function SummonResult({ dungeon }: SummonResultProps) {
         {`Your notes became ${count} ${count === 1 ? 'floor' : 'floors'}`}
       </h2>
       <p className="sd-up__result-sub">{dungeon.name}</p>
-      <ol className="sd-up__floors" aria-label="Floors of your dungeon">
-        {generation.floors.map((f) => (
-          <li key={f.id} className="sd-up__floor" data-status={f.status}>
-            <span className="sd-up__floor-name">{`Floor ${f.index}, ${f.title}`}</span>
-            <StatusChip status={f.status} />
-          </li>
-        ))}
-      </ol>
+      <FloorProgressList floors={generation.floors} />
       {generation.timedOut && (
         <p className="sd-card__muted" role="status">
           Summoning is taking longer than usual.{' '}

@@ -27,8 +27,14 @@ import type {
   Run,
   RunSummary,
   StartRunRequest,
+  UploadQuota,
   User,
 } from '../types/api'
+
+/** frontend-10: cceptAiNotice sends the multipart field ccept_ai_notice=true. */
+export interface UploadOptions {
+  acceptAiNotice?: boolean
+}
 
 export interface ApiClient {
   startDemoSession(): Promise<DemoSessionResponse>
@@ -70,7 +76,7 @@ export interface ApiClient {
   /** `GET /auth/me`: the current user with the session expiry, or null when there is no session (401). */
   getMe(): Promise<AuthMe | null>
   /** `POST /documents` (multipart, 202). Registered users only: a guest gets 403 GUEST_FORBIDDEN. */
-  uploadDocument(file: File): Promise<DocumentUpload>
+  uploadDocument(file: File, options?: UploadOptions): Promise<DocumentUpload>
   /** `GET /documents/{id}/status`: processing, accepted, rejected (with a reason) or failed. */
   getDocumentStatus(documentId: string): Promise<DocumentStatus>
   /** `GET /documents/{id}/topics`: the topics found in an accepted document. */
@@ -95,6 +101,8 @@ export interface ApiClient {
   getBoard(query: BoardQuery): Promise<BoardResponse>
   /** GET /stats/players (frontend-10, PROPOSED): the number of players, for the title line. 501 when unsupported. */
   getPlayerStats(): Promise<PlayerStats>
+  /** GET /uploads/quota (frontend-10, PROPOSED): what the player may still upload today. A 2xx for a guest proves guest upload. */
+  getUploadQuota(): Promise<UploadQuota>
   /** GET /health ping to wake a cold server. Only the Http client defines it. */
   warmUp?(): Promise<void>
   /**

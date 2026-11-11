@@ -12,11 +12,13 @@ import type {
   GenerationStatus,
   Question,
   Room,
+  UploadQuota,
 } from '../../types/api'
 import { createGenerationSim, GENERATION_STEP_MS, type GenerationSim } from './mockGeneration'
 import type { FloorDef } from '../../learning/floors'
 import type { AnswerKeyEntry } from './answerKey'
 import { syntheticPool } from './pool'
+import { createMockQuota, MOCK_RANKING_MIN_CHARS, type MockQuotaSwitches } from './mockQuota'
 
 /**
  * MOCK-ONLY document pipeline (frontend-08 C29). It follows the real endpoints and error codes:
@@ -28,7 +30,8 @@ import { syntheticPool } from './pool'
  *  - a .txt file under 500 bytes: rejected, too little text
  *  - a name with "broken": the status becomes failed (Retry works)
  *  - bigger than 15 MB: 413 FILE_TOO_LARGE; other types than PDF, DOCX, PPTX, TXT, PNG, JPEG: 415
- *  - a 6th stored document: 400 QUOTA_EXCEEDED; a guest: 403 GUEST_FORBIDDEN; no session: 401
+ *  - a 6th stored document (a 3rd for a guest): 400 QUOTA_EXCEEDED; no session: 401. Guests may upload (frontend-10),
+ *    1 per day. Without accept_ai_notice the upload answers 422 AI_NOTICE_NOT_ACCEPTED. Dev switches: see mockQuota.ts.
  */
 export const MOCK_MAX_BYTES = 15 * 1024 * 1024
 export const MOCK_QUOTA = 5
@@ -47,6 +50,8 @@ interface DocRecord {
   reason: string | null
   topics: DocumentTopic[]
   dungeonId: string | null
+  /** Bytes of the file, used as the character count for the ranking rule. */
+  size: number
 }
 
 interface GeneratedDungeon {
@@ -87,6 +92,8 @@ export interface MockUploadOptions {
   session: () => Promise<AuthMe | null>
   processingMs?: number
   stepMs?: number
+  /** Dev switches for forced quota states and AI_BUSY (mockQuota.ts). */
+  quota?: MockQuotaSwitches
 }
 
 const hash = (s: string): number => {
@@ -108,7 +115,9 @@ function titleOf(name: string): string {
 }
 
 export interface MockUpload {
-  uploadDocument(file: File): Promise<DocumentUpload>
+  uploadDocument(file: File, options?: { acceptAiNotice?: boolean }): Promise<DocumentUpload>
+  /** frontend-10: GET /uploads/quota for the current session. */
+  quota(): Promise<UploadQuota>
   getDocumentStatus(id: string): Promise<DocumentStatus>
   getDocumentTopics(id: string): Promise<DocumentTopic[]>
   generateDungeon(id: string): Promise<Dungeon>
@@ -144,12 +153,12 @@ export function createMockUpload(options: MockUploadOptions): MockUpload {
   const packDungeons = new Set<string>()
   let counter = 0
 
-  const requireRegistered = async (): Promise<void> => {
+  const quota = createMockQuota(now, options.quota)
+  /** A session is enough: guests may upload (frontend-10). */
+  const requireRegistered = async (): Promise<AuthMe> => {
     const me = await session()
     if (!me) throw new ApiError(401, 'Not authenticated', 'UNAUTHORIZED')
-    if (me.user.is_guest) {
-      throw new ApiError(403, 'Guests can only play the public demo dungeon. Sign up to use your own notes.', 'GUEST_FORBIDDEN')
-    }
+    return me
   }
   const find = (id: string): DocRecord => {
     const doc = docs.get(id)
@@ -282,11 +291,17 @@ export function createMockUpload(options: MockUploadOptions): MockUpload {
   }
 
   return {
-    async uploadDocument(file) {
-      await requireRegistered()
-      if (docs.size >= MOCK_QUOTA) {
-        throw new ApiError(400, 'Maximum active document quota of 5 reached. Please delete an older document first.', 'QUOTA_EXCEEDED')
+    async quota() {
+      const me = await requireRegistered()
+      return quota.snapshot(me.user.is_guest, docs.size)
+    },
+
+    async uploadDocument(file, opts) {
+      const me = await requireRegistered()
+      if (!opts?.acceptAiNotice) {
+        throw new ApiError(422, 'Please accept the AI notice before uploading.', 'AI_NOTICE_NOT_ACCEPTED')
       }
+      quota.admit(me.user.is_guest, docs.size)
       if (file.size > MOCK_MAX_BYTES) {
         throw new ApiError(413, 'File exceeds maximum allowed size of 15MB.', 'FILE_TOO_LARGE')
       }
@@ -304,6 +319,7 @@ export function createMockUpload(options: MockUploadOptions): MockUpload {
         reason,
         topics: verdict === 'accepted' ? topicsFor(id, file.name) : [],
         dungeonId: null,
+        size: file.size,
       })
       return { id, status: 'processing', message: 'Document accepted for processing.' }
     },
@@ -320,6 +336,20 @@ export function createMockUpload(options: MockUploadOptions): MockUpload {
         chunks_count: status === 'accepted' ? 4 + doc.topics.length * 3 : 0,
         relevance_score: status === 'processing' ? null : status === 'rejected' ? 0.2 : 0.9,
         readability_score: status === 'processing' ? null : status === 'rejected' ? 0.3 : 0.85,
+        ...(status === 'accepted'
+          ? {
+              counts_for_ranking: doc.size >= MOCK_RANKING_MIN_CHARS,
+              ...(doc.size < MOCK_RANKING_MIN_CHARS
+                ? { ranking_note: 'These notes are short, so this dungeon will not count for the leaderboard. Use at least 3,000 characters to rank.' }
+                : {}),
+              ...(doc.dungeonId
+                ? {
+                    dungeon_id: doc.dungeonId,
+                    floors: (dungeons.get(doc.dungeonId) ? (view(dungeons.get(doc.dungeonId)!).floors ?? []) : []).map((f) => ({ id: f.id, status: f.status })),
+                  }
+                : {}),
+            }
+          : {}),
       }
     },
 
@@ -371,6 +401,7 @@ export function createMockUpload(options: MockUploadOptions): MockUpload {
           order_index: i,
         })),
         dungeonId: null,
+        size: MOCK_RANKING_MIN_CHARS,
       }
       const g = build(doc)
       g.sim = createGenerationSim(g.base.floors.length, { stepMs: 0 })
@@ -390,6 +421,7 @@ export function createMockUpload(options: MockUploadOptions): MockUpload {
 
     clear() {
       docs.clear()
+      quota.reset()
       for (const id of [...dungeons.keys()]) if (!packDungeons.has(id)) dungeons.delete(id)
     },
 

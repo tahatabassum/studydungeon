@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { describeError, getApi, type ApiClient } from '../api'
-import { rejectionMessage } from '../campaign/rejection'
-import type { Dungeon, DocumentTopic } from '../types/api'
+import { getApi, type ApiClient } from '../api'
+import type { Dungeon, DocumentTopic, FloorStatus } from '../types/api'
 import { fileHint } from './limits'
+import { describeUploadError, isBusyError } from './limitErrors'
 
 /** How often a processing document is checked, and when to stop and offer "Check again". */
 export const STATUS_POLL_MS = 2000
@@ -31,6 +31,12 @@ export interface UploadFlow {
   /** A request error (quota, size, type, guests, network). */
   error: string | null
   dungeon: Dungeon | null
+  /** True when the last upload failed because the AI side is busy (AI_BUSY or offer_packs): offer the preloaded dungeons. */
+  busy: boolean
+  /** Shown when the notes do not count for the ranking (the server's note, or a default). */
+  rankingNote: string | null
+  /** Per-floor rows the document status reported, when it did (PROPOSED floors[]). */
+  statusFloors: { id: string; status: FloorStatus }[]
   /** True when processing took longer than the cap and polling stopped. */
   slow: boolean
   stage(file: File): void
@@ -45,13 +51,17 @@ export interface UploadFlow {
 export interface UseUploadFlowOptions {
   pollMs?: number
   timeoutMs?: number
+  /** The player ticked the AI notice: the upload sends ccept_ai_notice=true. */
+  acceptAiNotice?: boolean
+  /** Called after the server accepted a file (the page refreshes the quota). */
+  onSent?: () => void
 }
 
-function failureText(err: unknown, fallback: string): string {
-  return describeError(err, '') || rejectionMessage(err, fallback)
-}
+export const DEFAULT_RANKING_NOTE = 'These notes are short, so this dungeon will not count for the leaderboard.'
 
-export function useUploadFlow({ pollMs = STATUS_POLL_MS, timeoutMs = STATUS_TIMEOUT_MS }: UseUploadFlowOptions = {}): UploadFlow {
+const failureText = describeUploadError
+
+export function useUploadFlow({ pollMs = STATUS_POLL_MS, timeoutMs = STATUS_TIMEOUT_MS, acceptAiNotice = false, onSent }: UseUploadFlowOptions = {}): UploadFlow {
   const [phase, setPhase] = useState<UploadPhase>('idle')
   const [file, setFile] = useState<File | null>(null)
   const [topics, setTopics] = useState<DocumentTopic[]>([])
@@ -59,6 +69,9 @@ export function useUploadFlow({ pollMs = STATUS_POLL_MS, timeoutMs = STATUS_TIME
   const [error, setError] = useState<string | null>(null)
   const [dungeon, setDungeon] = useState<Dungeon | null>(null)
   const [slow, setSlow] = useState(false)
+  const [busy, setBusy] = useState(false)
+  const [rankingNote, setRankingNote] = useState<string | null>(null)
+  const [statusFloors, setStatusFloors] = useState<{ id: string; status: FloorStatus }[]>([])
   const [docId, setDocId] = useState<string | null>(null)
   const [epoch, setEpoch] = useState(0)
   const apiRef = useRef<ApiClient | null>(null)
@@ -101,6 +114,8 @@ export function useUploadFlow({ pollMs = STATUS_POLL_MS, timeoutMs = STATUS_TIME
             const found = await client.getDocumentTopics(docId)
             if (stopped) return
             setTopics(found)
+            if (status.counts_for_ranking === false) setRankingNote(status.ranking_note ?? DEFAULT_RANKING_NOTE)
+            if (status.floors) setStatusFloors(status.floors)
             setPhase('accepted')
             return
           }
@@ -128,6 +143,9 @@ export function useUploadFlow({ pollMs = STATUS_POLL_MS, timeoutMs = STATUS_TIME
     setError(null)
     setDungeon(null)
     setSlow(false)
+    setBusy(false)
+    setRankingNote(null)
+    setStatusFloors([])
     setDocId(null)
   }, [])
 
@@ -151,23 +169,26 @@ export function useUploadFlow({ pollMs = STATUS_POLL_MS, timeoutMs = STATUS_TIME
     const toSend = next ?? file
     if (!toSend || phase === 'uploading') return
     setError(null)
+    setBusy(false)
     setPhase('uploading')
     void (async () => {
       try {
         const client = await api()
-        const sent = await client.uploadDocument(toSend)
+        const sent = await client.uploadDocument(toSend, { acceptAiNotice })
         if (!mounted.current) return
         setDocId(sent.id)
+        onSent?.()
         setSlow(false)
         setPhase('processing')
       } catch (err) {
         if (!mounted.current) return
         setError(failureText(err, 'The upload did not go through. Try again.'))
+        setBusy(isBusyError(err))
         setPhase('error')
       }
     })()
     },
-    [api, file, phase],
+    [api, file, phase, acceptAiNotice, onSent],
   )
 
   const retry = useCallback(() => {
@@ -222,6 +243,9 @@ export function useUploadFlow({ pollMs = STATUS_POLL_MS, timeoutMs = STATUS_TIME
     reason,
     error,
     dungeon,
+    busy,
+    rankingNote,
+    statusFloors,
     slow,
     stage,
     clear,

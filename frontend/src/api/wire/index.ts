@@ -10,6 +10,7 @@ export * from './dungeon'
 export * from './kinds'
 export * from './packs'
 export * from './progress'
+export * from './quota'
 export * from './reviews'
 export * from './run'
 export * from './stats'
@@ -31,6 +32,7 @@ import { wireDungeonSchema } from './dungeon'
 import { wirePacksSchema } from './packs'
 import { wireProgressSchema } from './progress'
 import { wirePlayerStatsSchema } from './stats'
+import { wireUploadQuotaSchema } from './quota'
 import { wireDueReviewsSchema } from './reviews'
 import { wireClearSchema, wireFinishSchema, wireRunSchema } from './run'
 
@@ -55,6 +57,7 @@ export const WIRE_ENDPOINTS = {
   getPacks: { endpoint: 'GET /packs', schema: wirePacksSchema },
   getBoard: { endpoint: 'GET /leaderboard', schema: wireBoardSchema },
   getPlayerStats: { endpoint: 'GET /stats/players', schema: wirePlayerStatsSchema },
+  getUploadQuota: { endpoint: 'GET /uploads/quota', schema: wireUploadQuotaSchema },
   getProgress: { endpoint: 'GET /progress', schema: wireProgressSchema },
   getDueReviews: { endpoint: 'GET /reviews/due', schema: wireDueReviewsSchema },
   uploadDocument: { endpoint: 'POST /documents', schema: wireDocumentUploadSchema },

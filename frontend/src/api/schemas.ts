@@ -24,6 +24,7 @@ import type {
   Run,
   RunSummary,
   StartRunRequest,
+  UploadQuota,
 } from '../types/api'
 
 /**
@@ -344,6 +345,27 @@ export const documentStatusSchema: z.ZodType<DocumentStatus> = z.object({
   chunks_count: z.number().int().nonnegative(),
   relevance_score: z.number().nullable(),
   readability_score: z.number().nullable(),
+  // PROPOSED (frontend-10)
+  counts_for_ranking: z.boolean().optional(),
+  ranking_note: z.string().optional(),
+  dungeon_id: z.string().optional(),
+  floors: z.array(z.object({ id: z.string(), status: floorStatusSchema })).optional(),
+})
+
+/** PROPOSED (frontend-10): GET /uploads/quota. */
+export const uploadQuotaSchema: z.ZodType<UploadQuota> = z.object({
+  can_upload: z.boolean(),
+  reason: z.enum(['player_daily_limit', 'ip_daily_limit', 'stored_limit', 'global_daily_limit', 'ai_unavailable']).nullable(),
+  player: z.object({
+    is_guest: z.boolean(),
+    used_today: z.number().int().nonnegative(),
+    limit_today: z.number().int().nonnegative(),
+    stored: z.number().int().nonnegative(),
+    stored_limit: z.number().int().nonnegative(),
+    resets_at: z.string().optional(),
+  }),
+  global: z.object({ available: z.boolean() }).optional(),
+  ranking: z.object({ min_chars: z.number(), min_topics: z.number() }).optional(),
 })
 
 export const documentTopicsSchema: z.ZodType<DocumentTopic[]> = z.array(
@@ -427,6 +449,7 @@ export const ENDPOINT_SCHEMAS = {
   finishRun: { endpoint: 'POST /runs/{id}/finish', schema: runSummarySchema },
   getPacks: { endpoint: 'GET /packs', schema: packsResponseSchema },
   getBoard: { endpoint: 'GET /leaderboard', schema: boardResponseSchema },
+  getUploadQuota: { endpoint: 'GET /uploads/quota', schema: uploadQuotaSchema },
   getProgress: { endpoint: 'GET /progress', schema: progressSchema },
   getDueReviews: { endpoint: 'GET /reviews/due', schema: dueReviewsSchema },
   getDueSummary: { endpoint: 'GET /reviews/due (summary)', schema: dueReviewsResponseSchema },

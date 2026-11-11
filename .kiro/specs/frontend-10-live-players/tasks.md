@@ -218,11 +218,11 @@ Rules for every task:
 - [x] 8. STOP: Phase 3 checkpoint, leaderboard review
   - Summarize the changes, say how to view `/leaderboard` in mock mode and what to check. Wait for approval, then commit Phase 3 separately.
 
-- [ ] 9. Phase 4: Player counter
+- [x] 9. Phase 4: Player counter
   - [x] 9.1 Add the player stats endpoint through the stack
     - Add `PlayerStats` to `src/types/api.ts`, `src/api/wire/stats.ts`, `getPlayerStats()` in `ApiClient.ts` and `client.ts` (`playerCounter` transitions), and the mock in `src/api/mock/mockStats.ts` (`VITE_MOCK_PLAYER_COUNT`, default 0); the Offline_Demo has no counter
     - _Requirements: 1.4, 14.9, 18.5_
-  - [~] 9.2 Build the pure counter modules
+  - [x] 9.2 Build the pure counter modules
     - Create `src/counter/format.ts` (`formatExplorerLine`: null, "Be among the first explorers" for 1 to 9, "N explorers have braved the dungeon" with `Intl.NumberFormat` for 10 or more; `explorerCountText`: singular only for 1), `countUp.ts` (`countUpValue`) and `cache.ts` (`shouldRefetch`, `fetchPlayerCount` with a module cache and one in-flight request, `resetCounterCache`)
     - _Requirements: 14.1, 14.2, 14.3, 14.4, 14.5, 14.6, 14.7, 14.8, 14.12_
   - [ ]* 9.3 Write property test for the cache decision
@@ -234,27 +234,27 @@ Rules for every task:
   - [ ]* 9.5 Write property test for the count-up
     - **Property 15: Count-up is bounded, monotone and exact at the end**
     - **Validates: Requirements 14.6, 14.7**
-  - [~] 9.6 Build the counter line on the title screen
+  - [x] 9.6 Build the counter line on the title screen
     - Create `src/counter/PlayerCounterLine.tsx` (renders nothing on null, `requestAnimationFrame` count-up, `aria-hidden` animated span plus `sr-only` final text, wraps at 360 px) and add it under the tagline in `src/pages/LandingPage.tsx` without delaying any control; add styles to `src/styles/landing.css` or `live.css`
     - _Requirements: 14.1, 14.2, 14.3, 14.5, 14.6, 14.7, 14.10, 14.11, 17.7_
-  - [~] 9.7 Write example tests for Phase 4
+  - [x] 9.7 Write example tests for Phase 4
     - Hidden on failure, zero, negative and non-integer; 1 to 9 players show "Be among the first explorers" with no number; 10 or more show the plural line with `Intl.NumberFormat`; `explorerCountText` singular for 1; cache hit within the window; reduced motion; Offline_Demo shows none; mock default shows none; layout class at 360 px; the line never blocks the Try the Demo button
     - _Requirements: 14.2, 14.3, 14.4, 14.5, 14.7, 14.9, 14.10, 14.11, 14.12_
-  - [~] 9.8 Extend the contract suite for Phase 4
+  - [x] 9.8 Extend the contract suite for Phase 4
     - Add the `GET /stats/players` case of the design table
     - _Requirements: 18.6_
-  - [~] 9.9 Run Phase 4 verification
+  - [x] 9.9 Run Phase 4 verification
     - Run the five commands; check the title screen at the four sizes; confirm the counts
     - _Requirements: 17.1, 17.5, 19.1, 19.2_
-  - [~] 9.10 Update the docs for Phase 4
+  - [x] 9.10 Update the docs for Phase 4
     - Append to `docs/kiro-log-frontend.md` and `docs/handoff/B-to-A.md`
     - _Requirements: 19.3_
 
-- [~] 10. STOP: Phase 4 checkpoint, player counter review
+- [x] 10. STOP: Phase 4 checkpoint, player counter review
   - Summarize the changes, say how to view the title screen with `VITE_MOCK_PLAYER_COUNT=128` and what to check. Wait for approval, then commit Phase 4 separately.
 
 - [ ] 11. Phase 5: Upload path for guests
-  - [~] 11.1 Add the quota types and wire schemas
+  - [-] 11.1 Add the quota types and wire schemas
     - Add `QuotaReason`, `UploadQuota` and the optional `counts_for_ranking`, `ranking_note`, `dungeon_id` and `floors` fields on the document status in `src/types/api.ts`; create `src/api/wire/quota.ts` and extend the document status wire schema; register in `src/api/schemas.ts`
     - _Requirements: 15.3, 15.8, 15.9, 18.5_
   - [~] 11.2 Add `getUploadQuota`, the notice field and the guest capability rules to the Http_Client
@@ -287,7 +287,7 @@ Rules for every task:
   - [~] 11.11 Extend the contract suite for Phase 5
     - Add the quota and notice cases of the design table
     - _Requirements: 18.6_
-  - [~] 11.12 Run Phase 5 verification
+  - [x] 11.12 Run Phase 5 verification
     - Run the five commands; check `/upload` in each state at the four sizes; confirm the counts
     - _Requirements: 17.1, 17.5, 19.1, 19.2_
   - [~] 11.13 Update the docs for Phase 5

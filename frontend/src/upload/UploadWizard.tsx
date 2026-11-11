@@ -1,19 +1,33 @@
-import { useState } from 'react'
+import { useState, type ReactNode } from 'react'
 import { AlertTriangle, FileText, RefreshCw, Sparkles, Upload, X } from 'lucide-react'
 import '../styles/campaign.css'
 import '../styles/dashboard.css'
 import '../styles/upload.css'
 import { useReducedMotion } from '../state/useReducedMotion'
 import { Dropzone } from './Dropzone'
+import { FloorProgressList } from './FloorProgressList'
+import { PreloadedFallback } from './PreloadedFallback'
 import { fileHint, formatSize } from './limits'
 import { StepList } from './StepList'
 import { SummonResult } from './SummonResult'
 import { announcementFor, stepStates } from './steps'
 import { useUploadFlow, type UseUploadFlowOptions } from './useUploadFlow'
 
+export interface UploadWizardProps extends Omit<UseUploadFlowOptions, 'acceptAiNotice'> {
+  /** The AI notice is ticked: the drop zone opens and uploads send ccept_ai_notice=true. */
+  noticeAccepted?: boolean
+  /** The quota blocks uploads: the drop zone stays disabled. */
+  blocked?: boolean
+  blockedReason?: string
+  /** Called after a file was sent (the page refreshes the quota). */
+  onSent?: () => void
+  /** The quota panel and the AI notice, shown while picking a file. */
+  intro?: ReactNode
+}
+
 /** The upload wizard: pick a file, watch the five steps, see the verdict and the topics, summon the floors. */
-export function UploadWizard(options: UseUploadFlowOptions = {}) {
-  const flow = useUploadFlow(options)
+export function UploadWizard({ noticeAccepted = false, blocked = false, blockedReason, onSent, intro, ...options }: UploadWizardProps = {}) {
+  const flow = useUploadFlow({ ...options, acceptAiNotice: noticeAccepted, ...(onSent ? { onSent } : {}) })
   const reduced = useReducedMotion()
   const [extra, setExtra] = useState(0)
   const { phase, file } = flow
@@ -30,10 +44,13 @@ export function UploadWizard(options: UseUploadFlowOptions = {}) {
 
   return (
     <div className="sd-up" data-phase={phase} data-reduced={reduced ? 'true' : undefined} data-testid="upload-wizard">
+      {picking && intro}
       <StepList states={stepStates(phase)} />
 
       {picking && (
         <Dropzone
+          disabled={blocked || !noticeAccepted}
+          {...(blocked && blockedReason ? { disabledReason: blockedReason } : !noticeAccepted ? { disabledReason: 'Tick the notice above to choose a file.' } : {})}
           onFile={(f, more) => {
             setExtra(more)
             flow.stage(f)
@@ -61,6 +78,12 @@ export function UploadWizard(options: UseUploadFlowOptions = {}) {
             <p role="alert" className="sd-up__error" data-testid="upload-error">
               {flow.error}
             </p>
+          )}
+          {flow.busy && (
+            <div data-testid="upload-busy">
+              <p className="sd-card__text">The summoning circle is busy. You can wait a moment and try again, or play now.</p>
+              <PreloadedFallback />
+            </div>
           )}
           {phase === 'uploading' ? (
             <p className="sd-up__sending" data-testid="upload-sending">
@@ -142,6 +165,14 @@ export function UploadWizard(options: UseUploadFlowOptions = {}) {
                 </li>
               ))}
             </ul>
+          )}
+          {flow.rankingNote && (
+            <p className="sd-card__muted" data-testid="ranking-note">
+              {flow.rankingNote}
+            </p>
+          )}
+          {phase === 'summoning' && flow.statusFloors.length > 0 && (
+            <FloorProgressList floors={flow.statusFloors.map((f, i) => ({ id: f.id, index: i + 1, title: 'Summoning', status: f.status }))} />
           )}
           {flow.error && (
             <p role="alert" className="sd-up__error" data-testid="summon-error">

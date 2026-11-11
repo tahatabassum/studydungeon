@@ -38,6 +38,7 @@ import { createMockGuests } from './mockGuests'
 import { applyPackClear, buildPacksResponse, initialStatuses, type PackDef } from './mockPacks'
 import { createMockPoints, type PointsBoard } from './mockPoints'
 import { createMockUpload, type GeneratedSource } from './mockUpload'
+import { readMockQuotaSwitches, type MockQuotaSwitches } from './mockQuota'
 import { createMasteryStore } from '../../learning/masteryStore'
 import { buildMockBoard } from './mockBoard'
 import { mockPlayerStats } from './mockStats'
@@ -65,7 +66,7 @@ export interface MockAdapterOptions {
    */
   demoSessionDelayMs?: number
   /** Timing of the document pipeline: how long a file stays `processing`, and the gap between generated floors. */
-  upload?: { processingMs?: number; stepMs?: number }
+  upload?: { processingMs?: number; stepMs?: number; quota?: MockQuotaSwitches }
   /** Dev override of the player level (from `?mockLevel=N`); otherwise derived from XP. */
   level?: number
   /**
@@ -217,7 +218,7 @@ export function createMockAdapter(options: MockAdapterOptions = {}): ApiClient {
 
   const now = options.now ?? Date.now
   const auth = createMockAuth({ now })
-  const upload = createMockUpload({ now, session: () => auth.getMe(), ...options.upload })
+  const upload = createMockUpload({ now, session: () => auth.getMe(), quota: readMockQuotaSwitches(), ...options.upload })
   const guests = createMockGuests(auth)
   const points = createMockPoints(now)
   // frontend-10 D14: Pack 1 is the demo dungeon; Packs 2 and 3 are generated placeholder dungeons.
@@ -886,9 +887,13 @@ export function createMockAdapter(options: MockAdapterOptions = {}): ApiClient {
       return { dungeon_id: dungeonId, floors: floorView().floors.map((f) => ({ id: f.id, status: f.status })) }
     },
 
-    uploadDocument: async (file) => {
+    uploadDocument: async (file, opts) => {
       await wait()
-      return upload.uploadDocument(file)
+      return upload.uploadDocument(file, opts)
+    },
+    getUploadQuota: async () => {
+      await wait()
+      return upload.quota()
     },
     getDocumentStatus: async (id) => {
       await wait()

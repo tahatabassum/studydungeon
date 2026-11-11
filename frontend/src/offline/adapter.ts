@@ -495,6 +495,7 @@ export function createAdapter(options: OfflineOptions): ApiClient {
     getPacks: async () => unsupported('Preloaded packs'),
     getBoard: async () => unsupported('The live leaderboard'),
     getPlayerStats: async () => unsupported('The player counter'),
+    getUploadQuota: async () => unsupported('The upload quota'),
   }
 }
 

@@ -51,6 +51,8 @@ export async function provedOrSkip<T>(ctx: TestContext, api: ApiClient, key: Cap
 }
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
+/** frontend-10: every upload sends the AI notice field. A Backend that does not know it ignores it. */
+const NOTICE = { acceptAiNotice: true } as const
 
 function textFile(name: string, bytes = 800): File {
   return new File(['a'.repeat(bytes)], name, { type: 'text/plain' })
@@ -508,14 +510,19 @@ export function defineContractSuite(opts: ContractSuiteOptions): void {
         throw new Error('document stayed in processing')
       }
 
-      it('POST /documents as a guest is 403 GUEST_FORBIDDEN', async () => {
+      it('POST /documents as a guest is 403 GUEST_FORBIDDEN (today) or accepted within the quota (frontend-10)', async () => {
         await api.startDemoSession()
-        await expect(api.uploadDocument(textFile('notes.txt'))).rejects.toMatchObject({ status: 403, code: 'GUEST_FORBIDDEN' })
+        const outcome = await api.uploadDocument(textFile('notes.txt'), NOTICE).then(
+          (sent) => sent,
+          (err: unknown) => err,
+        )
+        if (outcome instanceof Error) expect(outcome).toMatchObject({ status: 403, code: 'GUEST_FORBIDDEN' })
+        else expectSchema('uploadDocument', outcome)
       })
 
       it('upload, status, topics and generate-dungeon follow the real shapes', async () => {
         await api.register({ username: name, password: 'correct-horse-9' })
-        const sent = await api.uploadDocument(textFile('Cell biology.txt'))
+        const sent = await api.uploadDocument(textFile('Cell biology.txt'), NOTICE)
         expectSchema('uploadDocument', sent)
         expect(sent.status).toBe('processing')
 
@@ -541,7 +548,7 @@ export function defineContractSuite(opts: ContractSuiteOptions): void {
       })
 
       it('a document that fails the relevance check is rejected with a reason and can be retried', async () => {
-        const sent = await api.uploadDocument(textFile('lunch receipt.txt'))
+        const sent = await api.uploadDocument(textFile('lunch receipt.txt'), NOTICE)
         const verdict = await settled(sent.id)
         expect(verdict.status).toBe('rejected')
         expect((verdict.rejection_reason ?? '').length).toBeGreaterThan(0)
@@ -554,7 +561,7 @@ export function defineContractSuite(opts: ContractSuiteOptions): void {
       })
 
       it('retry on an accepted document is 400 NOT_RETRYABLE; an unknown document is 404', async () => {
-        const sent = await api.uploadDocument(textFile('Chemistry.txt'))
+        const sent = await api.uploadDocument(textFile('Chemistry.txt'), NOTICE)
         await settled(sent.id)
         await expect(api.retryDocument(sent.id)).rejects.toMatchObject({ status: 400, code: 'NOT_RETRYABLE' })
         await expect(api.getDocumentStatus('missing')).rejects.toMatchObject({ status: 404, code: 'DOCUMENT_NOT_FOUND' })
@@ -563,20 +570,44 @@ export function defineContractSuite(opts: ContractSuiteOptions): void {
       it('an oversize file is 413 FILE_TOO_LARGE and an unsupported type is 415 UNSUPPORTED_FILE_TYPE', async () => {
         const big = textFile('big.pdf', 10)
         Object.defineProperty(big, 'size', { value: 16 * 1024 * 1024 })
-        await expect(api.uploadDocument(big)).rejects.toMatchObject({ status: 413, code: 'FILE_TOO_LARGE' })
-        await expect(api.uploadDocument(textFile('virus.exe'))).rejects.toMatchObject({ status: 415, code: 'UNSUPPORTED_FILE_TYPE' })
+        await expect(api.uploadDocument(big, NOTICE)).rejects.toMatchObject({ status: 413, code: 'FILE_TOO_LARGE' })
+        await expect(api.uploadDocument(textFile('virus.exe'), NOTICE)).rejects.toMatchObject({ status: 415, code: 'UNSUPPORTED_FILE_TYPE' })
       })
 
       it('the sixth stored document is 400 QUOTA_EXCEEDED', async () => {
         let last: unknown = null
         for (let i = 0; i < 6 && last === null; i += 1) {
           try {
-            await api.uploadDocument(textFile(`extra ${i}.txt`))
+            await api.uploadDocument(textFile(`extra ${i}.txt`), NOTICE)
           } catch (err) {
             last = err
           }
         }
         expect(last).toMatchObject({ status: 400, code: 'QUOTA_EXCEEDED' })
+      })
+    })
+
+    // Upload quota and AI notice (frontend-10, Phase 5). A case is skipped when the Backend has no such endpoint.
+    describe.skipIf(opts.auth === false || !opts.makeFreshClient)('upload quota (frontend-10)', () => {
+      it('GET /uploads/quota has the proposed shape and never offers a blocked upload', async (ctx) => {
+        const c = await opts.makeFreshClient!()
+        await provedOrSkip(ctx, c, 'guestIdentity', () => c.createGuest({ display_name: 'Quota Tester', accept_public_notice: true }))
+        const quota = await provedOrSkip(ctx, c, 'uploadQuota', () => c.getUploadQuota())
+        expectSchema('getUploadQuota', quota)
+        expect(quota.player.used_today).toBeGreaterThanOrEqual(0)
+        expect(quota.player.limit_today).toBeGreaterThanOrEqual(0)
+        if (!quota.can_upload) expect(quota.reason).not.toBeNull()
+        if (quota.can_upload) expect(quota.reason).toBeNull()
+        // A 2xx for a guest turns guest upload on.
+        if (quota.player.is_guest) expect(capabilityOf(c, 'guestUpload')).not.toBe('off')
+      })
+
+      it.skipIf(!opts.uploads)('POST /documents without the notice is 422 AI_NOTICE_NOT_ACCEPTED', async (ctx) => {
+        const c = await opts.makeFreshClient!()
+        await provedOrSkip(ctx, c, 'guestIdentity', () => c.createGuest({ display_name: 'Notice Tester', accept_public_notice: true }))
+        await expect(c.uploadDocument(textFile('notes.txt'))).rejects.toMatchObject({ status: 422, code: 'AI_NOTICE_NOT_ACCEPTED' })
+        const sent = await c.uploadDocument(textFile('notes.txt'), NOTICE)
+        expectSchema('uploadDocument', sent)
       })
     })
   })

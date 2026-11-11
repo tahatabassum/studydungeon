@@ -21,6 +21,7 @@ import {
   mapBoard,
   mapPacks,
   mapPlayerStats,
+  mapUploadQuota,
   mapMe,
   mapNameCheck,
   mapProgress,
@@ -299,10 +300,19 @@ export function createHttpClient(baseUrl: string, fetchImpl: typeof fetch = fetc
     },
 
     // Documents (C29): the real upload pipeline.
-    uploadDocument: async (file) => {
+    uploadDocument: async (file, options) => {
       const form = new FormData()
       form.append('file', file, file.name)
-      return mapDocumentUpload(await request('uploadDocument', 'POST', '/documents', form))
+      if (options?.acceptAiNotice) form.append('accept_ai_notice', 'true')
+      try {
+        return mapDocumentUpload(await request('uploadDocument', 'POST', '/documents', form))
+      } catch (err) {
+        // Today's Backend: guests get 403 GUEST_FORBIDDEN. That turns guest upload off for this page session.
+        if (err instanceof ApiError && err.status === 403 && err.code === 'GUEST_FORBIDDEN' && caps.guestUpload !== false) {
+          caps = Object.freeze({ ...caps, guestUpload: false })
+        }
+        throw err
+      }
     },
 
     getDocumentStatus: async (id) => mapDocumentStatus(await request('getDocumentStatus', 'GET', `/documents/${enc(id)}/status`)),
@@ -354,6 +364,14 @@ export function createHttpClient(baseUrl: string, fetchImpl: typeof fetch = fetc
 
     // PROPOSED (frontend-10): the player counter.
     getPlayerStats: () => withCapability('playerCounter', async () => mapPlayerStats(await request('getPlayerStats', 'GET', '/stats/players'))),
+
+    // PROPOSED (frontend-10): the upload quota. A 2xx for a guest proves that guests may upload.
+    getUploadQuota: () =>
+      withCapability('uploadQuota', async () => {
+        const quota = mapUploadQuota(await request('getUploadQuota', 'GET', '/uploads/quota'))
+        if (quota.player.is_guest && caps.guestUpload !== true) caps = Object.freeze({ ...caps, guestUpload: true })
+        return quota
+      }),
 
     // A cold-server wake-up ping: once per client, no cookies, never throws.
     warmUp: async () => {

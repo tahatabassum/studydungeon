@@ -8,18 +8,31 @@ import { PageShell } from '../components/PageShell'
 import { useSession } from '../state/SessionContext'
 import { useStartDemo } from '../state/useStartDemo'
 import '../styles/live.css'
+import { quotaView } from '../upload/quotaView'
 import { resolvePreloadedDungeon } from './resolvePreloaded'
 
 export const PRELOADED_TITLE = 'Play preloaded dungeons (try the game)'
 export const UPLOAD_TITLE = 'Upload my notes (play from your own material)'
 export const RESOLVE_ERROR = 'We could not reach the preloaded dungeons. Check your connection and try again.'
 
-/**
- * EXTENSION POINT (Phase 5, Req 5.8): when `uploadQuota` is not off, return the Quota line from the Backend
- * (`getUploadQuota`). That method does not exist yet, so nothing is shown today.
- */
-function useUploadQuotaLine(): string | null {
-  return null
+/** Req 5.8: the quota line on the upload card, from the Backend, when `uploadQuota` is not off and a session exists. */
+function useUploadQuotaLine(hasSession: boolean): string | null {
+  const [line, setLine] = useState<string | null>(null)
+  useEffect(() => {
+    if (!hasSession) return
+    let cancelled = false
+    void getApi()
+      .then(async (api) => {
+        if (capabilityOf(api, 'uploadQuota') === 'off') return
+        const view = quotaView(await api.getUploadQuota())
+        if (!cancelled) setLine(view.line)
+      })
+      .catch(() => {})
+    return () => {
+      cancelled = true
+    }
+  }, [hasSession])
+  return line
 }
 
 export interface PathChoiceProps {
@@ -37,7 +50,7 @@ export function PathChoice({ variant = 'full', autoFocus }: PathChoiceProps) {
   const preloadedRef = useRef<HTMLButtonElement>(null)
   const [busy, setBusy] = useState(false)
   const [failed, setFailed] = useState(false)
-  const quota = useUploadQuotaLine()
+  const quota = useUploadQuotaLine(user !== null)
   const [packsOn, setPacksOn] = useState(false)
   useEffect(() => {
     let cancelled = false

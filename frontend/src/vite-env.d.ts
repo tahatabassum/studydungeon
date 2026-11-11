@@ -7,6 +7,8 @@ interface ImportMetaEnv {
   readonly VITE_MOCK_SEED_REVENANTS?: string
   /** Dev only: extra ms on the mock demo session, to see the "Waking up the dungeon..." loader. */
   readonly VITE_MOCK_DELAY_MS?: string
+  readonly VITE_MOCK_QUOTA?: string
+  readonly VITE_MOCK_AI_BUSY?: string
   readonly VITE_BADGE_SPEED_READER?: string
 }
 

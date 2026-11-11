@@ -343,6 +343,32 @@ export interface DocumentStatus {
   chunks_count: number
   relevance_score: number | null
   readability_score: number | null
+  /** frontend-10 (PROPOSED): false when the notes are too short to count for the ranking. */
+  counts_for_ranking?: boolean
+  ranking_note?: string
+  /** frontend-10 (PROPOSED): the dungeon built from this document, once it exists. */
+  dungeon_id?: string
+  /** frontend-10 (PROPOSED): one row per floor while the dungeon generates. */
+  floors?: { id: string; status: FloorStatus }[]
+}
+
+/** frontend-10 (PROPOSED, V2 G): why an upload is blocked. */
+export type QuotaReason = 'player_daily_limit' | 'ip_daily_limit' | 'stored_limit' | 'global_daily_limit' | 'ai_unavailable'
+
+/** frontend-10 (PROPOSED): GET /uploads/quota. */
+export interface UploadQuota {
+  can_upload: boolean
+  reason: QuotaReason | null
+  player: {
+    is_guest: boolean
+    used_today: number
+    limit_today: number
+    stored: number
+    stored_limit: number
+    resets_at?: string
+  }
+  global?: { available: boolean }
+  ranking?: { min_chars: number; min_topics: number }
 }
 
 /** `GET /documents/{id}/topics`: one detected topic. */

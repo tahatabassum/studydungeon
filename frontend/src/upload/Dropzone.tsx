@@ -1,10 +1,12 @@
 import { useId, useState, type ChangeEvent, type DragEvent } from 'react'
 import { FileUp } from 'lucide-react'
 import { useTouchMode } from '@/touch/useTouchMode'
-import { ACCEPT_ATTR, FORMATS_TEXT, LIMITS_TEXT, PHOTO_HINT } from './limits'
+import { ACCEPT_ATTR, PHOTO_HINT, rulesText } from './limits'
 
 export interface DropzoneProps {
   disabled?: boolean
+  /** Why the drop zone is disabled, shown above the formats. */
+  disabledReason?: string
   onFile(file: File, extra: number): void
 }
 
@@ -23,7 +25,7 @@ function RuneSeal() {
  * Drag and drop plus a file picker. The picker is a real file input inside a label, so Tab reaches it and
  * Enter or Space opens the chooser. One file at a time: extra dropped files are counted, not uploaded.
  */
-export function Dropzone({ disabled = false, onFile }: DropzoneProps) {
+export function Dropzone({ disabled = false, disabledReason, onFile }: DropzoneProps) {
   const [over, setOver] = useState(false)
   const hintId = useId()
   const touch = useTouchMode()
@@ -57,6 +59,11 @@ export function Dropzone({ disabled = false, onFile }: DropzoneProps) {
       onDrop={onDrop}
     >
       <RuneSeal />
+      {disabled && disabledReason && (
+        <p className="sd-card__muted" data-testid="dropzone-reason">
+          {disabledReason}
+        </p>
+      )}
       {touch ? (
         <p className="sd-up__drop-title">Tap to choose a file</p>
       ) : (
@@ -78,7 +85,7 @@ export function Dropzone({ disabled = false, onFile }: DropzoneProps) {
         />
       </label>
       <p id={hintId} className="sd-card__muted sd-up__formats">
-        {FORMATS_TEXT} {LIMITS_TEXT}
+        {rulesText()}
       </p>
       <p className="sd-card__muted sd-up__formats">{PHOTO_HINT}</p>
     </div>
