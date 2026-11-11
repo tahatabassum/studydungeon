@@ -513,3 +513,156 @@ Observed with the running backend (`ai_provider: mock`). Nothing under `backend/
 2. **500 on some questions of a mock-AI generated dungeon.** Dungeon from `POST /documents` + `generate-dungeon` (1 boss room, 2 questions). `POST /runs/{id}/attempts` for the second question always returns 500 `INTERNAL_SERVER_ERROR` (any option, with or without `weapon_name`); the first question works. After the first successful attempt, `GET /runs/{id}` also returns 500 (before any attempt it returns 200). Not reproduced on the seeded demo dungeon (not available locally). Please check the server log for that run.
 3. **Run on another user's dungeon:** `POST /runs` returns 403 `FORBIDDEN` ("You do not own this dungeon."); the frontend maps it to an ApiError with that code.
 4. **Cookie session:** the session cookie is `studydungeon_session`, `HttpOnly; SameSite=lax; Path=/`, not `Secure`. CORS preflight from `http://localhost:5173` returns `allow-credentials: true` and echoes the origin, so `credentials: 'include'` works from the dev server. Node tests need a cookie jar (added in `frontend/src/contract/cookieFetch.ts`).
+
+---
+
+### frontend-10 live players
+
+Date: frontend-10-live-players, Phase 0. Branch `feature/frontend-live-players`. Spec: `.kiro/specs/frontend-10-live-players/`.
+
+> **Status.** Part 1 is REAL on `main` (backend-07) and the frontend will call it in Phase 1. Parts 2 to 6 are PROPOSED: nothing in them is built on your side, and the frontend builds them against the mock (`VITE_USE_MOCKS=true`) and hides them in real mode until the first call proves them. The shapes follow `docs/handoff/BACKEND_REQUIREMENTS_V2.md` (section letters in brackets); where this section differs from V2, this section is newer. The backend stays authoritative for points, ranks, names, pack status, quota and counts. The frontend only displays. Nothing under `backend/` was changed.
+
+#### How the frontend decides a feature exists (so you know what a status code does)
+
+For each feature the real client keeps a state in memory for the page session: `on`, `off` or `unproven`. REAL features (guest name check, guest create, upgrade, delete account) start `on`. PROPOSED features start `unproven`; the first call is the probe:
+
+| Answer | Effect |
+| --- | --- |
+| 2xx and the body passes our zod schema | feature `on` |
+| 404, 405 or 501 | feature `off` for the page session; the old behavior stays |
+| any other error (401, 403, 422, 429, 5xx) | state unchanged, the error is shown |
+| 2xx but the body fails the schema | `ContractError` naming the endpoint and field; state unchanged |
+
+So an endpoint that does not exist yet must answer 404 (FastAPI does this by default). We recommend a `GET /meta` capability endpoint (V2 open question 13). We do not use it yet.
+
+#### 1. REAL now: what the frontend will call (please confirm nothing changes)
+
+| Endpoint | Request | Response we read |
+| --- | --- | --- |
+| `POST /guests/name-check` | `{display_name}` | `{ok, display_name?, reason?, message?}`; `reason` is `too_short`, `too_long`, `characters` or `not_allowed` |
+| `POST /guests` | `{display_name, accept_public_notice: true}` | 201 `{user, notice_version}`; 409 `SESSION_EXISTS` (we then call `GET /auth/me`), 429 `RATE_LIMIT_EXCEEDED`, 503 `GUEST_CREATION_PAUSED`, 422 `NOTICE_NOT_ACCEPTED`, 422 `NAME_INVALID` with `detail.reason` |
+| `GET /auth/me` | cookie | `id, public_id?, username?, display_name?, tag?, handle?, is_guest, created_at, expires_at?` (we make `username` nullable and read the new fields as optional) |
+| `POST /auth/upgrade` | `{username, password}` | the same user, `is_guest` false; 403 `NOT_A_GUEST`, 409 `USERNAME_TAKEN`, 422, 429 |
+| `DELETE /auth/me` | `{"confirm": "DELETE"}` | `{success, message}`; 422 `CONFIRMATION_REQUIRED`, 403 `SYSTEM_USER_PROTECTED`, 401 |
+| `GET /dungeons` | cookie | `[{id, title, is_public_demo, created_at, rooms_count}]`; we pick the oldest public demo as the preloaded dungeon until `GET /packs` exists |
+| `GET /health` | none, no cookie (`credentials: omit`) | ignored. Sent once when the title screen loads (warm-up). Please keep it DB-free and CORS-allowed for the dev origins. |
+
+The frontend shows the `handle` (`Name#1234`) and never the `username` of a guest.
+
+Phase 0 review update 2026-11-11 (no action for Person A unless a question below says so): the name screen prefills a random spooky name generated locally and the player can roll another or edit it. The separate confirmation checkbox is removed; the public notice is shown directly above the button "Accept and continue", and pressing it (or Enter) sends `accept_public_notice: true` exactly as before, so the contract is unchanged. The intro story and tutorial no longer open before the name screen. A first-time player who picks "Play preloaded dungeons" opens the first playable floor run directly; the frontend decides "first time" only from data you return (pack `status`, `floors_cleared`, `points_earned`, or cleared rooms in the dungeon data or `GET /progress`) and opens the floor map when that data is missing. The waking screen: when `POST /guests` (or the legacy `POST /demo/session`) takes more than 8 s, the player chooses "Keep waiting" (the request stays open, up to about 60 s in total) or "Play offline demo". The frontend never switches a real session to offline by itself. Please keep `POST /guests` able to take up to 60 s on a cold start without the proxy cutting it.
+
+#### 2. Findings from reading the backend (please decide; no frontend workaround is possible for the first three)
+
+1. **`POST /guests` has no `dungeon_id`.** `POST /demo/session` returns one. After the name step the frontend must find a playable dungeon: `GET /packs` if it exists, else the public demo from `GET /dungeons`. Please add `dungeon_id` to the `POST /guests` response, or confirm `GET /packs` is coming. We never call `POST /demo/session` while a session exists, because it creates a new anonymous guest and overwrites the cookie. Please keep `POST /demo/session` working until we report that the name step is live (V2 A-R12).
+2. **Registered users have no display name or tag.** `register` creates none (`auth.py`), so `GET /auth/me` returns `handle = username` for them. A leaderboard that lists `handle` would publish login names, which V2 A-R8 forbids. Please build V2 A-R10 (display name and tag on register, same moderation) before the live leaderboard ships. The frontend cannot tell a login name from a handle.
+3. **Guest `username`.** V2 A.3 says `username: null` for guests; the code returns an internal `guest_xxxxxxxx`. The frontend never shows it. Please return null for guests when convenient (V2 A.3).
+4. **No sliding renewal found.** V2 A-R4 says the 30-day cookie is renewed on activity and A-R5 purges after 30 days of inactivity. In `core/deps.py` I found no write to `last_active_at` (I searched for the field and did not read the whole file); `create_guest` sets it once and the lazy purge deletes guests whose `last_active_at` is older than 30 days. If nothing updates it, an active guest is purged 30 days after creation. Please check.
+5. **Name moderation matches substrings.** `identity.py` tests whether a reserved word or profane word is contained in the normalized name, so ordinary names such as `Nomad`, `Groot`, `Modest`, `Dickens` or `Staffan` return `not_allowed`. The frontend shows "That name is not available. Try another." Please consider whole-word matching for short reserved words (`mod`, `root`, `null`, `kiro`, `dick`).
+6. **Names are not unique** (V2 A-R3), so there is no "name taken" error. The frontend only maps the four reasons above.
+7. `POST /auth/login` still sets the cookie with `secure=False` (V2 P6 asked for `COOKIE_SECURE`), and `register` sets no cookie. No frontend change; noted for completeness.
+8. The frontend sends `confirm: "DELETE"` on `DELETE /auth/me`; the route also accepts no body. No change needed.
+
+#### 3. PROPOSED: packs (V2 B)
+
+```json
+GET /packs
+{ "packs": [ { "id": "pack-1", "order": 1, "title": "...", "description": "...", "dungeon_id": "d_pack1",
+               "floors_total": 2, "floors_cleared": 2, "final_boss_cleared": true, "status": "completed", "points_earned": 2350 } ],
+  "next_pack_id": "pack-2", "all_completed": false }
+```
+
+- `status` is `locked`, `available`, `in_progress` or `completed`. Without a session: pack 1 `available`, the rest `locked`.
+- `POST /runs` on a locked pack returns 403 `PACK_LOCKED` with a friendly message. The frontend then opens the pack page.
+- `POST /runs/{id}/finish` gains `"pack_progress": {"pack_id", "status", "unlocked_pack_id", "all_completed"}`. The frontend shows the "Next dungeon unlocked" screen from `unlocked_pack_id`, and the "All dungeons conquered" screen from `all_completed`. Without `pack_progress` it refetches `GET /packs` and compares statuses.
+- The frontend computes no unlock in real mode; the mock (Pack 1 = the demo, Packs 2 and 3 = sample content, labeled "Sample content" on screen) computes it for development only.
+
+#### 4. PROPOSED: points fields (V2 C)
+
+All optional, additive, never sent by the client. The frontend labels the run value "Dungeon score" and the leaderboard value "Leaderboard points".
+
+```json
+POST /runs/{id}/attempts   + { "points_awarded": 10, "points_reason": "repeat_correct", "points_bonus": 25,
+                                "player_points": { "preloaded": 1250, "own_notes": 0, "overall": 1250 } }
+POST /runs/{id}/rooms/{room_id}/clear   + { "points_awarded": 50, "points_reason": "room_clear" }
+POST /runs/{id}/finish   + { "points_earned": 830, "player_points": { "preloaded": 2080, "own_notes": 0, "overall": 2080 } }
+```
+
+`points_reason` values the frontend words: `first_correct`, `repeat_correct`, `retry`, `wrong`, `too_fast`, `practice`, `not_ranked`, `daily_cap`, `room_clear`, `boss_clear`, `pack_complete`. An unknown reason is shown without reason text. Please tell us if the list changes. The mock uses a simplified table (first correct 100 or 150 once per question and week, repeat 10, retry half, practice half, room 50, boss 200, pack 500) only as a stand-in.
+
+#### 5. PROPOSED: leaderboard (V2 D)
+
+```
+GET /leaderboard?board=preloaded|own_notes|overall&period=all|week
+```
+
+Response exactly as V2 D.3 (`board`, `period`, `week{timezone, starts_at, resets_at}`, `updated_at`, `next_refresh_at`, `total_ranked_players`, `entries[]`, `me`). The old `dungeon_id` and `limit` form is retired in real mode; the offline demo keeps its own legacy board.
+
+What the frontend does with it:
+
+- Shows entries in the order and with the ranks you send. It never sorts or re-ranks. Ties are explained as "whoever reached the total first" (V2 D-R6).
+- `points_needed` in `next_above` and `top20` is shown as sent (V2 includes the +1 tie rule). The frontend never recomputes it.
+- Entries must not contain `username`, an internal `id` or IP data (V2 A-R8). Our wire mapper drops them, but the real fix is on your side.
+- Refresh policy: one request when the page opens or the board or period changes; one request when `next_refresh_at` passes (plus 0 to 2 s of jitter); one request when the tab becomes visible and the last request is older than 60 s; never two requests for the same board and period less than 60 s apart; a 429 waits at least `Retry-After`; nothing while the tab is hidden or the page is closed. Please keep `me` cheap, since it is refreshed at most once per minute per open leaderboard tab.
+- `me: null` without a session; `me.rank: null` with `reason: "no_points_yet"`; `me.next_above: null` at rank 1; `top20.points_needed: 0` inside the top 20.
+- Suggested header: `Cache-Control: private, no-store` when `me` is present (V2 D-R9).
+
+#### 6. PROPOSED: player counter (V2 E)
+
+```json
+GET /stats/players
+{ "players": 143, "rooms_cleared_total": 982, "answers_total": 15230, "packs_completed_total": 61,
+  "updated_at": "2026-11-20T12:00:00Z", "cache_seconds": 300 }
+```
+
+The title screen shows "143 explorers have braved the dungeon" from `players` only when `players` is 10 or more. For 1 to 9 it shows "Be among the first explorers" with no number. The number is formatted with `Intl.NumberFormat` and is never offset or rounded. The frontend caches the answer in memory for `cache_seconds` (300 s when absent), and hides the line on any failure or when `players` is 0, missing, negative or not an integer. Never invent or inflate: no minimum, no offset. The other totals are ignored.
+
+#### 7. PROPOSED: guest upload (V2 G)
+
+```json
+GET /uploads/quota   (session required, guests included)
+{ "can_upload": true, "reason": null,
+  "player": { "is_guest": true, "used_today": 0, "limit_today": 1, "stored": 0, "stored_limit": 2, "resets_at": "2026-11-21T00:00:00Z" },
+  "global": { "available": true }, "ranking": { "min_chars": 3000, "min_topics": 2 } }
+```
+
+- When `can_upload` is false, `reason` is `player_daily_limit`, `ip_daily_limit`, `stored_limit`, `global_daily_limit` or `ai_unavailable`. The frontend disables the drop zone and offers "Play preloaded dungeons instead".
+- A 2xx answer for a guest turns guest upload on in the frontend. A 403 `GUEST_FORBIDDEN` from `POST /documents` turns it off again (today's behavior).
+- `POST /documents` gains the multipart field `accept_ai_notice` (value `true`). The frontend always sends it after the player ticks the notice; today's backend should ignore unknown form fields. Later: 422 `AI_NOTICE_NOT_ACCEPTED` when missing.
+- Error codes the frontend words: 429 `UPLOAD_LIMIT_PLAYER` and `UPLOAD_LIMIT_IP` (with `Retry-After`), 503 `UPLOADS_PAUSED_TODAY` and `AI_BUSY` (with `offer_packs: true`), 400 `QUOTA_EXCEEDED`, 422 `TOO_MANY_PAGES`, `TOO_MANY_SLIDES`, `TOO_MUCH_TEXT`. The last three need `detail.limit` and `detail.found` (integers) so the screen can say "This PDF has 42 pages; the limit is 30." The frontend keeps all `detail` extras on the error.
+- File rules text the frontend will show. All limits live in one constants module (`frontend/src/upload/limits.ts`) with a TODO to read them from the server later (for example from `GET /uploads/quota` or a future `GET /meta`), and every UI text about the rules is built from it. Please confirm the numbers: "Accepted formats: PDF, DOCX, PPTX, TXT, PNG, JPEG. Up to 15 MB. PDF up to 30 pages, PPTX up to 30 slides, DOCX up to 60,000 characters, at least 500 characters of text." **The 60,000 DOCX character limit is UNCONFIRMED**: it is Person A's default `MAX_DOCX_CHARS` (V2 assumption B20) and has not been agreed. Please confirm it or send the real value; until then the frontend uses 60,000 as a placeholder. There is no single contract text today, so the rest is a proposal too.
+- `GET /documents/{id}/status` additions the wizard reads when present: `counts_for_ranking`, `ranking_note`, `dungeon_id`, `floors[{id, status}]`. With `floors[]` the wizard lists one row per floor while it generates; without it, one status line.
+- AI notice (draft, to check against provider terms; it makes no promise about retention or training): "Your notes are sent to third-party AI providers (Google Gemini, and models routed through OpenRouter as a fallback) to generate questions. Free tiers may let these providers keep or use the content under their own terms. Do not upload personal or confidential information."
+
+#### 8. Suggested `GET /meta` (optional)
+
+```json
+GET /meta
+{ "version": "2026-11", "capabilities": { "guest_identity": true, "packs": true, "live_leaderboard": true,
+  "player_counter": true, "guest_upload": true, "upload_quota": true, "daily_haunt": false, "floors": true } }
+```
+
+When it exists, the frontend can drop the probing. Not required.
+
+#### 9. Contract tests the frontend adds (run against your backend with `VITE_API_BASE` and `VITE_USE_MOCKS=false`)
+
+Each case is skipped when its endpoint answers 404, 405 or 501. Run against a disposable database: they create guests and delete an account.
+
+- name check accepts `Raven`; refuses `ab`, a 17-character name, `Adm1n`, `ghost rival` with the right `reason`
+- `POST /guests` returns a handle `Name#1234`, `GET /auth/me` returns the same handle and `public_id`; two guests with one name get different tags
+- upgrade keeps `id`, `public_id` and handle; a second upgrade answers `NOT_A_GUEST`
+- delete with `{"confirm":"DELETE"}` then `GET /auth/me` answers 401
+- `GET /dungeons` includes a public demo dungeon for a named guest
+- (when built) `GET /packs` shape; `PACK_LOCKED`; attempt points fields and idempotent replay; `GET /leaderboard` invariants (at most 20 entries, ranks 1..n increasing, `me` null without a cookie, no `username` or internal id); `GET /stats/players` integer; `GET /uploads/quota` shape
+
+#### 10. Questions for Person A (frontend-10)
+
+1. Can `POST /guests` return `dungeon_id`, or is `GET /packs` the way to find the first dungeon? (Finding 1)
+2. Will you build V2 A-R10 (display name and tag for registered users) before the live leaderboard? (Finding 2)
+3. Is `last_active_at` updated anywhere, so active guests are not purged at day 30? (Finding 4)
+4. Can short reserved words use whole-word matching? (Finding 5)
+5. Which phase of your work builds `GET /packs`, the points fields, the new leaderboard, `GET /stats/players` and `GET /uploads/quota`, in what order? We build in the order guest entry, packs, leaderboard, counter, upload.
+6. Are the points reason values in section 4 final?
+7. Do you want `GET /meta` (section 8)?
+8. Are the file rules numbers in section 7 right (30 pages, 30 slides, 500 minimum characters)? **Please confirm or send the real DOCX character limit: 60,000 is UNCONFIRMED (your default B20, not agreed).** Would you serve these limits from `GET /uploads/quota` or `GET /meta` so the frontend can drop its constants?
+9. Please keep `POST /demo/session` until we report the name step is live, and keep `GET /health` DB-free with CORS for 5173 and 5174. A cold free-tier start can take up to 60 s: please make sure `POST /guests` is not cut earlier by a proxy timeout.
+10. Does `GET /leaderboard` for a registered user without a display name show the login name as `handle`? If yes, please fix before launch (Finding 2).
