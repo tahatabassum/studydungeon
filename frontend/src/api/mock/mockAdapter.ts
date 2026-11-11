@@ -15,6 +15,7 @@ import type {
   Dungeon,
   FloorRank,
   FloorStatus,
+  PackProgress,
   Question,
   Room,
   RunMode,
@@ -34,6 +35,8 @@ import { DEMO_FINAL_BOSS_ROOM_ID, DEMO_FLOOR_DEFS, buildFloors, type FloorDef } 
 import { readMockDelayMs, readMockLevel, readMockPlayer } from './mockLevel'
 import { createMockAuth } from './mockAuth'
 import { createMockGuests } from './mockGuests'
+import { applyPackClear, buildPacksResponse, initialStatuses, type PackDef } from './mockPacks'
+import { createMockPoints, type PointsBoard } from './mockPoints'
 import { createMockUpload, type GeneratedSource } from './mockUpload'
 import { createMasteryStore } from '../../learning/masteryStore'
 import { buildMockLeaderboard, runRankOnDemoBoard, type StoredRun } from './mockLeaderboard'
@@ -168,6 +171,9 @@ interface RunRecord {
   roomStats: Map<string, { correct: number; wrong: number; damage: number }>
   damageTaken: number
   revenantsRested: number
+  /** frontend-10 (mock): Leaderboard points earned in this run, and the pack outcome of its final boss clear. */
+  points: number
+  packProgress: PackProgress | null
 }
 
 interface ScopedRun {
@@ -211,6 +217,33 @@ export function createMockAdapter(options: MockAdapterOptions = {}): ApiClient {
   const auth = createMockAuth({ now })
   const upload = createMockUpload({ now, session: () => auth.getMe(), ...options.upload })
   const guests = createMockGuests(auth)
+  const points = createMockPoints(now)
+  // frontend-10 D14: Pack 1 is the demo dungeon; Packs 2 and 3 are generated placeholder dungeons.
+  const packDefs: PackDef[] = [
+    {
+      id: 'pack-1',
+      order: 1,
+      title: demoDungeon.name,
+      description: 'The seeded demo dungeon.',
+      dungeonId: demoDungeon.id,
+      sample: false,
+    },
+    ...[2, 3].map(
+      (n): PackDef => ({
+        id: `pack-${n}`,
+        order: n,
+        title: `Sample Pack ${n}`,
+        description: 'Placeholder content for the mock.',
+        dungeonId: upload.registerPack(`pack-${n}`, `Sample Pack ${n}`, 4),
+        sample: true,
+      }),
+    ),
+  ]
+  let packStatuses = initialStatuses(packDefs)
+  const packOfDungeon = (dungeonId: string): PackDef | undefined => packDefs.find((d) => d.dungeonId === dungeonId)
+  const boardOf = (dungeonId: string): PointsBoard => (packOfDungeon(dungeonId) ? 'preloaded' : 'own_notes')
+  const isPracticeRun = (run: RunRecord): boolean =>
+    run.scoped?.mode === 'weak_topics' || run.scoped?.mode === 'exam' || run.scoped?.mode === 'daily_haunt'
   let mastery = createMasteryStore()
   const ranks = new Map<string, FloorRank>()
   const forced = new Map<string, FloorStatus>((options.failedFloorIds ?? []).map((id) => [id, 'failed']))
@@ -374,6 +407,10 @@ export function createMockAdapter(options: MockAdapterOptions = {}): ApiClient {
       await wait()
       const dungeonId = typeof request === 'string' ? request : request.dungeon_id
       const ctx = ctxFor(dungeonId)
+      const lockedPack = packOfDungeon(dungeonId)
+      if (lockedPack && packStatuses.get(lockedPack.id) === 'locked') {
+        throw new ApiError(403, 'That pack is still locked.', 'PACK_LOCKED')
+      }
       let scoped: ScopedRun | null = null
       const mode: RunMode = typeof request === 'string' ? 'floor' : request.mode
       if (typeof request !== 'string') {
@@ -454,6 +491,8 @@ export function createMockAdapter(options: MockAdapterOptions = {}): ApiClient {
         roomStats: new Map(),
         damageTaken: 0,
         revenantsRested: 0,
+        points: 0,
+        packProgress: null,
       })
       const haunt = scoped?.mode === 'daily_haunt'
       return {
@@ -577,6 +616,22 @@ export function createMockAdapter(options: MockAdapterOptions = {}): ApiClient {
       if (isCorrect) run.correct += 1
       run.score += result.score_delta
       run.xp += result.xp_delta ?? 0
+      // frontend-10 (PROPOSED): Leaderboard points, idempotent per attempt_id.
+      const pack = packOfDungeon(run.dungeonId)
+      const award = points.attempt({
+        attemptId: req.attempt_id,
+        questionId: req.question_id,
+        correct: isCorrect,
+        hard: ctx.hardIds.has(req.question_id),
+        isRetry,
+        practice: isPracticeRun(run),
+        board: boardOf(run.dungeonId),
+        ...(pack ? { packId: pack.id } : {}),
+      })
+      full.points_awarded = award.points_awarded
+      full.points_reason = award.points_reason
+      full.player_points = award.player_points
+      run.points += award.points_awarded
       run.attempts.set(req.attempt_id, full)
       return structuredClone(full)
     },
@@ -588,11 +643,31 @@ export function createMockAdapter(options: MockAdapterOptions = {}): ApiClient {
       if (!room) throw new ApiError(404, `Room not found: ${roomId}`)
       if ((run.monsterHp.get(roomId) ?? 0) > 0) throw new ApiError(409, 'Monster is still alive')
       const xpDelta = room.is_boss ? BOSS_CLEAR_XP : ROOM_CLEAR_XP
+      const ctx = ctxFor(run.dungeonId)
       if (!run.cleared.has(roomId)) {
         run.cleared.add(roomId)
         run.xp += xpDelta
+        const practice = isPracticeRun(run)
+        const pack = packOfDungeon(run.dungeonId)
+        const award = points.clear({
+          clearId: `:${roomId}`,
+          boss: room.is_boss,
+          practice,
+          board: boardOf(run.dungeonId),
+          ...(pack ? { packId: pack.id } : {}),
+        })
+        run.points += award.points_awarded
+        // The final boss of a pack completes it (Pack N+1 unlocks).
+        if (pack && !practice && roomId === ctx.finalBossRoomId) {
+          const applied = applyPackClear(packDefs, packStatuses, pack.id)
+          packStatuses = applied.statuses
+          run.packProgress = applied.progress
+          run.points += points.packComplete(pack.id, 'preloaded')
+        }
+        return { xp_delta: xpDelta, points_awarded: award.points_awarded, points_reason: award.points_reason }
       }
-      return { xp_delta: xpDelta }
+      const again = points.clear({ clearId: `:${roomId}`, boss: room.is_boss, practice: isPracticeRun(run), board: boardOf(run.dungeonId) })
+      return { xp_delta: xpDelta, points_awarded: again.points_awarded, points_reason: again.points_reason }
     },
 
     async finishRun(runId) {
@@ -687,6 +762,9 @@ export function createMockAdapter(options: MockAdapterOptions = {}): ApiClient {
             finishedAt: now(),
           })
         }
+        summary.points_earned = run.points
+        summary.player_points = points.totals()
+        if (run.packProgress) summary.pack_progress = run.packProgress
         run.finishedAt = now()
         run.summary = summary
       }
@@ -846,9 +924,26 @@ export function createMockAdapter(options: MockAdapterOptions = {}): ApiClient {
       mastery = createMasteryStore()
       dailyStreak = 0
       lastHauntDay = ''
+      points.reset()
+      packStatuses = initialStatuses(packDefs)
       upload.clear()
       generatedCtx.clear()
       sessionName = 'Guest'
+    },
+    async getPacks() {
+      await wait()
+      const me = await auth.getMe()
+      if (!me) throw new ApiError(401, 'Not authenticated', 'UNAUTHORIZED')
+      const cleared = clearedRooms()
+      return buildPacksResponse(packDefs, packStatuses, (def) => {
+        const ctx = ctxFor(def.dungeonId)
+        const floors = floorViewOf(ctx).floors
+        return {
+          floorsTotal: floors.length,
+          floorsCleared: floors.filter((fl) => fl.status === 'cleared' || fl.room_ids.every((id) => cleared.has(id))).length,
+          points: points.ofPack(def.id),
+        }
+      })
     },
     listDungeons: async () => {
       await wait()

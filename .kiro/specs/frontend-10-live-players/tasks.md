@@ -123,56 +123,56 @@ Rules for every task:
 - [x] 4. STOP: Phase 1 checkpoint, guest entry and path choice review
   - Summarize the changes, say how to view `/`, `/play-as-guest`, `/choose`, `/dashboard` and `/settings` (mock mode, then real mode against a local Backend) and what to check. Wait for approval, then commit Phase 1 separately.
 
-- [ ] 5. Phase 2: Preloaded packs
-  - [~] 5.1 Add the pack and points types and wire schemas
+- [x] 5. Phase 2: Preloaded packs
+  - [x] 5.1 Add the pack and points types and wire schemas
     - In `src/types/api.ts` add `PackStatus`, `Pack`, `PacksResponse`, `PackProgress`, `PointsReason`, `PlayerPoints` and the optional points and `pack_progress` fields on `AnswerResult`, `ClearRoomResponse` and `RunSummary`
     - Create `src/api/wire/packs.ts` and extend the attempt, clear and finish wire schemas and mappers with the optional fields; register in `src/api/schemas.ts`
     - _Requirements: 8.2, 10.7, 18.5_
-  - [~] 5.2 Add `getPacks` and the pack lock handling to the Http_Client
+  - [x] 5.2 Add `getPacks` and the pack lock handling to the Http_Client
     - In `src/api/ApiClient.ts` and `src/api/client.ts` add `getPacks()` with the `packs` capability transitions; in `src/api/errors.ts` map 403 PACK_LOCKED
     - _Requirements: 1.4, 1.5, 8.2, 8.8, 8.9_
-  - [~] 5.3 Build the mock packs and mock points
+  - [x] 5.3 Build the mock packs and mock points
     - Create `src/api/mock/mockPacks.ts` (three packs, Pack 1 the demo, Packs 2 and 3 from the generated-dungeon context builder, `sample: true`, `applyPackClear`, 403 PACK_LOCKED on a locked pack) and `mockPoints.ts` (simplified V2 C.2 table, per-attempt idempotence), and wire both into `mockAdapter.ts` including `pack_progress`, `points_earned` and `player_points` on finish
     - _Requirements: 8.6, 8.7, 8.10, 10.7_
-  - [~] 5.4 Build the pure pack and points modules
+  - [x] 5.4 Build the pure pack and points modules
     - Create `src/packs/packView.ts` (`currentPack`, `unlockedBetween`, `packLabel`) and `src/points/pointsText.ts`; complete `resolvePreloadedDungeon` for the pack source
     - _Requirements: 8.2, 8.5, 9.5, 10.3, 10.4, 10.5_
-  - [ ]* 5.5 Write property test for the pack view
+  - [x]* 5.5 Write property test for the pack view
     - **Property 5: Pack view reports exactly the newly unlocked packs**
     - **Validates: Requirements 8.2, 9.5**
-  - [ ]* 5.6 Write property test for the mock pack unlock
+  - [x]* 5.6 Write property test for the mock pack unlock
     - **Property 6: Mock pack unlock follows the final boss**
     - **Validates: Requirements 8.7**
-  - [ ]* 5.7 Write property test for the points text
+  - [x]* 5.7 Write property test for the points text
     - **Property 7: Points text is total and hides what it cannot explain**
     - **Validates: Requirements 10.3, 10.4, 10.5**
-  - [~] 5.8 Build the pack page
+  - [x] 5.8 Build the pack page
     - Create `src/packs/PacksPage.tsx` and `PackChip.tsx` (status chips, floors cleared, points, locked text, "Sample content" chip on Packs 2 and 3 in mock mode, also on the floor map header and the unlock screen), register `/packs` in `src/App.tsx`, link it from the Path_Choice preloaded card when `packs` is on, and open `/packs` after `PACK_LOCKED`
     - _Requirements: 8.1, 8.3, 8.4, 8.8, 8.9, 8.10, 17.1, 17.2, 17.3_
-  - [~] 5.9 Build the unlock and completion screens and the pack header
+  - [x] 5.9 Build the unlock and completion screens and the pack header
     - Create `src/packs/PackUnlockedPage.tsx` and `AllPacksCompletePage.tsx` (routes `/packs/unlocked/:packId` and `/packs/complete`), wire the Scorecard Continue action in `src/scorecard/*` (`pack_progress` first, then the refetch diff), and add the "Pack N of M" header with pack points to `src/campaign/CampaignPage.tsx`
     - _Requirements: 8.5, 9.1, 9.2, 9.3, 9.4, 9.5, 9.6, 9.7_
-  - [~] 5.10 Show points and rename the score labels
+  - [x] 5.10 Show points and rename the score labels
     - Locate the damage readout in `src/encounter` and add `PointsPop` using `pointsText`; show "Dungeon score" on the HUD, victory and defeat overlays, Scorecard and share card; show "Leaderboard points" and the one-line explanation on the Scorecard; update tests that assert the old label and list each change in the kiro log
     - _Requirements: 10.1, 10.2, 10.3, 10.4, 10.5, 10.6, 10.7_
-  - [~] 5.11 Write example tests for Phase 2
+  - [x] 5.11 Write example tests for Phase 2
     - Pack page statuses and Play, locked text, "Sample content" label on Packs 2 and 3 in mock mode (pack page, floor map, unlock screen), `PACK_LOCKED`, single-dungeon fallback when `packs` is off, unlock and completion screens (with `pack_progress` and with the refetch diff), Daily Haunt button only with the capability, points pop and reasons, label text, reduced motion
     - _Requirements: 8.3, 8.4, 8.8, 8.9, 8.10, 9.1, 9.2, 9.3, 9.4, 9.5, 9.7, 10.1, 10.2, 10.3, 10.5, 10.6_
-  - [~] 5.12 Extend the contract suite for Phase 2
+  - [x] 5.12 Extend the contract suite for Phase 2
     - Add the packs, `PACK_LOCKED`, pack clear and points cases of the design table
     - _Requirements: 18.6_
-  - [~] 5.13 Run Phase 2 verification
+  - [x] 5.13 Run Phase 2 verification
     - Run the five commands; check the sizes for `/packs`, the unlock screens and the campaign header; confirm the counts
     - _Requirements: 17.1, 17.5, 19.1, 19.2_
-  - [~] 5.14 Update the docs for Phase 2
+  - [x] 5.14 Update the docs for Phase 2
     - Append to `docs/kiro-log-frontend.md` and `docs/handoff/B-to-A.md`
     - _Requirements: 19.3_
 
-- [~] 6. STOP: Phase 2 checkpoint, preloaded packs review
+- [x] 6. STOP: Phase 2 checkpoint, preloaded packs review
   - Summarize the changes, say how to play pack 1 to the unlock screen in mock mode and what to check. Wait for approval, then commit Phase 2 separately.
 
 - [ ] 7. Phase 3: Leaderboard with real players
-  - [~] 7.1 Add the board types and wire schema
+  - [-] 7.1 Add the board types and wire schema
     - In `src/types/api.ts` add `BoardKind`, `BoardQuery`, `BoardEntry`, `BoardMe`, `BoardResponse`; create `src/api/wire/board.ts` (drops unknown keys, no username or internal id, no rival field); register in `src/api/schemas.ts`
     - _Requirements: 11.7, 18.5_
   - [~] 7.2 Add `getBoard` to the Http_Client and extend the support hook

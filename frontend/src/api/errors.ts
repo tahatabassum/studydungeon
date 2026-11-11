@@ -121,6 +121,7 @@ const FRIENDLY: Readonly<Record<string, string>> = {
   NOT_A_GUEST: 'Only guest accounts can be upgraded.',
   USERNAME_TAKEN: 'That username is taken. Pick another one.',
   CONFIRMATION_REQUIRED: 'Type DELETE to confirm.',
+  PACK_LOCKED: 'That pack is still locked. Defeat the final boss of the previous pack first.',
   SYSTEM_USER_PROTECTED: 'This account is protected and cannot be deleted.',
   VALIDATION_ERROR: 'The request was not accepted. Please check your input and try again.',
 }

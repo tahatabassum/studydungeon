@@ -18,6 +18,9 @@ import RegisterPage from './auth/RegisterPage';
 import PlayPage from './pages/PlayPage';
 import SettingsPage from './pages/SettingsPage';
 import UploadPage from './upload/UploadPage';
+import PacksPage from './packs/PacksPage';
+import PackUnlockedPage from './packs/PackUnlockedPage';
+import AllPacksCompletePage from './packs/AllPacksCompletePage';
 import { useSession } from './state/SessionContext';
 import { useTouchMode } from './touch/useTouchMode';
 
@@ -56,6 +59,9 @@ function AppRoutes() {
       <Route path="/leaderboard" element={<LeaderboardPage />} />
       <Route path="/dashboard" element={<DashboardPage dailyHauntSlot={<DashboardHaunt />} />} />
       {/* Signed-in players upload here; guests see a sign-up prompt on the page itself. */}
+      <Route path="/packs" element={<RequireSession><PacksPage /></RequireSession>} />
+      <Route path="/packs/unlocked/:packId" element={<RequireSession><PackUnlockedPage /></RequireSession>} />
+      <Route path="/packs/complete" element={<RequireSession><AllPacksCompletePage /></RequireSession>} />
       <Route path="/upload" element={<UploadPage />} />
       <Route
         path="/settings"

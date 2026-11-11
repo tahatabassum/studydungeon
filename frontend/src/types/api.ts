@@ -218,14 +218,26 @@ export interface AnswerResult {
   combo?: number
   /** PROPOSED (frontend-08): revealed only after a wrong answer. */
   correct_answer?: string
+  /** PROPOSED (frontend-10): Leaderboard points for this answer. */
+  points_awarded?: number
+  points_reason?: string
+  points_bonus?: number
+  player_points?: PlayerPoints
 }
 
 export interface ClearRoomResponse {
   xp_delta: number
   is_boss?: boolean
+  /** PROPOSED (frontend-10): Leaderboard points for this clear. */
+  points_awarded?: number
+  points_reason?: string
 }
 
 export interface RunSummary {
+  /** PROPOSED (frontend-10): Leaderboard points earned in this run, the player's totals and the pack outcome. */
+  points_earned?: number
+  player_points?: PlayerPoints
+  pack_progress?: PackProgress
   score: number
   xp: number
   correct: number
@@ -390,3 +402,48 @@ export type BadgeId =
   | 'memory_keeper'
   | 'speed_reader'
   | 'dungeon_master'
+
+/** frontend-10 (V2 B.2, PROPOSED): preloaded packs and Leaderboard points. */
+export type PackStatus = 'locked' | 'available' | 'in_progress' | 'completed'
+export interface Pack {
+  id: string
+  order: number
+  title: string
+  description: string
+  dungeon_id: string
+  floors_total: number
+  floors_cleared: number
+  final_boss_cleared: boolean
+  status: PackStatus
+  points_earned: number
+  /** Mock only: placeholder content. */
+  sample?: boolean
+}
+export interface PacksResponse {
+  packs: Pack[]
+  next_pack_id: string | null
+  all_completed: boolean
+}
+export interface PackProgress {
+  pack_id: string
+  status: PackStatus
+  unlocked_pack_id: string | null
+  all_completed: boolean
+}
+export type PointsReason =
+  | 'first_correct'
+  | 'repeat_correct'
+  | 'retry'
+  | 'wrong'
+  | 'too_fast'
+  | 'practice'
+  | 'not_ranked'
+  | 'daily_cap'
+  | 'room_clear'
+  | 'boss_clear'
+  | 'pack_complete'
+export interface PlayerPoints {
+  preloaded: number
+  own_notes: number
+  overall: number
+}

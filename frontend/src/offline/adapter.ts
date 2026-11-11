@@ -492,6 +492,7 @@ export function createAdapter(options: OfflineOptions): ApiClient {
     upgradeGuest: async () => unsupported('Account upgrade'),
     deleteAccount: async () => unsupported('Account deletion'),
     listDungeons: async () => unsupported('The dungeon list'),
+    getPacks: async () => unsupported('Preloaded packs'),
   }
 }
 

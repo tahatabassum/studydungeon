@@ -672,3 +672,9 @@ Each case is skipped when its endpoint answers 404, 405 or 501. Run against a di
 - The contract suite has 7 identity cases that create and delete accounts. Run them only against a disposable backend: set `VITE_API_BASE`, `VITE_USE_MOCKS=false`, then `npm.cmd run test:contract`.
 - The frontend treats 404, 405 and 501 on any new endpoint as "not built yet".
 - Still open in "Questions for Person A (frontend-10)": 1 (`dungeon_id` on `POST /guests`), 2 (display name for registered users before the live board), 3 (`last_active_at` not updated), 4 (substring moderation), and 9 (keep `POST /demo/session` and `GET /health`).
+
+#### Phase 2 update (frontend-10, 2026-11-11)
+- The frontend now reads `GET /packs` (PROPOSED shape: `packs[]` with `id, order, title, description, dungeon_id, floors_total, floors_cleared, final_boss_cleared, status, points_earned`, `next_pack_id`, `all_completed`), `403 PACK_LOCKED` on `POST /runs`, and the points fields: `points_awarded`, `points_reason` on attempt and room clear; `points_earned`, `player_points`, `pack_progress {pack_id, status, unlocked_pack_id, all_completed}` on finish. All are mock-backed only; 404, 405 and 501 turn `packs` off.
+- Continue after a final boss uses `pack_progress`; without it the frontend refetches `GET /packs` and diffs. Please send `pack_progress` to avoid the extra call.
+- The contract suite has 3 new pack cases (shape, `PACK_LOCKED`, pack clear), skipped on a backend without `GET /packs`.
+- Still open: questions 5 and 6 (build order and the final points reason values).

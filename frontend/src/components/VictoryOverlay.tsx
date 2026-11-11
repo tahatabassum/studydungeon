@@ -46,7 +46,7 @@ export function VictoryOverlay({
 
   const stats: Array<[string, string]> = summary
     ? [
-        ['Score', String(summary.score)],
+        ['Dungeon score', String(summary.score)],
         ['XP', String(summary.xp)],
         ['Correct', `${summary.correct} / ${summary.total}`],
         ['Accuracy', formatPercent(summary.accuracy)],

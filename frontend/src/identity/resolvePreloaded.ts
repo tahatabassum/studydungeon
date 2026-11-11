@@ -1,23 +1,15 @@
 import { withFloors } from '../api/floorMapping' // pure helper, no network
-import type { ApiClient } from '../api/ApiClient'
-import type { DemoSessionResponse, Dungeon, DungeonSummary } from '../types/api'
+import { capabilityOf, type ApiClient } from '../api/ApiClient'
+import type { DemoSessionResponse, Dungeon, DungeonSummary, Pack, PacksResponse } from '../types/api'
 
-/**
- * Minimal pack shape for D9/D31.
- * TODO(Phase 2): replace with the Pack type from types/api.ts.
- */
-export interface PackInput {
-  id: string
-  order: number
-  dungeon_id: string
-  status: 'locked' | 'available' | 'in_progress' | 'completed' | (string & {})
-  floors_cleared: number
-  points_earned: number
+/** D9/D31 read only these fields of a pack; the full Pack type satisfies it. */
+export type PackInput = Pick<Pack, 'id' | 'order' | 'dungeon_id' | 'floors_cleared' | 'points_earned'> & {
+  status: Pack['status'] | (string & {})
 }
 
 export interface PacksInput {
   packs: PackInput[]
-  next_pack_id?: string | null
+  next_pack_id?: PacksResponse['next_pack_id']
 }
 
 export interface PreloadedPick {
@@ -99,9 +91,15 @@ export class NoPreloadedError extends Error {
  * Throws NoPreloadedError when nothing resolves.
  */
 export async function resolvePreloadedDungeon(api: ApiClient, options: { hasSession: boolean }): Promise<ResolvedPreloaded> {
-  // EXTENSION POINT (Phase 2): when capabilityOf(api, 'packs') !== 'off', call api.getPacks() here and pass the
-  // result to pickPreloaded. There is no getPacks method yet, so this step is skipped today.
-  const packs: PacksInput | null = null as PacksInput | null
+  // D9 step 1: packs, unless the capability is off. Any error falls through to the dungeon list.
+  let packs: PacksInput | null = null
+  if (capabilityOf(api, 'packs') !== 'off') {
+    try {
+      packs = await api.getPacks()
+    } catch {
+      packs = null
+    }
+  }
 
   // No session or an error: fall through to the next step.
   const dungeons: DungeonSummary[] = await api.listDungeons().catch(() => [])

@@ -378,6 +378,57 @@ export function defineContractSuite(opts: ContractSuiteOptions): void {
       })
     })
 
+    // Packs and points (frontend-10, Phase 2). A fresh client keeps the pack state apart from the other cases.
+    describe.skipIf(opts.auth === false || !opts.makeFreshClient)('packs and points (frontend-10)', () => {
+      const withSession = async () => {
+        const c = await opts.makeFreshClient!()
+        await c.startDemoSession()
+        return c
+      }
+      it('GET /packs returns ordered packs with the contract fields and a valid next pack', async (ctx) => {
+        const c = await withSession()
+        const res = await provedOrSkip(ctx, c, 'packs', () => c.getPacks())
+        expectSchema('getPacks', res)
+        expect(res.packs.length).toBeGreaterThan(0)
+        expect(res.packs.map((p) => p.order)).toEqual([...res.packs.map((p) => p.order)].sort((a, b) => a - b))
+        for (const p of res.packs) {
+          expect(p.floors_cleared).toBeLessThanOrEqual(p.floors_total)
+          expect(p.points_earned).toBeGreaterThanOrEqual(0)
+        }
+        if (res.next_pack_id) expect(res.packs.some((p) => p.id === res.next_pack_id)).toBe(true)
+      })
+      it('starting a run on a locked pack is 403 PACK_LOCKED', async (ctx) => {
+        const c = await withSession()
+        const res = await provedOrSkip(ctx, c, 'packs', () => c.getPacks())
+        const locked = res.packs.find((p) => p.status === 'locked')
+        if (!locked) return ctx.skip('no locked pack on this backend')
+        await expect(c.startRun(locked.dungeon_id)).rejects.toMatchObject({ status: 403, code: 'PACK_LOCKED' })
+      })
+      it('clearing the final boss of the open pack reports pack_progress and points', async (ctx) => {
+        const answer = opts.correctAnswer
+        if (!answer) return ctx.skip('needs the answer key (mock only)')
+        const c = await withSession()
+        const res = await provedOrSkip(ctx, c, 'packs', () => c.getPacks())
+        const open = res.packs.find((p) => p.status === 'available' || p.status === 'in_progress')
+        if (!open) return ctx.skip('no open pack')
+        const d = await c.getDungeon(open.dungeon_id)
+        const boss = d.rooms.find((r) => r.is_boss)!
+        const r = await c.startRun(d.id)
+        for (let i = 0; i < boss.monster.question_ids.length * 2; i += 1) {
+          const qid = boss.monster.question_ids[i % boss.monster.question_ids.length]
+          const hit = await c.submitAttempt(r.id, { attempt_id: `pk-${i}`, question_id: qid, selected_answer: answer(qid) ?? 'x' })
+          if (hit.monster_hp_remaining <= 0) break
+        }
+        const cleared = await c.clearRoom(r.id, boss.id)
+        if (cleared.points_awarded !== undefined) expect(cleared.points_awarded).toBeGreaterThanOrEqual(0)
+        const summary = await c.finishRun(r.id)
+        expectSchema('finishRun', summary)
+        expect(summary.pack_progress).toMatchObject({ pack_id: open.id, status: 'completed' })
+        expect(summary.points_earned).toBeGreaterThanOrEqual(0)
+        const after = await c.getPacks()
+        expect(after.packs.find((p) => p.id === open.id)?.status).toBe('completed')
+      })
+    })
     // Auth cases come last: logging out ends the guest session the cases above use.
     describe.skipIf(opts.auth === false)('auth (C22 to C24)', () => {
       const stamp = Date.now().toString(36)

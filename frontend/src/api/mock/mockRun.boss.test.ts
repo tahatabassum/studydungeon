@@ -67,7 +67,7 @@ describe('Property 11: Boss falls when damage dealt adds up to its HP', () => {
         expect(correctCount).toBeGreaterThanOrEqual(3)
         expect(bossHp).toBe(0)
         // Boss is now defeated; room can be cleared.
-        await expect(api.clearRoom(run.id, bossRoom.id)).resolves.toEqual({ xp_delta: 100 })
+        await expect(api.clearRoom(run.id, bossRoom.id)).resolves.toMatchObject({ xp_delta: 100 })
       }),
       { numRuns: 100 },
     )

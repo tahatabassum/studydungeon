@@ -280,6 +280,11 @@
         "executionId": "ecc691bd-a7a4-4df3-b7ae-19a6293c4cc5",
         "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
         "timestamp": 1794412869949
+      },
+      {
+        "executionId": "ecc691bd-a7a4-4df3-b7ae-19a6293c4cc5",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794413994607
       }
     ],
     "5.2 Add `getPacks` and the pack lock handling to the Http_Client": [
@@ -287,6 +292,11 @@
         "executionId": "7dd1e894-b558-4280-a9ab-eedc6135a578",
         "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
         "timestamp": 1794394392550
+      },
+      {
+        "executionId": "ecc691bd-a7a4-4df3-b7ae-19a6293c4cc5",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794413994858
       }
     ],
     "5.3 Build the mock packs and mock points": [
@@ -294,6 +304,11 @@
         "executionId": "7dd1e894-b558-4280-a9ab-eedc6135a578",
         "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
         "timestamp": 1794394392646
+      },
+      {
+        "executionId": "ecc691bd-a7a4-4df3-b7ae-19a6293c4cc5",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794413996014
       }
     ],
     "5.4 Build the pure pack and points modules": [
@@ -301,6 +316,11 @@
         "executionId": "7dd1e894-b558-4280-a9ab-eedc6135a578",
         "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
         "timestamp": 1794394392740
+      },
+      {
+        "executionId": "ecc691bd-a7a4-4df3-b7ae-19a6293c4cc5",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794413997021
       }
     ],
     "5.8 Build the pack page": [
@@ -308,6 +328,16 @@
         "executionId": "7dd1e894-b558-4280-a9ab-eedc6135a578",
         "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
         "timestamp": 1794394392825
+      },
+      {
+        "executionId": "ecc691bd-a7a4-4df3-b7ae-19a6293c4cc5",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794414000451
+      },
+      {
+        "executionId": "ecc691bd-a7a4-4df3-b7ae-19a6293c4cc5",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794415393617
       }
     ],
     "5.9 Build the unlock and completion screens and the pack header": [
@@ -315,6 +345,11 @@
         "executionId": "7dd1e894-b558-4280-a9ab-eedc6135a578",
         "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
         "timestamp": 1794394392915
+      },
+      {
+        "executionId": "ecc691bd-a7a4-4df3-b7ae-19a6293c4cc5",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794415394195
       }
     ],
     "5.10 Show points and rename the score labels": [
@@ -322,6 +357,11 @@
         "executionId": "7dd1e894-b558-4280-a9ab-eedc6135a578",
         "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
         "timestamp": 1794394393002
+      },
+      {
+        "executionId": "ecc691bd-a7a4-4df3-b7ae-19a6293c4cc5",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794415394497
       }
     ],
     "5.11 Write example tests for Phase 2": [
@@ -329,6 +369,11 @@
         "executionId": "7dd1e894-b558-4280-a9ab-eedc6135a578",
         "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
         "timestamp": 1794394393099
+      },
+      {
+        "executionId": "ecc691bd-a7a4-4df3-b7ae-19a6293c4cc5",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794415394922
       }
     ],
     "5.12 Extend the contract suite for Phase 2": [
@@ -336,6 +381,11 @@
         "executionId": "7dd1e894-b558-4280-a9ab-eedc6135a578",
         "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
         "timestamp": 1794394393195
+      },
+      {
+        "executionId": "ecc691bd-a7a4-4df3-b7ae-19a6293c4cc5",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794415395277
       }
     ],
     "5.13 Run Phase 2 verification": [
@@ -343,6 +393,11 @@
         "executionId": "7dd1e894-b558-4280-a9ab-eedc6135a578",
         "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
         "timestamp": 1794394393288
+      },
+      {
+        "executionId": "ecc691bd-a7a4-4df3-b7ae-19a6293c4cc5",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794415395593
       }
     ],
     "5.14 Update the docs for Phase 2": [
@@ -350,6 +405,11 @@
         "executionId": "7dd1e894-b558-4280-a9ab-eedc6135a578",
         "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
         "timestamp": 1794394393379
+      },
+      {
+        "executionId": "ecc691bd-a7a4-4df3-b7ae-19a6293c4cc5",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794415396062
       }
     ],
     "6. STOP: Phase 2 checkpoint, preloaded packs review": [
@@ -357,6 +417,11 @@
         "executionId": "7dd1e894-b558-4280-a9ab-eedc6135a578",
         "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
         "timestamp": 1794394393477
+      },
+      {
+        "executionId": "ecc691bd-a7a4-4df3-b7ae-19a6293c4cc5",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794415396753
       }
     ],
     "7.1 Add the board types and wire schema": [
@@ -656,4 +721,38 @@
     ],
     "3. Phase 1: Guest entry and path choice": [
       {
-  
+        "executionId": "7dd1e894-b558-4280-a9ab-eedc6135a578",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794402804353
+      }
+    ],
+    "5.5 Write property test for the pack view": [
+      {
+        "executionId": "ecc691bd-a7a4-4df3-b7ae-19a6293c4cc5",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794413997626
+      }
+    ],
+    "5.6 Write property test for the mock pack unlock": [
+      {
+        "executionId": "ecc691bd-a7a4-4df3-b7ae-19a6293c4cc5",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794413999418
+      }
+    ],
+    "5.7 Write property test for the points text": [
+      {
+        "executionId": "ecc691bd-a7a4-4df3-b7ae-19a6293c4cc5",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794413999636
+      }
+    ],
+    "5. Phase 2: Preloaded packs": [
+      {
+        "executionId": "ecc691bd-a7a4-4df3-b7ae-19a6293c4cc5",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794415396253
+      }
+    ]
+  }
+}

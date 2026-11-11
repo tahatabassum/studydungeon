@@ -7,6 +7,7 @@ export * from './auth'
 export * from './documents'
 export * from './dungeon'
 export * from './kinds'
+export * from './packs'
 export * from './progress'
 export * from './reviews'
 export * from './run'
@@ -24,6 +25,7 @@ import {
 } from './auth'
 import { wireDocumentStatusSchema, wireDocumentTopicsSchema, wireDocumentUploadSchema } from './documents'
 import { wireDungeonSchema } from './dungeon'
+import { wirePacksSchema } from './packs'
 import { wireProgressSchema } from './progress'
 import { wireDueReviewsSchema } from './reviews'
 import { wireClearSchema, wireFinishSchema, wireRunSchema } from './run'
@@ -46,6 +48,7 @@ export const WIRE_ENDPOINTS = {
   submitAttempt: { endpoint: 'POST /runs/{id}/attempts', schema: wireAttemptSchema },
   clearRoom: { endpoint: 'POST /runs/{id}/rooms/{roomId}/clear', schema: wireClearSchema },
   finishRun: { endpoint: 'POST /runs/{id}/finish', schema: wireFinishSchema },
+  getPacks: { endpoint: 'GET /packs', schema: wirePacksSchema },
   getProgress: { endpoint: 'GET /progress', schema: wireProgressSchema },
   getDueReviews: { endpoint: 'GET /reviews/due', schema: wireDueReviewsSchema },
   uploadDocument: { endpoint: 'POST /documents', schema: wireDocumentUploadSchema },

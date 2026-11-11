@@ -181,7 +181,7 @@ describe('Scorecard', () => {
     const live = screen.getByTestId('scorecard-live')
     expect(live.closest('[aria-live]')?.getAttribute('aria-live')).toBe('polite')
     expect(live.textContent).toBe(scorecardAnnouncement(summary))
-    expect(live.textContent).toContain('Score 2400')
+    expect(live.textContent).toContain('Dungeon score 2400')
     expect(live.textContent).toContain('Leaderboard rank 4')
     expect(live.textContent).toContain('Level up, level 2 to 3')
   })

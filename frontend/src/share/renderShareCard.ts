@@ -197,7 +197,7 @@ export async function renderShareCard(data: ShareData, canvas: HTMLCanvasElement
   // Score.
   ctx.fillStyle = css(COLORS.INK_MUTED)
   ctx.font = `700 24px ${LABEL}`
-  ctx.fillText('SCORE', 80, 288)
+  ctx.fillText('DUNGEON SCORE', 80, 288)
   ctx.fillStyle = css(COLORS.GOLD)
   ctx.font = `400 120px ${DISPLAY}`
   ctx.fillText(String(shareScore(data.score)), 80, 390)

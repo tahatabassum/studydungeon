@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { BookOpen, Skull } from 'lucide-react'
 import { getApi } from '../api'
+import { capabilityOf } from '../api/ApiClient'
 import { HauntedBackdrop } from '../components/HauntedBackdrop'
 import { PageShell } from '../components/PageShell'
 import { useSession } from '../state/SessionContext'
@@ -37,6 +38,18 @@ export function PathChoice({ variant = 'full', autoFocus }: PathChoiceProps) {
   const [busy, setBusy] = useState(false)
   const [failed, setFailed] = useState(false)
   const quota = useUploadQuotaLine()
+  const [packsOn, setPacksOn] = useState(false)
+  useEffect(() => {
+    let cancelled = false
+    void getApi()
+      .then((api) => {
+        if (!cancelled) setPacksOn(capabilityOf(api, 'packs') === 'on')
+      })
+      .catch(() => {})
+    return () => {
+      cancelled = true
+    }
+  }, [])
   const compact = variant === 'compact'
   const focusOnMount = autoFocus ?? !compact
 
@@ -84,6 +97,13 @@ export function PathChoice({ variant = 'full', autoFocus }: PathChoiceProps) {
           {quota && <span className="sd-choice__quota">{quota}</span>}
         </button>
       </div>
+      {packsOn && (
+        <p className="sd-choice__more">
+          <Link to="/packs" data-testid="choice-packs">
+            See all dungeons
+          </Link>
+        </p>
+      )}
       {failed && (
         <div className="sd-choice__error" role="alert" data-testid="choice-error">
           <p>{RESOLVE_ERROR}</p>

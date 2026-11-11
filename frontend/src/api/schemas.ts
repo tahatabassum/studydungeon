@@ -15,6 +15,10 @@ import type {
   GenerationStatus,
   LeaderboardResponse,
   NameCheckResult,
+  Pack,
+  PackProgress,
+  PacksResponse,
+  PlayerPoints,
   ProgressInfo,
   Run,
   RunSummary,
@@ -177,6 +181,37 @@ export const runSchema: z.ZodType<Run> = z.object({
   room_ids: z.array(z.string()).optional(),
 })
 
+const packStatusSchema = z.enum(['locked', 'available', 'in_progress', 'completed'])
+export const playerPointsSchema: z.ZodType<PlayerPoints> = z.object({
+  preloaded: z.number(),
+  own_notes: z.number(),
+  overall: z.number(),
+})
+export const packProgressSchema: z.ZodType<PackProgress> = z.object({
+  pack_id: z.string(),
+  status: packStatusSchema,
+  unlocked_pack_id: z.string().nullable(),
+  all_completed: z.boolean(),
+})
+export const packSchema: z.ZodType<Pack> = z.object({
+  id: z.string(),
+  order: z.number(),
+  title: z.string(),
+  description: z.string(),
+  dungeon_id: z.string(),
+  floors_total: z.number(),
+  floors_cleared: z.number(),
+  final_boss_cleared: z.boolean(),
+  status: packStatusSchema,
+  points_earned: z.number(),
+  sample: z.boolean().optional(),
+})
+export const packsResponseSchema: z.ZodType<PacksResponse> = z.object({
+  packs: z.array(packSchema),
+  next_pack_id: z.string().nullable(),
+  all_completed: z.boolean(),
+})
+
 export const answerResultSchema: z.ZodType<AnswerResult> = z.object({
   correct: z.boolean(),
   damage_dealt: z.number(),
@@ -197,11 +232,18 @@ export const answerResultSchema: z.ZodType<AnswerResult> = z.object({
   retry_multiplier: z.number().optional(),
   combo: z.number().optional(),
   correct_answer: z.string().optional(),
+  // PROPOSED (frontend-10)
+  points_awarded: z.number().optional(),
+  points_reason: z.string().optional(),
+  points_bonus: z.number().optional(),
+  player_points: playerPointsSchema.optional(),
 })
 
 export const clearRoomSchema: z.ZodType<ClearRoomResponse> = z.object({
   xp_delta: z.number(),
   is_boss: z.boolean().optional(),
+  points_awarded: z.number().optional(),
+  points_reason: z.string().optional(),
 })
 
 export const chestRewardSchema = z.object({
@@ -230,6 +272,10 @@ export const runSummarySchema: z.ZodType<RunSummary> = z.object({
     .array(z.object({ topic_id: z.string(), title: z.string(), mastery: z.number() }))
     .optional(),
   chest_rewards: z.array(chestRewardSchema).optional(),
+  // PROPOSED (frontend-10)
+  points_earned: z.number().optional(),
+  player_points: playerPointsSchema.optional(),
+  pack_progress: packProgressSchema.optional(),
 })
 
 export const progressSchema: z.ZodType<ProgressInfo> = z.object({
@@ -343,6 +389,7 @@ export const ENDPOINT_SCHEMAS = {
   submitAttempt: { endpoint: 'POST /runs/{id}/attempts', schema: answerResultSchema },
   clearRoom: { endpoint: 'POST /runs/{id}/rooms/{roomId}/clear', schema: clearRoomSchema },
   finishRun: { endpoint: 'POST /runs/{id}/finish', schema: runSummarySchema },
+  getPacks: { endpoint: 'GET /packs', schema: packsResponseSchema },
   getProgress: { endpoint: 'GET /progress', schema: progressSchema },
   getDueReviews: { endpoint: 'GET /reviews/due', schema: dueReviewsSchema },
   getDueSummary: { endpoint: 'GET /reviews/due (summary)', schema: dueReviewsResponseSchema },

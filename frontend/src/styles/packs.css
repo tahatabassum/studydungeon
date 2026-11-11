@@ -1,0 +1,25 @@
+/* frontend-10 packs: page, chips, unlock and completion screens. Celebration is off under reduced motion. */
+.sd-packs { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.9rem; }
+.sd-pack { display: flex; flex-direction: column; align-items: center; gap: 0.5rem; padding: 1rem; }
+.sd-pack__num {
+  display: inline-grid; place-items: center; width: 1.8rem; height: 1.8rem; border-radius: 999px;
+  border: 2px solid var(--color-gold); color: var(--color-gold);
+}
+.sd-pack__chips { display: flex; gap: 0.4rem; flex-wrap: wrap; justify-content: center; }
+.sd-pack__chip {
+  padding: 0.1rem 0.6rem; border-radius: 999px; border: 1px solid var(--color-magic);
+  font-size: var(--sd-text-sm); color: var(--color-ink); background: rgb(90 40 160 / 0.3);
+}
+.sd-pack__chip[data-status='completed'] { border-color: var(--color-gold); color: var(--color-gold); }
+.sd-pack__chip[data-status='locked'] { opacity: 0.8; border-style: dashed; }
+.sd-pack__chip--sample { border-style: dotted; }
+.sd-pack__stats { display: flex; gap: 1rem; margin: 0; flex-wrap: wrap; justify-content: center; }
+.sd-pack__header { display: inline-flex; gap: 0.5rem; align-items: center; flex-wrap: wrap; }
+.sd-pack-screen { display: flex; flex-direction: column; align-items: center; gap: 1rem; padding: 1.5rem; text-align: center; }
+.sd-pack-screen__burst { font-size: 3rem; animation: sd-pack-pop 0.8s ease-out both; }
+@keyframes sd-pack-pop { from { transform: scale(0.4); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+[data-reduced='true'] .sd-pack-screen__burst { animation: none; }
+@media (prefers-reduced-motion: reduce) { .sd-pack-screen__burst { animation: none; } }
+.sd-points-pop { font-weight: 700; color: var(--color-gold); animation: sd-pack-pop 0.5s ease-out both; }
+@media (prefers-reduced-motion: reduce) { .sd-points-pop { animation: none; } }
+.sd-points-pop[data-reduced='true'] { animation: none; }

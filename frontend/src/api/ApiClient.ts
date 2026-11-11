@@ -19,6 +19,7 @@ import type {
   LeaderboardQuery,
   LeaderboardResponse,
   NameCheckResult,
+  PacksResponse,
   ProgressInfo,
   Run,
   RunSummary,
@@ -85,6 +86,8 @@ export interface ApiClient {
   deleteAccount(): Promise<void>
   /** GET /dungeons (frontend-10, REAL, session required). */
   listDungeons(): Promise<DungeonSummary[]>
+  /** GET /packs (frontend-10, PROPOSED): the preloaded packs and their status. 501 when unsupported. */
+  getPacks(): Promise<PacksResponse>
   /** GET /health ping to wake a cold server. Only the Http client defines it. */
   warmUp?(): Promise<void>
   /**

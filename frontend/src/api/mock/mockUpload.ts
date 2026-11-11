@@ -125,6 +125,11 @@ export interface MockUpload {
   retryFloor(floorId: string): boolean | undefined
   /** frontend-10: the generated dungeons of the session, for GET /dungeons. */
   list(): { id: string; name: string; startedAt: number; roomsCount: number }[]
+  /**
+   * frontend-10 (D14): builds a playable pack dungeon with the generated-dungeon builder. Its floors are ready at once,
+   * it never shows in list() and clear() keeps it. Returns the dungeon id.
+   */
+  registerPack(packId: string, title: string, topicCount: number): string
   /** frontend-10: forgets every document and dungeon (delete my account and data). */
   clear(): void
 }
@@ -135,6 +140,8 @@ export function createMockUpload(options: MockUploadOptions): MockUpload {
   const stepMs = options.stepMs ?? GENERATION_STEP_MS
   const docs = new Map<string, DocRecord>()
   const dungeons = new Map<string, GeneratedDungeon>()
+  /** Pack dungeons: hidden from the player's own list and kept when the account data is deleted. */
+  const packDungeons = new Set<string>()
   let counter = 0
 
   const requireRegistered = async (): Promise<void> => {
@@ -350,8 +357,30 @@ export function createMockUpload(options: MockUploadOptions): MockUpload {
       return { id, status: 'processing', message: 'Document re-queued for processing.' }
     },
 
+    registerPack(packId, title, topicCount) {
+      const doc: DocRecord = {
+        id: packId,
+        name: `${title}.txt`,
+        startedAt: now(),
+        verdict: 'accepted',
+        reason: null,
+        topics: Array.from({ length: topicCount }, (_, i) => ({
+          id: `${packId}-topic-${i + 1}`,
+          name: `${title}: ${TOPIC_WORDS[i % TOPIC_WORDS.length]}`,
+          description: `Section ${i + 1} of ${title}.`,
+          order_index: i,
+        })),
+        dungeonId: null,
+      }
+      const g = build(doc)
+      g.sim = createGenerationSim(g.base.floors.length, { stepMs: 0 })
+      dungeons.set(g.id, g)
+      packDungeons.add(g.id)
+      return g.id
+    },
+
     list() {
-      return [...dungeons.values()].map((g) => ({
+      return [...dungeons.values()].filter((g) => !packDungeons.has(g.id)).map((g) => ({
         id: g.id,
         name: g.name,
         startedAt: g.startedAt,
@@ -361,7 +390,7 @@ export function createMockUpload(options: MockUploadOptions): MockUpload {
 
     clear() {
       docs.clear()
-      dungeons.clear()
+      for (const id of [...dungeons.keys()]) if (!packDungeons.has(id)) dungeons.delete(id)
     },
 
     dungeon(id, play) {

@@ -50,7 +50,7 @@ export function buildPostText(data: ShareData): string {
   const labels = badgeLabels(data.badges)
   const lines = [
     `${SHARE_HASHTAG} I just cleared "${cleanName(data.dungeonName)}" in StudyDungeon, a game that turns my own notes into a dungeon.`,
-    `Score ${shareScore(data.score)}${rank ? `, rank #${rank}` : ''}${data.floorRank ? `, floor rank ${data.floorRank}` : ''}.`,
+    `Dungeon score ${shareScore(data.score)}${rank ? `, rank #${rank}` : ''}${data.floorRank ? `, floor rank ${data.floorRank}` : ''}.`,
   ]
   if (labels.length > 0) lines.push(`Badges: ${labels.join(', ')}.`)
   lines.push('Built with Kiro.')

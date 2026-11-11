@@ -18,6 +18,7 @@ import {
   mapDungeon,
   mapDungeonList,
   mapFinish,
+  mapPacks,
   mapMe,
   mapNameCheck,
   mapProgress,
@@ -339,6 +340,9 @@ export function createHttpClient(baseUrl: string, fetchImpl: typeof fetch = fetc
       }),
 
     listDungeons: async () => mapDungeonList(await request('listDungeons', 'GET', '/dungeons')),
+
+    // PROPOSED (frontend-10): unproven -> on on 2xx, off on 404, 405 or 501.
+    getPacks: () => withCapability('packs', async () => mapPacks(await request('getPacks', 'GET', '/packs'))),
 
     // A cold-server wake-up ping: once per client, no cookies, never throws.
     warmUp: async () => {
