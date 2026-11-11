@@ -86,14 +86,28 @@ def validate_display_name(name: str) -> Tuple[bool, str, str]:
     if "  " in norm:
         return False, "characters", "Consecutive spaces are not allowed."
 
-    # Moderation check
+    # Moderation check: whole word matching / exact normalized equality
     mod_check = normalize_display_name_for_moderation(norm)
-    for reserved in RESERVED_NAMES:
-        if reserved in mod_check or mod_check == reserved:
+
+    # 1. Exact match against reserved names
+    if mod_check in RESERVED_NAMES:
+        return False, "not_allowed", "That name is not available. Try another."
+
+    # 2. Tokenized word-boundary match (e.g. "ghost rival" or separate tokens)
+    tokens = re.findall(r"[a-z0-9]+", unicodedata.normalize("NFKC", trimmed).lower())
+    for token in tokens:
+        mapped_token = token
+        for char, mapped in LOOKALIKES.items():
+            mapped_token = mapped_token.replace(char, mapped)
+        if mapped_token in RESERVED_NAMES or mapped_token in PROFANE_WORDS:
             return False, "not_allowed", "That name is not available. Try another."
 
+    # 3. Profanity substring check (strict for slurs/severe profanity, but not blocking words like Dickens)
     for bad in PROFANE_WORDS:
-        if bad in mod_check:
+        # Check as whole word token or explicit standalone sequence
+        if bad in tokens:
+            return False, "not_allowed", "That name is not available. Try another."
+        if bad in ("fuck", "cunt", "nigger", "faggot") and bad in mod_check:
             return False, "not_allowed", "That name is not available. Try another."
 
     return True, "", ""

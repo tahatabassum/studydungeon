@@ -32,7 +32,7 @@ class Settings(BaseSettings):
     # AI Settings
     AI_PROVIDER: str = "mock"
     GEMINI_API_KEY: Optional[str] = None
-    GEMINI_MODEL: Optional[str] = None
+    GEMINI_MODEL: Optional[str] = "gemini-2.0-flash"
     OPENROUTER_API_KEY: Optional[str] = None
     OPENROUTER_ENABLED: bool = False
 

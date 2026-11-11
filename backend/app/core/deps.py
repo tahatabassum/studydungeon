@@ -43,10 +43,22 @@ async def get_current_user_optional(
         return None
 
     # Check expiration for guest users
+    from datetime import datetime, timedelta
+    now = datetime.utcnow()
     if user.is_guest and user.expires_at:
-        from datetime import datetime
-        if user.expires_at < datetime.utcnow():
+        if user.expires_at < now:
             return None
+
+    # Sliding 30-day session activity update (Issue #1 fix)
+    # Update last_active_at and extend guest expires_at
+    if (now - user.last_active_at).total_seconds() > 300:  # throttle write to once every 5 minutes
+        user.last_active_at = now
+        if user.is_guest:
+            user.expires_at = now + timedelta(days=settings.GUEST_SESSION_DAYS)
+        try:
+            await db.commit()
+        except Exception:
+            await db.rollback()
 
     return user
 

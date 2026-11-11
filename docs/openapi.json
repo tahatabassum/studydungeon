@@ -1170,6 +1170,17 @@
           "user": {
             "$ref": "#/components/schemas/UserResponse"
           },
+          "dungeon_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Dungeon Id"
+          },
           "notice_version": {
             "type": "string",
             "title": "Notice Version"
