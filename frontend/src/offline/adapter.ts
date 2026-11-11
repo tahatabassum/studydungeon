@@ -493,6 +493,7 @@ export function createAdapter(options: OfflineOptions): ApiClient {
     deleteAccount: async () => unsupported('Account deletion'),
     listDungeons: async () => unsupported('The dungeon list'),
     getPacks: async () => unsupported('Preloaded packs'),
+    getBoard: async () => unsupported('The live leaderboard'),
   }
 }
 

@@ -7,6 +7,22 @@
     "3.8 Write property test for the preloaded dungeon choice": {
       "status": "passed",
       "lastRunTimestamp": 1794397133340
+    },
+    "7.5 Write property test for the board view": {
+      "status": "passed",
+      "lastRunTimestamp": 1794416611180
+    },
+    "7.8 Write property test for the poll scheduler": {
+      "status": "passed",
+      "lastRunTimestamp": 1794416611606
+    },
+    "7.6 Write property test for the You panel": {
+      "status": "passed",
+      "lastRunTimestamp": 1794416616323
+    },
+    "7.7 Write property test for the countdown": {
+      "status": "passed",
+      "lastRunTimestamp": 1794416616719
     }
   },
   "executionHistory": {
@@ -429,6 +445,16 @@
         "executionId": "7dd1e894-b558-4280-a9ab-eedc6135a578",
         "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
         "timestamp": 1794394393582
+      },
+      {
+        "executionId": "ecc691bd-a7a4-4df3-b7ae-19a6293c4cc5",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794415399736
+      },
+      {
+        "executionId": "ecc691bd-a7a4-4df3-b7ae-19a6293c4cc5",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794416659770
       }
     ],
     "7.2 Add `getBoard` to the Http_Client and extend the support hook": [
@@ -436,6 +462,11 @@
         "executionId": "7dd1e894-b558-4280-a9ab-eedc6135a578",
         "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
         "timestamp": 1794394393678
+      },
+      {
+        "executionId": "ecc691bd-a7a4-4df3-b7ae-19a6293c4cc5",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794416660302
       }
     ],
     "7.3 Build the mock board": [
@@ -443,6 +474,11 @@
         "executionId": "7dd1e894-b558-4280-a9ab-eedc6135a578",
         "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
         "timestamp": 1794394393777
+      },
+      {
+        "executionId": "ecc691bd-a7a4-4df3-b7ae-19a6293c4cc5",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794416660923
       }
     ],
     "7.4 Build the pure board modules": [
@@ -450,6 +486,11 @@
         "executionId": "7dd1e894-b558-4280-a9ab-eedc6135a578",
         "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
         "timestamp": 1794394393865
+      },
+      {
+        "executionId": "ecc691bd-a7a4-4df3-b7ae-19a6293c4cc5",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794416661423
       }
     ],
     "7.9 Build the board hooks": [
@@ -457,6 +498,16 @@
         "executionId": "7dd1e894-b558-4280-a9ab-eedc6135a578",
         "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
         "timestamp": 1794394393963
+      },
+      {
+        "executionId": "ecc691bd-a7a4-4df3-b7ae-19a6293c4cc5",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794416664888
+      },
+      {
+        "executionId": "ecc691bd-a7a4-4df3-b7ae-19a6293c4cc5",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794418316800
       }
     ],
     "7.10 Build the live leaderboard view": [
@@ -464,6 +515,11 @@
         "executionId": "7dd1e894-b558-4280-a9ab-eedc6135a578",
         "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
         "timestamp": 1794394394081
+      },
+      {
+        "executionId": "ecc691bd-a7a4-4df3-b7ae-19a6293c4cc5",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794418317146
       }
     ],
     "7.11 Write example tests and extend the boundary tests for Phase 3": [
@@ -471,6 +527,11 @@
         "executionId": "7dd1e894-b558-4280-a9ab-eedc6135a578",
         "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
         "timestamp": 1794394394234
+      },
+      {
+        "executionId": "ecc691bd-a7a4-4df3-b7ae-19a6293c4cc5",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794418317610
       }
     ],
     "7.12 Extend the contract suite for Phase 3": [
@@ -478,6 +539,11 @@
         "executionId": "7dd1e894-b558-4280-a9ab-eedc6135a578",
         "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
         "timestamp": 1794394394340
+      },
+      {
+        "executionId": "ecc691bd-a7a4-4df3-b7ae-19a6293c4cc5",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794418318434
       }
     ],
     "7.13 Run Phase 3 verification": [
@@ -485,6 +551,11 @@
         "executionId": "7dd1e894-b558-4280-a9ab-eedc6135a578",
         "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
         "timestamp": 1794394394424
+      },
+      {
+        "executionId": "ecc691bd-a7a4-4df3-b7ae-19a6293c4cc5",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794418319317
       }
     ],
     "7.14 Update the docs for Phase 3": [
@@ -492,6 +563,11 @@
         "executionId": "7dd1e894-b558-4280-a9ab-eedc6135a578",
         "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
         "timestamp": 1794394394509
+      },
+      {
+        "executionId": "ecc691bd-a7a4-4df3-b7ae-19a6293c4cc5",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794418320242
       }
     ],
     "8. STOP: Phase 3 checkpoint, leaderboard review": [
@@ -499,6 +575,11 @@
         "executionId": "7dd1e894-b558-4280-a9ab-eedc6135a578",
         "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
         "timestamp": 1794394394601
+      },
+      {
+        "executionId": "ecc691bd-a7a4-4df3-b7ae-19a6293c4cc5",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794418321704
       }
     ],
     "9.1 Add the player stats endpoint through the stack": [
@@ -752,6 +833,41 @@
         "executionId": "ecc691bd-a7a4-4df3-b7ae-19a6293c4cc5",
         "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
         "timestamp": 1794415396253
+      }
+    ],
+    "7.5 Write property test for the board view": [
+      {
+        "executionId": "ecc691bd-a7a4-4df3-b7ae-19a6293c4cc5",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794416661971
+      }
+    ],
+    "7.6 Write property test for the You panel": [
+      {
+        "executionId": "ecc691bd-a7a4-4df3-b7ae-19a6293c4cc5",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794416662356
+      }
+    ],
+    "7.7 Write property test for the countdown": [
+      {
+        "executionId": "ecc691bd-a7a4-4df3-b7ae-19a6293c4cc5",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794416663659
+      }
+    ],
+    "7.8 Write property test for the poll scheduler": [
+      {
+        "executionId": "ecc691bd-a7a4-4df3-b7ae-19a6293c4cc5",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794416664159
+      }
+    ],
+    "7. Phase 3: Leaderboard with real players": [
+      {
+        "executionId": "ecc691bd-a7a4-4df3-b7ae-19a6293c4cc5",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794418320338
       }
     ]
   }

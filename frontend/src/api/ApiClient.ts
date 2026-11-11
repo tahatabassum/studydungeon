@@ -2,6 +2,8 @@ import type {
   AnswerResult,
   AttemptRequest,
   AuthMe,
+  BoardQuery,
+  BoardResponse,
   CapabilityState,
   ClearRoomResponse,
   CreateGuestRequest,
@@ -88,6 +90,8 @@ export interface ApiClient {
   listDungeons(): Promise<DungeonSummary[]>
   /** GET /packs (frontend-10, PROPOSED): the preloaded packs and their status. 501 when unsupported. */
   getPacks(): Promise<PacksResponse>
+  /** GET /leaderboard?board=&period= (frontend-10, PROPOSED): the live board of real players with the me block. */
+  getBoard(query: BoardQuery): Promise<BoardResponse>
   /** GET /health ping to wake a cold server. Only the Http client defines it. */
   warmUp?(): Promise<void>
   /**

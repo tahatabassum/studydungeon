@@ -15,6 +15,7 @@ import type {
   GenerationStatus,
   LeaderboardResponse,
   NameCheckResult,
+  BoardResponse,
   Pack,
   PackProgress,
   PacksResponse,
@@ -373,6 +374,41 @@ export const leaderboardResponseSchema: z.ZodType<LeaderboardResponse> = z.objec
   updated_at: z.string(),
 })
 
+/** frontend-10 (PROPOSED, V2 D.3): the live board. Domain shape: is_seeded_rival is mock-only and optional. */
+const boardEntrySchema = z.object({
+  rank: z.number().int().min(1),
+  public_id: z.string(),
+  handle: z.string(),
+  display_name: z.string().optional(),
+  tag: z.string().optional(),
+  is_guest: z.boolean(),
+  level: z.number(),
+  points: z.number(),
+  rooms_cleared: z.number(),
+  badge_ids: z.array(z.string()).optional(),
+  is_seeded_rival: z.boolean().optional(),
+})
+export const boardResponseSchema: z.ZodType<BoardResponse> = z.object({
+  board: z.enum(['preloaded', 'own_notes', 'overall']),
+  period: z.enum(['all', 'week']),
+  week: z.object({ timezone: z.string(), starts_at: z.string(), resets_at: z.string() }).optional(),
+  updated_at: z.string(),
+  next_refresh_at: z.string(),
+  total_ranked_players: z.number().optional(),
+  entries: z.array(boardEntrySchema),
+  me: z
+    .object({
+      live: z.boolean(),
+      public_id: z.string().optional(),
+      handle: z.string().optional(),
+      rank: z.number().int().min(1).nullable(),
+      points: z.number(),
+      next_above: z.object({ rank: z.number(), handle: z.string(), points: z.number(), points_needed: z.number() }).nullable(),
+      top20: z.object({ in_top20: z.boolean(), cutoff_points: z.number(), points_needed: z.number() }),
+      reason: z.string().optional(),
+    })
+    .nullable(),
+})
 /** One entry per existing endpoint; the HTTP client and the fixture test both use this table. */
 export const ENDPOINT_SCHEMAS = {
   startDemoSession: { endpoint: 'POST /demo/session', schema: demoSessionSchema },
@@ -390,6 +426,7 @@ export const ENDPOINT_SCHEMAS = {
   clearRoom: { endpoint: 'POST /runs/{id}/rooms/{roomId}/clear', schema: clearRoomSchema },
   finishRun: { endpoint: 'POST /runs/{id}/finish', schema: runSummarySchema },
   getPacks: { endpoint: 'GET /packs', schema: packsResponseSchema },
+  getBoard: { endpoint: 'GET /leaderboard', schema: boardResponseSchema },
   getProgress: { endpoint: 'GET /progress', schema: progressSchema },
   getDueReviews: { endpoint: 'GET /reviews/due', schema: dueReviewsSchema },
   getDueSummary: { endpoint: 'GET /reviews/due (summary)', schema: dueReviewsResponseSchema },

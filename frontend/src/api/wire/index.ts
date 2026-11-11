@@ -3,6 +3,7 @@
  * Domain_Model in src/types/api.ts. Only the Http_Client imports this folder.
  */
 export * from './attempt'
+export * from './board'
 export * from './auth'
 export * from './documents'
 export * from './dungeon'
@@ -23,6 +24,7 @@ import {
   wireUpgradeSchema,
   wireUserSchema,
 } from './auth'
+import { wireBoardSchema } from './board'
 import { wireDocumentStatusSchema, wireDocumentTopicsSchema, wireDocumentUploadSchema } from './documents'
 import { wireDungeonSchema } from './dungeon'
 import { wirePacksSchema } from './packs'
@@ -49,6 +51,7 @@ export const WIRE_ENDPOINTS = {
   clearRoom: { endpoint: 'POST /runs/{id}/rooms/{roomId}/clear', schema: wireClearSchema },
   finishRun: { endpoint: 'POST /runs/{id}/finish', schema: wireFinishSchema },
   getPacks: { endpoint: 'GET /packs', schema: wirePacksSchema },
+  getBoard: { endpoint: 'GET /leaderboard', schema: wireBoardSchema },
   getProgress: { endpoint: 'GET /progress', schema: wireProgressSchema },
   getDueReviews: { endpoint: 'GET /reviews/due', schema: wireDueReviewsSchema },
   uploadDocument: { endpoint: 'POST /documents', schema: wireDocumentUploadSchema },

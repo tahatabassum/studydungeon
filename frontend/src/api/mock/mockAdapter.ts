@@ -39,6 +39,7 @@ import { applyPackClear, buildPacksResponse, initialStatuses, type PackDef } fro
 import { createMockPoints, type PointsBoard } from './mockPoints'
 import { createMockUpload, type GeneratedSource } from './mockUpload'
 import { createMasteryStore } from '../../learning/masteryStore'
+import { buildMockBoard } from './mockBoard'
 import { buildMockLeaderboard, runRankOnDemoBoard, type StoredRun } from './mockLeaderboard'
 import { createReviewStore } from './mockReviews'
 import { buildStreakCalendar, notesConqueredPercent } from './mockProgress'
@@ -821,6 +822,30 @@ export function createMockAdapter(options: MockAdapterOptions = {}): ApiClient {
         isGuest: isGuestPlayer,
         nowMs: now(),
         updatedAt: new Date(now()).toISOString(),
+      })
+    },
+
+    async getBoard(query) {
+      await wait()
+      const me = await auth.getMe()
+      return buildMockBoard({
+        board: query.board,
+        period: query.period,
+        nowMs: now(),
+        player: me
+          ? {
+              publicId: me.user.public_id ?? `p_${me.user.id}`,
+              handle: me.user.handle ?? me.user.display_name ?? sessionName,
+              ...(me.user.display_name !== undefined ? { displayName: me.user.display_name } : {}),
+              ...(me.user.tag !== undefined ? { tag: me.user.tag } : {}),
+              isGuest: me.user.is_guest,
+              level: playerLevel(),
+              roomsCleared: clearedRooms().size,
+              all: points.totals(),
+              week: points.weekTotals(now()),
+              reachedAtMs: now(),
+            }
+          : null,
       })
     },
 

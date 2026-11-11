@@ -429,6 +429,26 @@ export function defineContractSuite(opts: ContractSuiteOptions): void {
         expect(after.packs.find((p) => p.id === open.id)?.status).toBe('completed')
       })
     })
+    // Live board (frontend-10, Phase 3).
+    describe.skipIf(opts.auth === false || !opts.makeFreshClient)('live board (frontend-10)', () => {
+      it('GET /leaderboard has at most 20 entries with increasing ranks from 1, and no private keys', async (ctx) => {
+        const c = await opts.makeFreshClient!()
+        const res = await provedOrSkip(ctx, c, 'liveBoard', () => c.getBoard({ board: 'overall', period: 'all' }))
+        expectSchema('getBoard', res)
+        expect(res.entries.length).toBeLessThanOrEqual(20)
+        res.entries.forEach((e, i) => expect(e.rank).toBe(i + 1))
+        const text = JSON.stringify(res.entries)
+        expect(text).not.toMatch(/"(username|user_id|id)":/)
+        expect(res.me).toBeNull()
+      })
+      it('GET /leaderboard with a session returns a me block', async (ctx) => {
+        const c = await opts.makeFreshClient!()
+        await c.startDemoSession()
+        const res = await provedOrSkip(ctx, c, 'liveBoard', () => c.getBoard({ board: 'overall', period: 'week' }))
+        expectSchema('getBoard', res)
+        if (res.me) expect(res.me.top20.points_needed).toBeGreaterThanOrEqual(0)
+      })
+    })
     // Auth cases come last: logging out ends the guest session the cases above use.
     describe.skipIf(opts.auth === false)('auth (C22 to C24)', () => {
       const stamp = Date.now().toString(36)

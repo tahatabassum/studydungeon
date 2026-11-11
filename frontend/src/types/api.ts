@@ -384,6 +384,47 @@ export interface LeaderboardResponse {
   updated_at: string
 }
 
+/** frontend-10 (V2 D.3, PROPOSED): the live leaderboard of real players. */
+export type BoardKind = 'preloaded' | 'own_notes' | 'overall'
+export interface BoardQuery {
+  board: BoardKind
+  period: LeaderboardPeriod
+}
+export interface BoardEntry {
+  rank: number
+  public_id: string
+  handle: string
+  display_name?: string
+  tag?: string
+  is_guest: boolean
+  level: number
+  points: number
+  rooms_cleared: number
+  badge_ids?: string[]
+  /** Mock domain only: a seeded Ghost Rival. The wire mapper never produces it. */
+  is_seeded_rival?: boolean
+}
+export interface BoardMe {
+  live: boolean
+  public_id?: string
+  handle?: string
+  rank: number | null
+  points: number
+  next_above: { rank: number; handle: string; points: number; points_needed: number } | null
+  top20: { in_top20: boolean; cutoff_points: number; points_needed: number }
+  reason?: string
+}
+export interface BoardResponse {
+  board: BoardKind
+  period: LeaderboardPeriod
+  week?: { timezone: string; starts_at: string; resets_at: string }
+  updated_at: string
+  next_refresh_at: string
+  total_ranked_players?: number
+  entries: BoardEntry[]
+  me: BoardMe | null
+}
+
 /** PROPOSED (pending Person A) */
 export type WeaponId =
   | 'rusty_dagger'

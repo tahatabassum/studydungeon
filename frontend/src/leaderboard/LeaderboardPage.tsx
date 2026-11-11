@@ -7,8 +7,10 @@ import { HauntedBackdrop } from '../components/HauntedBackdrop'
 import { displayHandle } from '../identity/handle'
 import { useSession } from '../state/SessionContext'
 import { useProgress } from '../state/useProgress'
-import { useLeaderboardSupport } from '../state/useLeaderboardSupport'
-import type { LeaderboardPeriod } from '../types/api'
+import { useLeaderboardSupport, useLeaderboardView } from '../state/useLeaderboardSupport'
+import { BoardTabs } from '../board/BoardTabs'
+import { LiveBoard } from '../board/LiveBoard'
+import type { BoardKind, LeaderboardPeriod } from '../types/api'
 import { DEMO_DUNGEON_ID } from './constants'
 import { Podium } from './Podium'
 import type { PlayerRun } from './provisional'
@@ -55,7 +57,7 @@ function Notice({ icon, title, children, tone = 'default' }: { icon: ReactNode; 
 }
 
 /** `/leaderboard`: readable by guests (Req 11.1). The Demo_Board is the main board. */
-export default function LeaderboardPage() {
+function LegacyLeaderboard() {
   const navigate = useNavigate()
   const [params, setParams] = useSearchParams()
   const { user } = useSession()
@@ -237,4 +239,70 @@ export default function LeaderboardPage() {
       )}
     </PageShell>
   )
+}
+
+const BOARD_IDS: readonly BoardKind[] = ['preloaded', 'own_notes', 'overall']
+
+/** The live board of real players (frontend-10): tabs in the URL, the same fit layout and haunted backdrop. */
+function LiveLeaderboard() {
+  const [params, setParams] = useSearchParams()
+  const { user } = useSession()
+  const rawBoard = params.get('board')
+  const board: BoardKind = BOARD_IDS.find((b) => b === rawBoard) ?? 'overall'
+  const period: LeaderboardPeriod = params.get('period') === 'week' ? 'week' : 'all'
+  const isGuest = !user || user.is_guest
+
+  const setParam = (name: string, value: string | null) =>
+    setParams(
+      (prev) => {
+        const p = new URLSearchParams(prev)
+        if (value === null) p.delete(name)
+        else p.set(name, value)
+        return p
+      },
+      { replace: true },
+    )
+
+  return (
+    <PageShell
+      wide
+      variant="fit"
+      testId="leaderboard-page"
+      title="Leaderboard"
+      subtitle="Real players ranked by Leaderboard points"
+      className="sd-lb-menace"
+      decor={<HauntedBackdrop variant="menace" />}
+      back={{ to: user ? '/dashboard' : '/', label: user ? 'Dashboard' : 'Title screen' }}
+      actions={
+        <Link to="/dashboard" className="sd-page__link">
+          Dashboard
+        </Link>
+      }
+    >
+      <BoardTabs
+        board={board}
+        period={period}
+        onBoard={(b) => setParam('board', b === 'overall' ? null : b)}
+        onPeriod={(p) => setParam('period', p === 'all' ? null : p)}
+      />
+      <div id="lb-panel" role="tabpanel" className="sd-lb__panel" data-testid="live-board">
+        <LiveBoard board={board} period={period} isGuest={isGuest} />
+      </div>
+    </PageShell>
+  )
+}
+
+/** `/leaderboard`: the live board, the old demo board, or a coming-soon state, by what the client offers (D16). */
+export default function LeaderboardPage() {
+  const view = useLeaderboardView()
+  if (view === 'live') return <LiveLeaderboard />
+  if (view === 'unknown') {
+    return (
+      <PageShell wide variant="fit" testId="leaderboard-page" title="Leaderboard" className="sd-lb-menace" decor={<HauntedBackdrop variant="menace" />}>
+        <Skeleton />
+      </PageShell>
+    )
+  }
+  // 'legacy' shows the old board; 'soon' makes it show the coming-soon notice (its own capability check).
+  return <LegacyLeaderboard />
 }

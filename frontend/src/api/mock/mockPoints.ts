@@ -24,6 +24,11 @@ export function weekOf(nowMs: number): number {
   return Math.floor((nowMs - FIRST_MONDAY_MS) / WEEK_MS)
 }
 
+/** Start (UTC Monday 00:00) of the week that holds a timestamp. */
+export function weekStartMs(nowMs: number): number {
+  return FIRST_MONDAY_MS + weekOf(nowMs) * WEEK_MS
+}
+
 export type PointsBoard = 'preloaded' | 'own_notes'
 
 export interface PointsAward {
@@ -60,6 +65,9 @@ export interface MockPoints {
   /** Pack complete bonus; idempotent per pack. */
   packComplete(packId: string, board: PointsBoard): number
   totals(): PlayerPoints
+  /** Points earned in the (UTC Monday) week that holds 
+owMs. */
+  weekTotals(nowMs: number): PlayerPoints
   ofPack(packId: string): number
   reset(): void
 }
@@ -70,6 +78,7 @@ export function createMockPoints(now: () => number): MockPoints {
   let seen = new Set<string>()
   let packsPaid = new Set<string>()
   let perPack = new Map<string, number>()
+  let perWeek = new Map<number, { preloaded: number; own_notes: number }>()
   let preloaded = 0
   let ownNotes = 0
 
@@ -77,6 +86,9 @@ export function createMockPoints(now: () => number): MockPoints {
   const add = (board: PointsBoard, amount: number, packId?: string): void => {
     if (board === 'preloaded') preloaded += amount
     else ownNotes += amount
+    const w = perWeek.get(weekOf(now())) ?? { preloaded: 0, own_notes: 0 }
+    w[board] += amount
+    perWeek.set(weekOf(now()), w)
     if (packId !== undefined) perPack.set(packId, (perPack.get(packId) ?? 0) + amount)
   }
   const half = (n: number): number => Math.floor(n / 2)
@@ -132,6 +144,10 @@ export function createMockPoints(now: () => number): MockPoints {
     },
 
     totals,
+    weekTotals(nowMs) {
+      const w = perWeek.get(weekOf(nowMs)) ?? { preloaded: 0, own_notes: 0 }
+      return { preloaded: w.preloaded, own_notes: w.own_notes, overall: w.preloaded + w.own_notes }
+    },
     ofPack: (packId) => perPack.get(packId) ?? 0,
 
     reset() {
@@ -140,6 +156,7 @@ export function createMockPoints(now: () => number): MockPoints {
       seen = new Set()
       packsPaid = new Set()
       perPack = new Map()
+      perWeek = new Map()
       preloaded = 0
       ownNotes = 0
     },

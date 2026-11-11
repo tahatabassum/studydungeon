@@ -171,51 +171,51 @@ Rules for every task:
 - [x] 6. STOP: Phase 2 checkpoint, preloaded packs review
   - Summarize the changes, say how to play pack 1 to the unlock screen in mock mode and what to check. Wait for approval, then commit Phase 2 separately.
 
-- [ ] 7. Phase 3: Leaderboard with real players
-  - [-] 7.1 Add the board types and wire schema
+- [x] 7. Phase 3: Leaderboard with real players
+  - [x] 7.1 Add the board types and wire schema
     - In `src/types/api.ts` add `BoardKind`, `BoardQuery`, `BoardEntry`, `BoardMe`, `BoardResponse`; create `src/api/wire/board.ts` (drops unknown keys, no username or internal id, no rival field); register in `src/api/schemas.ts`
     - _Requirements: 11.7, 18.5_
-  - [~] 7.2 Add `getBoard` to the Http_Client and extend the support hook
+  - [x] 7.2 Add `getBoard` to the Http_Client and extend the support hook
     - In `ApiClient.ts` and `client.ts` add `getBoard(query)` with `liveBoard` transitions and `Retry-After` kept on 429; extend `src/state/useLeaderboardSupport.ts` to report the live view, the legacy view or "coming soon"
     - _Requirements: 1.4, 1.5, 11.1, 11.13_
-  - [~] 7.3 Build the mock board
+  - [x] 7.3 Build the mock board
     - Create `src/api/mock/mockBoard.ts` (real-player-shaped entries built from the mock points and run history, the seeded Ghost Rivals marked `is_seeded_rival`, a live `me` block with rank, `next_above` and `top20`, `updated_at` and `next_refresh_at` one hour apart, week window) and wire it into `mockAdapter.ts`
     - _Requirements: 11.8, 12.10_
-  - [~] 7.4 Build the pure board modules
+  - [x] 7.4 Build the pure board modules
     - Create `src/board/boardView.ts`, `youPanel.ts`, `countdown.ts` (`formatCountdown`, `formatWeekReset`) and `pollScheduler.ts` (`nextPollDelay`, constants `MIN_BOARD_INTERVAL_MS`)
     - _Requirements: 11.4, 11.5, 12.1, 12.2, 12.3, 12.4, 12.5, 12.6, 13.2, 13.3, 13.5, 13.7_
-  - [ ]* 7.5 Write property test for the board view
+  - [x]* 7.5 Write property test for the board view
     - **Property 8: The board view keeps the server order**
     - **Validates: Requirements 11.5**
-  - [ ]* 7.6 Write property test for the You panel
+  - [x]* 7.6 Write property test for the You panel
     - **Property 10: The You panel shows exactly the numbers from the Backend**
     - **Validates: Requirements 12.1, 12.2, 12.3, 12.4, 12.5, 12.6, 12.10**
-  - [ ]* 7.7 Write property test for the countdown
+  - [x]* 7.7 Write property test for the countdown
     - **Property 11: Countdown text is monotone and clamped**
     - **Validates: Requirements 13.2**
-  - [ ]* 7.8 Write property test for the poll scheduler
+  - [x]* 7.8 Write property test for the poll scheduler
     - **Property 12: Poll scheduling never polls too early**
     - **Validates: Requirements 13.3, 13.4, 13.5, 13.6, 13.7**
-  - [~] 7.9 Build the board hooks
+  - [x] 7.9 Build the board hooks
     - Create `src/board/useBoard.ts` (one timer from `nextPollDelay`, refetch on visible after 60 s, Retry-After wait, cancel on unmount, keeps stale rows, ignores late responses) and `useNow.ts` (1 s tick while visible)
     - _Requirements: 13.3, 13.4, 13.5, 13.6, 13.7, 13.8_
-  - [~] 7.10 Build the live leaderboard view
+  - [x] 7.10 Build the live leaderboard view
     - Create `src/board/BoardTabs.tsx` (Preloaded, Own notes, Overall, All-time, This week, keyboard arrows, one-line explanations), `LiveBoard.tsx` (podium, table, tie-break note, skeleton, empty "Be the first to enter", error with Retry, stale line, "Updated at ..., refreshes hourly", countdown, week reset text) and `YouPanel.tsx`; make `src/leaderboard/LeaderboardPage.tsx` choose the live view, the legacy view or "coming soon"; add styles to `live.css`
     - _Requirements: 11.1, 11.2, 11.3, 11.4, 11.5, 11.6, 11.8, 11.9, 11.10, 11.11, 11.12, 11.13, 12.1, 12.7, 12.8, 12.9, 13.1, 17.1, 17.2, 17.3, 17.6, 17.7_
-  - [~] 7.11 Write example tests and extend the boundary tests for Phase 3
+  - [x] 7.11 Write example tests and extend the boundary tests for Phase 3
     - Tabs and URL params, week reset text, countdown ticking with fake timers, one request per allowed window, tab visibility refetch, Retry-After wait, empty, skeleton, error, stale, guest and null `me` panels, mock rivals labeled, no rival wording or `is_seeded_rival` read outside the allowed files
     - _Requirements: 11.7, 11.8, 11.9, 11.10, 11.11, 11.12, 12.7, 12.8, 13.3, 13.4, 13.5, 13.6, 13.7, 18.7_
-  - [~] 7.12 Extend the contract suite for Phase 3
+  - [x] 7.12 Extend the contract suite for Phase 3
     - Add the `GET /leaderboard` cases of the design table
     - _Requirements: 18.6_
-  - [~] 7.13 Run Phase 3 verification
+  - [x] 7.13 Run Phase 3 verification
     - Run the five commands; check the sizes for `/leaderboard` with each tab; confirm the counts
     - _Requirements: 17.1, 17.5, 19.1, 19.2_
-  - [~] 7.14 Update the docs for Phase 3
+  - [x] 7.14 Update the docs for Phase 3
     - Append to `docs/kiro-log-frontend.md` and `docs/handoff/B-to-A.md`
     - _Requirements: 19.3_
 
-- [~] 8. STOP: Phase 3 checkpoint, leaderboard review
+- [x] 8. STOP: Phase 3 checkpoint, leaderboard review
   - Summarize the changes, say how to view `/leaderboard` in mock mode and what to check. Wait for approval, then commit Phase 3 separately.
 
 - [ ] 9. Phase 4: Player counter

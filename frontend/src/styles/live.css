@@ -154,3 +154,12 @@
     overflow-y: auto;
   }
 }
+
+/* Live leaderboard (frontend-10 Phase 3). Reuses the .sd-lb__* look; these are the additions. */
+.sd-lb__tabgroup { display: flex; flex-direction: column; gap: 0.35rem; }
+.sd-lb__tabgroup .sd-lb__tabs { margin-bottom: 0; }
+.sd-lb__hint { margin: 0; font-size: var(--sd-text-sm); color: var(--color-ink-muted); }
+.sd-lb__you { display: flex; flex-wrap: wrap; align-items: center; gap: 0.25rem 1rem; flex-shrink: 0; padding: 0.5rem 0.9rem; }
+.sd-lb__you p { margin: 0; }
+.sd-lb__you-live { font-size: var(--sd-text-xs); color: var(--color-gold); text-transform: uppercase; letter-spacing: 0.05em; }
+.sd-lb__foot p { margin: 0; }

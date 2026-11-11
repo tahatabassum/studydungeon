@@ -105,6 +105,31 @@ describe('real mode loads no mock or offline code', () => {
   })
 })
 
+describe('no rival wording in real mode (frontend-10 Req 12.7)', () => {
+  const rivalOk = (f: string): boolean =>
+    f.startsWith('/src/api/mock/') || f.startsWith('/src/offline/') || f === '/src/leaderboard/view.ts'
+  it('"Ghost Rival" appears only in the mock, the offline module and src/leaderboard/view.ts', () => {
+    const hits = files.filter((f) => !rivalOk(f) && /Ghost Rival/.test(strip(sources[f])))
+    expect(hits).toEqual([])
+  })
+  it('is_seeded_rival is read only by the mock domain, the offline module and the board label paths', () => {
+    const allowed = new Set([
+      '/src/api/schemas.ts',
+      '/src/types/api.ts',
+      '/src/leaderboard/view.ts',
+      '/src/leaderboard/Row.tsx',
+      '/src/leaderboard/provisional.ts',
+      '/src/board/rivalLabel.ts',
+    ])
+    const hits = files.filter((f) => !rivalOk(f) && !allowed.has(f) && /is_seeded_rival/.test(strip(sources[f])))
+    expect(hits).toEqual([])
+  })
+  it('the wire layer never produces is_seeded_rival', () => {
+    const wire = files.filter((f) => f.startsWith('/src/api/wire/'))
+    expect(wire.filter((f) => /is_seeded_rival/.test(strip(sources[f])))).toEqual([])
+  })
+})
+
 describe('no token or credential in browser storage (Req 13.5)', () => {
   it('auth, session and api code never touches localStorage or sessionStorage', () => {
     const scoped = files.filter((f) => f.startsWith('/src/auth/') || f.startsWith('/src/api/') || f === '/src/state/SessionContext.tsx')
