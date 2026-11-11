@@ -8,9 +8,7 @@ import { Panel } from '../components/Panel';
 import { PixelSprite } from '../components/PixelSprite';
 import { CHARACTER_SPRITES } from '../art/sprites';
 import { TutorialFlow } from '../tutorial/TutorialFlow';
-import { needsFirstRun } from '../tutorial/tutorialFlag';
-import { useStartDemo } from '../state/useStartDemo';
-import { WakingUp } from './WakingUp';
+import { getApi } from '../api';
 
 const STEPS = [
   { icon: BookOpen, title: 'Upload notes', text: 'Feed your study notes to the library.' },
@@ -77,22 +75,15 @@ function useTabHidden(): boolean {
 export default function LandingPage() {
   const reduce = useReducedMotion();
   const navigate = useNavigate();
-  const demo = useStartDemo();
-  const { pending, error } = demo;
-  const [introOpen, setIntroOpen] = useState(false);
   const [replayOpen, setReplayOpen] = useState(false);
   const hidden = useTabHidden();
-  // One first-run flow per browser: the intro cards, then the five tutorial steps (sd.introSeen, sd.tutorialSeen).
-  // Finishing or skipping at any step stores both flags, and later visits go straight in.
-  const tryDemo = () => {
-    if (needsFirstRun()) setIntroOpen(true);
-    else void demo.start();
-  };
-  const firstRunDone = () => {
-    setIntroOpen(false);
-    void demo.start();
-  };
-
+  // Wake a sleeping Backend while the visitor reads the page. Only the Http_Client has warmUp (mock/offline: nothing is sent).
+  useEffect(() => {
+    void getApi().then((api) => api.warmUp?.()).catch(() => undefined);
+  }, []);
+  // Try the Demo opens the Name_Screen directly. The intro and tutorial never open on their own (sd.introSeen and
+  // sd.tutorialSeen are UI-only flags); the "How to play" pill below opens the tutorial on request.
+  const tryDemo = () => navigate('/play-as-guest');
   return (
     <div
       data-reduced={reduce ? 'true' : undefined}
@@ -137,7 +128,7 @@ export default function LandingPage() {
             <h1 className="sd-title-flicker sd-landing__title font-(family-name:--font-display) text-gold">StudyDungeon</h1>
             <p className="sd-landing__tag font-(family-name:--font-label) text-ink-muted">Turn your notes into a haunted dungeon.</p>
             <div className="sd-landing__actions">
-              <Button className="sd-pumpkin-btn" onClick={tryDemo} loading={pending}>
+              <Button className="sd-pumpkin-btn" onClick={tryDemo}>
                 Try the Demo
               </Button>
               <button type="button" onClick={() => setReplayOpen(true)} className="sd-ghost-pill">
@@ -152,11 +143,6 @@ export default function LandingPage() {
                   Create account
                 </Button>
               </div>
-              {error && (
-                <p role="alert" className="text-[color-mix(in_srgb,var(--color-danger),var(--color-ink)_45%)]">
-                  {error}
-                </p>
-              )}
             </div>
           </section>
 
@@ -182,9 +168,7 @@ export default function LandingPage() {
       </main>
 
       <footer className="sd-landing__foot relative text-center text-sm text-ink-muted">Beware the stacks after dark.</footer>
-      {introOpen && <TutorialFlow onDone={firstRunDone} />}
       {replayOpen && <TutorialFlow includeIntro={false} onDone={() => setReplayOpen(false)} />}
-      {pending && <WakingUp offerOffline={demo.offerOffline} onOffline={() => void demo.chooseOffline()} />}
     </div>
   );
 }

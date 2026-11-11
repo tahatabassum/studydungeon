@@ -6,7 +6,7 @@
 import { useEffect } from 'react'
 import { act, cleanup, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { MemoryRouter } from 'react-router-dom'
+import { MemoryRouter, useNavigate } from 'react-router-dom'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { ApiClient } from '@/api'
 import { ApiError } from '@/api/errors'
@@ -53,15 +53,32 @@ const promptOf = (dialog: HTMLElement) =>
 let adapter: ApiClient
 let user: ReturnType<typeof userEvent.setup>
 
+const nav = { go: (path: string): void => void path }
+function GrabNavigate() {
+  const navigate = useNavigate()
+  useEffect(() => {
+    nav.go = (path) => navigate(path)
+  }, [navigate])
+  return null
+}
+
+/**
+ * Try the Demo now goes through the Name_Screen and the Path_Choice (frontend-10, D35). This test is about the
+ * floor map, so it creates the guest through the name screen and then opens the map by route.
+ */
 async function openMap() {
   render(
     <MemoryRouter initialEntries={['/']}>
       <SessionProvider>
+        <GrabNavigate />
         <App />
       </SessionProvider>
     </MemoryRouter>,
   )
   await user.click(screen.getByRole('button', { name: /try the demo/i }))
+  await user.click(await screen.findByRole('button', { name: 'Accept and continue' }))
+  await screen.findByRole('button', { name: /Play preloaded dungeons/ })
+  act(() => nav.go('/campaign/demo-dungeon'))
   await screen.findByRole('heading', { level: 1, name: 'Your notes became 2 floors' })
 }
 
@@ -161,7 +178,8 @@ describe('campaign flow', () => {
     expect(within(victory).getByTestId('rank-reveal')).toBeTruthy()
     expect(within(victory).getByRole('button', { name: /View leaderboard/ })).toBeTruthy()
     expect(within(victory).getByRole('button', { name: /Share card/ }).getAttribute('aria-disabled')).toBeNull()
-    expect(within(victory).getByRole('button', { name: /Create account/ })).toBeTruthy()
+    // The guest CTA is the upgrade offer once the client capability is known (it replaces "Create account").
+    expect(await within(victory).findByRole('button', { name: /Create an account to keep your name and points/ })).toBeTruthy()
 
     await user.click(within(victory).getByRole('button', { name: 'Back to the map' }))
     await screen.findByRole('heading', { level: 1, name: 'Your notes became 2 floors' })

@@ -30,6 +30,7 @@ import { TouchControls } from '@/touch/TouchControls'
 import { useTouchMode } from '@/touch/useTouchMode'
 import { PauseButton } from '@/components/PauseButton'
 import { damageReceived, isCombatActive } from '@/state/combatMachine'
+import { displayHandle } from '@/identity/handle'
 import { useSession } from '@/state/SessionContext'
 import { campaignPath, usePlaySession, type PlayScope } from './usePlaySession'
 
@@ -168,10 +169,12 @@ export default function PlayPage({ scope, examMinutes = null }: PlayPageProps = 
               clearedRoomIds={s.clearedRoomIds}
               hauntedDue={s.hauntedDue}
               roomNoun={haunt ? 'Hall' : undefined}
+              playerName={user ? displayHandle(user) : undefined}
             />
             {!compact && !guestBannerDone && (
               <GuestBanner
                 isGuest={user?.is_guest ?? false}
+                handle={user ? displayHandle(user) : undefined}
                 autoHideMs={GUEST_BANNER_MS}
                 onDone={() => setGuestBannerDone(true)}
               />
@@ -277,6 +280,7 @@ export default function PlayPage({ scope, examMinutes = null }: PlayPageProps = 
           leaderboardEnabled={s.leaderboardEnabled}
           onViewLeaderboard={() => navigate('/leaderboard')}
           onCreateAccount={() => navigate('/register')}
+          onUpgrade={() => navigate('/register?upgrade=1')}
           onRetry={() => void s.retryFinish()}
           onPlayAgain={() => void s.playAgain()}
           onExit={s.exit}

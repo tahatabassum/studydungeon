@@ -1,0 +1,251 @@
+/* Haunted look for /choose and /upload: centered column, dark glass panels, drifting creatures. */
+.sd-haunted {
+  background:
+    radial-gradient(ellipse at 50% 40%, rgb(52 24 84 / 0.55) 0%, rgb(16 8 28 / 0.9) 55%, #05020a 100%),
+    #08040f;
+}
+.sd-haunted.sd-sky::before,
+.sd-haunted.sd-sky::after { opacity: 0.4; }
+.sd-haunted .sd-page__vignette {
+  background: radial-gradient(ellipse at 50% 45%, transparent 35%, rgb(0 0 0 / 0.8) 100%);
+}
+.sd-haunted .sd-page__inner {
+  position: relative;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+.sd-haunted .sd-page__header { display: contents; }
+.sd-haunted .sd-page__topbar {
+  position: absolute;
+  top: max(0.4rem, env(safe-area-inset-top, 0px));
+  left: clamp(16px, 3vw, 48px);
+  z-index: 2;
+}
+.sd-haunted .sd-page__body {
+  flex: 0 1 auto;
+  width: 100%;
+  max-width: 52rem;
+  align-items: center;
+}
+.sd-haunted .sd-page__body > * { width: 100%; }
+.sd-haunted .sd-page__sub { color: #cdbfe3; margin-bottom: 0.5rem; }
+.sd-haunted .sd-card {
+  background: rgb(18 10 32 / 0.78);
+  border: 1px solid rgb(150 100 220 / 0.35);
+  backdrop-filter: blur(6px);
+  box-shadow: 0 10px 40px rgb(0 0 0 / 0.6), inset 0 0 30px rgb(90 40 160 / 0.15);
+}
+.sd-haunted .sd-card__h { justify-content: center; }
+.sd-haunted .sd-live__body { max-width: 52rem; }
+
+/* /choose cards */
+.sd-haunted .sd-choice__cards { gap: clamp(1rem, 3vw, 2rem); }
+.sd-haunted .sd-choice:not(.sd-choice--compact) .sd-choice__card {
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  min-height: clamp(11rem, 32vh, 16rem);
+  padding: 1.5rem 1.25rem;
+  text-align: center;
+  color: var(--color-ink);
+  background: rgb(18 10 32 / 0.8);
+  border: 1px solid rgb(150 100 220 / 0.4);
+  border-radius: 1rem;
+  backdrop-filter: blur(6px);
+  box-shadow: 0 10px 36px rgb(0 0 0 / 0.6), inset 0 0 28px rgb(90 40 160 / 0.15);
+  transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+}
+.sd-haunted .sd-choice:not(.sd-choice--compact) .sd-choice__card svg { width: 3.5rem; height: 3.5rem; color: var(--color-gold); }
+.sd-haunted .sd-choice:not(.sd-choice--compact) .sd-choice__title { font-size: 1.15rem; }
+.sd-haunted .sd-choice__desc { font-size: var(--sd-text-sm); color: #cdbfe3; }
+.sd-haunted .sd-choice__card:hover:not(:disabled),
+.sd-haunted .sd-choice__card:focus-visible {
+  transform: translateY(-3px);
+  border-color: rgb(190 140 255 / 0.8);
+  box-shadow: 0 10px 36px rgb(0 0 0 / 0.6), 0 0 28px rgb(150 90 240 / 0.55);
+}
+.sd-haunted .sd-choice__card--default { border-color: var(--color-gold); box-shadow: 0 0 0 2px var(--color-gold), 0 10px 36px rgb(0 0 0 / 0.6); }
+.sd-haunted .sd-choice__card--default:hover:not(:disabled),
+.sd-haunted .sd-choice__card--default:focus-visible {
+  border-color: var(--color-gold);
+  box-shadow: 0 0 0 2px var(--color-gold), 0 0 30px rgb(255 190 70 / 0.5);
+}
+
+/* Backdrop: behind content, never interactive, never scrolls the page. */
+.sd-haunted-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+.sd-haunted-backdrop .sd-bat { opacity: 0.35; }
+.sd-haunted-fig {
+  position: absolute;
+  top: var(--fig-top);
+  left: 0;
+  width: var(--fig-size);
+  opacity: 0.16;
+  will-change: transform;
+  animation: sd-haunt-drift-l var(--fig-dur) linear var(--fig-delay) infinite;
+}
+.sd-haunted-fig--r { animation-name: sd-haunt-drift-r; }
+.sd-haunted-fig canvas.sd-portrait { display: block; width: 100%; height: auto; animation: none; }
+@keyframes sd-haunt-drift-l {
+  0% { transform: translate3d(-15vw, 0, 0); }
+  50% { transform: translate3d(55vw, -4vh, 0); }
+  100% { transform: translate3d(110vw, 0, 0); }
+}
+@keyframes sd-haunt-drift-r {
+  0% { transform: translate3d(110vw, 0, 0); }
+  50% { transform: translate3d(45vw, 4vh, 0); }
+  100% { transform: translate3d(-15vw, 0, 0); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .sd-haunted-backdrop { display: none; }
+}
+[data-reduced='true'] .sd-haunted-backdrop { display: none; }
+@media (max-width: 640px) {
+  .sd-haunted-fig:nth-of-type(n + 3) { display: none; }
+  .sd-haunted .sd-choice:not(.sd-choice--compact) .sd-choice__card { min-height: 8.5rem; padding: 1rem; }
+}
+
+/* Shared dark glass form card: /login, /register (StoneFrame .sd-auth) and /play-as-guest (.sd-glass-form). */
+.sd-haunted .sd-auth,
+.sd-haunted .sd-glass-form {
+  width: 100%;
+  max-width: 30rem;
+  margin: 0 auto;
+  padding: clamp(1rem, 3vh, 1.75rem) clamp(1rem, 3vw, 1.75rem);
+  text-align: left;
+  background: rgb(18 10 32 / 0.8);
+  border: 1px solid rgb(150 100 220 / 0.4);
+  border-radius: 1rem;
+  backdrop-filter: blur(6px);
+  box-shadow: 0 10px 36px rgb(0 0 0 / 0.6), inset 0 0 28px rgb(90 40 160 / 0.15);
+  transition: box-shadow 0.18s ease, border-color 0.18s ease;
+}
+.sd-haunted .sd-auth:focus-within,
+.sd-haunted .sd-glass-form:focus-within {
+  border-color: rgb(190 140 255 / 0.8);
+  box-shadow: 0 10px 36px rgb(0 0 0 / 0.6), 0 0 28px rgb(150 90 240 / 0.55);
+}
+.sd-haunted .sd-auth .sd-web { display: none; }
+.sd-haunted .sd-auth__field input,
+.sd-haunted .sd-live__input {
+  background: rgb(8 4 15 / 0.85);
+  border-color: rgb(150 100 220 / 0.6);
+}
+.sd-haunted .sd-auth__blurb,
+.sd-haunted .sd-auth__hint,
+.sd-haunted .sd-auth__switch,
+.sd-haunted .sd-live__note { color: #cdbfe3; }
+.sd-haunted .sd-auth__heading,
+.sd-haunted .sd-live__label { text-align: center; }
+.sd-haunted .sd-live__label { text-align: left; }
+.sd-haunted .sd-live__body.sd-live__body { max-width: 32rem; }
+.sd-haunted .sd-live__row { flex-wrap: nowrap; }
+.sd-haunted .sd-live__notice { text-align: left; }
+.sd-haunted .sd-live__hint { color: #ff9b9b; }
+@media (max-width: 480px) {
+  .sd-haunted .sd-live__row { flex-direction: column; flex-wrap: wrap; }
+}
+@media (max-height: 760px) {
+  .sd-haunted .sd-auth__sprite { display: none; }
+}
+
+/* Dashboard: same dark tone as /choose, but content stays left-aligned and the page scrolls. */
+.sd-dark {
+  background:
+    radial-gradient(ellipse at 50% 30%, rgb(52 24 84 / 0.55) 0%, rgb(16 8 28 / 0.9) 55%, #05020a 100%),
+    #08040f;
+}
+.sd-dark.sd-sky::before,
+.sd-dark.sd-sky::after { opacity: 0.4; }
+.sd-dark .sd-page__vignette {
+  background: radial-gradient(ellipse at 50% 45%, transparent 35%, rgb(0 0 0 / 0.8) 100%);
+}
+.sd-dark .sd-page__sub { color: #cdbfe3; }
+.sd-dark .sd-card {
+  background: rgb(18 10 32 / 0.78);
+  border: 1px solid rgb(150 100 220 / 0.35);
+  backdrop-filter: blur(6px);
+  box-shadow: 0 10px 40px rgb(0 0 0 / 0.6), inset 0 0 30px rgb(90 40 160 / 0.15);
+  padding: 1rem 1.1rem;
+}
+.sd-dark .sd-card__h { justify-content: flex-start; text-align: left; }
+.sd-dark .sd-choice--compact .sd-choice__card {
+  background: rgb(8 4 15 / 0.7);
+  border: 1px solid rgb(150 100 220 / 0.4);
+}
+
+/* Menace variant (leaderboard): red eyes, blood tint, sharper motion. Transform/opacity only. */
+.sd-haunted-backdrop--menace::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse at 15% 100%, rgb(120 10 20 / 0.28), transparent 55%),
+    radial-gradient(ellipse at 85% 100%, rgb(120 10 20 / 0.22), transparent 55%);
+}
+.sd-haunted-backdrop--menace .sd-bat { opacity: 0.4; color: #8a1018; filter: drop-shadow(0 0 4px rgb(220 20 30 / 0.7)); }
+.sd-menace-fig {
+  position: absolute;
+  top: var(--fig-top);
+  width: var(--fig-size);
+  opacity: 0.2;
+  will-change: transform, opacity;
+  filter: sepia(1) saturate(4) hue-rotate(-35deg) brightness(0.7);
+}
+.sd-menace-fig canvas.sd-portrait { display: block; width: 100%; height: auto; animation: none; }
+.sd-menace-fig::after {
+  content: '';
+  position: absolute;
+  top: 30%;
+  left: 50%;
+  width: 34%;
+  height: 8%;
+  transform: translateX(-50%);
+  background:
+    radial-gradient(circle, #ff2a2a 0 28%, transparent 32%) left center / 40% 100% no-repeat,
+    radial-gradient(circle, #ff2a2a 0 28%, transparent 32%) right center / 40% 100% no-repeat;
+  filter: drop-shadow(0 0 5px #ff1a1a);
+}
+.sd-menace-fig--ghost { left: 0; animation: sd-menace-flicker var(--fig-dur) linear var(--fig-delay) infinite; }
+.sd-menace-fig--lurk-l { left: 0; animation: sd-menace-lurk-l var(--fig-dur) ease-in-out var(--fig-delay) infinite; }
+.sd-menace-fig--lurk-r { right: 0; animation: sd-menace-lurk-r var(--fig-dur) ease-in-out var(--fig-delay) infinite; }
+.sd-bat--swoop-l { --bat-fly: sd-menace-swoop-l; }
+.sd-bat--swoop-r { --bat-fly: sd-menace-swoop-r; }
+@keyframes sd-menace-flicker {
+  0% { transform: translate3d(-15vw, 0, 0); opacity: 0.2; }
+  10% { opacity: 0.05; } 14% { opacity: 0.22; } 18% { opacity: 0.08; }
+  50% { transform: translate3d(50vw, -5vh, 0); opacity: 0.2; }
+  62% { opacity: 0.06; } 66% { opacity: 0.22; }
+  100% { transform: translate3d(110vw, 0, 0); opacity: 0.2; }
+}
+@keyframes sd-menace-lurk-l {
+  0%, 20% { transform: translate3d(-95%, 0, 0); }
+  40%, 60% { transform: translate3d(-35%, 0, 0); }
+  80%, 100% { transform: translate3d(-95%, 0, 0); }
+}
+@keyframes sd-menace-lurk-r {
+  0%, 20% { transform: translate3d(95%, 0, 0); }
+  40%, 60% { transform: translate3d(35%, 0, 0); }
+  80%, 100% { transform: translate3d(95%, 0, 0); }
+}
+@keyframes sd-menace-swoop-l {
+  0% { transform: translate3d(-10vw, 0, 0); }
+  30% { transform: translate3d(30vw, 14vh, 0); }
+  55% { transform: translate3d(60vw, -6vh, 0); }
+  100% { transform: translate3d(112vw, 10vh, 0); }
+}
+@keyframes sd-menace-swoop-r {
+  0% { transform: translate3d(112vw, 0, 0); }
+  30% { transform: translate3d(70vw, 16vh, 0); }
+  55% { transform: translate3d(40vw, -6vh, 0); }
+  100% { transform: translate3d(-12vw, 10vh, 0); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .sd-haunted-backdrop--menace { display: none; }
+}

@@ -1,5 +1,6 @@
-import { beforeAll, describe, expect, it } from 'vitest'
-import type { ApiClient } from '../api/ApiClient'
+import { beforeAll, describe, expect, it, type TestContext } from 'vitest'
+import { capabilityOf, type ApiClient, type CapabilityKey } from '../api/ApiClient'
+import { ApiError } from '../api/errors'
 import { ENDPOINT_SCHEMAS } from '../api/schemas'
 import type { AnswerResult, Dungeon, DemoSessionResponse, Run } from '../types/api'
 
@@ -25,6 +26,28 @@ export interface ContractSuiteOptions {
    * (a few tens of ms); the real backend needs real files and an AI provider, so it is left out.
    */
   uploads?: boolean
+  /**
+   * Gives a client with its own cookie jar / session, so each identity case starts without a session
+   * (`POST /guests` answers 409 when a cookie exists). Without it the identity cases are skipped.
+   * In real mode these cases create and delete accounts: run them against a DISPOSABLE backend only.
+   */
+  makeFreshClient?: () => ApiClient | Promise<ApiClient>
+}
+
+/**
+ * Runs `call` and skips the case when the endpoint answers 404, 405 or 501 (an older Backend), or when
+ * the client turned the capability 'off' after the call. Keeps the real suite green against old backends.
+ */
+export async function provedOrSkip<T>(ctx: TestContext, api: ApiClient, key: CapabilityKey, call: () => Promise<T>): Promise<T> {
+  let value: T
+  try {
+    value = await call()
+  } catch (err) {
+    if (err instanceof ApiError && [404, 405, 501].includes(err.status)) ctx.skip(`${key} is not available on this backend`)
+    throw err
+  }
+  if (capabilityOf(api, key) === 'off') ctx.skip(`${key} is off`)
+  return value
 }
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
@@ -265,6 +288,94 @@ export function defineContractSuite(opts: ContractSuiteOptions): void {
       if (summary.leaderboard_rank !== undefined) expect(summary.leaderboard_rank).toBeGreaterThanOrEqual(1)
       if (summary.level_up) expect(summary.level_up.to).toBeGreaterThan(summary.level_up.from)
       for (const w of summary.weak_concepts ?? []) expect(w.text.length).toBeGreaterThan(0)
+    })
+
+    // Identity cases (frontend-10, Phase 1). Each one uses a fresh client so no session is shared.
+    describe.skipIf(opts.auth === false || !opts.makeFreshClient)('identity (frontend-10)', () => {
+      const HANDLE = /^[A-Za-z0-9 _-]{3,16}#\d{4,5}$/
+      const fresh = async () => opts.makeFreshClient!()
+      const stamp = Date.now().toString(36).slice(-6)
+
+      it('name check accepts a valid name and refuses bad ones with the right reason', async (ctx) => {
+        const c = await fresh()
+        const ok = await provedOrSkip(ctx, c, 'guestIdentity', () => c.checkGuestName('Raven'))
+        expect(ok.ok).toBe(true)
+        const cases: Array<[string, string]> = [
+          ['ab', 'too_short'],
+          ['a'.repeat(17), 'too_long'],
+          ['Adm1n', 'not_allowed'],
+          ['ghost rival', 'not_allowed'],
+        ]
+        for (const [name, reason] of cases) {
+          const r = await c.checkGuestName(name)
+          expect(r.ok, name).toBe(false)
+          expect(r.reason, name).toBe(reason)
+        }
+      })
+
+      it('createGuest returns a handle and getMe returns the same handle and public_id', async (ctx) => {
+        const c = await fresh()
+        const created = await provedOrSkip(ctx, c, 'guestIdentity', () => c.createGuest({ display_name: `Raven${stamp}`.slice(0, 16), accept_public_notice: true }))
+        expect(created.user.is_guest).toBe(true)
+        expect(created.user.handle).toMatch(HANDLE)
+        expect(created.user.public_id).toBeTruthy()
+        const me = await c.getMe()
+        expect(me?.user.is_guest).toBe(true)
+        expect(me?.user.handle).toBe(created.user.handle)
+        expect(me?.user.public_id).toBe(created.user.public_id)
+      })
+
+      it('two guests with one name get different tags', async (ctx) => {
+        const a = await fresh()
+        const first = await provedOrSkip(ctx, a, 'guestIdentity', () => a.createGuest({ display_name: 'Twin', accept_public_notice: true }))
+        // Separate clients can only draw the same random tag by chance (1 in 9000), so allow two redraws.
+        let second = first
+        for (let i = 0; i < 3 && second.user.handle === first.user.handle; i += 1) {
+          const b = await fresh()
+          second = await b.createGuest({ display_name: 'Twin', accept_public_notice: true })
+        }
+        expect(second.user.display_name).toBe(first.user.display_name)
+        expect(second.user.handle).not.toBe(first.user.handle)
+        expect(second.user.tag).not.toBe(first.user.tag)
+      })
+
+      it('upgrade keeps id, public_id and handle; a second upgrade answers NOT_A_GUEST', async (ctx) => {
+        const c = await fresh()
+        const created = await provedOrSkip(ctx, c, 'guestIdentity', () => c.createGuest({ display_name: 'Upgrader', accept_public_notice: true }))
+        const username = `up_${stamp}${Math.random().toString(36).slice(2, 6)}`
+        const credentials = { username, password: 'correct-horse-9' }
+        const upgraded = await provedOrSkip(ctx, c, 'accountUpgrade', () => c.upgradeGuest(credentials))
+        expect(upgraded.is_guest).toBe(false)
+        expect(upgraded.id).toBe(created.user.id)
+        expect(upgraded.public_id).toBe(created.user.public_id)
+        expect(upgraded.handle).toBe(created.user.handle)
+        await expect(c.upgradeGuest({ username: `${username}x`, password: 'correct-horse-9' })).rejects.toMatchObject({
+          code: 'NOT_A_GUEST',
+        })
+      })
+
+      it('delete account then getMe answers null', async (ctx) => {
+        const c = await fresh()
+        await provedOrSkip(ctx, c, 'guestIdentity', () => c.createGuest({ display_name: 'Leaver', accept_public_notice: true }))
+        await provedOrSkip(ctx, c, 'accountDelete', () => c.deleteAccount())
+        expect(await c.getMe()).toBeNull()
+      })
+
+      it('listDungeons includes a public demo dungeon for a named guest', async (ctx) => {
+        const c = await fresh()
+        await provedOrSkip(ctx, c, 'guestIdentity', () => c.createGuest({ display_name: 'Lister', accept_public_notice: true }))
+        const list = await c.listDungeons()
+        expect(list.some((d) => d.is_public_demo)).toBe(true)
+      })
+
+      it('creating a guest while a session exists is 409 SESSION_EXISTS', async (ctx) => {
+        const c = await fresh()
+        await provedOrSkip(ctx, c, 'guestIdentity', () => c.createGuest({ display_name: 'Early', accept_public_notice: true }))
+        await expect(c.createGuest({ display_name: 'Again', accept_public_notice: true })).rejects.toMatchObject({
+          status: 409,
+          code: 'SESSION_EXISTS',
+        })
+      })
     })
 
     // Auth cases come last: logging out ends the guest session the cases above use.

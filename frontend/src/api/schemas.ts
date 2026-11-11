@@ -3,6 +3,7 @@ import type {
   AnswerResult,
   AuthMe,
   ClearRoomResponse,
+  CreateGuestResponse,
   DemoSessionResponse,
   DocumentStatus,
   DocumentTopic,
@@ -10,8 +11,10 @@ import type {
   DueReview,
   DueReviewsResponse,
   Dungeon,
+  DungeonSummary,
   GenerationStatus,
   LeaderboardResponse,
+  NameCheckResult,
   ProgressInfo,
   Run,
   RunSummary,
@@ -40,7 +43,37 @@ export const userSchema = z.object({
   id: z.string(),
   username: z.string(),
   is_guest: z.boolean(),
+  // frontend-10: optional identity fields
+  public_id: z.string().optional(),
+  display_name: z.string().optional(),
+  tag: z.string().optional(),
+  handle: z.string().optional(),
 })
+
+/** frontend-10: POST /guests/name-check. */
+export const nameCheckSchema: z.ZodType<NameCheckResult> = z.object({
+  ok: z.boolean(),
+  display_name: z.string().optional(),
+  reason: z.enum(['too_short', 'too_long', 'characters', 'not_allowed']).optional(),
+  message: z.string().optional(),
+})
+
+/** frontend-10: POST /guests. */
+export const createGuestSchema: z.ZodType<CreateGuestResponse> = z.object({
+  user: userSchema,
+  notice_version: z.string(),
+})
+
+/** frontend-10: GET /dungeons. */
+export const dungeonListSchema: z.ZodType<DungeonSummary[]> = z.array(
+  z.object({
+    id: z.string(),
+    title: z.string(),
+    is_public_demo: z.boolean(),
+    created_at: z.string(),
+    rooms_count: z.number().int().nonnegative(),
+  }),
+)
 
 /** `GET /auth/me`: the user and the session expiry (C22). */
 export const authMeSchema: z.ZodType<AuthMe> = z.object({
@@ -300,6 +333,10 @@ export const ENDPOINT_SCHEMAS = {
   register: { endpoint: 'POST /auth/register', schema: userSchema },
   login: { endpoint: 'POST /auth/login', schema: userSchema },
   getMe: { endpoint: 'GET /auth/me', schema: authMeSchema },
+  checkGuestName: { endpoint: 'POST /guests/name-check', schema: nameCheckSchema },
+  createGuest: { endpoint: 'POST /guests', schema: createGuestSchema },
+  upgradeGuest: { endpoint: 'POST /auth/upgrade', schema: userSchema },
+  listDungeons: { endpoint: 'GET /dungeons', schema: dungeonListSchema },
   getDungeon: { endpoint: 'GET /dungeons/{id}', schema: dungeonSchema },
   startRun: { endpoint: 'POST /runs', schema: runSchema },
   getRun: { endpoint: 'GET /runs/{id}', schema: runSchema },

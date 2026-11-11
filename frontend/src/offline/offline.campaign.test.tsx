@@ -3,11 +3,12 @@
  * surface (`floors`, scoped `startRun`, `floor_rank`, `mastery_by_topic`) and 8 Ghost Rivals.
  * **Validates: Requirements 14.5, 14.6, 1.2**
  */
-import { cleanup, render, screen } from '@testing-library/react'
+import { act, cleanup, render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import type { ApiClient } from '@/api'
+import { setApiOverride, type ApiClient } from '@/api'
+import { OFFLINE_OFFER_MS } from '@/identity/wakeConstants'
 import { createOfflineAdapter, OFFLINE_RIVALS } from '@/offline'
 import bundle from './demoDungeon.json'
 
@@ -16,7 +17,7 @@ const h = vi.hoisted(() => ({ api: null as unknown }))
 vi.mock('phaser', () => ({ default: {} }))
 vi.mock('@/api', async (importOriginal) => {
   const actual = await importOriginal<typeof import('@/api')>()
-  return { ...actual, getApi: () => Promise.resolve(h.api as ApiClient) }
+  return { ...actual, getApi: () => (actual.isApiOverridden() ? actual.getApi() : Promise.resolve(h.api as ApiClient)) }
 })
 vi.mock('@/game/GameCanvas', () => ({ GameCanvas: () => <div role="application" aria-label="Dungeon game" tabIndex={0} /> }))
 
@@ -31,11 +32,23 @@ const correct = (qid: string): string => {
 beforeEach(() => {
   h.api = createOfflineAdapter({ now: () => 0 })
 })
-afterEach(() => cleanup())
+afterEach(() => {
+  cleanup()
+  setApiOverride(null)
+  vi.useRealTimers()
+})
 
 describe('Offline demo on the campaign map', () => {
   it('Try the Demo opens a map with 2 floors and a locked Final_Boss', async () => {
-    const user = userEvent.setup()
+    // The server is slow (createGuest never answers): the offline demo starts only by the player's click at 8 s.
+    vi.useFakeTimers({ shouldAdvanceTime: true })
+    const base = createOfflineAdapter({ now: () => 0 })
+    h.api = {
+      ...base,
+      capabilities: { ...base.capabilities, guestIdentity: true },
+      createGuest: () => new Promise<never>(() => {}),
+    } as ApiClient
+    const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime })
     render(
       <MemoryRouter initialEntries={['/']}>
         <SessionProvider>
@@ -44,7 +57,14 @@ describe('Offline demo on the campaign map', () => {
       </MemoryRouter>,
     )
     await user.click(screen.getByRole('button', { name: /try the demo/i }))
+    await user.click(await screen.findByRole('button', { name: 'Accept and continue' }))
+    expect(screen.queryByRole('button', { name: 'Play offline demo' })).toBeNull()
+    await act(async () => {
+      vi.advanceTimersByTime(OFFLINE_OFFER_MS)
+    })
+    await user.click(await screen.findByRole('button', { name: 'Play offline demo' }))
     await screen.findByRole('heading', { level: 1, name: 'Your notes became 2 floors' })
+    expect(screen.getByTestId('offline-label')).toBeTruthy()
     expect(screen.getByTestId('floor-node-1').getAttribute('data-status')).toBe('ready')
     expect(screen.getByTestId('floor-node-2').getAttribute('data-status')).toBe('locked')
     expect(screen.queryByTestId('floor-node-3')).toBeNull()

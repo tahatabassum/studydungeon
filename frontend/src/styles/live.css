@@ -1,0 +1,156 @@
+/* frontend-10 live-player screens (Name_Screen first). Fits one viewport on desktop (PageShell fit variant). */
+.sd-live__body {
+  width: 100%;
+  max-width: 34rem;
+  margin: 0 auto;
+}
+.sd-live__form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+.sd-live__label {
+  font-family: var(--font-label);
+  font-size: var(--sd-text-md);
+  color: var(--color-gold);
+}
+.sd-live__row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  align-items: stretch;
+}
+.sd-live__input {
+  flex: 1 1 12rem;
+  min-width: 0;
+  min-height: clamp(2.5rem, 6vh, 2.75rem);
+  padding: 0.35rem 0.75rem;
+  font: inherit;
+  font-size: var(--sd-text-md);
+  color: var(--color-ink);
+  background: var(--color-bg);
+  border: 2px solid var(--color-magic);
+  border-radius: 0.5rem;
+}
+.sd-live__input:focus-visible {
+  outline: 3px solid var(--color-accent);
+  outline-offset: 2px;
+}
+.sd-live__input[aria-invalid='true'] {
+  border-color: var(--color-danger);
+}
+.sd-live__hint {
+  margin: 0;
+  min-height: 1.25rem;
+  font-size: var(--sd-text-sm);
+  color: var(--color-danger);
+}
+.sd-live__notice {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  color: var(--color-ink);
+}
+.sd-live__notice p {
+  margin: 0;
+}
+.sd-live__note {
+  font-size: var(--sd-text-sm);
+  color: var(--color-ink-muted);
+}
+.sd-live__submit {
+  align-self: stretch;
+}
+.sd-live__error {
+  margin: 0;
+  color: var(--color-danger);
+}
+
+.sd-live__body--wide {
+  max-width: 48rem;
+}
+/* Path_Choice (Req 5): two big cards, the preloaded one highlighted as the default. */
+.sd-choice {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+.sd-choice__cards {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+.sd-choice__card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.6rem;
+  padding: 1.25rem;
+  min-height: 9rem;
+  font: inherit;
+  text-align: left;
+  color: var(--color-ink);
+  background: var(--color-bg);
+  border: 2px solid var(--color-magic);
+  border-radius: 0.75rem;
+  cursor: pointer;
+}
+.sd-choice__card--default {
+  border-color: var(--color-gold);
+  box-shadow: 0 0 0 2px var(--color-gold);
+}
+.sd-choice__card:focus-visible {
+  outline: 3px solid var(--color-accent);
+  outline-offset: 3px;
+}
+.sd-choice__card:disabled {
+  opacity: 0.7;
+  cursor: progress;
+}
+.sd-choice__title {
+  font-family: var(--font-label);
+  font-size: var(--sd-text-md);
+}
+.sd-choice__tag {
+  padding: 0.1rem 0.5rem;
+  font-size: var(--sd-text-sm);
+  color: var(--color-bg);
+  background: var(--color-gold);
+  border-radius: 999px;
+}
+.sd-choice__quota {
+  font-size: var(--sd-text-sm);
+  color: var(--color-ink-muted);
+}
+.sd-choice__error p {
+  margin: 0 0 0.5rem;
+  color: var(--color-danger);
+}
+.sd-choice--compact .sd-choice__cards {
+  gap: 0.5rem;
+}
+.sd-choice--compact .sd-choice__card {
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+  min-height: 0;
+  padding: 0.5rem 0.75rem;
+  gap: 0.4rem;
+}
+.sd-choice--compact .sd-choice__title {
+  font-size: var(--sd-text-sm);
+}
+@media (max-width: 640px) {
+  .sd-choice__cards {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+/* Small touch screens and short windows: release the fixed height so the page scrolls naturally (D26). */
+@media (max-width: 640px), (max-height: 520px) {
+  html[data-touch] .sd-page--fit.sd-live {
+    height: auto;
+    min-height: 100dvh;
+    overflow-y: auto;
+  }
+}

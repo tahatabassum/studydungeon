@@ -2,7 +2,10 @@ import type {
   AnswerResult,
   AttemptRequest,
   AuthMe,
+  CapabilityState,
   ClearRoomResponse,
+  CreateGuestRequest,
+  CreateGuestResponse,
   Credentials,
   DemoSessionResponse,
   DocumentStatus,
@@ -11,9 +14,11 @@ import type {
   DueReview,
   DueReviewsResponse,
   Dungeon,
+  DungeonSummary,
   GenerationStatus,
   LeaderboardQuery,
   LeaderboardResponse,
+  NameCheckResult,
   ProgressInfo,
   Run,
   RunSummary,
@@ -70,6 +75,18 @@ export interface ApiClient {
   generateDungeon(documentId: string): Promise<Dungeon>
   /** `POST /documents/{id}/retry`: re-queues a failed or rejected document. */
   retryDocument(documentId: string): Promise<DocumentUpload>
+  /** POST /guests/name-check (frontend-10, REAL). A hint only: POST /guests is the authority. */
+  checkGuestName(displayName: string): Promise<NameCheckResult>
+  /** POST /guests (frontend-10, REAL): creates a named Guest and sets the session cookie. */
+  createGuest(request: CreateGuestRequest): Promise<CreateGuestResponse>
+  /** POST /auth/upgrade (frontend-10, REAL): turns the current Guest into a registered user. */
+  upgradeGuest(credentials: Credentials): Promise<User>
+  /** DELETE /auth/me with {confirm: "DELETE"} (frontend-10, REAL). */
+  deleteAccount(): Promise<void>
+  /** GET /dungeons (frontend-10, REAL, session required). */
+  listDungeons(): Promise<DungeonSummary[]>
+  /** GET /health ping to wake a cold server. Only the Http client defines it. */
+  warmUp?(): Promise<void>
   /**
    * D26: what the backend supports. Absent means everything (the mock). A false value hides the
    * feature in the UI instead of calling an endpoint that does not exist or rejects the call.
@@ -101,4 +118,31 @@ export interface ApiCapabilities {
   leaderboard: boolean
   /** The document endpoints (frontend-07 Phase 8). Absent means supported; false (the offline demo) hides the wizard. */
   uploads?: boolean
+  /** frontend-10 (D2). REAL-now features start true and flip to false on 404, 405 or 501. Absent means on (the mock). */
+  guestIdentity?: CapabilityState
+  accountUpgrade?: CapabilityState
+  accountDelete?: CapabilityState
+  /** frontend-10 (D2). PROPOSED features start 'unproven'; the first call is the probe. */
+  packs?: CapabilityState
+  liveBoard?: CapabilityState
+  playerCounter?: CapabilityState
+  uploadQuota?: CapabilityState
+  guestUpload?: CapabilityState
+}
+
+export type CapabilityKey =
+  | 'guestIdentity'
+  | 'accountUpgrade'
+  | 'accountDelete'
+  | 'packs'
+  | 'liveBoard'
+  | 'playerCounter'
+  | 'uploadQuota'
+  | 'guestUpload'
+
+/** D2: 'on' (true or absent), 'off' (false) or 'unproven'. An absent field means on, like uploads?. */
+export function capabilityOf(api: Pick<ApiClient, 'capabilities'>, key: CapabilityKey): 'on' | 'off' | 'unproven' {
+  const value = api.capabilities?.[key]
+  if (value === undefined || value === true) return 'on'
+  return value === false ? 'off' : 'unproven'
 }

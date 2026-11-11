@@ -3,6 +3,8 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { AlertTriangle, Hourglass, Trophy, UserPlus } from 'lucide-react'
 import '../styles/leaderboard.css'
 import { PageShell } from '../components/PageShell'
+import { HauntedBackdrop } from '../components/HauntedBackdrop'
+import { displayHandle } from '../identity/handle'
 import { useSession } from '../state/SessionContext'
 import { useProgress } from '../state/useProgress'
 import { useLeaderboardSupport } from '../state/useLeaderboardSupport'
@@ -71,14 +73,14 @@ export default function LeaderboardPage() {
     const best = bestFinishedRun(runs, dungeonId)
     if (!best) return null
     return {
-      display_name: user?.username ?? 'You',
+      display_name: user ? displayHandle(user) : 'You',
       level: progress?.level ?? 1,
       score: best.score,
       accuracy: best.accuracy,
       best_streak: best.bestStreak,
       is_guest: isGuest,
     }
-  }, [runs, dungeonId, user?.username, progress?.level, isGuest])
+  }, [runs, dungeonId, user, progress?.level, isGuest])
 
   const view = useMemo(
     () => (board.data ? buildBoardView(board.data, { limit: DEFAULT_LIMIT, run: myRun }) : null),
@@ -116,6 +118,8 @@ export default function LeaderboardPage() {
       testId="leaderboard-page"
       title="Leaderboard"
       subtitle={isDemo ? 'The demo board: Computer Basics Crypt' : 'Your best runs in this dungeon'}
+      className="sd-lb-menace"
+      decor={<HauntedBackdrop variant="menace" />}
       back={{ to: sessionHome, label: user ? 'Dashboard' : 'Title screen' }}
       actions={
         <Link to="/dashboard" className="sd-page__link">

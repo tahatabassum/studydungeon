@@ -666,3 +666,9 @@ Each case is skipped when its endpoint answers 404, 405 or 501. Run against a di
 8. Are the file rules numbers in section 7 right (30 pages, 30 slides, 500 minimum characters)? **Please confirm or send the real DOCX character limit: 60,000 is UNCONFIRMED (your default B20, not agreed).** Would you serve these limits from `GET /uploads/quota` or `GET /meta` so the frontend can drop its constants?
 9. Please keep `POST /demo/session` until we report the name step is live, and keep `GET /health` DB-free with CORS for 5173 and 5174. A cold free-tier start can take up to 60 s: please make sure `POST /guests` is not cut earlier by a proxy timeout.
 10. Does `GET /leaderboard` for a registered user without a display name show the login name as `handle`? If yes, please fix before launch (Finding 2).
+
+#### Phase 1 update (frontend-10, 2026-11-11)
+- The frontend now calls the REAL identity endpoints exactly as listed in part 1. No shape change was needed.
+- The contract suite has 7 identity cases that create and delete accounts. Run them only against a disposable backend: set `VITE_API_BASE`, `VITE_USE_MOCKS=false`, then `npm.cmd run test:contract`.
+- The frontend treats 404, 405 and 501 on any new endpoint as "not built yet".
+- Still open in "Questions for Person A (frontend-10)": 1 (`dungeon_id` on `POST /guests`), 2 (display name for registered users before the live board), 3 (`last_active_at` not updated), 4 (substring moderation), and 9 (keep `POST /demo/session` and `GET /health`).

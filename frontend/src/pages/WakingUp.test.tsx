@@ -32,9 +32,9 @@ describe('WakingUp', () => {
   it('shows no Offline choice until offered, then a button that calls the handler', () => {
     const onOffline = vi.fn()
     const { rerender } = render(<WakingUp offerOffline={false} onOffline={onOffline} />)
-    expect(screen.queryByRole('button', { name: 'Play the offline demo' })).toBeNull()
+    expect(screen.queryByRole('button', { name: 'Play offline demo' })).toBeNull()
     rerender(<WakingUp offerOffline onOffline={onOffline} />)
-    screen.getByRole('button', { name: 'Play the offline demo' }).click()
+    screen.getByRole('button', { name: 'Play offline demo' }).click()
     expect(onOffline).toHaveBeenCalledTimes(1)
   })
 })

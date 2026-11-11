@@ -1,0 +1,659 @@
+{
+  "pbtResults": {
+    "3.9 Write property test for the spooky names": {
+      "status": "passed",
+      "lastRunTimestamp": 1794397094358
+    },
+    "3.8 Write property test for the preloaded dungeon choice": {
+      "status": "passed",
+      "lastRunTimestamp": 1794397133340
+    }
+  },
+  "executionHistory": {
+    "3.1 Add the identity types, capability state and wire schemas": [
+      {
+        "executionId": "7dd1e894-b558-4280-a9ab-eedc6135a578",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794394390784
+      },
+      {
+        "executionId": "7dd1e894-b558-4280-a9ab-eedc6135a578",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794394428580
+      },
+      {
+        "executionId": "7dd1e894-b558-4280-a9ab-eedc6135a578",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794394815864
+      }
+    ],
+    "3.2 Implement the new calls and the capability transitions in the Http_Client": [
+      {
+        "executionId": "7dd1e894-b558-4280-a9ab-eedc6135a578",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794394390967
+      },
+      {
+        "executionId": "7dd1e894-b558-4280-a9ab-eedc6135a578",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794394824782
+      },
+      {
+        "executionId": "7dd1e894-b558-4280-a9ab-eedc6135a578",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794395315217
+      }
+    ],
+    "3.3 Implement the guest identity in the Mock_Adapter and flag the Offline_Demo": [
+      {
+        "executionId": "7dd1e894-b558-4280-a9ab-eedc6135a578",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794394391085
+      },
+      {
+        "executionId": "7dd1e894-b558-4280-a9ab-eedc6135a578",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794394826019
+      },
+      {
+        "executionId": "7dd1e894-b558-4280-a9ab-eedc6135a578",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794395315418
+      }
+    ],
+    "3.4 Build the pure identity modules": [
+      {
+        "executionId": "7dd1e894-b558-4280-a9ab-eedc6135a578",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794394391241
+      },
+      {
+        "executionId": "7dd1e894-b558-4280-a9ab-eedc6135a578",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794394826876
+      },
+      {
+        "executionId": "7dd1e894-b558-4280-a9ab-eedc6135a578",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794395315627
+      }
+    ],
+    "3.10 Add the warm-up call and make Try the Demo open the Name_Screen directly": [
+      {
+        "executionId": "7dd1e894-b558-4280-a9ab-eedc6135a578",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794394391347
+      },
+      {
+        "executionId": "7dd1e894-b558-4280-a9ab-eedc6135a578",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794395354791
+      },
+      {
+        "executionId": "7dd1e894-b558-4280-a9ab-eedc6135a578",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794397034051
+      }
+    ],
+    "3.11 Build the Name_Screen": [
+      {
+        "executionId": "7dd1e894-b558-4280-a9ab-eedc6135a578",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794394391472
+      },
+      {
+        "executionId": "7dd1e894-b558-4280-a9ab-eedc6135a578",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794395355009
+      },
+      {
+        "executionId": "7dd1e894-b558-4280-a9ab-eedc6135a578",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794397375467
+      }
+    ],
+    "3.12 Build the Path_Choice and the preloaded resolver": [
+      {
+        "executionId": "7dd1e894-b558-4280-a9ab-eedc6135a578",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794394391590
+      },
+      {
+        "executionId": "7dd1e894-b558-4280-a9ab-eedc6135a578",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794397383725
+      },
+      {
+        "executionId": "7dd1e894-b558-4280-a9ab-eedc6135a578",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794398577353
+      }
+    ],
+    "3.13 Show the guest identity and the upgrade offer": [
+      {
+        "executionId": "7dd1e894-b558-4280-a9ab-eedc6135a578",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794394391704
+      },
+      {
+        "executionId": "7dd1e894-b558-4280-a9ab-eedc6135a578",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794398577730
+      },
+      {
+        "executionId": "7dd1e894-b558-4280-a9ab-eedc6135a578",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794399769051
+      }
+    ],
+    "3.14 Build the Settings page and Delete my account and data": [
+      {
+        "executionId": "7dd1e894-b558-4280-a9ab-eedc6135a578",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794394391813
+      },
+      {
+        "executionId": "7dd1e894-b558-4280-a9ab-eedc6135a578",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794399769253
+      },
+      {
+        "executionId": "7dd1e894-b558-4280-a9ab-eedc6135a578",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794400173095
+      }
+    ],
+    "3.15 Write example tests for Phase 1": [
+      {
+        "executionId": "7dd1e894-b558-4280-a9ab-eedc6135a578",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794394391906
+      },
+      {
+        "executionId": "7dd1e894-b558-4280-a9ab-eedc6135a578",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794400205534
+      },
+      {
+        "executionId": "7dd1e894-b558-4280-a9ab-eedc6135a578",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794401091121
+      }
+    ],
+    "3.16 Write the 3-click first fight test": [
+      {
+        "executionId": "7dd1e894-b558-4280-a9ab-eedc6135a578",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794394391994
+      },
+      {
+        "executionId": "7dd1e894-b558-4280-a9ab-eedc6135a578",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794400206752
+      },
+      {
+        "executionId": "7dd1e894-b558-4280-a9ab-eedc6135a578",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794401091330
+      }
+    ],
+    "3.17 Extend the contract suite and the boundary tests for Phase 1": [
+      {
+        "executionId": "7dd1e894-b558-4280-a9ab-eedc6135a578",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794394392080
+      },
+      {
+        "executionId": "7dd1e894-b558-4280-a9ab-eedc6135a578",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794400207206
+      },
+      {
+        "executionId": "7dd1e894-b558-4280-a9ab-eedc6135a578",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794401091468
+      }
+    ],
+    "3.18 Run Phase 1 verification": [
+      {
+        "executionId": "7dd1e894-b558-4280-a9ab-eedc6135a578",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794394392164
+      },
+      {
+        "executionId": "7dd1e894-b558-4280-a9ab-eedc6135a578",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794401100150
+      },
+      {
+        "executionId": "7dd1e894-b558-4280-a9ab-eedc6135a578",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794402736543
+      }
+    ],
+    "3.19 Update the docs for Phase 1": [
+      {
+        "executionId": "7dd1e894-b558-4280-a9ab-eedc6135a578",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794394392252
+      },
+      {
+        "executionId": "7dd1e894-b558-4280-a9ab-eedc6135a578",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794402736705
+      },
+      {
+        "executionId": "7dd1e894-b558-4280-a9ab-eedc6135a578",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794402804283
+      }
+    ],
+    "4. STOP: Phase 1 checkpoint, guest entry and path choice review": [
+      {
+        "executionId": "7dd1e894-b558-4280-a9ab-eedc6135a578",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794394392355
+      },
+      {
+        "executionId": "a3991837-4692-45a5-9728-f0a9d8b375f4",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794403314487
+      },
+      {
+        "executionId": "baf1126c-282f-4373-b039-5d5d142ed20b",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794404116447
+      },
+      {
+        "executionId": "b5f3ed53-ba8e-4e05-b385-d31eba9b56e5",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794404768493
+      }
+    ],
+    "5.1 Add the pack and points types and wire schemas": [
+      {
+        "executionId": "7dd1e894-b558-4280-a9ab-eedc6135a578",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794394392449
+      },
+      {
+        "executionId": "ecc691bd-a7a4-4df3-b7ae-19a6293c4cc5",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794412869949
+      }
+    ],
+    "5.2 Add `getPacks` and the pack lock handling to the Http_Client": [
+      {
+        "executionId": "7dd1e894-b558-4280-a9ab-eedc6135a578",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794394392550
+      }
+    ],
+    "5.3 Build the mock packs and mock points": [
+      {
+        "executionId": "7dd1e894-b558-4280-a9ab-eedc6135a578",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794394392646
+      }
+    ],
+    "5.4 Build the pure pack and points modules": [
+      {
+        "executionId": "7dd1e894-b558-4280-a9ab-eedc6135a578",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794394392740
+      }
+    ],
+    "5.8 Build the pack page": [
+      {
+        "executionId": "7dd1e894-b558-4280-a9ab-eedc6135a578",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794394392825
+      }
+    ],
+    "5.9 Build the unlock and completion screens and the pack header": [
+      {
+        "executionId": "7dd1e894-b558-4280-a9ab-eedc6135a578",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794394392915
+      }
+    ],
+    "5.10 Show points and rename the score labels": [
+      {
+        "executionId": "7dd1e894-b558-4280-a9ab-eedc6135a578",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794394393002
+      }
+    ],
+    "5.11 Write example tests for Phase 2": [
+      {
+        "executionId": "7dd1e894-b558-4280-a9ab-eedc6135a578",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794394393099
+      }
+    ],
+    "5.12 Extend the contract suite for Phase 2": [
+      {
+        "executionId": "7dd1e894-b558-4280-a9ab-eedc6135a578",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794394393195
+      }
+    ],
+    "5.13 Run Phase 2 verification": [
+      {
+        "executionId": "7dd1e894-b558-4280-a9ab-eedc6135a578",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794394393288
+      }
+    ],
+    "5.14 Update the docs for Phase 2": [
+      {
+        "executionId": "7dd1e894-b558-4280-a9ab-eedc6135a578",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794394393379
+      }
+    ],
+    "6. STOP: Phase 2 checkpoint, preloaded packs review": [
+      {
+        "executionId": "7dd1e894-b558-4280-a9ab-eedc6135a578",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794394393477
+      }
+    ],
+    "7.1 Add the board types and wire schema": [
+      {
+        "executionId": "7dd1e894-b558-4280-a9ab-eedc6135a578",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794394393582
+      }
+    ],
+    "7.2 Add `getBoard` to the Http_Client and extend the support hook": [
+      {
+        "executionId": "7dd1e894-b558-4280-a9ab-eedc6135a578",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794394393678
+      }
+    ],
+    "7.3 Build the mock board": [
+      {
+        "executionId": "7dd1e894-b558-4280-a9ab-eedc6135a578",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794394393777
+      }
+    ],
+    "7.4 Build the pure board modules": [
+      {
+        "executionId": "7dd1e894-b558-4280-a9ab-eedc6135a578",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794394393865
+      }
+    ],
+    "7.9 Build the board hooks": [
+      {
+        "executionId": "7dd1e894-b558-4280-a9ab-eedc6135a578",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794394393963
+      }
+    ],
+    "7.10 Build the live leaderboard view": [
+      {
+        "executionId": "7dd1e894-b558-4280-a9ab-eedc6135a578",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794394394081
+      }
+    ],
+    "7.11 Write example tests and extend the boundary tests for Phase 3": [
+      {
+        "executionId": "7dd1e894-b558-4280-a9ab-eedc6135a578",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794394394234
+      }
+    ],
+    "7.12 Extend the contract suite for Phase 3": [
+      {
+        "executionId": "7dd1e894-b558-4280-a9ab-eedc6135a578",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794394394340
+      }
+    ],
+    "7.13 Run Phase 3 verification": [
+      {
+        "executionId": "7dd1e894-b558-4280-a9ab-eedc6135a578",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794394394424
+      }
+    ],
+    "7.14 Update the docs for Phase 3": [
+      {
+        "executionId": "7dd1e894-b558-4280-a9ab-eedc6135a578",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794394394509
+      }
+    ],
+    "8. STOP: Phase 3 checkpoint, leaderboard review": [
+      {
+        "executionId": "7dd1e894-b558-4280-a9ab-eedc6135a578",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794394394601
+      }
+    ],
+    "9.1 Add the player stats endpoint through the stack": [
+      {
+        "executionId": "7dd1e894-b558-4280-a9ab-eedc6135a578",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794394394685
+      }
+    ],
+    "9.2 Build the pure counter modules": [
+      {
+        "executionId": "7dd1e894-b558-4280-a9ab-eedc6135a578",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794394394796
+      }
+    ],
+    "9.6 Build the counter line on the title screen": [
+      {
+        "executionId": "7dd1e894-b558-4280-a9ab-eedc6135a578",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794394394889
+      }
+    ],
+    "9.7 Write example tests for Phase 4": [
+      {
+        "executionId": "7dd1e894-b558-4280-a9ab-eedc6135a578",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794394394996
+      }
+    ],
+    "9.8 Extend the contract suite for Phase 4": [
+      {
+        "executionId": "7dd1e894-b558-4280-a9ab-eedc6135a578",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794394395108
+      }
+    ],
+    "9.9 Run Phase 4 verification": [
+      {
+        "executionId": "7dd1e894-b558-4280-a9ab-eedc6135a578",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794394395201
+      }
+    ],
+    "9.10 Update the docs for Phase 4": [
+      {
+        "executionId": "7dd1e894-b558-4280-a9ab-eedc6135a578",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794394395304
+      }
+    ],
+    "10. STOP: Phase 4 checkpoint, player counter review": [
+      {
+        "executionId": "7dd1e894-b558-4280-a9ab-eedc6135a578",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794394395419
+      }
+    ],
+    "11.1 Add the quota types and wire schemas": [
+      {
+        "executionId": "7dd1e894-b558-4280-a9ab-eedc6135a578",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794394395530
+      }
+    ],
+    "11.2 Add `getUploadQuota`, the notice field and the guest capability rules to the Http_Client": [
+      {
+        "executionId": "7dd1e894-b558-4280-a9ab-eedc6135a578",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794394395663
+      }
+    ],
+    "11.3 Build the mock quota and guest upload": [
+      {
+        "executionId": "7dd1e894-b558-4280-a9ab-eedc6135a578",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794394395776
+      }
+    ],
+    "11.4 Build the pure upload modules and the file rules": [
+      {
+        "executionId": "7dd1e894-b558-4280-a9ab-eedc6135a578",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794394395875
+      }
+    ],
+    "11.8 Open the upload page to guests and add the quota panel, notice and fallback": [
+      {
+        "executionId": "7dd1e894-b558-4280-a9ab-eedc6135a578",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794394395983
+      }
+    ],
+    "11.9 Add per-floor progress and the error states to the wizard": [
+      {
+        "executionId": "7dd1e894-b558-4280-a9ab-eedc6135a578",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794394396085
+      }
+    ],
+    "11.10 Write example tests for Phase 5": [
+      {
+        "executionId": "7dd1e894-b558-4280-a9ab-eedc6135a578",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794394396185
+      }
+    ],
+    "11.11 Extend the contract suite for Phase 5": [
+      {
+        "executionId": "7dd1e894-b558-4280-a9ab-eedc6135a578",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794394396308
+      }
+    ],
+    "11.12 Run Phase 5 verification": [
+      {
+        "executionId": "7dd1e894-b558-4280-a9ab-eedc6135a578",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794394396415
+      }
+    ],
+    "11.13 Update the docs for Phase 5": [
+      {
+        "executionId": "7dd1e894-b558-4280-a9ab-eedc6135a578",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794394396524
+      }
+    ],
+    "12. STOP: Phase 5 checkpoint, guest upload review": [
+      {
+        "executionId": "7dd1e894-b558-4280-a9ab-eedc6135a578",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794394396631
+      }
+    ],
+    "3.5 Write property test for the local name hints": [
+      {
+        "executionId": "7dd1e894-b558-4280-a9ab-eedc6135a578",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794394412903
+      },
+      {
+        "executionId": "7dd1e894-b558-4280-a9ab-eedc6135a578",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794395355826
+      },
+      {
+        "executionId": "7dd1e894-b558-4280-a9ab-eedc6135a578",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794397034299
+      }
+    ],
+    "3.6 Write property test for the reason messages": [
+      {
+        "executionId": "7dd1e894-b558-4280-a9ab-eedc6135a578",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794394413629
+      },
+      {
+        "executionId": "7dd1e894-b558-4280-a9ab-eedc6135a578",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794395357041
+      },
+      {
+        "executionId": "7dd1e894-b558-4280-a9ab-eedc6135a578",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794397034567
+      }
+    ],
+    "3.7 Write property test for the handle display": [
+      {
+        "executionId": "7dd1e894-b558-4280-a9ab-eedc6135a578",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794394414690
+      },
+      {
+        "executionId": "7dd1e894-b558-4280-a9ab-eedc6135a578",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794395357840
+      },
+      {
+        "executionId": "7dd1e894-b558-4280-a9ab-eedc6135a578",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794397035348
+      }
+    ],
+    "3.8 Write property test for the preloaded dungeon choice": [
+      {
+        "executionId": "7dd1e894-b558-4280-a9ab-eedc6135a578",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794394415613
+      },
+      {
+        "executionId": "7dd1e894-b558-4280-a9ab-eedc6135a578",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794397036196
+      },
+      {
+        "executionId": "7dd1e894-b558-4280-a9ab-eedc6135a578",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794397156518
+      }
+    ],
+    "3.9 Write property test for the spooky names": [
+      {
+        "executionId": "7dd1e894-b558-4280-a9ab-eedc6135a578",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794394416598
+      },
+      {
+        "executionId": "7dd1e894-b558-4280-a9ab-eedc6135a578",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794397037240
+      },
+      {
+        "executionId": "7dd1e894-b558-4280-a9ab-eedc6135a578",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794397156702
+      }
+    ],
+    "3. Phase 1: Guest entry and path choice": [
+      {
+  

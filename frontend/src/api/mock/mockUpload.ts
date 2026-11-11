@@ -123,6 +123,10 @@ export interface MockUpload {
   generationStatus(id: string, play?: GeneratedPlayState): GenerationStatus | undefined
   /** True when `floorId` belongs to a generated dungeon; retries it if it failed. */
   retryFloor(floorId: string): boolean | undefined
+  /** frontend-10: the generated dungeons of the session, for GET /dungeons. */
+  list(): { id: string; name: string; startedAt: number; roomsCount: number }[]
+  /** frontend-10: forgets every document and dungeon (delete my account and data). */
+  clear(): void
 }
 
 export function createMockUpload(options: MockUploadOptions): MockUpload {
@@ -344,6 +348,20 @@ export function createMockUpload(options: MockUploadOptions): MockUpload {
         doc.verdict === 'failed' ? { verdict: 'accepted', reason: null } : { verdict: doc.verdict, reason: doc.reason }
       Object.assign(doc, again, { startedAt: now(), topics: again.verdict === 'accepted' ? topicsFor(id, doc.name) : [] })
       return { id, status: 'processing', message: 'Document re-queued for processing.' }
+    },
+
+    list() {
+      return [...dungeons.values()].map((g) => ({
+        id: g.id,
+        name: g.name,
+        startedAt: g.startedAt,
+        roomsCount: g.base.rooms.length,
+      }))
+    },
+
+    clear() {
+      docs.clear()
+      dungeons.clear()
     },
 
     dungeon(id, play) {

@@ -24,15 +24,19 @@ export interface PageShellProps {
    * (a thin themed scrollbar on very small screens), never the page.
    */
   variant?: PageShellVariant
+  /** Extra class on the page root (for example sd-live). */
+  className?: string
+  /** Extra decorative layer inside the atmosphere container (aria-hidden, behind content). */
+  decor?: ReactNode
 }
 
 /** Shared page chrome: night sky, moon, fog, title block. Decorative layers live in a fixed, clipped container. */
-export function PageShell({ title, subtitle, back, actions, children, wide = false, testId, variant = 'scroll' }: PageShellProps) {
+export function PageShell({ title, subtitle, back, actions, children, wide = false, testId, variant = 'scroll', className, decor }: PageShellProps) {
   const reduced = useReducedMotion()
   const fit = variant === 'fit'
   return (
     <main
-      className={`sd-page sd-sky${fit ? ' sd-page--fit' : ''}`}
+      className={`sd-page sd-sky${fit ? ' sd-page--fit' : ''}${className ? ` ${className}` : ''}`}
       data-variant={fit ? 'fit' : undefined}
       data-reduced={reduced ? 'true' : undefined}
       aria-labelledby="page-title"
@@ -42,6 +46,7 @@ export function PageShell({ title, subtitle, back, actions, children, wide = fal
         <div className="sd-moon" />
         <div className="sd-fog sd-fog--a" />
         <div className="sd-page__vignette" />
+        {decor}
       </div>
       <div className={`sd-page__inner ${wide ? 'sd-page__inner--wide' : ''}`.trim()}>
         <header className="sd-page__header">

@@ -135,7 +135,10 @@ export function createAdapter(options: OfflineOptions): ApiClient {
   return {
     // The offline demo has no accounts: the label says progress is not saved.
     // Floor-scoped runs work; the Daily Haunt and the practice modes (Weak Topics, Exam, Replay) do not.
-    capabilities: { roomRevenants: false, floors: true, modes: true, practiceModes: false, dailyHaunt: false, leaderboard: true, uploads: false },
+    capabilities: { roomRevenants: false, floors: true, modes: true, practiceModes: false, dailyHaunt: false, leaderboard: true, uploads: false,
+      // frontend-10 task 3.3 (D28): the offline demo has no identity, packs, live board, counter or quota.
+      guestIdentity: false, accountUpgrade: false, accountDelete: false, packs: false, liveBoard: false,
+      playerCounter: false, uploadQuota: false, guestUpload: false },
 
     async register() {
       throw new ApiError(503, 'Accounts are not available in the offline demo.', 'OFFLINE')
@@ -482,6 +485,13 @@ export function createAdapter(options: OfflineOptions): ApiClient {
     getDocumentTopics: unsupportedUpload,
     generateDungeon: unsupportedUpload,
     retryDocument: unsupportedUpload,
+    // frontend-10 task 3.3: the new calls stay 501 here; the capability flags above keep the UI from calling them.
+    // The offline demo never supports identity (D28).
+    checkGuestName: async () => unsupported('Guest names'),
+    createGuest: async () => unsupported('Guest names'),
+    upgradeGuest: async () => unsupported('Account upgrade'),
+    deleteAccount: async () => unsupported('Account deletion'),
+    listDungeons: async () => unsupported('The dungeon list'),
   }
 }
 
@@ -491,3 +501,8 @@ async function unsupportedUpload(): Promise<never> {
 
 /** The 8 bundled Ghost_Rivals (re-exported for tests). */
 export { OFFLINE_RIVALS }
+
+/** frontend-10: the offline demo cannot do this (D28). */
+function unsupported(what: string): never {
+  throw new ApiError(501, `${what} is not available in the offline demo.`, 'UNSUPPORTED')
+}

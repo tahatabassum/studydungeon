@@ -56,6 +56,10 @@ export interface MockAuth {
   getMe(): Promise<AuthMe | null>
   /** Mock adapter hook: the demo session is a session too, so `getMe` agrees with it. */
   adopt(user: User): void
+  /** frontend-10: turns the current Guest into a registered user (keeps id and public identity). */
+  upgrade(credentials: Credentials): Promise<User>
+  /** frontend-10: drops the current user from the table and ends the session. */
+  remove(): void
 }
 
 function unprocessable(issues: FieldIssue[]): ApiError {
@@ -133,6 +137,26 @@ export function createMockAuth(options: MockAuthOptions = {}): MockAuth {
 
     adopt(user) {
       open(user)
+    },
+
+    async upgrade(credentials) {
+      if (!current || now() >= expiresAt) throw new ApiError(401, 'Not authenticated', 'UNAUTHORIZED')
+      if (!current.is_guest) throw new ApiError(403, 'Only a guest can be upgraded.', 'NOT_A_GUEST')
+      const name = normalizeUsername(credentials.username)
+      guard(name)
+      const issues = registerIssues(credentials)
+      if (issues.length > 0) throw unprocessable(issues)
+      if (users.has(name) || name === 'taken_name') throw new ApiError(409, 'Username already taken', 'USERNAME_TAKEN')
+      const upgraded: User = { ...current, username: name, is_guest: false }
+      users.set(name, { user: upgraded, password: credentials.password })
+      return open(upgraded)
+    },
+
+    remove() {
+      if (current) {
+        for (const [name, entry] of users) if (entry.user.id === current.id) users.delete(name)
+      }
+      current = null
     },
   }
 }

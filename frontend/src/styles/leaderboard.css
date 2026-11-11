@@ -310,3 +310,8 @@
   .sd-lb__tabs { padding: 0.15rem; }
   .sd-lb__panel > .sd-lb__tablewrap { min-height: 7rem; }
 }
+
+/* Menace backdrop sits behind the board; a faint blood tint on the sky only. */
+.sd-lb-menace .sd-page__vignette {
+  background: radial-gradient(ellipse at 50% 45%, transparent 40%, rgb(40 0 6 / 0.7) 100%);
+}

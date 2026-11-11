@@ -43,6 +43,8 @@ export interface HudProps {
   roomNoun?: string
   /** Backend combo; the Combo_Meter shows `combo ?? streak`. */
   combo?: number
+  /** The player's public handle (displayHandle); shown small next to "Hero" in the full HUD only. */
+  playerName?: string
 }
 
 export function Hud({
@@ -66,6 +68,7 @@ export function Hud({
   hauntedDue,
   roomNoun,
   combo,
+  playerName,
 }: HudProps) {
   const reduceMotion = useReducedMotion()
   const lowHealth = isLowHealth(playerHp, maxPlayerHp)
@@ -93,6 +96,11 @@ export function Hud({
           <span className="flex items-center gap-1.5 font-label tracking-wide">
             <PixelSprite map={ICONS.heart} scale={1} />
             Hero
+            {!compact && playerName && (
+              <span data-testid="hud-player-name" className="max-w-28 truncate text-xs font-normal text-ink/80" title={playerName}>
+                {playerName}
+              </span>
+            )}
           </span>
           <span className="tabular-nums">
             {playerHp} / {maxPlayerHp}

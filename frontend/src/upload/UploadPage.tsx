@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { UserPlus } from 'lucide-react'
 import { getApi } from '../api'
+import { HauntedBackdrop } from '../components/HauntedBackdrop'
 import { PageShell } from '../components/PageShell'
 import { useSession } from '../state/SessionContext'
 import { UploadWizard } from './UploadWizard'
@@ -38,6 +39,8 @@ export default function UploadPage({ pollMs }: UploadPageProps = {}) {
   return (
     <PageShell
       variant="fit"
+      className="sd-haunted"
+      decor={<HauntedBackdrop />}
       testId="upload-page"
       title="Upload your notes"
       subtitle="Turn your own notes into a dungeon"

@@ -12,7 +12,16 @@ export * from './reviews'
 export * from './run'
 
 import { wireAttemptSchema } from './attempt'
-import { wireDemoSessionSchema, wireLogoutSchema, wireUserSchema } from './auth'
+import {
+  wireCreateGuestSchema,
+  wireDeleteAccountSchema,
+  wireDemoSessionSchema,
+  wireDungeonListSchema,
+  wireLogoutSchema,
+  wireNameCheckSchema,
+  wireUpgradeSchema,
+  wireUserSchema,
+} from './auth'
 import { wireDocumentStatusSchema, wireDocumentTopicsSchema, wireDocumentUploadSchema } from './documents'
 import { wireDungeonSchema } from './dungeon'
 import { wireProgressSchema } from './progress'
@@ -26,6 +35,11 @@ export const WIRE_ENDPOINTS = {
   login: { endpoint: 'POST /auth/login', schema: wireUserSchema },
   logout: { endpoint: 'POST /auth/logout', schema: wireLogoutSchema },
   getMe: { endpoint: 'GET /auth/me', schema: wireUserSchema },
+  checkGuestName: { endpoint: 'POST /guests/name-check', schema: wireNameCheckSchema },
+  createGuest: { endpoint: 'POST /guests', schema: wireCreateGuestSchema },
+  upgradeGuest: { endpoint: 'POST /auth/upgrade', schema: wireUpgradeSchema },
+  deleteAccount: { endpoint: 'DELETE /auth/me', schema: wireDeleteAccountSchema },
+  listDungeons: { endpoint: 'GET /dungeons', schema: wireDungeonListSchema },
   getDungeon: { endpoint: 'GET /dungeons/{id}', schema: wireDungeonSchema },
   startRun: { endpoint: 'POST /runs', schema: wireRunSchema },
   getRun: { endpoint: 'GET /runs/{id}', schema: wireRunSchema },

@@ -180,6 +180,13 @@ describe('play flow smoke test', () => {
     await vi.waitFor(() => expect(promptOf(dialog)).not.toBe(Q1_PROMPT))
   })
 
+  it('shows the ControlsHint in the first room', async () => {
+    await startDemo()
+    const hint = await screen.findByRole('list', { name: 'Controls' })
+    expect(hint.textContent).toContain('Move')
+    expect(hint.textContent).toContain('Engage')
+  })
+
   it('wrong answer: HP 90, no XP, source line, then the Memory scroll waits for Continue', async () => {
     const dialog = await startAndEncounter()
 
@@ -281,7 +288,8 @@ describe('play flow smoke test', () => {
   })
 
   it('guest banner shows at the start, hides after 6 s and does not return after restart', async () => {
-    const text = 'Playing as guest. Progress is temporary. Create an account to save.'
+    // The banner names the player by displayHandle (never the internal guest username).
+    const text = /^Playing as (?!guest_).+\. Progress is temporary\. Create an account to save\.$/
     await startDemo()
     expect(await screen.findByText(text)).toBeTruthy()
     advance(6000)

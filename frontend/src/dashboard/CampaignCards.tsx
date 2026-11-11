@@ -1,7 +1,9 @@
 import type { ReactNode } from 'react'
 import { Link } from 'react-router-dom'
-import { AlertTriangle, Map as MapIcon, Play, Settings, Skull, Upload, UserPlus, Layers } from 'lucide-react'
+import { AlertTriangle, Map as MapIcon, Play, Settings, Skull, UserPlus, Layers } from 'lucide-react'
 import { playPath } from '../campaign/CampaignPage'
+import { PathChoice } from '../identity/PathChoice'
+import { UpgradeOffer } from '../identity/UpgradeOffer'
 import { MasteryBar } from '../learning/MasteryBar'
 import { MASTERY_BAND_LABEL, masteryBand } from '../learning/mastery'
 import type { FinishedRun } from '../leaderboard/sessionRuns'
@@ -63,11 +65,8 @@ export function ContinueCard({ dungeonId, dungeon, onPlayDemo, demoPending, demo
         <button type="button" className="sd-ghost-btn" onClick={onPlayDemo} disabled={demoPending} aria-busy={demoPending || undefined}>
           Play Demo
         </button>
-        <Link to="/upload" className="sd-cta" data-testid="upload-link">
-          <Upload aria-hidden="true" size={18} />
-          Upload notes
-        </Link>
       </div>
+      <PathChoice variant="compact" />
       {demoError && (
         <p role="alert" className="sd-card__muted">
           {demoError}
@@ -137,22 +136,19 @@ export function MasteryCard({ dungeon }: { dungeon: DashboardDungeon }) {
   )
 }
 
-/** Settings is a placeholder until a later phase. Upload notes sits in the Dungeon card at the top. */
+/** Settings opens /settings. Upload notes sits in the Dungeon card at the top. */
 export function LinksCard() {
   return (
-    <section className="sd-card" aria-labelledby="dash-links-title" data-testid="links-card">
+    <section className="sd-card sd-dash__links" aria-labelledby="dash-links-title" data-testid="links-card">
       <h2 id="dash-links-title" className="sd-card__h">
         More
       </h2>
       <div className="sd-dash__actions">
-        <button type="button" className="sd-ghost-btn" aria-disabled="true" aria-describedby="dash-soon">
+        <Link to="/settings" className="sd-ghost-btn" data-testid="settings-link">
           <Settings aria-hidden="true" size={16} />
           Settings
-        </button>
+        </Link>
       </div>
-      <p id="dash-soon" className="sd-card__muted">
-        Coming soon: the settings page.
-      </p>
     </section>
   )
 }
@@ -183,14 +179,8 @@ export function DemoCard({
           <Play aria-hidden="true" size={18} />
           Play Demo
         </button>
-        <Link to="/register" className="sd-ghost-btn" data-testid="upload-gate-link" aria-describedby="dash-upload-gate">
-          <Upload aria-hidden="true" size={16} />
-          Upload notes
-        </Link>
       </div>
-      <p id="dash-upload-gate" className="sd-card__muted">
-        Create an account to upload your own notes.
-      </p>
+      <PathChoice variant="compact" />
       {error && (
         <p role="alert" className="sd-card__muted">
           {error}
@@ -211,10 +201,18 @@ export interface GuestStatsProps {
   /** Provisional rank on the demo board, when known. */
   rank: number | null
   onCreateAccount(): void
+  /** Opens `/register?upgrade=1`. Pass it only when a Guest session exists; without it the plain register button shows. */
+  onUpgrade?(): void
 }
 
 /** Guest: stats from this visit only, and the Create account call to action. */
-export function GuestStatsCard({ runs, best, rank, onCreateAccount }: GuestStatsProps) {
+export function GuestStatsCard({ runs, best, rank, onCreateAccount, onUpgrade }: GuestStatsProps) {
+  const plainCta = (
+    <button type="button" className="sd-cta" onClick={onCreateAccount}>
+      <UserPlus aria-hidden="true" size={18} />
+      Create account
+    </button>
+  )
   return (
     <section className="sd-card" aria-labelledby="dash-guest-title" data-testid="guest-stats">
       <h2 id="dash-guest-title" className="sd-card__h">
@@ -245,10 +243,17 @@ export function GuestStatsCard({ runs, best, rank, onCreateAccount }: GuestStats
       )}
       <p className="sd-card__text">These stats live only in this tab. Create an account to save progress and claim your spot.</p>
       <div>
-        <button type="button" className="sd-cta" onClick={onCreateAccount}>
-          <UserPlus aria-hidden="true" size={18} />
-          Create account
-        </button>
+        {onUpgrade ? (
+          <UpgradeOffer
+            isGuest
+            look="cta"
+            onActivate={onUpgrade}
+            icon={<UserPlus aria-hidden="true" size={18} />}
+            fallback={plainCta}
+          />
+        ) : (
+          plainCta
+        )}
       </div>
     </section>
   )

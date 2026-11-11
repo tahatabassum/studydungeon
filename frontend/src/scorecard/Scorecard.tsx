@@ -6,6 +6,7 @@ import { BadgeGrid } from '../badges/BadgeGrid'
 import { Button } from '../components/Button'
 import { OverlayFrame } from '../components/OverlayFrame'
 import { SourceLine } from '../components/SourceLine'
+import { UpgradeOffer } from '../identity/UpgradeOffer'
 import { ShareDialog } from '../share/ShareDialog'
 import { Spinner } from '../components/Spinner'
 import { VictoryFx } from '../components/VictoryFx'
@@ -38,6 +39,8 @@ export interface ScorecardProps {
   leaderboardEnabled?: boolean
   onViewLeaderboard?(): void
   onCreateAccount?(): void
+  /** Opens the upgrade flow (`/register?upgrade=1`). Defaults to `onCreateAccount`. */
+  onUpgrade?(): void
   /** Slot for the frontend-08 Chest (Phase 5 of that spec), shown under the chest rewards. */
   chestSlot?: ReactNode
   /** Name shown on the share card. */
@@ -221,6 +224,7 @@ export function Scorecard({
   leaderboardEnabled = true,
   onViewLeaderboard,
   onCreateAccount,
+  onUpgrade,
   chestSlot,
   dungeonName = 'StudyDungeon',
 }: ScorecardProps) {
@@ -396,10 +400,17 @@ export function Scorecard({
           </Button>
         )}
         {summary && isGuest && onCreateAccount && (
-          <Button variant="secondary" onClick={onCreateAccount}>
-            <UserPlus aria-hidden="true" size={16} />
-            Create account
-          </Button>
+          <UpgradeOffer
+            isGuest
+            onActivate={onUpgrade ?? onCreateAccount}
+            icon={<UserPlus aria-hidden="true" size={16} />}
+            fallback={
+              <Button variant="secondary" onClick={onCreateAccount}>
+                <UserPlus aria-hidden="true" size={16} />
+                Create account
+              </Button>
+            }
+          />
         )}
       </div>
       {shareOpen && summary && (

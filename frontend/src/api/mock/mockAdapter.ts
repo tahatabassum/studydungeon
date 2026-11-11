@@ -33,6 +33,7 @@ import { buildDueSummary, MOCK_REVIEW_INTERVAL_MS } from './mockHaunt'
 import { DEMO_FINAL_BOSS_ROOM_ID, DEMO_FLOOR_DEFS, buildFloors, type FloorDef } from '../../learning/floors'
 import { readMockDelayMs, readMockLevel, readMockPlayer } from './mockLevel'
 import { createMockAuth } from './mockAuth'
+import { createMockGuests } from './mockGuests'
 import { createMockUpload, type GeneratedSource } from './mockUpload'
 import { createMasteryStore } from '../../learning/masteryStore'
 import { buildMockLeaderboard, runRankOnDemoBoard, type StoredRun } from './mockLeaderboard'
@@ -185,6 +186,9 @@ interface ScopedRun {
 }
 
 
+/** Fixed creation time of the seeded demo dungeon in the mock dungeon list. */
+const MOCK_DEMO_CREATED_AT = '2026-01-01T00:00:00.000Z'
+
 const randomSuffix = (): string => Math.random().toString(36).slice(2, 6).padEnd(4, '0')
 
 export function createMockAdapter(options: MockAdapterOptions = {}): ApiClient {
@@ -206,7 +210,8 @@ export function createMockAdapter(options: MockAdapterOptions = {}): ApiClient {
   const now = options.now ?? Date.now
   const auth = createMockAuth({ now })
   const upload = createMockUpload({ now, session: () => auth.getMe(), ...options.upload })
-  const mastery = createMasteryStore()
+  const guests = createMockGuests(auth)
+  let mastery = createMasteryStore()
   const ranks = new Map<string, FloorRank>()
   const forced = new Map<string, FloorStatus>((options.failedFloorIds ?? []).map((id) => [id, 'failed']))
   /** Question id -> ms when the next review falls due, for questions answered correctly. */
@@ -809,6 +814,63 @@ export function createMockAdapter(options: MockAdapterOptions = {}): ApiClient {
       if (forced.get(floorId) !== 'failed') throw new ApiError(409, 'That floor has not failed.', 'FLOOR_NOT_FAILED')
       forced.delete(floorId)
     },
+    // frontend-10 task 3.3: guest identity (memory only, D25). One shared session with mockAuth.
+    checkGuestName: async (displayName) => {
+      await wait()
+      return guests.checkName(displayName)
+    },
+    createGuest: async (request) => {
+      await wait()
+      const created = await guests.create(request)
+      sessionName = created.user.handle ?? created.user.display_name ?? 'Guest'
+      return created
+    },
+    upgradeGuest: async (credentials) => {
+      await wait()
+      return auth.upgrade(credentials)
+    },
+    // `confirm` is optional: the Http client sends {confirm: "DELETE"}; a different value is rejected.
+    deleteAccount: async (confirm?: string) => {
+      await wait()
+      const me = await auth.getMe()
+      if (!me) throw new ApiError(401, 'Not authenticated', 'UNAUTHORIZED')
+      if (confirm !== undefined && confirm !== 'DELETE') {
+        throw new ApiError(422, 'Type DELETE to confirm.', 'CONFIRMATION_REQUIRED')
+      }
+      guests.release(me.user)
+      auth.remove()
+      runs.clear()
+      finishedRuns.length = 0
+      ranks.clear()
+      scheduled.clear()
+      mastery = createMasteryStore()
+      dailyStreak = 0
+      lastHauntDay = ''
+      upload.clear()
+      generatedCtx.clear()
+      sessionName = 'Guest'
+    },
+    listDungeons: async () => {
+      await wait()
+      const me = await auth.getMe()
+      if (!me) throw new ApiError(401, 'Not authenticated', 'UNAUTHORIZED')
+      return [
+        {
+          id: demoDungeon.id,
+          title: demoDungeon.name,
+          is_public_demo: true,
+          created_at: MOCK_DEMO_CREATED_AT,
+          rooms_count: demoDungeon.rooms.length,
+        },
+        ...upload.list().map((g) => ({
+          id: g.id,
+          title: g.name,
+          is_public_demo: false,
+          created_at: new Date(g.startedAt).toISOString(),
+          rooms_count: g.roomsCount,
+        })),
+      ]
+    },
   }
 }
 export const mockAdapter: ApiClient = createMockAdapter({
@@ -817,3 +879,4 @@ export const mockAdapter: ApiClient = createMockAdapter({
   demoSessionDelayMs: readMockDelayMs(),
 })
 export default mockAdapter
+

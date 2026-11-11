@@ -1,6 +1,6 @@
 import { cleanup, render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { MemoryRouter } from 'react-router-dom'
+import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { PORTRAIT_KINDS } from '../art/portraits/types'
 import { linesFor } from '../encounter/lines'
@@ -79,28 +79,25 @@ describe('intro story', () => {
     expect(hasSeenIntro()).toBe(true)
   })
 
-  it('is shown once: the first Try the Demo opens it, skipping stores the flag, the next click goes straight in', async () => {
+  it('is no longer opened automatically: Try the Demo goes straight to /play-as-guest without the intro story', async () => {
     const user = userEvent.setup()
     render(
       <MemoryRouter>
         <SessionProvider>
-          <LandingPage />
+          <Routes>
+            <Route path="/" element={<LandingPage />} />
+            <Route path="/play-as-guest" element={<p data-testid="name-screen-stub">Name</p>} />
+          </Routes>
         </SessionProvider>
       </MemoryRouter>,
     )
     await user.click(screen.getByRole('button', { name: 'Try the Demo' }))
-    expect(screen.getByTestId('intro-story')).toBeTruthy()
+    expect(screen.queryByTestId('intro-story')).toBeNull()
+    expect(screen.getByTestId('name-screen-stub')).toBeTruthy()
     expect(rm.start).not.toHaveBeenCalled()
-    await user.click(screen.getByRole('button', { name: /Skip intro/ }))
-    expect(localStorage.getItem('sd.introSeen')).toBe('1')
-    expect(rm.start).toHaveBeenCalledTimes(1)
-    expect(screen.queryByTestId('intro-story')).toBeNull()
-    await user.click(screen.getByRole('button', { name: 'Try the Demo' }))
-    expect(screen.queryByTestId('intro-story')).toBeNull()
-    expect(rm.start).toHaveBeenCalledTimes(2)
+    expect(localStorage.getItem('sd.introSeen')).toBeNull()
   })
 })
-
 describe('taunt lines', () => {
   it.each([...PORTRAIT_KINDS])('%s has at least 3 taunts and 3 reactions', (kind) => {
     const l = linesFor(kind)

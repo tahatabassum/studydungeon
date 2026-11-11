@@ -19,16 +19,33 @@ export const WAKING_TIPS: readonly string[] = Object.freeze([
   'Cobwebs gather on topics you skip. Visit your weak rooms first.',
 ])
 
+export const WAKING_TIMEOUT_TEXT = 'The dungeon is taking a long time to wake. You can try again or play the offline demo.'
+
 export interface WakingUpProps {
   /** After 8 s without an answer the Offline demo is offered while the request keeps going. */
   offerOffline: boolean
   onOffline: () => void
   /** Disables the Offline button while it loads. */
   offlineBusy?: boolean
+  /** Shows "Keep waiting" next to the offline choice (until the player has chosen it). */
+  onKeepWaiting?: () => void
+  /** The player already chose "Keep waiting": the choice is replaced by a quiet note, the tips keep rotating. */
+  keptWaiting?: boolean
+  /** WAKE_MAX_MS passed: a friendly error with Retry and the offline choice. */
+  timedOut?: boolean
+  onRetry?: () => void
 }
 
 /** Full-screen "Waking up the dungeon..." state with rotating tips and, late, the Offline demo choice. */
-export function WakingUp({ offerOffline, onOffline, offlineBusy = false }: WakingUpProps) {
+export function WakingUp({
+  offerOffline,
+  onOffline,
+  offlineBusy = false,
+  onKeepWaiting,
+  keptWaiting = false,
+  timedOut = false,
+  onRetry,
+}: WakingUpProps) {
   const [tip, setTip] = useState(0)
 
   useEffect(() => {
@@ -49,13 +66,42 @@ export function WakingUp({ offerOffline, onOffline, offlineBusy = false }: Wakin
         <p className="sd-waking__tip" role="status" aria-live="polite" data-testid="waking-tip">
           {WAKING_TIPS[tip]}
         </p>
-        {offerOffline && (
-          <div className="sd-waking__offline" data-testid="waking-offline">
-            <p className="sd-waking__note">The server is taking its time. It may still answer; you do not have to wait.</p>
-            <button type="button" className="sd-ghost-btn" onClick={onOffline} disabled={offlineBusy}>
-              Play the offline demo
-            </button>
+        {timedOut ? (
+          <div className="sd-waking__offline" data-testid="waking-timeout">
+            <p className="sd-waking__note" role="alert">
+              {WAKING_TIMEOUT_TEXT}
+            </p>
+            <div className="sd-waking__choices">
+              {onRetry && (
+                <button type="button" className="sd-cta" onClick={onRetry}>
+                  Retry
+                </button>
+              )}
+              <button type="button" className="sd-ghost-btn" onClick={onOffline} disabled={offlineBusy}>
+                Play offline demo
+              </button>
+            </div>
           </div>
+        ) : (
+          offerOffline && (
+            <div className="sd-waking__offline" data-testid="waking-offline">
+              <p className="sd-waking__note">
+                {keptWaiting
+                  ? 'Still waiting for the server. It may answer any moment.'
+                  : 'The server is taking its time. It may still answer; you do not have to wait.'}
+              </p>
+              <div className="sd-waking__choices">
+                {onKeepWaiting && !keptWaiting && (
+                  <button type="button" className="sd-cta" onClick={onKeepWaiting}>
+                    Keep waiting
+                  </button>
+                )}
+                <button type="button" className="sd-ghost-btn" onClick={onOffline} disabled={offlineBusy}>
+                  Play offline demo
+                </button>
+              </div>
+            </div>
+          )
         )}
       </div>
     </div>

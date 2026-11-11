@@ -6,8 +6,47 @@
 
 export interface User {
   id: string
+  /** '' for a Guest whose wire username is null. Never shown publicly (use displayHandle). */
   username: string
   is_guest: boolean
+  /** frontend-10: public identity fields; absent on older Backends. */
+  public_id?: string
+  display_name?: string
+  tag?: string
+  handle?: string
+}
+
+/** frontend-10 (D2): a feature switch; 'unproven' until the first call of a PROPOSED feature answers. */
+export type CapabilityState = boolean | 'unproven'
+
+export type NameReason = 'too_short' | 'too_long' | 'characters' | 'not_allowed'
+
+/** POST /guests/name-check. */
+export interface NameCheckResult {
+  ok: boolean
+  display_name?: string
+  reason?: NameReason
+  message?: string
+}
+
+/** POST /guests body. The notice acceptance is always true when sent. */
+export interface CreateGuestRequest {
+  display_name: string
+  accept_public_notice: true
+}
+
+export interface CreateGuestResponse {
+  user: User
+  notice_version: string
+}
+
+/** One item of GET /dungeons. */
+export interface DungeonSummary {
+  id: string
+  title: string
+  is_public_demo: boolean
+  created_at: string
+  rooms_count: number
 }
 
 /** Body of register and login. The Backend normalizes the username (lowercase) and is the validator. */
