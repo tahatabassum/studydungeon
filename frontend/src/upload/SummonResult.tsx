@@ -27,7 +27,7 @@ export function SummonResult({ dungeon }: SummonResultProps) {
       <h2 id="up-result-title" className="sd-up__result-h">
         {`Your notes became ${count} ${count === 1 ? 'floor' : 'floors'}`}
       </h2>
-      <p className="sd-card__muted">{dungeon.name}</p>
+      <p className="sd-up__result-sub">{dungeon.name}</p>
       <ol className="sd-up__floors" aria-label="Floors of your dungeon">
         {generation.floors.map((f) => (
           <li key={f.id} className="sd-up__floor" data-status={f.status}>
@@ -47,7 +47,7 @@ export function SummonResult({ dungeon }: SummonResultProps) {
       <div role="status" aria-live="polite" className="sr-only" data-testid="upload-floor-live">
         {generation.announcement}
       </div>
-      <div>
+      <div className="sd-up__result-cta">
         <Link to={mapPath} className="sd-cta" data-testid="open-map">
           <MapIcon aria-hidden="true" size={18} />
           Open the campaign map

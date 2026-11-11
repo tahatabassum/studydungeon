@@ -112,6 +112,7 @@ export default function LeaderboardPage() {
   return (
     <PageShell
       wide
+      variant="fit"
       testId="leaderboard-page"
       title="Leaderboard"
       subtitle={isDemo ? 'The demo board: Computer Basics Crypt' : 'Your best runs in this dungeon'}

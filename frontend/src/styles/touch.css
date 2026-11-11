@@ -1,0 +1,134 @@
+/*
+ * Touch play: virtual joystick (bottom-left), Engage button (bottom-right), rotate hint.
+ * All of it renders only in touch mode. touch-action: none is limited to the controls and the
+ * game area; the page itself keeps native zoom. Colours come from the approved tokens (AA).
+ */
+
+.sd-shell {
+  --sd-stick: 8.5rem;
+}
+@media (max-height: 480px) {
+  .sd-shell {
+    --sd-stick: 6.75rem;
+  }
+}
+
+.sd-touch {
+  position: absolute;
+  inset: 0;
+  z-index: 25;
+  pointer-events: none;
+}
+
+.sd-stick {
+  position: absolute;
+  left: max(1rem, var(--sd-safe-left, 0px));
+  bottom: max(1rem, var(--sd-safe-bottom, 0px));
+  width: var(--sd-stick);
+  height: var(--sd-stick);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  border: 2px solid var(--color-magic);
+  background: color-mix(in srgb, var(--color-panel) 72%, transparent);
+  box-shadow: var(--sd-elev-2);
+  pointer-events: auto;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.sd-stick__knob {
+  width: 42%;
+  height: 42%;
+  border-radius: 50%;
+  border: 2px solid var(--color-accent);
+  background: color-mix(in srgb, var(--color-accent) 55%, var(--color-deep));
+  box-shadow: var(--sd-glow-accent);
+  pointer-events: none;
+}
+
+.sd-engage {
+  position: absolute;
+  right: max(1rem, var(--sd-safe-right, 0px));
+  bottom: max(1rem, var(--sd-safe-bottom, 0px));
+  min-width: 7rem;
+  max-width: 11rem;
+  min-height: 4rem;
+  padding: 0.5rem 1rem;
+  border-radius: 1rem;
+  border: 3px solid var(--color-deep);
+  background: color-mix(in srgb, var(--color-panel) 92%, transparent);
+  color: var(--color-ink-muted);
+  font-family: var(--font-label);
+  font-size: 1rem;
+  font-weight: 700;
+  line-height: 1.2;
+  text-align: center;
+  pointer-events: auto;
+  touch-action: manipulation;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+.sd-engage[data-ready='true'] {
+  border-color: var(--color-accent);
+  background: var(--color-accent);
+  color: var(--color-bg);
+  box-shadow: var(--sd-glow-accent);
+}
+.sd-engage:active:enabled {
+  transform: scale(0.96);
+}
+.sd-engage:disabled {
+  cursor: default;
+}
+
+/* The touch legend floats above the controls so it never sits under a thumb. */
+.sd-hud-bottom--touch {
+  inset: auto 0 calc(var(--sd-stick) + 1.5rem + var(--sd-safe-bottom, 0px)) 0;
+  min-height: 0;
+}
+
+.sd-rotate {
+  position: absolute;
+  left: 50%;
+  bottom: calc(var(--sd-stick) + 4.25rem + var(--sd-safe-bottom, 0px));
+  z-index: 26;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  max-width: calc(100% - 1.5rem);
+  padding: 0.375rem 0.5rem 0.375rem 0.75rem;
+  border-radius: 0.5rem;
+  border: 1px solid var(--color-magic);
+  background: var(--sd-hud-surface);
+  color: var(--color-ink);
+  font-size: 0.8125rem;
+  pointer-events: auto;
+}
+.sd-rotate__close {
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0 0.75rem;
+  border-radius: 0.5rem;
+  border: 2px solid var(--color-magic);
+  background: transparent;
+  color: var(--color-ink);
+  font-weight: 600;
+}
+
+/* The game area never scrolls or zooms by touch; the rest of the page keeps native gestures. */
+.sd-shell--play,
+html:has(.sd-shell--play),
+body:has(.sd-shell--play) {
+  overscroll-behavior: none;
+}
+.sd-game-area,
+.sd-game-area canvas {
+  touch-action: none;
+}

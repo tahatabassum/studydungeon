@@ -56,5 +56,8 @@ export function useFullscreen() {
     }
   }, [toggle])
 
-  return { isFullscreen, message, toggle }
+  // iOS Safari has no Fullscreen API for pages; callers may hide the button then.
+  const supported = typeof document !== 'undefined' && typeof document.documentElement.requestFullscreen === 'function'
+
+  return { isFullscreen, message, toggle, supported }
 }

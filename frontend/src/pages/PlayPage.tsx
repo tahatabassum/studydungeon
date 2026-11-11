@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { Button } from '@/components/Button'
 import { ConfirmDialog } from '@/components/ConfirmDialog'
@@ -24,7 +24,11 @@ import { ChestOverlay } from '@/rewards/ChestOverlay'
 import { chestView } from '@/rewards/chestView'
 import type { RunSummary } from '@/types/api'
 import { useFullscreen } from '@/shell/useFullscreen'
-import { useViewportWidth } from '@/shell/useViewportWidth'
+import { useViewportHeight, useViewportWidth } from '@/shell/useViewportWidth'
+import { RotateHint } from '@/touch/RotateHint'
+import { TouchControls } from '@/touch/TouchControls'
+import { useTouchMode } from '@/touch/useTouchMode'
+import { PauseButton } from '@/components/PauseButton'
 import { damageReceived, isCombatActive } from '@/state/combatMachine'
 import { useSession } from '@/state/SessionContext'
 import { campaignPath, usePlaySession, type PlayScope } from './usePlaySession'
@@ -47,7 +51,16 @@ export default function PlayPage({ scope, examMinutes = null }: PlayPageProps = 
   // Lives here (not in the banner) so it survives restart / Play again within one page visit.
   const [guestBannerDone, setGuestBannerDone] = useState(false)
   const fullscreen = useFullscreen()
-  const compact = hudMode(useViewportWidth()) === 'compact'
+  const touch = useTouchMode()
+  const [rotateDismissed, setRotateDismissed] = useState(false)
+  const viewportHeight = useViewportHeight()
+  // A short landscape phone also gets the compact HUD, so the top bar leaves room for the stage.
+  const compact = hudMode(useViewportWidth()) === 'compact' || (touch && viewportHeight < 480)
+  const bridge = s.bridge
+  useEffect(() => {
+    // In-world prompts say "Tap Engage" instead of "Press E". Only sent in touch mode (desktop is unchanged).
+    if (touch) bridge.send({ type: 'set-touch-mode', value: true })
+  }, [touch, bridge])
 
   if (s.loadError) {
     return (
@@ -80,11 +93,15 @@ export default function PlayPage({ scope, examMinutes = null }: PlayPageProps = 
   const chestVisible = state.summary !== null && state.summary !== chestSeen && chestView(state.summary.chest_rewards) !== null
   const combatActive = isCombatActive(state.combat)
   const panelVisible = combatActive && s.question !== null
+  // Touch controls show only while exploring: not during a fight, pause, defeat, victory or error banner.
+  const controlsVisible =
+    state.phase === 'exploring' && !combatActive && !showVictory && !confirmingExit && !s.clearError && !chestVisible
+  const pauseVisible = (state.phase === 'exploring' || state.phase === 'encounter') && !showVictory
 
   return (
-    <AppShell announcement={fullscreen.message}>
+    <AppShell announcement={fullscreen.message} className="sd-shell--play">
       {/* The canvas fills the whole shell; the backdrop shows through its transparent clear colour. */}
-      <div ref={gameWrapRef} className="absolute inset-0 z-[1]">
+      <div ref={gameWrapRef} className="sd-game-area absolute inset-0 z-[1]">
         <GameCanvas bridge={s.bridge} className="absolute inset-0 size-full" />
       </div>
 
@@ -95,7 +112,9 @@ export default function PlayPage({ scope, examMinutes = null }: PlayPageProps = 
           <Panel tone="gold" className="sd-hall-banner__chip" role={showHallRest ? 'status' : undefined}>
             {showHallRest
               ? 'This hall is at rest. The gate opens.'
-              : 'Haunted Hall: walk up to a ghost and press E to face the memory'}
+              : touch
+                ? 'Haunted Hall: walk up to a ghost and tap Engage to face the memory'
+                : 'Haunted Hall: walk up to a ghost and press E to face the memory'}
           </Panel>
         </div>
       )}
@@ -158,11 +177,19 @@ export default function PlayPage({ scope, examMinutes = null }: PlayPageProps = 
               />
             )}
           </div>
-          <FullscreenButton isFullscreen={fullscreen.isFullscreen} onToggle={() => void fullscreen.toggle()} />
+          {touch && pauseVisible && <PauseButton onPause={s.togglePause} />}
+          {/* iOS has no Fullscreen API: on touch devices the button is hidden when unsupported. */}
+          {(!touch || fullscreen.supported) && (
+            <FullscreenButton isFullscreen={fullscreen.isFullscreen} onToggle={() => void fullscreen.toggle()} />
+          )}
         </div>
       </div>
 
-      <ControlsLegend compact={compact} />
+      {/* In touch mode the legend sits above the controls, so it hides with them (never over the popup). */}
+      {(!touch || controlsVisible) && <ControlsLegend compact={compact} touch={touch} />}
+      {touch && controlsVisible && !rotateDismissed && <RotateHint onDismiss={() => setRotateDismissed(true)} />}
+      {/* Hidden while the popup, pause or any overlay is open, so it never covers them. */}
+      {touch && controlsVisible && <TouchControls bridge={s.bridge} />}
 
       {/* Character-led encounter: scrim, sliding portrait and speech panel over the full-viewport canvas. */}
       <EncounterPopup

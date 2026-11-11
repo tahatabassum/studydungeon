@@ -1,5 +1,7 @@
 export interface ControlsHintProps {
   className?: string
+  /** Touch wording ("Use the stick to move, tap Engage") instead of the keyboard keys. */
+  touch?: boolean
 }
 
 const CONTROLS: ReadonlyArray<{ keys: readonly string[]; label: string }> = [
@@ -11,7 +13,17 @@ const CONTROLS: ReadonlyArray<{ keys: readonly string[]; label: string }> = [
   { keys: ['F'], label: 'Fullscreen' },
 ]
 
-export function ControlsHint({ className = '' }: ControlsHintProps) {
+export function ControlsHint({ className = '', touch = false }: ControlsHintProps) {
+  if (touch) {
+    return (
+      <ul
+        aria-label="Controls"
+        className={`m-0 flex list-none items-center justify-center p-0 text-center text-xs text-ink-muted ${className}`.trim()}
+      >
+        <li>Use the stick to move, tap Engage</li>
+      </ul>
+    )
+  }
   return (
     <ul
       aria-label="Controls"

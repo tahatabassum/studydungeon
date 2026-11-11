@@ -160,6 +160,33 @@ describe('createGameBridge', () => {
     expect(from.slice(1)).toEqual([{ type: 'boss-death-done', roomId: 'room-4' }])
   })
 
+  it('delivers the additive touch events in both directions, in order', () => {
+    const bridge = createGameBridge()
+    const to: ToGameEvent[] = []
+    const from: FromGameEvent[] = []
+    bridge.onToGame((e) => to.push(e))
+    bridge.on((e) => from.push(e))
+    bridge.send({ type: 'set-touch-mode', value: true })
+    bridge.send({ type: 'set-move-input', x: 0.5, y: -1 })
+    bridge.send({ type: 'engage-request' })
+    bridge.send({ type: 'set-move-input', x: 0, y: 0 })
+    bridge.emit({ type: 'ready' })
+    bridge.emit({ type: 'engage-available', kind: 'monster', name: 'Paper Wraith' })
+    bridge.emit({ type: 'engage-available', kind: 'revenant' })
+    bridge.emit({ type: 'engage-available', kind: null })
+    expect(to).toEqual([
+      { type: 'set-touch-mode', value: true },
+      { type: 'set-move-input', x: 0.5, y: -1 },
+      { type: 'engage-request' },
+      { type: 'set-move-input', x: 0, y: 0 },
+    ])
+    expect(from.slice(1)).toEqual([
+      { type: 'engage-available', kind: 'monster', name: 'Paper Wraith' },
+      { type: 'engage-available', kind: 'revenant' },
+      { type: 'engage-available', kind: null },
+    ])
+  })
+
   it('delivers room-entered and gate-opened to React', () => {
     const bridge = createGameBridge()
     const got: FromGameEvent[] = []

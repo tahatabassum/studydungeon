@@ -15,6 +15,7 @@ import type {
   Dungeon,
   FloorRank,
   FloorStatus,
+  Question,
   Room,
   RunMode,
   ProgressInfo,
@@ -25,14 +26,14 @@ import { WEAPONS, bestWeaponAmong, resolveWeapon } from '../../weapons/weapons'
 import { readFlags } from '../../config/flags'
 import { evaluateBadges, mergeBadges, type RoomRecord } from '../../badges/rules'
 import { firstTryAccuracy, RANK_VALUE, rankFor } from '../../learning/rank'
-import { answerKey } from './answerKey'
+import { answerKey, type AnswerKeyEntry } from './answerKey'
 import { drawQuestions } from '../../learning/draw'
 import { progressFromXp } from '../../learning/level'
 import { buildDueSummary, MOCK_REVIEW_INTERVAL_MS } from './mockHaunt'
 import { DEMO_FINAL_BOSS_ROOM_ID, DEMO_FLOOR_DEFS, buildFloors, type FloorDef } from '../../learning/floors'
 import { readMockDelayMs, readMockLevel, readMockPlayer } from './mockLevel'
 import { createMockAuth } from './mockAuth'
-import { createMockUpload } from './mockUpload'
+import { createMockUpload, type GeneratedSource } from './mockUpload'
 import { createMasteryStore } from '../../learning/masteryStore'
 import { buildMockLeaderboard, runRankOnDemoBoard, type StoredRun } from './mockLeaderboard'
 import { createReviewStore } from './mockReviews'
@@ -91,6 +92,54 @@ const bossRoom = orderedRooms.find((r) => r.is_boss)
 const roomOfQuestion = new Map<string, DemoRoom>()
 for (const room of orderedRooms) {
   for (const qid of room.monster.question_ids) roomOfQuestion.set(qid, room)
+}
+
+/**
+ * Everything a run needs to know about the dungeon it plays: the seeded demo or a dungeon generated from
+ * an upload. The rules (applyAnswer, floors, requeue, draw) are shared; only the content differs.
+ */
+interface DungeonCtx {
+  id: string
+  rooms: DemoRoom[]
+  roomById: Map<string, DemoRoom>
+  roomOfQuestion: Map<string, DemoRoom>
+  questions: readonly Question[]
+  keyOf(questionId: string): AnswerKeyEntry | undefined
+  bossRoom: DemoRoom | undefined
+  floorDefs: readonly FloorDef[]
+  finalBossRoomId: string
+  hardIds: ReadonlySet<string>
+}
+
+const demoCtx: DungeonCtx = {
+  id: demoDungeon.id,
+  rooms: orderedRooms,
+  roomById: new Map(orderedRooms.map((r) => [r.id, r])),
+  roomOfQuestion,
+  questions: demoDungeon.questions,
+  keyOf: (qid) => answerKey[qid],
+  bossRoom,
+  floorDefs: DEMO_FLOOR_DEFS,
+  finalBossRoomId: DEMO_FINAL_BOSS_ROOM_ID,
+  hardIds: HARD_QUESTION_IDS,
+}
+
+function ctxFromSource(src: GeneratedSource): DungeonCtx {
+  const rooms = [...(src.rooms as DemoRoom[])].sort((a, b) => a.order - b.order)
+  const owner = new Map<string, DemoRoom>()
+  for (const room of rooms) for (const qid of room.monster.question_ids) owner.set(qid, room)
+  return {
+    id: src.id,
+    rooms,
+    roomById: new Map(rooms.map((r) => [r.id, r])),
+    roomOfQuestion: owner,
+    questions: src.questions,
+    keyOf: (qid) => src.answers.get(qid),
+    bossRoom: rooms.find((r) => r.is_boss),
+    floorDefs: src.floorDefs,
+    finalBossRoomId: src.finalBossRoomId,
+    hardIds: new Set(),
+  }
 }
 
 interface RunRecord {
@@ -164,8 +213,18 @@ export function createMockAdapter(options: MockAdapterOptions = {}): ApiClient {
   const scheduled = new Map<string, number>()
   let dailyStreak = 0
   let lastHauntDay = ''
-  const roomById = new Map(orderedRooms.map((r) => [r.id, r]))
-  const topicOfQuestion = (qid: string): string | undefined => roomOfQuestion.get(qid)?.id
+  /** The dungeon a run plays: the demo, or a dungeon generated from an upload (its content is static once built). */
+  const generatedCtx = new Map<string, DungeonCtx>()
+  const ctxFor = (dungeonId: string): DungeonCtx => {
+    if (dungeonId === demoDungeon.id) return demoCtx
+    const known = generatedCtx.get(dungeonId)
+    if (known) return known
+    const src = upload.source(dungeonId)
+    if (!src) throw new ApiError(404, `Dungeon not found: ${dungeonId}`)
+    const ctx = ctxFromSource(src)
+    generatedCtx.set(dungeonId, ctx)
+    return ctx
+  }
 
   // Only floor-style runs (and the legacy whole-dungeon run) move the campaign forward. Practice modes
   // (weak topics, exam, daily haunt) never clear a floor.
@@ -178,13 +237,25 @@ export function createMockAdapter(options: MockAdapterOptions = {}): ApiClient {
     }
     return all
   }
-  const floorView = () =>
+  const demoFloorView = () =>
     buildFloors(DEMO_FLOOR_DEFS, orderedRooms, {
       clearedRoomIds: clearedRooms(),
       ranks,
       masteryOf: (id) => mastery.get(id),
       forced,
     })
+  const floorView = demoFloorView
+  /** What play has done so far, overlaid on a generated dungeon's floors. */
+  const playState = () => ({ cleared: clearedRooms(), ranks, masteryOf: (id: string) => mastery.get(id) })
+  /** Floors, the final boss and the room -> floor map of any playable dungeon. */
+  const floorViewOf = (ctx: DungeonCtx): ReturnType<typeof demoFloorView> => {
+    if (ctx === demoCtx) return demoFloorView()
+    const dungeon = upload.dungeon(ctx.id, playState())
+    const floors = dungeon?.floors ?? []
+    const roomFloor = new Map<string, string>()
+    for (const f of floors) for (const rid of f.room_ids) roomFloor.set(rid, f.id)
+    return { floors, final_boss: dungeon?.final_boss, roomFloor }
+  }
 
   /** PROPOSED frontend-08 progress fields. Mastery is the mock's EMA; the calendar follows the Daily Haunt streak. */
   const proposedProgress = (): Pick<ProgressInfo, 'notes_conquered_percent' | 'memory_strength' | 'streak_calendar' | 'weak_concepts'> => {
@@ -280,7 +351,7 @@ export function createMockAdapter(options: MockAdapterOptions = {}): ApiClient {
 
     async getDungeon(id) {
       await wait()
-      const generated = upload.dungeon(id)
+      const generated = upload.dungeon(id, playState())
       if (generated) return generated
       if (id !== demoDungeon.id) throw new ApiError(404, `Dungeon not found: ${id}`)
       const view = floorView()
@@ -297,11 +368,11 @@ export function createMockAdapter(options: MockAdapterOptions = {}): ApiClient {
     async startRun(request) {
       await wait()
       const dungeonId = typeof request === 'string' ? request : request.dungeon_id
-      if (dungeonId !== demoDungeon.id) throw new ApiError(404, `Dungeon not found: ${dungeonId}`)
+      const ctx = ctxFor(dungeonId)
       let scoped: ScopedRun | null = null
       const mode: RunMode = typeof request === 'string' ? 'floor' : request.mode
       if (typeof request !== 'string') {
-        const view = floorView()
+        const view = floorViewOf(ctx)
         const floorId = request.floor_id
         let roomIds: string[]
         if (mode === 'floor' || mode === 'replay_floor') {
@@ -318,13 +389,13 @@ export function createMockAdapter(options: MockAdapterOptions = {}): ApiClient {
             roomIds = floor.room_ids
           } else if (view.final_boss && floorId === view.final_boss.id) {
             if (!view.final_boss.unlocked) throw new ApiError(409, 'The final boss is still locked.', 'FLOOR_LOCKED')
-            roomIds = [DEMO_FINAL_BOSS_ROOM_ID]
+            roomIds = [ctx.finalBossRoomId]
           } else {
             throw new ApiError(404, `Floor not found: ${floorId}`, 'FLOOR_NOT_FOUND')
           }
         } else if (mode === 'weak_topics') {
           // The lowest-mastery topics (ties by dungeon order), played in dungeon order. The boss is left out.
-          roomIds = orderedRooms
+          roomIds = ctx.rooms
             .filter((r) => !r.is_boss)
             .map((r) => ({ id: r.id, order: r.order, m: mastery.get(r.id) }))
             .sort((a, b) => a.m - b.m || a.order - b.order)
@@ -336,7 +407,7 @@ export function createMockAdapter(options: MockAdapterOptions = {}): ApiClient {
           roomIds = []
         } else {
           // Exam: every topic, then the Exam Warden.
-          roomIds = orderedRooms.map((r) => r.id)
+          roomIds = ctx.rooms.map((r) => r.id)
         }
         scoped = {
           mode,
@@ -350,19 +421,19 @@ export function createMockAdapter(options: MockAdapterOptions = {}): ApiClient {
           retries: 0,
         }
         const pool = roomIds.flatMap((rid) => {
-          const room = roomById.get(rid)
-          return room ? authoredPool(demoDungeon.questions, room.monster.question_ids) : []
+          const room = ctx.roomById.get(rid)
+          return room ? authoredPool(ctx.questions, room.monster.question_ids) : []
         })
         scoped.queue = buildQueue(drawQuestions(pool, scoped.runSeed).map((q) => q.id))
       }
       runCounter += 1
       const id = `run-${runCounter}-${randomSuffix()}`
-      const first = scoped ? (roomById.get(scoped.roomIds[0]) ?? orderedRooms[0]) : orderedRooms[0]
+      const first = scoped ? (ctx.roomById.get(scoped.roomIds[0]) ?? ctx.rooms[0]) : ctx.rooms[0]
       runs.set(id, {
         dungeonId,
         playerHp: INITIAL_STATE.playerHp,
         streak: 0,
-        monsterHp: new Map(orderedRooms.map((r) => [r.id, r.monster.max_hp])),
+        monsterHp: new Map(ctx.rooms.map((r) => [r.id, r.monster.max_hp])),
         cleared: new Set(),
         attempts: new Map(),
         correct: 0,
@@ -404,10 +475,11 @@ export function createMockAdapter(options: MockAdapterOptions = {}): ApiClient {
       const stored = run.attempts.get(req.attempt_id)
       if (stored) return structuredClone(stored)
 
-      const entry = answerKey[req.question_id]
+      const ctx = ctxFor(run.dungeonId)
+      const entry = ctx.keyOf(req.question_id)
       if (!entry) throw new ApiError(422, `Unknown question: ${req.question_id}`)
 
-      const room = roomOfQuestion.get(req.question_id)
+      const room = ctx.roomOfQuestion.get(req.question_id)
       if (!room) throw new ApiError(422, `Question has no room: ${req.question_id}`)
       const scoped = run.scoped
       // A Daily Haunt run is made of due items only: every attempt is a review, no room monster is involved.
@@ -436,7 +508,7 @@ export function createMockAdapter(options: MockAdapterOptions = {}): ApiClient {
       const weapon = req.weapon_id !== undefined ? resolveWeapon(req.weapon_id) : bestWeaponAmong(unlocked)
       const critical = !isReview && isCorrect && run.streak >= CRIT_AFTER_STREAK
       const baseProfile = room.is_boss && !isReview ? BOSS_PROFILE : ROOM_PROFILE
-      const strike = strikeDamage(weapon.baseDamage, HARD_QUESTION_IDS.has(req.question_id), critical)
+      const strike = strikeDamage(weapon.baseDamage, ctx.hardIds.has(req.question_id), critical)
       const { next, result } = applyAnswer(
         { playerHp: run.playerHp, monsterHp: roomHp, streak: run.streak },
         isCorrect,
@@ -473,8 +545,7 @@ export function createMockAdapter(options: MockAdapterOptions = {}): ApiClient {
         // PROPOSED: the right answer is revealed only after a wrong one.
         if (!isCorrect) full.correct_answer = entry.correct
       }
-      const topicId = topicOfQuestion(req.question_id)
-      if (topicId) mastery.record(topicId, isCorrect)
+      mastery.record(room.id, isCorrect)
       if (isCorrect) scheduled.set(req.question_id, now() + MOCK_REVIEW_INTERVAL_MS)
       else scheduled.delete(req.question_id)
       reviews.record(req.question_id, isCorrect)
@@ -493,7 +564,7 @@ export function createMockAdapter(options: MockAdapterOptions = {}): ApiClient {
       run.streak = next.streak
       run.maxStreak = Math.max(run.maxStreak, next.streak)
       if (!isCorrect && !run.missed.has(req.question_id)) {
-        const prompt = demoDungeon.questions.find((q) => q.id === req.question_id)?.prompt ?? entry.correct
+        const prompt = ctx.questions.find((q) => q.id === req.question_id)?.prompt ?? entry.correct
         run.missed.set(req.question_id, { text: prompt, page: entry.page })
       }
       if (!haunt) run.monsterHp.set(room.id, next.monsterHp)
@@ -508,7 +579,7 @@ export function createMockAdapter(options: MockAdapterOptions = {}): ApiClient {
     async clearRoom(runId, roomId) {
       await wait()
       const run = getRun(runId)
-      const room = orderedRooms.find((r) => r.id === roomId)
+      const room = ctxFor(run.dungeonId).roomById.get(roomId)
       if (!room) throw new ApiError(404, `Room not found: ${roomId}`)
       if ((run.monsterHp.get(roomId) ?? 0) > 0) throw new ApiError(409, 'Monster is still alive')
       const xpDelta = room.is_boss ? BOSS_CLEAR_XP : ROOM_CLEAR_XP
@@ -522,10 +593,11 @@ export function createMockAdapter(options: MockAdapterOptions = {}): ApiClient {
     async finishRun(runId) {
       await wait()
       const run = getRun(runId)
+      const ctx = ctxFor(run.dungeonId)
       const scoped = run.scoped
       // A floor run ends at its Floor_Boss; a Daily Haunt and the other whole-dungeon modes need no boss.
       const floorRun = scoped !== null && (scoped.mode === 'floor' || scoped.mode === 'replay_floor')
-      const gateRoomId = floorRun ? scoped.roomIds[scoped.roomIds.length - 1] : scoped ? undefined : bossRoom?.id
+      const gateRoomId = floorRun ? scoped.roomIds[scoped.roomIds.length - 1] : scoped ? undefined : ctx.bossRoom?.id
       if (gateRoomId !== undefined && !run.cleared.has(gateRoomId)) {
         throw new ApiError(409, 'Boss has not been defeated', 'BOSS_NOT_CLEARED')
       }
@@ -538,8 +610,8 @@ export function createMockAdapter(options: MockAdapterOptions = {}): ApiClient {
           total: run.total,
           accuracy: run.total === 0 ? 0 : run.correct / run.total,
         }
-        const topicRooms = (scoped ? scoped.roomIds : orderedRooms.map((r) => r.id)).flatMap((id) => {
-          const r = roomById.get(id)
+        const topicRooms = (scoped ? scoped.roomIds : ctx.rooms.map((r) => r.id)).flatMap((id) => {
+          const r = ctx.roomById.get(id)
           return r ? [r] : []
         })
         summary.mastery_by_topic = topicRooms.map((r) => ({
@@ -579,10 +651,10 @@ export function createMockAdapter(options: MockAdapterOptions = {}): ApiClient {
             damageTaken: run.damageTaken,
             bossCleared:
               (floorRun && gateRoomId !== undefined && run.cleared.has(gateRoomId)) ||
-              orderedRooms.some((r) => r.is_boss && run.cleared.has(r.id)),
+              ctx.rooms.some((r) => r.is_boss && run.cleared.has(r.id)),
             maxStreak: run.maxStreak,
             revenantsCleared: run.revenantsRested,
-            allRoomsCleared: !practice && orderedRooms.every((r) => doneRooms.has(r.id)),
+            allRoomsCleared: !practice && ctx.rooms.every((r) => doneRooms.has(r.id)),
           },
           { speedReader: readFlags().badgeSpeedReader },
         )
@@ -672,7 +744,8 @@ export function createMockAdapter(options: MockAdapterOptions = {}): ApiClient {
     async getRun(runId) {
       await wait()
       const run = getRun(runId)
-      const current = orderedRooms.find((r) => !run.cleared.has(r.id)) ?? orderedRooms[orderedRooms.length - 1]
+      const rooms = ctxFor(run.dungeonId).rooms
+      const current = rooms.find((r) => !run.cleared.has(r.id)) ?? rooms[rooms.length - 1]
       return {
         id: runId,
         dungeon_id: run.dungeonId,
@@ -688,13 +761,17 @@ export function createMockAdapter(options: MockAdapterOptions = {}): ApiClient {
       await wait()
       // Thin adapter: with a dungeon id the old bare array (HUD counter, room Revenants); without one the new shape.
       if (dungeonId === undefined) return buildDueSummary(hauntInputs())
-      if (dungeonId !== demoDungeon.id) throw new ApiError(404, `Dungeon not found: ${dungeonId}`)
+      // A generated dungeon has no seeded reviews: misses there come back through the requeue, not as ghosts.
+      if (dungeonId !== demoDungeon.id) {
+        ctxFor(dungeonId)
+        return []
+      }
       return reviews.list(demoDungeon.questions)
     }) as ApiClient['getDueReviews'],
 
     async getGenerationStatus(dungeonId) {
       await wait()
-      const generated = upload.generationStatus(dungeonId)
+      const generated = upload.generationStatus(dungeonId, playState())
       if (generated) return generated
       if (dungeonId !== demoDungeon.id) throw new ApiError(404, `Dungeon not found: ${dungeonId}`)
       return { dungeon_id: dungeonId, floors: floorView().floors.map((f) => ({ id: f.id, status: f.status })) }

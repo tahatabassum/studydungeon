@@ -74,6 +74,31 @@ body,
   min-height: 100%;
 }
 
+/* Touch: no double-tap zoom delay on controls (pinch zoom stays), and 44px minimum targets. */
+button,
+a,
+input,
+select,
+summary,
+label,
+[role='button'] {
+  touch-action: manipulation;
+}
+@media (pointer: coarse) {
+  button,
+  [role='button'],
+  select,
+  input:not([type='checkbox']):not([type='radio']) {
+    min-height: 44px;
+  }
+}
+html[data-touch='true'] button,
+html[data-touch='true'] [role='button'],
+html[data-touch='true'] select,
+html[data-touch='true'] input:not([type='checkbox']):not([type='radio']) {
+  min-height: 44px;
+}
+
 /* Shared control states: hover, pressed and keyboard focus for buttons and icon controls. */
 .sd-control {
   transition:

@@ -240,6 +240,21 @@ export class RevenantSystem {
     return best
   }
 
+  /** Touch: the Engage button was pressed. Same path as E or Space. */
+  requestEngage(): void {
+    this.tryEngage()
+  }
+
+  /** Touch wording for the in-world prompt (called on a mode change, never per frame). */
+  setTouchMode(on: boolean): void {
+    this.prompt.setText(on ? 'Tap Engage to face the memory' : 'Press E to face the memory')
+  }
+
+  /** True while exploring with an idle Revenant in range and none engaged. Allocation free. */
+  get canEngage(): boolean {
+    return !this.engaged && this.host.phase() === 'exploring' && this.nearest() !== null
+  }
+
   private tryEngage(): void {
     if (this.engaged || this.host.phase() !== 'exploring') return
     const h = this.nearest()

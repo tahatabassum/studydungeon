@@ -5,7 +5,7 @@ import '../styles/dashboard.css'
 import '../styles/upload.css'
 import { useReducedMotion } from '../state/useReducedMotion'
 import { Dropzone } from './Dropzone'
-import { formatSize } from './limits'
+import { fileHint, formatSize } from './limits'
 import { StepList } from './StepList'
 import { SummonResult } from './SummonResult'
 import { announcementFor, stepStates } from './steps'
@@ -37,6 +37,8 @@ export function UploadWizard(options: UseUploadFlowOptions = {}) {
           onFile={(f, more) => {
             setExtra(more)
             flow.stage(f)
+            // A file the browser can already see is wrong waits for the player; any other starts at once.
+            if (fileHint(f) === null) flow.start(f)
           }}
         />
       )}
@@ -60,24 +62,26 @@ export function UploadWizard(options: UseUploadFlowOptions = {}) {
               {flow.error}
             </p>
           )}
-          <div className="sd-dash__actions">
-            <button
-              type="button"
-              className="sd-cta"
-              onClick={flow.start}
-              disabled={phase === 'uploading'}
-              aria-busy={phase === 'uploading' || undefined}
-            >
-              <Upload aria-hidden="true" size={18} />
-              {phase === 'error' ? 'Try again' : 'Upload notes'}
-            </button>
-            {canRemove && (
-              <button type="button" className="sd-ghost-btn" onClick={flow.clear}>
-                <X aria-hidden="true" size={16} />
-                Choose another file
+          {phase === 'uploading' ? (
+            <p className="sd-up__sending" data-testid="upload-sending">
+              <span aria-hidden="true" className="sd-up__sending-dot" />
+              Sending your notes...
+            </p>
+          ) : (
+            // Only after a browser-side hint (the file is not sent on its own) or a failed send.
+            <div className="sd-dash__actions">
+              <button type="button" className="sd-cta" onClick={() => flow.start()}>
+                <Upload aria-hidden="true" size={18} />
+                {phase === 'error' ? 'Try again' : 'Upload notes'}
               </button>
-            )}
-          </div>
+              {canRemove && (
+                <button type="button" className="sd-ghost-btn" onClick={flow.clear}>
+                  <X aria-hidden="true" size={16} />
+                  Choose another file
+                </button>
+              )}
+            </div>
+          )}
         </section>
       )}
 

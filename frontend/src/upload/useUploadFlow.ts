@@ -35,7 +35,8 @@ export interface UploadFlow {
   slow: boolean
   stage(file: File): void
   clear(): void
-  start(): void
+  /** Sends `next` when given (a file just staged, before state catches up), else the staged file. */
+  start(next?: File): void
   retry(): void
   checkAgain(): void
   summon(): void
@@ -145,14 +146,16 @@ export function useUploadFlow({ pollMs = STATUS_POLL_MS, timeoutMs = STATUS_TIME
     setPhase('idle')
   }, [reset])
 
-  const start = useCallback(() => {
-    if (!file || phase === 'uploading') return
+  const start = useCallback(
+    (next?: File) => {
+    const toSend = next ?? file
+    if (!toSend || phase === 'uploading') return
     setError(null)
     setPhase('uploading')
     void (async () => {
       try {
         const client = await api()
-        const sent = await client.uploadDocument(file)
+        const sent = await client.uploadDocument(toSend)
         if (!mounted.current) return
         setDocId(sent.id)
         setSlow(false)
@@ -163,7 +166,9 @@ export function useUploadFlow({ pollMs = STATUS_POLL_MS, timeoutMs = STATUS_TIME
         setPhase('error')
       }
     })()
-  }, [api, file, phase])
+    },
+    [api, file, phase],
+  )
 
   const retry = useCallback(() => {
     if (docId === null) return

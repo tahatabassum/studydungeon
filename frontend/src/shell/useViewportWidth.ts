@@ -13,3 +13,12 @@ export function useViewportWidth(): number {
     () => 1280,
   )
 }
+
+/** Live window height in CSS px (a short landscape phone uses the compact HUD). */
+export function useViewportHeight(): number {
+  return useSyncExternalStore(
+    subscribe,
+    () => window.innerHeight,
+    () => 800,
+  )
+}
