@@ -16,7 +16,7 @@ from app.core.config import settings
 async def main():
     print("=== StudyDungeon: Live Gemini Check (Manual Opt-In) ===")
 
-    api_key = os.getenv("GEMINI_API_KEY")
+    api_key = os.getenv("GEMINI_API_KEY") or settings.GEMINI_API_KEY
     if not api_key:
         print("[SKIP] GEMINI_API_KEY environment variable is not set. Skipping live test.")
         return 0
@@ -38,14 +38,16 @@ async def main():
         print(f"[PASS] Classification completed: is_study_material={check.is_study_material}, "
               f"subject={check.subject}, educational_score={check.educational_content_score:.2f}")
 
-        # 2. Test Vision OCR with 1x1 test PNG
+        # 2. Test Vision OCR with a valid test PNG
         print("[RUN] Testing vision OCR payload...")
-        # Tiny 1x1 transparent PNG bytes
-        tiny_png = (
-            b"\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\x01\x00\x00\x00\x01\x08\x06\x00\x00\x00"
-            b"\x1f\x15c4\x00\x00\x00\rIDATx\x9cc`\x00\x00\x00\x02\x00\x01H\xaf\xa4q\x00\x00\x00\x00IEND\xaeB`\x82"
-        )
-        ocr_result = await provider.ocr_image(tiny_png, mime_type="image/png")
+        from PIL import Image
+        import io
+        img = Image.new("RGB", (50, 50), color=(255, 255, 255))
+        buf = io.BytesIO()
+        img.save(buf, format="PNG")
+        test_png = buf.getvalue()
+
+        ocr_result = await provider.ocr_image(test_png, mime_type="image/png")
         print(f"[PASS] Vision OCR completed successfully (response length: {len(ocr_result)} chars).")
 
         print("=== Live Gemini Check PASSED ===")
