@@ -54,8 +54,20 @@ async def register(req: UserRegisterRequest, db: AsyncSession = Depends(get_db))
             detail={"code": "USERNAME_TAKEN", "message": "This username is already taken."},
         )
 
+    public_id = generate_public_id()
+    # Default display name to username (up to 16 chars)
+    candidate_name = clean_username[:16]
+    is_valid, _, _ = validate_display_name(candidate_name)
+    display_name = candidate_name if is_valid else "Adventurer"
+    norm_display = normalize_display_name_for_moderation(display_name)
+    tag = generate_guest_tag()
+
     user = User(
+        public_id=public_id,
         username=clean_username,
+        display_name=display_name,
+        display_name_norm=norm_display,
+        tag=tag,
         password_hash=hash_password(req.password),
         is_guest=False,
     )
@@ -67,9 +79,14 @@ async def register(req: UserRegisterRequest, db: AsyncSession = Depends(get_db))
     await db.commit()
     await db.refresh(user)
 
+    handle = f"{user.display_name}#{user.tag}"
     return UserResponse(
         id=user.id,
+        public_id=user.public_id,
         username=user.username,
+        display_name=user.display_name,
+        tag=user.tag,
+        handle=handle,
         is_guest=user.is_guest,
         created_at=user.created_at,
         expires_at=user.expires_at,
@@ -118,7 +135,7 @@ async def login(
         value=token,
         httponly=True,
         samesite="lax",
-        secure=False,
+        secure=settings.COOKIE_SECURE,
         max_age=settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60,
     )
 
@@ -356,6 +373,11 @@ async def create_guest(
     progress = UserProgress(user_id=guest.id)
     db.add(progress)
 
+    # Fetch default preloaded demo dungeon id to return to frontend (Issue #4 fix)
+    dungeon_res = await db.execute(select(Dungeon).where(Dungeon.is_public_demo == True))
+    demo_dungeon = dungeon_res.scalar_one_or_none()
+    demo_dungeon_id = demo_dungeon.id if demo_dungeon else "demo-dungeon-seeded-id"
+
     # Lazy purge of guests inactive for >30 days
     thirty_days_ago = now - timedelta(days=settings.GUEST_SESSION_DAYS)
     await db.execute(delete(User).where(User.is_guest == True, User.last_active_at < thirty_days_ago))
@@ -393,6 +415,7 @@ async def create_guest(
             created_at=guest.created_at,
             expires_at=guest.expires_at,
         ),
+        dungeon_id=demo_dungeon_id,
         notice_version="2026-11",
     )
 
@@ -443,7 +466,7 @@ async def create_demo_session(request: Request, response: Response, db: AsyncSes
         value=token,
         httponly=True,
         samesite="lax",
-        secure=False,
+        secure=settings.COOKIE_SECURE,
         max_age=settings.DEMO_GUEST_TTL_HOURS * 3600,
     )
 

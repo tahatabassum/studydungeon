@@ -71,6 +71,7 @@ class CreateGuestRequest(BaseModel):
 
 class CreateGuestResponse(BaseModel):
     user: UserResponse
+    dungeon_id: Optional[str] = None
     notice_version: str
 
 
