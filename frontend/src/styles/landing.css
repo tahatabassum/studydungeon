@@ -28,6 +28,20 @@
   box-shadow:
     0 0 40px 10px color-mix(in srgb, var(--color-bone) 28%, transparent),
     0 0 120px 40px color-mix(in srgb, var(--color-magic) 22%, transparent);
+  will-change: transform;
+  animation: sd-moon-float 4.5s ease-in-out infinite alternate !important;
+}
+
+@keyframes sd-moon-float {
+  0% {
+    transform: translateY(0px) scale(1);
+  }
+  50% {
+    transform: translateY(-28px) scale(1.03);
+  }
+  100% {
+    transform: translateY(0px) scale(1);
+  }
 }
 
 .sd-fog {
@@ -212,6 +226,36 @@
   0%, 100% { box-shadow: 0 0 10px 1px color-mix(in srgb, var(--color-pumpkin) 45%, transparent), inset 0 0 8px color-mix(in srgb, var(--color-bone) 35%, transparent); }
   50% { box-shadow: 0 0 22px 4px color-mix(in srgb, var(--color-pumpkin) 75%, transparent), inset 0 0 8px color-mix(in srgb, var(--color-bone) 35%, transparent); }
 }
+
+@keyframes sd-float-slow {
+  0%, 100% {
+    transform: translateY(0px) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-38px) rotate(2.5deg);
+  }
+}
+@keyframes sd-float-fast {
+  0%, 100% {
+    transform: translateY(0px) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-32px) rotate(-2.5deg);
+  }
+}
+@keyframes sd-idle-bob {
+  0%, 100% {
+    transform: translateY(0px) scale(1, 1);
+  }
+  50% {
+    transform: translateY(-18px) scale(1.06, 0.94);
+  }
+}
+
+.sd-drift { animation: sd-drift 12s ease-in-out infinite alternate !important; display: inline-block; }
+.sd-float-slow { animation: sd-float-slow 4.2s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite !important; display: inline-block; will-change: transform; }
+.sd-float-fast { animation: sd-float-fast 3.4s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite !important; display: inline-block; will-change: transform; }
+.sd-idle-bob { animation: sd-idle-bob 2.6s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite !important; display: inline-block; will-change: transform; }
 
 [data-reduced='true'] .sd-fog,
 [data-reduced='true'] .sd-bat,

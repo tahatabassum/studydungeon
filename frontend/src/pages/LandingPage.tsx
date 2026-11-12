@@ -107,19 +107,37 @@ export default function LandingPage() {
         {BATS.map((spec, i) => (
           <Bat key={i} spec={spec} index={i} />
         ))}
-        <Flame className="sd-flicker absolute bottom-[3%] left-[8%] h-12 w-12 text-accent" />
-        <Flame className="sd-flicker absolute bottom-[3%] right-[8%] h-12 w-12 text-accent" />
+        <div className="sd-float-slow absolute bottom-[3%] left-[8%]">
+          <Flame className="sd-flicker h-12 w-12 text-accent" />
+        </div>
+        <div className="sd-float-fast absolute bottom-[3%] right-[8%]">
+          <Flame className="sd-flicker h-12 w-12 text-accent" />
+        </div>
         <div className="hidden md:block">
-          <PixelSprite map={CHARACTER_SPRITES.haunted_portrait} scale={4} className="absolute left-[2%] top-[16%] opacity-90" />
-          <PixelSprite map={CHARACTER_SPRITES.black_cat} scale={4} className="absolute bottom-[3%] left-[3%]" />
-          <PixelSprite map={CHARACTER_SPRITES.skeleton_companion} scale={4} className="absolute bottom-[3%] right-[3%]" />
-          <PixelSprite map={CHARACTER_SPRITES.small_vampire} scale={4} className="absolute right-[3%] top-[44%]" />
-          <PixelSprite map={CHARACTER_SPRITES.friendly_ghost} scale={4} className="sd-drift absolute left-[3%] top-[44%]" />
+          <div className="sd-float-slow absolute left-[2%] top-[16%]">
+            <PixelSprite map={CHARACTER_SPRITES.haunted_portrait} scale={4} className="opacity-90" />
+          </div>
+          <div className="sd-float-fast absolute bottom-[3%] left-[3%]">
+            <PixelSprite map={CHARACTER_SPRITES.black_cat} scale={4} />
+          </div>
+          <div className="sd-float-slow absolute bottom-[3%] right-[3%]">
+            <PixelSprite map={CHARACTER_SPRITES.skeleton_companion} scale={4} />
+          </div>
+          <div className="sd-float-fast absolute right-[3%] top-[44%]">
+            <PixelSprite map={CHARACTER_SPRITES.small_vampire} scale={4} />
+          </div>
+          <div className="sd-drift absolute left-[3%] top-[44%]">
+            <div className="sd-float-slow">
+              <PixelSprite map={CHARACTER_SPRITES.friendly_ghost} scale={4} />
+            </div>
+          </div>
         </div>
       </div>
 
       <header className="sd-landing__bar relative flex items-center gap-2">
-        <Skull aria-hidden="true" className="h-6 w-6 text-danger" />
+        <div className="sd-float-fast inline-block">
+          <Skull aria-hidden="true" className="h-6 w-6 text-danger" />
+        </div>
         <span className="font-(family-name:--font-label) font-semibold tracking-wide">StudyDungeon</span>
         <nav aria-label="Main" className="ml-auto flex items-center gap-4 font-(family-name:--font-label) text-sm">
           <Link to="/dashboard" className="rounded px-1 py-2 text-ink underline-offset-4 hover:underline">
@@ -167,7 +185,9 @@ export default function LandingPage() {
             <ol className="sd-landing__cards">
               {STEPS.map(({ icon: Icon, title, text }, i) => (
                 <Panel as="li" tone="gold" key={title} className="sd-landing__card text-left">
-                  <Icon aria-hidden="true" className="h-7 w-7 text-health" />
+                  <div className="sd-float-slow inline-block">
+                    <Icon aria-hidden="true" className="h-7 w-7 text-health" />
+                  </div>
                   <div>
                     <h3 className="font-(family-name:--font-label) font-semibold">
                       {i + 1}. {title}

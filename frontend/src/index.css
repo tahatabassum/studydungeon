@@ -150,5 +150,21 @@ body {
   0% { transform: translateX(-4%); }
   100% { transform: translateX(4%); }
 }
+@keyframes sd-float-slow {
+  0%, 100% { transform: translateY(0px) rotate(0deg); }
+  50% { transform: translateY(-16px) rotate(2deg); }
+}
+@keyframes sd-float-fast {
+  0%, 100% { transform: translateY(0px) rotate(0deg); }
+  50% { transform: translateY(-14px) rotate(-2deg); }
+}
+@keyframes sd-idle-bob {
+  0%, 100% { transform: translateY(0px) scale(1, 1); }
+  50% { transform: translateY(-8px) scale(1.05, 0.95); }
+}
+
 .sd-flicker { animation: sd-flicker 2.4s ease-in-out infinite; }
-.sd-drift { animation: sd-drift 14s ease-in-out infinite alternate; }
+.sd-drift { animation: sd-drift 14s ease-in-out infinite alternate; display: inline-block; }
+.sd-float-slow { animation: sd-float-slow 3.5s ease-in-out infinite; display: inline-block; will-change: transform; }
+.sd-float-fast { animation: sd-float-fast 2.6s ease-in-out infinite; display: inline-block; will-change: transform; }
+.sd-idle-bob { animation: sd-idle-bob 2.2s ease-in-out infinite; display: inline-block; will-change: transform; }
