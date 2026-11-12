@@ -12,9 +12,12 @@ normalized_url = normalize_database_url(settings.DATABASE_URL, is_alembic_sync=F
 
 # Engine configuration
 engine_kwargs = {"echo": False, "future": True}
-if "postgresql" in normalized_url and "sslmode" not in normalized_url:
-    # Neon serverless asyncpg requires ssl
-    pass
+if "postgresql" in normalized_url:
+    # Supabase / PgBouncer transaction pooler requires statement_cache_size=0
+    engine_kwargs["connect_args"] = {
+        "statement_cache_size": 0,
+        "prepared_statement_cache_size": 0,
+    }
 
 engine = create_async_engine(
     normalized_url,

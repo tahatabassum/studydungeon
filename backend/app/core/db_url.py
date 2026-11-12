@@ -22,9 +22,9 @@ def normalize_database_url(url: str, is_alembic_sync: bool = False) -> str:
     parsed = urlparse(url)
     scheme = parsed.scheme.lower()
 
-    if scheme in ("postgres", "postgresql", "postgresql+asyncpg"):
+    if scheme in ("postgres", "postgresql", "postgresql+asyncpg", "postgresql+psycopg2"):
         if is_alembic_sync:
-            # Sync Alembic uses postgresql:// (via psycopg2/psycopg if available)
+            # Sync Alembic uses postgresql:// (or postgresql+psycopg2://)
             target_scheme = "postgresql"
         else:
             target_scheme = "postgresql+asyncpg"

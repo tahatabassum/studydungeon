@@ -23,9 +23,9 @@ from app.core.errors import (
 async def lifespan(app: FastAPI):
     # Idempotent startup seed for demo & pack content (P1 fix)
     try:
-        from app.core.database import AsyncSessionLocal
+        from app.core.database import async_session_maker
         from app.demo.seed import seed_demo_dungeon
-        async with AsyncSessionLocal() as session:
+        async with async_session_maker() as session:
             await seed_demo_dungeon(session)
     except Exception as e:
         import logging

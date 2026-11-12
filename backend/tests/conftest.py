@@ -28,6 +28,12 @@ def set_sqlite_pragma(dbapi_connection, connection_record):
 test_session_maker = async_sessionmaker(test_engine, class_=AsyncSession, expire_on_commit=False)
 
 
+@pytest.fixture(autouse=True)
+def override_session_maker_for_background_tasks(monkeypatch):
+    import app.api.documents as doc_module
+    monkeypatch.setattr(doc_module, "async_session_maker", test_session_maker)
+
+
 @pytest.fixture(scope="function")
 async def db_session():
     async with test_engine.begin() as conn:

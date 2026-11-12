@@ -30,6 +30,8 @@ target_metadata = Base.metadata
 # Convert async driver string to standard sync driver for Alembic migrations
 if not config.get_main_option("sqlalchemy.url") or config.get_main_option("sqlalchemy.url") == "driver://user:pass@localhost/dbname":
     db_url = normalize_database_url(settings.DATABASE_URL, is_alembic_sync=True)
+    if db_url.startswith("postgresql://"):
+        db_url = db_url.replace("postgresql://", "postgresql+psycopg2://", 1)
     config.set_main_option("sqlalchemy.url", db_url)
 
 
