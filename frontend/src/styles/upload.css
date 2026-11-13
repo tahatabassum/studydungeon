@@ -1,37 +1,130 @@
 /* Upload wizard: a rune-sealed drop zone, five steps and stone cards. CSS only; the art is inline SVG. */
 
 .sd-up {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  gap: clamp(0.4rem, 1.4vh, 0.9rem);
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  min-width: 0;
+}
+/* Gate, checking and offline cards: a comfortable width, top aligned, no stretch. */
+.sd-upload .sd-page__body > .sd-card {
+  align-self: start;
+  justify-self: center;
+  width: min(100%, 40rem);
+}
+/* Desktop: about 40 percent aside, about 60 percent main, both as tall as the space left. */
+.sd-up__grid {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
+  grid-template-rows: minmax(0, 1fr);
+  gap: clamp(0.75rem, 2vw, 1.5rem);
+  min-height: 0;
+  min-width: 0;
+}
+.sd-up__aside {
   display: flex;
   flex-direction: column;
-  gap: clamp(0.5rem, 1.6vh, 1rem);
-  width: 100%;
-  /* Full width inside the fit body; the drop zone takes the height left under the steps. */
-  flex: 1 1 auto;
+  gap: clamp(0.5rem, 1.6vh, 0.9rem);
   min-height: 0;
+  min-width: 0;
+  /* Room for the focus ring of the checkbox. */
+  padding: 4px;
+  margin: -4px;
 }
-/*
- * Cards after the steps (chosen file, reading, verdict, topics, result): a comfortable width, centred
- * in the height that is left (auto margins), with roomier padding and gaps. A card that is too tall
- * scrolls inside itself.
- */
-.sd-up > .sd-card,
-.sd-up > .sd-up__result {
-  flex: 0 1 auto;
+.sd-up__main {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(0.5rem, 1.6vh, 0.9rem);
   min-height: 0;
-  width: 100%;
-  max-width: 42rem;
-  align-self: center;
-  margin-block: auto;
-  overflow-y: auto;
-  scrollbar-width: thin;
-  scrollbar-color: var(--color-witch) transparent;
+  min-width: 0;
+  padding: 4px;
+  margin: -4px;
 }
-.sd-up > .sd-card {
+.sd-up__main > * { flex: 1 1 auto; min-height: 0; }
+.sd-up__panel {
+  justify-content: center;
   gap: clamp(0.6rem, 1.8vh, 1rem);
   padding: clamp(0.9rem, 2.8vh, 1.5rem) clamp(1rem, 3vw, 1.75rem);
 }
-.sd-up > .sd-card .sd-card__text { font-size: var(--sd-text-md); line-height: 1.5; }
-.sd-up > .sd-card .sd-dash__actions { gap: 0.75rem; margin-top: 0.15rem; }
+.sd-up__panel .sd-card__text { font-size: var(--sd-text-md); line-height: 1.5; }
+.sd-up__panel .sd-dash__actions { gap: 0.75rem; margin-top: 0.15rem; }
+
+/* Quota chip: one inline row. */
+.sd-up__quota { display: flex; flex-direction: column; gap: 0.5rem; }
+.sd-up__chip {
+  display: inline-flex;
+  align-items: center;
+  align-self: flex-start;
+  gap: 0.5rem;
+  margin: 0;
+  padding: 0.35rem 0.8rem;
+  border: 1px solid var(--color-deep);
+  border-radius: 999px;
+  background: var(--color-panel);
+  color: var(--color-ink);
+  font-size: var(--sd-text-sm);
+  line-height: 1.3;
+}
+.sd-up__chip svg { flex: none; color: var(--color-gold); }
+.sd-up__chip[data-allowed='false'] { border-color: var(--color-ember); }
+
+/* AI notice: fully visible, with a 20 px checkbox and a clickable label. */
+.sd-up__notice { gap: 0.45rem; padding: clamp(0.6rem, 1.8vh, 0.9rem) 0.9rem; }
+.sd-up__notice-text { font-size: var(--sd-text-sm); line-height: 1.45; }
+.sd-up__notice-check {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  min-height: 2.25rem;
+  cursor: pointer;
+  color: var(--color-bone);
+  font-weight: 600;
+}
+.sd-up__notice-check input {
+  flex: none;
+  width: 20px;
+  height: 20px;
+  margin: 0;
+  accent-color: var(--color-pumpkin);
+  cursor: pointer;
+}
+.sd-up__notice-check input:focus-visible { outline: 3px solid var(--color-accent); outline-offset: 2px; }
+.sd-up__notice-check input:disabled { cursor: not-allowed; }
+
+/* File rules: compact two-column list. */
+.sd-up__rules {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  padding: clamp(0.5rem, 1.5vh, 0.8rem) 0.9rem;
+  border: 1px solid var(--color-deep);
+  border-radius: 0.6rem;
+  background: color-mix(in srgb, var(--color-panel) 90%, transparent);
+}
+.sd-up__rules-h {
+  margin: 0;
+  font-family: var(--font-label);
+  font-size: var(--sd-text-sm);
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-ink-muted);
+}
+.sd-up__rules-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
+  gap: 0.15rem 1rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: var(--sd-text-sm);
+  color: var(--color-ink);
+}
+.sd-up__rules-note { margin: 0; font-size: var(--sd-text-sm); color: var(--color-ink-muted); }
+
 .sd-up__sending {
   display: flex;
   align-items: center;
@@ -48,58 +141,61 @@
   background: var(--color-ghost);
   animation: sd-up-pulse 1.4s ease-in-out infinite;
 }
-
-/* Steps */
+/* Steps: one slim row, mark and label inline; a progress line under the row shows how far it got. */
 .sd-up__steps {
+  position: relative;
   display: grid;
-  /* One horizontal row of five. */
   grid-template-columns: repeat(5, minmax(0, 1fr));
-  flex: 0 0 auto;
-  gap: 0.5rem;
+  gap: 0.25rem;
   margin: 0;
-  padding: clamp(0.4rem, 1.2vh, 0.75rem);
+  padding: 0.3rem 0.5rem 0.45rem;
   list-style: none;
   border: 1px solid var(--color-deep);
   border-radius: 0.6rem;
   background: var(--color-panel);
 }
+.sd-up__steps::after {
+  content: '';
+  position: absolute;
+  left: 0.5rem;
+  bottom: 0.2rem;
+  height: 3px;
+  width: calc((100% - 1rem) * var(--sd-up-progress, 0%) / 100%);
+  border-radius: 2px;
+  background: var(--color-ghost);
+  transition: width 240ms ease;
+}
 .sd-up__step {
-  display: grid;
-  grid-template-columns: auto 1fr;
-  grid-template-areas: 'mark label' '. state';
-  column-gap: 0.5rem;
+  display: flex;
   align-items: center;
-  padding: 0.4rem 0.5rem;
+  gap: 0.4rem;
+  min-width: 0;
+  padding: 0.15rem 0.35rem;
   border-radius: 0.4rem;
   color: var(--color-ink-muted);
 }
 .sd-up__step-mark {
-  grid-area: mark;
+  flex: none;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 1.6rem;
-  height: 1.6rem;
+  width: 1.4rem;
+  height: 1.4rem;
   border-radius: 50%;
   border: 2px solid currentColor;
 }
-.sd-up__step-label { grid-area: label; font-family: var(--font-label); font-weight: 700; font-size: var(--sd-text-sm); }
-.sd-up__step-state { grid-area: state; font-size: var(--sd-text-sm); }
-.sd-up__step[data-state='active'] { color: var(--color-ghost); }
+.sd-up__step-label { font-family: var(--font-label); font-weight: 700; font-size: var(--sd-text-sm); line-height: 1.2; overflow-wrap: anywhere; }
+.sd-up__step[data-state='active'] { color: var(--color-ghost); background: color-mix(in srgb, var(--color-ghost) 14%, transparent); }
 .sd-up__step[data-state='active'] .sd-up__step-mark svg { animation: sd-up-spin 1.6s linear infinite; }
 .sd-up__step[data-state='done'] { color: var(--color-toxic); }
 .sd-up__step[data-state='stopped'] { color: color-mix(in srgb, var(--color-danger), var(--color-ink) 45%); }
 @keyframes sd-up-spin { to { transform: rotate(360deg); } }
-
 /* Drop zone */
 .sd-up__drop {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  flex: 1 1 auto;
-  min-height: 0;
-  overflow-y: auto;
   gap: clamp(0.25rem, 1.2vh, 0.5rem);
   padding: clamp(0.75rem, 3vh, 1.75rem) 1rem;
   text-align: center;
@@ -116,7 +212,19 @@
     radial-gradient(circle at 50% 0%, color-mix(in srgb, var(--color-pumpkin) 28%, transparent), transparent 75%),
     var(--color-deep);
 }
-.sd-up__drop[data-disabled='true'] { opacity: 0.6; }
+.sd-up__drop[data-disabled='true'] > :not(.sd-up__locked) { opacity: 0.6; }
+.sd-up__locked {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  max-width: 28rem;
+  margin: 0;
+  color: var(--color-bone);
+  font-weight: 700;
+  text-align: center;
+}
+.sd-up__locked svg { flex: none; color: var(--color-gold); }
 .sd-up__seal {
   color: var(--color-gold);
   filter: drop-shadow(0 0 8px color-mix(in srgb, var(--color-gold) 45%, transparent));
@@ -129,7 +237,7 @@
 .sd-up__drop-title {
   margin: 0;
   font-family: var(--font-display);
-  font-size: 1.6rem;
+  font-size: clamp(1.3rem, 3.4vh, 1.8rem);
   color: var(--color-gold);
 }
 .sd-up__pick { position: relative; }
@@ -145,7 +253,7 @@
   border: 0;
   white-space: nowrap;
 }
-.sd-up__formats { max-width: 30rem; }
+.sd-up__formats { max-width: 100%; }
 
 /* Chosen file and messages */
 .sd-up__file-row { display: flex; align-items: center; gap: 0.5rem; min-width: 0; }
@@ -167,8 +275,8 @@
 
 /* Topics */
 .sd-up__topics {
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(14rem, 1fr));
   gap: 0.4rem;
   margin: 0;
   padding: 0;
@@ -188,6 +296,8 @@
   display: flex;
   flex-direction: column;
   gap: clamp(0.6rem, 2.2vh, 1.25rem);
+  justify-content: center;
+  min-width: 0;
   padding: clamp(1rem, 3.4vh, 2rem) clamp(1rem, 3.5vw, 2rem);
   border: 1px solid var(--color-gold);
   border-radius: 0.75rem;
@@ -209,17 +319,12 @@
   color: var(--color-ink-muted);
 }
 .sd-up__floors {
-  display: flex;
-  flex-direction: column;
-  flex: 0 1 auto;
-  min-height: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr));
   gap: clamp(0.4rem, 1.2vh, 0.7rem);
   margin: 0;
   padding: 4px;
   list-style: none;
-  overflow-y: auto;
-  scrollbar-width: thin;
-  scrollbar-color: var(--color-witch) transparent;
 }
 .sd-up__floor {
   display: flex;
@@ -244,12 +349,39 @@
 .sd-up[data-reduced='true'] .sd-up__step[data-state='active'] .sd-up__step-mark svg { animation: none; }
 .sd-up[data-reduced='true'] .sd-up__drop { transition: none; }
 
-/* Narrow windows: the five steps compact to icon plus label so the row stays one line. */
-@media (max-width: 720px) {
-  .sd-up__step { grid-template-columns: 1fr; grid-template-areas: 'mark' 'label' 'state'; justify-items: center; text-align: center; }
-  .sd-up__step-label,
-  .sd-up__step-state { font-size: var(--sd-text-xs); }
+/* Compact_Mode (same breakpoint as the shared fit shell): one column, the page scrolls.
+   Order: quota, notice, drop zone, file rules, stepper strip. */
+@media (max-width: 1099px), (pointer: coarse) {
+  .sd-up { display: flex; flex-direction: column; height: auto; }
+  .sd-up__grid,
+  .sd-up__aside { display: contents; }
+  .sd-up__quota,
+  .sd-up__notice { order: 1; }
+  .sd-up__main { order: 2; min-height: 14rem; }
+  .sd-up__rules { order: 3; }
+  .sd-up__steps { order: 4; display: flex; flex-wrap: wrap; }
+  .sd-up__step { flex: 1 1 auto; }
+  .sd-up__step-label { font-size: var(--sd-text-xs); }
+  .sd-up__drop { min-height: 14rem; }
 }
-@media (max-height: 700px) {
-  .sd-up__seal { width: 48px; height: 48px; }
+html[data-touch] .sd-up { display: flex; flex-direction: column; height: auto; }
+html[data-touch] .sd-up__grid,
+html[data-touch] .sd-up__aside { display: contents; }
+html[data-touch] .sd-up__quota,
+html[data-touch] .sd-up__notice { order: 1; }
+html[data-touch] .sd-up__main { order: 2; min-height: 14rem; }
+html[data-touch] .sd-up__rules { order: 3; }
+html[data-touch] .sd-up__steps { order: 4; display: flex; flex-wrap: wrap; }
+html[data-touch] .sd-up__step { flex: 1 1 auto; }
+html[data-touch] .sd-up__drop { min-height: 14rem; }
+@media (max-height: 700px) and (min-width: 1100px) {
+  .sd-up__seal { width: 40px; height: 40px; }
+  .sd-up__aside { gap: 0.4rem; }
+  .sd-up__rules { padding-block: 0.35rem; gap: 0.2rem; }
+  .sd-up__rules-note { display: none; }
+  .sd-up__notice { padding-block: 0.45rem; gap: 0.3rem; }
+  .sd-up__notice-check { min-height: 1.9rem; }
+  .sd-up__quota .sd-cta,
+  .sd-up__quota .sd-ghost-btn { min-height: 2.25rem; padding-block: 0.3rem; }
+  .sd-up__quota .sd-dash__actions { gap: 0.4rem; }
 }

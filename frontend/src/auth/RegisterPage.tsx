@@ -14,7 +14,7 @@ export default function RegisterPage() {
   const upgrade = !!user?.is_guest && available
   return (
     <PageShell
-      variant="fit"
+      variant="fit" center
       className="sd-haunted"
       decor={<HauntedBackdrop />}
       testId="register-page"

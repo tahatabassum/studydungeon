@@ -85,7 +85,7 @@ export default function UploadPage({ pollMs }: UploadPageProps = {}) {
   return (
     <PageShell
       variant="fit"
-      className="sd-haunted"
+      className="sd-haunted sd-upload"
       decor={<HauntedBackdrop />}
       testId="upload-page"
       title="Upload your notes"

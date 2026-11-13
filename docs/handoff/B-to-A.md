@@ -693,3 +693,6 @@ Each case is skipped when its endpoint answers 404, 405 or 501. Run against a di
 - `GET /documents/{id}/status` optional additions read by the wizard: `counts_for_ranking`, `ranking_note`, `dungeon_id`, `floors[{id, status}]`.
 - All limits live in `frontend/src/upload/limits.ts` (30 pages, 30 slides, 60,000 DOCX characters, 500 characters minimum, 15 MB). **The 60,000 DOCX character limit is still UNCONFIRMED** (Person A default B20): please confirm or send the real value. A TODO there reads the limits from the server later (`GET /uploads/quota` or a future `GET /meta`).
 - The contract suite has 2 new cases (quota shape, notice required), skipped on a backend without the endpoint; the old "guest upload is 403" case now accepts either 403 or an accepted upload.
+
+#### Question from frontend-11 layout fixes (2026-11-14)
+- Do rejected or failed uploads (for example a file the server rejects as unreadable or too short) consume the daily upload quota, or only accepted uploads? The upload screen currently refreshes the quota after every send and shows whatever GET /uploads/quota returns. Please confirm the rule so the copy next to the quota chip can say it.

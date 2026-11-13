@@ -146,15 +146,6 @@
     grid-template-columns: minmax(0, 1fr);
   }
 }
-/* Small touch screens and short windows: release the fixed height so the page scrolls naturally (D26). */
-@media (max-width: 640px), (max-height: 520px) {
-  html[data-touch] .sd-page--fit.sd-live {
-    height: auto;
-    min-height: 100dvh;
-    overflow-y: auto;
-  }
-}
-
 /* Live leaderboard (frontend-10 Phase 3). Reuses the .sd-lb__* look; these are the additions. */
 .sd-lb__tabgroup { display: flex; flex-direction: column; gap: 0.35rem; }
 .sd-lb__tabgroup .sd-lb__tabs { margin-bottom: 0; }

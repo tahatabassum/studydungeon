@@ -142,7 +142,7 @@ export default function PathChoicePage() {
       title="Choose your path"
       subtitle="Try the game right away, or play from your own notes."
       back={{ to: '/dashboard', label: 'Dashboard' }}
-      variant="fit"
+      variant="fit" center
       className="sd-live sd-haunted"
       decor={<HauntedBackdrop />}
       testId="choose-page"

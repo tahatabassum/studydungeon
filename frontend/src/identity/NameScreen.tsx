@@ -121,7 +121,7 @@ export default function NameScreen() {
       title="Name your hero"
       subtitle={unavailable ? 'Names are not available yet. You can still try the demo.' : 'Pick a name for the leaderboard, or roll a spooky one.'}
       back={{ to: '/', label: 'Back' }}
-      variant="fit"
+      variant="fit" center
       className="sd-live sd-haunted"
       decor={<HauntedBackdrop />}
       testId="name-screen"

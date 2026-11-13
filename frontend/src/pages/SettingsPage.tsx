@@ -21,7 +21,7 @@ export default function SettingsPage() {
 
   return (
     <PageShell
-      variant="fit"
+      variant="fit" center
       className="sd-live sd-haunted"
       decor={<HauntedBackdrop />}
       testId="settings-page"

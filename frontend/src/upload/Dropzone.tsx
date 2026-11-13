@@ -1,7 +1,7 @@
 import { useId, useState, type ChangeEvent, type DragEvent } from 'react'
-import { FileUp } from 'lucide-react'
+import { FileUp, Lock } from 'lucide-react'
 import { useTouchMode } from '@/touch/useTouchMode'
-import { ACCEPT_ATTR, PHOTO_HINT, rulesText } from './limits'
+import { ACCEPT_ATTR, FORMAT_LABELS, UPLOAD_LIMITS } from './limits'
 
 export interface DropzoneProps {
   disabled?: boolean
@@ -50,6 +50,9 @@ export function Dropzone({ disabled = false, disabledReason, onFile }: DropzoneP
       className="sd-up__drop"
       data-over={over ? 'true' : undefined}
       data-disabled={disabled ? 'true' : undefined}
+      role="group"
+      aria-label="Drop zone"
+      aria-disabled={disabled || undefined}
       data-testid="dropzone"
       onDragOver={(e) => {
         e.preventDefault()
@@ -60,8 +63,9 @@ export function Dropzone({ disabled = false, disabledReason, onFile }: DropzoneP
     >
       <RuneSeal />
       {disabled && disabledReason && (
-        <p className="sd-card__muted" data-testid="dropzone-reason">
-          {disabledReason}
+        <p className="sd-up__locked" data-testid="dropzone-reason">
+          <Lock aria-hidden="true" size={18} />
+          <span>{disabledReason}</span>
         </p>
       )}
       {touch ? (
@@ -85,9 +89,8 @@ export function Dropzone({ disabled = false, disabledReason, onFile }: DropzoneP
         />
       </label>
       <p id={hintId} className="sd-card__muted sd-up__formats">
-        {rulesText()}
+        {`${FORMAT_LABELS.join(", ")} up to ${UPLOAD_LIMITS.maxMb} MB`}
       </p>
-      <p className="sd-card__muted sd-up__formats">{PHOTO_HINT}</p>
     </div>
   )
 }

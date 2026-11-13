@@ -9,26 +9,30 @@
 .sd-haunted .sd-page__vignette {
   background: radial-gradient(ellipse at 50% 45%, transparent 35%, rgb(0 0 0 / 0.8) 100%);
 }
-.sd-haunted .sd-page__inner {
-  position: relative;
+.sd-haunted.sd-fit--center .sd-page__inner {
+  display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
   text-align: center;
 }
-.sd-haunted .sd-page__header { display: contents; }
-.sd-haunted .sd-page__topbar {
+.sd-haunted.sd-fit--center .sd-page__header { display: contents; }
+.sd-haunted.sd-fit--center .sd-page__topbar {
   position: absolute;
   top: max(0.4rem, env(safe-area-inset-top, 0px));
   left: clamp(16px, 3vw, 48px);
   z-index: 2;
 }
-.sd-haunted .sd-page__body {
+.sd-haunted.sd-fit--center .sd-page__body {
+  display: flex;
+  flex-direction: column;
   flex: 0 1 auto;
   width: 100%;
-  max-width: 52rem;
+  max-width: var(--sd-form-width);
   align-items: center;
 }
-.sd-haunted .sd-page__body > * { width: 100%; }
+.sd-haunted.sd-fit--center .sd-page__body > * { width: 100%; }
+.sd-haunted.sd-fit--center .sd-page__body:has(> .sd-live__body--wide) { max-width: 48rem; }
 .sd-haunted .sd-page__sub { color: #cdbfe3; margin-bottom: 0.5rem; }
 .sd-haunted .sd-card {
   background: rgb(18 10 32 / 0.78);
@@ -36,8 +40,7 @@
   backdrop-filter: blur(6px);
   box-shadow: 0 10px 40px rgb(0 0 0 / 0.6), inset 0 0 30px rgb(90 40 160 / 0.15);
 }
-.sd-haunted .sd-card__h { justify-content: center; }
-.sd-haunted .sd-live__body { max-width: 52rem; }
+.sd-haunted.sd-fit--center .sd-card__h { justify-content: center; }
 
 /* /choose cards */
 .sd-haunted .sd-choice__cards { gap: clamp(1rem, 3vw, 2rem); }
@@ -144,7 +147,8 @@
 .sd-haunted .sd-auth__heading,
 .sd-haunted .sd-live__label { text-align: center; }
 .sd-haunted .sd-live__label { text-align: left; }
-.sd-haunted .sd-live__body.sd-live__body { max-width: 32rem; }
+/* One width rule for form bodies: the shell (.sd-fit--center .sd-page__body) sets --sd-form-width, wide bodies 48rem. */
+.sd-haunted .sd-live__body { width: 100%; max-width: none; }
 .sd-haunted .sd-live__row { flex-wrap: nowrap; }
 .sd-haunted .sd-live__notice { text-align: left; }
 .sd-haunted .sd-live__hint { color: #ff9b9b; }

@@ -1,0 +1,269 @@
+{
+  "pbtResults": {},
+  "executionHistory": {
+    "2. STOP: Step 0 checkpoint": [
+      {
+        "executionId": "e9696e2f-55e4-43e7-b31d-1bd6015e6520",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794428333818
+      },
+      {
+        "executionId": "e9696e2f-55e4-43e7-b31d-1bd6015e6520",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794428338082
+      }
+    ],
+    "3.1 Write the Layout_Check script `scripts/layout-check.mjs` (per Q2 answer)": [
+      {
+        "executionId": "e9696e2f-55e4-43e7-b31d-1bd6015e6520",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794428333980
+      },
+      {
+        "executionId": "e9696e2f-55e4-43e7-b31d-1bd6015e6520",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794428338320
+      },
+      {
+        "executionId": "e9696e2f-55e4-43e7-b31d-1bd6015e6520",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794429856725
+      }
+    ],
+    "3.2 Rewrite the fit shell CSS and `PageShell` (RC1, RC2, RC3, RC4, RC5, RC6, RC7, RC8)": [
+      {
+        "executionId": "e9696e2f-55e4-43e7-b31d-1bd6015e6520",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794428334144
+      },
+      {
+        "executionId": "e9696e2f-55e4-43e7-b31d-1bd6015e6520",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794429856891
+      }
+    ],
+    "4.1 Regroup the upload markup and write the grid CSS (RC10, RC11, RC12, RC13, RC18)": [
+      {
+        "executionId": "e9696e2f-55e4-43e7-b31d-1bd6015e6520",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794428334270
+      },
+      {
+        "executionId": "e9696e2f-55e4-43e7-b31d-1bd6015e6520",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794429857769
+      },
+      {
+        "executionId": "d1712b12-b00a-422c-828f-4448e216e672",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794431168979
+      },
+      {
+        "executionId": "f1cbe678-4855-467a-a204-55902bc9193e",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794604186372
+      },
+      {
+        "executionId": "f1cbe678-4855-467a-a204-55902bc9193e",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794605345615
+      }
+    ],
+    "4.2 Slim stepper (RC15)": [
+      {
+        "executionId": "e9696e2f-55e4-43e7-b31d-1bd6015e6520",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794428334331
+      }
+    ],
+    "4.3 Quota chip, AI notice and file rules (RC16, RC17)": [
+      {
+        "executionId": "e9696e2f-55e4-43e7-b31d-1bd6015e6520",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794428334401
+      }
+    ],
+    "4.4 Drop zone locked, active and disabled states (RC11, RC14)": [
+      {
+        "executionId": "e9696e2f-55e4-43e7-b31d-1bd6015e6520",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794428334545
+      }
+    ],
+    "4.5 Upload states inside the grid (RC10, RC12)": [
+      {
+        "executionId": "e9696e2f-55e4-43e7-b31d-1bd6015e6520",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794428334663
+      }
+    ],
+    "4.7 Verify the upload screen": [
+      {
+        "executionId": "e9696e2f-55e4-43e7-b31d-1bd6015e6520",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794428334832
+      }
+    ],
+    "5. STOP: Upload screen checkpoint": [
+      {
+        "executionId": "e9696e2f-55e4-43e7-b31d-1bd6015e6520",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794428335012
+      }
+    ],
+    "6.1 Header row, toolbar and caption (RC9, RC22)": [
+      {
+        "executionId": "e9696e2f-55e4-43e7-b31d-1bd6015e6520",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794428335144
+      }
+    ],
+    "6.2 Board grid, compact podium and rank rows (RC19, RC20, RC21, RC24, RC25, RC27)": [
+      {
+        "executionId": "e9696e2f-55e4-43e7-b31d-1bd6015e6520",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794428335350
+      }
+    ],
+    "6.3 Your live rank panel and plurals (RC23)": [
+      {
+        "executionId": "e9696e2f-55e4-43e7-b31d-1bd6015e6520",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794428335592
+      }
+    ],
+    "6.4 Loading, empty, error and legacy board (RC26, RC28)": [
+      {
+        "executionId": "e9696e2f-55e4-43e7-b31d-1bd6015e6520",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794428335728
+      }
+    ],
+    "6.6 Verify the leaderboard screen": [
+      {
+        "executionId": "e9696e2f-55e4-43e7-b31d-1bd6015e6520",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794428335822
+      }
+    ],
+    "7. STOP: Leaderboard screen checkpoint": [
+      {
+        "executionId": "e9696e2f-55e4-43e7-b31d-1bd6015e6520",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794428335944
+      }
+    ],
+    "8.1 Measure and fix `/`": [
+      {
+        "executionId": "e9696e2f-55e4-43e7-b31d-1bd6015e6520",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794428336047
+      }
+    ],
+    "8.2 Verify the title screen": [
+      {
+        "executionId": "e9696e2f-55e4-43e7-b31d-1bd6015e6520",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794428336187
+      }
+    ],
+    "9. STOP: Title screen checkpoint": [
+      {
+        "executionId": "e9696e2f-55e4-43e7-b31d-1bd6015e6520",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794428336351
+      }
+    ],
+    "10.1 Measure and fix `/campaign/:id`": [
+      {
+        "executionId": "e9696e2f-55e4-43e7-b31d-1bd6015e6520",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794428336446
+      }
+    ],
+    "10.2 Verify the floor map": [
+      {
+        "executionId": "e9696e2f-55e4-43e7-b31d-1bd6015e6520",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794428336551
+      }
+    ],
+    "11. STOP: Floor map checkpoint": [
+      {
+        "executionId": "e9696e2f-55e4-43e7-b31d-1bd6015e6520",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794428336641
+      }
+    ],
+    "12.1 Measure and fix `/login` and `/register`": [
+      {
+        "executionId": "e9696e2f-55e4-43e7-b31d-1bd6015e6520",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794428336768
+      }
+    ],
+    "12.2 Verify login and register": [
+      {
+        "executionId": "e9696e2f-55e4-43e7-b31d-1bd6015e6520",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794428336930
+      }
+    ],
+    "13. STOP: Login and register checkpoint": [
+      {
+        "executionId": "e9696e2f-55e4-43e7-b31d-1bd6015e6520",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794428337020
+      }
+    ],
+    "14.1 Measure and fix `/choose`": [
+      {
+        "executionId": "e9696e2f-55e4-43e7-b31d-1bd6015e6520",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794428337115
+      }
+    ],
+    "14.2 Measure and fix `/play-as-guest`": [
+      {
+        "executionId": "e9696e2f-55e4-43e7-b31d-1bd6015e6520",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794428337258
+      }
+    ],
+    "14.3 Measure and fix `/settings`": [
+      {
+        "executionId": "e9696e2f-55e4-43e7-b31d-1bd6015e6520",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794428337413
+      }
+    ],
+    "14.4 Verify the three screens": [
+      {
+        "executionId": "e9696e2f-55e4-43e7-b31d-1bd6015e6520",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794428337533
+      }
+    ],
+    "15. STOP: Choose, play-as-guest and settings checkpoint": [
+      {
+        "executionId": "e9696e2f-55e4-43e7-b31d-1bd6015e6520",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794428337641
+      }
+    ],
+    "16.1 Run the Layout_Check for every Fit_Screen route at all Test_Sizes and the Dashboard for regressions": [
+      {
+        "executionId": "e9696e2f-55e4-43e7-b31d-1bd6015e6520",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794428337872
+      }
+    ],
+    "3. Shared fit shell and Layout_Check": [
+      {
+        "executionId": "e9696e2f-55e4-43e7-b31d-1bd6015e6520",
+        "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
+        "timestamp": 1794429856979
+      }
+    ]
+  }
+}

@@ -75,8 +75,9 @@ describe('upload wizard flow', () => {
   it('uploads, reads, lists the topics, summons the floors and links to the map', async () => {
     const user = userEvent.setup()
     renderUpload()
-    expect(await screen.findByText(/Accepted formats: PDF, DOCX, PPTX, TXT, PNG, JPEG\./)).toBeTruthy()
-    expect(screen.getByText(/Up to 15 MB\. PDF up to 30 pages, PPTX up to 30 slides, DOCX up to 60,000 characters, at least 500 characters of text\./)).toBeTruthy()
+    const rules = within(await screen.findByTestId('file-rules'))
+    expect(rules.getByText('Formats: PDF, DOCX, PPTX, TXT, PNG, JPEG')).toBeTruthy()
+    for (const line of ['Up to 15 MB', 'PDF up to 30 pages', 'PPTX up to 30 slides', 'DOCX up to 60,000 characters', 'At least 500 characters of text']) expect(rules.getByText(line)).toBeTruthy()
 
     await user.upload(await picker(), txt('Cell biology.txt'))
     // Choosing the file starts the upload; there is no second click and no manual button.
@@ -138,7 +139,7 @@ describe('upload wizard flow', () => {
     expect(screen.queryByRole('button', { name: 'Summon dungeon' })).toBeNull()
     await waitFor(() => expect(screen.getByTestId('upload-live').textContent).toMatch(/^Your notes were rejected\. This does not look/))
 
-    await user.click(within(verdict).getByRole('button', { name: 'Choose another file' }))
+    await user.click(within(verdict).getByRole('button', { name: 'Try another file' }))
     expect(await picker()).toBeTruthy()
   })
 

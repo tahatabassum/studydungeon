@@ -17,6 +17,8 @@ export interface PageShellProps {
   children: ReactNode
   /** Wider content column (the leaderboard table, the dashboard grid). */
   wide?: boolean
+  /** Fit screens only: centre a narrow form column (login, register, choose, play-as-guest, settings). */
+  center?: boolean
   testId?: string
   /**
    * "scroll" (default): the page grows with its content and the window scrolls (Dashboard, Leaderboard).
@@ -31,12 +33,12 @@ export interface PageShellProps {
 }
 
 /** Shared page chrome: night sky, moon, fog, title block. Decorative layers live in a fixed, clipped container. */
-export function PageShell({ title, subtitle, back, actions, children, wide = false, testId, variant = 'scroll', className, decor }: PageShellProps) {
+export function PageShell({ title, subtitle, back, actions, children, wide = false, center = false, testId, variant = 'scroll', className, decor }: PageShellProps) {
   const reduced = useReducedMotion()
   const fit = variant === 'fit'
   return (
     <main
-      className={`sd-page sd-sky${fit ? ' sd-page--fit' : ''}${className ? ` ${className}` : ''}`}
+      className={`sd-page sd-sky${fit ? ' sd-page--fit' : ''}${fit && center ? ' sd-fit--center' : ''}${className ? ` ${className}` : ''}`}
       data-variant={fit ? 'fit' : undefined}
       data-reduced={reduced ? 'true' : undefined}
       aria-labelledby="page-title"

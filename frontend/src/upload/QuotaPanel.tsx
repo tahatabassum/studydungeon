@@ -12,9 +12,10 @@ export interface QuotaPanelProps {
 export function QuotaPanel({ quota }: QuotaPanelProps) {
   const view = quotaView(quota)
   return (
-    <section className="sd-card" aria-label="Upload allowance" data-testid="quota-panel" data-allowed={view.allowed ? 'true' : 'false'}>
-      <p className={view.allowed ? 'sd-card__muted' : 'sd-card__text'} role={view.allowed ? undefined : 'status'}>
-        <Hourglass aria-hidden="true" size={16} /> {view.line}
+    <section className="sd-up__quota" aria-label="Upload allowance" data-testid="quota-panel" data-allowed={view.allowed ? 'true' : 'false'}>
+      <p className="sd-up__chip" data-allowed={view.allowed ? 'true' : 'false'} role={view.allowed ? undefined : 'status'}>
+        <Hourglass aria-hidden="true" size={16} />
+        <span>{view.line}</span>
       </p>
       {!view.allowed && (
         <div className="sd-dash__actions">
