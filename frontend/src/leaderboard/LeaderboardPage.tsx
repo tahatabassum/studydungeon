@@ -9,7 +9,7 @@ import { useSession } from '../state/SessionContext'
 import { useProgress } from '../state/useProgress'
 import { useLeaderboardSupport, useLeaderboardView } from '../state/useLeaderboardSupport'
 import { BoardTabs } from '../board/BoardTabs'
-import { LiveBoard } from '../board/LiveBoard'
+import { BoardSkeleton as Skeleton, LiveBoard, rowsVars } from '../board/LiveBoard'
 import type { BoardKind, LeaderboardPeriod } from '../types/api'
 import { DEMO_DUNGEON_ID } from './constants'
 import { Podium } from './Podium'
@@ -25,24 +25,6 @@ const TABS: ReadonlyArray<{ id: LeaderboardPeriod; label: string }> = [
 ]
 
 export const CLAIM_SPOT = 'Create an account to claim your spot'
-
-function Skeleton() {
-  return (
-    <div className="sd-lb__skeleton" role="status" aria-live="polite" aria-label="Loading the leaderboard" data-testid="lb-skeleton">
-      <div className="sd-lb__skel-podium" aria-hidden="true">
-        {[0, 1, 2].map((i) => (
-          <span key={i} className="sd-skel" style={{ height: 120 - i * 18 }} />
-        ))}
-      </div>
-      <div aria-hidden="true" className="flex flex-col gap-2">
-        {Array.from({ length: 6 }, (_, i) => (
-          <span key={i} className="sd-skel" style={{ height: 44 }} />
-        ))}
-      </div>
-      <span className="sr-only">Loading the leaderboard</span>
-    </div>
-  )
-}
 
 function Notice({ icon, title, children, tone = 'default' }: { icon: ReactNode; title: string; children?: ReactNode; tone?: 'default' | 'alert' }) {
   return (
@@ -123,23 +105,9 @@ function LegacyLeaderboard() {
       className="sd-lb-menace"
       decor={<HauntedBackdrop variant="menace" />}
       back={{ to: sessionHome, label: user ? 'Dashboard' : 'Title screen' }}
+      actionsLabel="Leaderboard filters"
       actions={
-        <Link to="/dashboard" className="sd-page__link">
-          Dashboard
-        </Link>
-      }
-    >
-      {support === 'no' && (
-        <Notice icon={<Hourglass size={34} />} title="The leaderboard is coming soon">
-          <p className="sd-card__muted" data-testid="lb-coming-soon">
-            The backend does not offer a leaderboard yet. Your runs are still counted, and the board will open here when it
-            does.
-          </p>
-        </Notice>
-      )}
-
-      {support !== 'no' && (
-        <>
+        support === 'no' ? undefined : (
           <div role="tablist" aria-label="Time range" className="sd-lb__tabs">
             {TABS.map((t) => (
               <button
@@ -158,89 +126,107 @@ function LegacyLeaderboard() {
               </button>
             ))}
           </div>
+        )
+      }
+    >
+      {support === 'no' && (
+        <Notice icon={<Hourglass size={30} />} title="The leaderboard is coming soon">
+          <p className="sd-card__muted" data-testid="lb-coming-soon">
+            The backend does not offer a leaderboard yet. Your runs are still counted, and the board will open here when it
+            does.
+          </p>
+        </Notice>
+      )}
 
-          <div id="lb-panel" role="tabpanel" aria-labelledby={`lb-tab-${period}`} className="sd-lb__panel">
-            {(support === 'unknown' || board.status === 'loading') && <Skeleton />}
+      {support !== 'no' && (
+        <div id="lb-panel" role="tabpanel" aria-labelledby={`lb-tab-${period}`} className="sd-lb__panel">
+          {(support === 'unknown' || board.status === 'loading') && <Skeleton />}
 
-            {support === 'yes' && board.status === 'error' && (
-              <Notice icon={<AlertTriangle size={34} />} title="The board could not be loaded" tone="alert">
-                <p role="alert" className="sd-card__muted">
-                  {board.error}
+          {support === 'yes' && board.status === 'error' && (
+            <Notice icon={<AlertTriangle size={30} />} title="The board could not be loaded" tone="alert">
+              <p role="alert" className="sd-card__muted">
+                {board.error}
+              </p>
+              <button type="button" className="sd-ghost-btn" onClick={board.refresh}>
+                Retry
+              </button>
+            </Notice>
+          )}
+
+          {support === 'yes' && board.status === 'ready' && view && total === 0 && !view.meRow && (
+            <Notice icon={<Trophy size={30} />} title={isDemo ? 'No one is on the board yet' : 'No runs yet'}>
+              <p className="sd-card__muted" data-testid="lb-empty">
+                {isDemo ? 'Finish a run to be the first.' : 'Finish a run in this dungeon to see your best scores here.'}
+              </p>
+              <Link to="/dashboard" className="sd-cta">
+                Start a run
+              </Link>
+            </Notice>
+          )}
+
+          {support === 'yes' && board.status === 'ready' && view && (total > 0 || view.meRow) && (
+            <>
+              {board.stale && (
+                <p role="status" className="sd-lb__stale">
+                  Could not refresh. Showing the last results.
                 </p>
-                <button type="button" className="sd-ghost-btn" onClick={board.refresh}>
-                  Retry
-                </button>
-              </Notice>
-            )}
-
-            {support === 'yes' && board.status === 'ready' && view && total === 0 && !view.meRow && (
-              <Notice icon={<Trophy size={34} />} title={isDemo ? 'No one is on the board yet' : 'No runs yet'}>
-                <p className="sd-card__muted" data-testid="lb-empty">
-                  {isDemo ? 'Finish a run to be the first.' : 'Finish a run in this dungeon to see your best scores here.'}
-                </p>
-                <Link to="/dashboard" className="sd-cta">
-                  Start a run
-                </Link>
-              </Notice>
-            )}
-
-            {support === 'yes' && board.status === 'ready' && view && (total > 0 || view.meRow) && (
-              <>
-                {board.stale && (
-                  <p role="status" className="sd-lb__stale">
-                    Could not refresh. Showing the last results.
+              )}
+              <div className="sd-lb__grid">
+                <div className="sd-lb__left">
+                  <Podium rows={view.podium} />
+                  {view.meRow && (
+                    <section className="sd-lb__pinned" aria-label="Your position" data-testid="lb-me">
+                      <table className="sd-lb__table sd-lb__table--pinned">
+                        <tbody>
+                          <Row row={view.meRow} provisional={view.meRow.provisional} />
+                        </tbody>
+                      </table>
+                    </section>
+                  )}
+                  {isGuest && (
+                    <section className="sd-card sd-lb__claim" data-testid="lb-claim">
+                      <p className="sd-card__text">
+                        <strong>{CLAIM_SPOT}</strong>
+                        {view.meRow ? `. You are at rank ${view.meRow.rank} for now.` : '. Finish a run to get a provisional rank.'}
+                      </p>
+                      <button type="button" className="sd-cta" onClick={() => navigate('/register')}>
+                        <UserPlus aria-hidden="true" size={18} />
+                        Create account
+                      </button>
+                    </section>
+                  )}
+                </div>
+                <div className="sd-lb__right">
+                  {view.rows.length > 0 && (
+                    <div className="sd-lb__rowsbox">
+                      <table
+                        className="sd-lb__table"
+                        aria-label={`${period === 'week' ? 'This week' : 'All-time'} rankings`}
+                        data-many={view.rows.length > 8 ? 'true' : undefined}
+                        style={rowsVars(view.rows.length)}
+                      >
+                        <RowHead />
+                        <tbody>
+                          {view.rows.map((r) => (
+                            <Row key={r.entry.id} row={r} provisional={r.isMe && view.meRow?.provisional === true} />
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+                  <p className="sd-lb__foot">
+                    Refreshes every 30 seconds while this page is open.
+                    {board.data ? ` Updated ${new Date(board.data.updated_at).toLocaleTimeString('en-US')}.` : ''}
                   </p>
-                )}
-                <Podium rows={view.podium} />
-                {view.rows.length > 0 && (
-                  <div className="sd-lb__tablewrap">
-                    <table className="sd-lb__table" aria-label={`${period === 'week' ? 'This week' : 'All-time'} rankings`}>
-                      <RowHead />
-                      <tbody>
-                        {view.rows.map((r) => (
-                          <Row key={r.entry.id} row={r} provisional={r.isMe && view.meRow?.provisional === true} />
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                )}
-
-                {view.meRow && (
-                  <section className="sd-lb__pinned" aria-label="Your position" data-testid="lb-me">
-                    <table className="sd-lb__table sd-lb__table--pinned">
-                      <tbody>
-                        <Row row={view.meRow} provisional={view.meRow.provisional} />
-                      </tbody>
-                    </table>
-                  </section>
-                )}
-
-                {isGuest && (
-                  <section className="sd-card sd-lb__claim" data-testid="lb-claim">
-                    <p className="sd-card__text">
-                      <strong>{CLAIM_SPOT}</strong>
-                      {view.meRow ? `. You are at rank ${view.meRow.rank} for now.` : '. Finish a run to get a provisional rank.'}
-                    </p>
-                    <button type="button" className="sd-cta" onClick={() => navigate('/register')}>
-                      <UserPlus aria-hidden="true" size={18} />
-                      Create account
-                    </button>
-                  </section>
-                )}
-
-                <p className="sd-lb__foot">
-                  Refreshes every 30 seconds while this page is open.
-                  {board.data ? ` Updated ${new Date(board.data.updated_at).toLocaleTimeString('en-US')}.` : ''}
-                </p>
-              </>
-            )}
-          </div>
-        </>
+                </div>
+              </div>
+            </>
+          )}
+        </div>
       )}
     </PageShell>
   )
 }
-
 const BOARD_IDS: readonly BoardKind[] = ['preloaded', 'own_notes', 'overall']
 
 /** The live board of real players (frontend-10): tabs in the URL, the same fit layout and haunted backdrop. */
@@ -273,18 +259,16 @@ function LiveLeaderboard() {
       className="sd-lb-menace"
       decor={<HauntedBackdrop variant="menace" />}
       back={{ to: user ? '/dashboard' : '/', label: user ? 'Dashboard' : 'Title screen' }}
+      actionsLabel="Leaderboard filters"
       actions={
-        <Link to="/dashboard" className="sd-page__link">
-          Dashboard
-        </Link>
+        <BoardTabs
+          board={board}
+          period={period}
+          onBoard={(b) => setParam('board', b === 'overall' ? null : b)}
+          onPeriod={(p) => setParam('period', p === 'all' ? null : p)}
+        />
       }
     >
-      <BoardTabs
-        board={board}
-        period={period}
-        onBoard={(b) => setParam('board', b === 'overall' ? null : b)}
-        onPeriod={(p) => setParam('period', p === 'all' ? null : p)}
-      />
       <div id="lb-panel" role="tabpanel" className="sd-lb__panel" data-testid="live-board">
         <LiveBoard board={board} period={period} isGuest={isGuest} />
       </div>

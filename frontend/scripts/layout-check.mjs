@@ -308,6 +308,40 @@ async function main() {
       },
     ]
     const UPLOAD_LABELS = ['guest-locked', 'guest-ticked', 'guest-hint', 'registered-locked', 'registered-topics', 'registered-success', 'quota-used-up', 'busy'].map((n) => `/upload [${n}]`)
+    // Leaderboard states: ?mockBoard=<n|error|slow> is a dev-only mock switch (see api/mock/mockBoardSwitch.ts).
+    const LB_STATES = [
+      ['empty', '/leaderboard?mockBoard=0'],
+      ['one', '/leaderboard?mockBoard=1'],
+      ['three', '/leaderboard?mockBoard=3'],
+      ['eight', '/leaderboard?mockBoard=8'],
+      ['twenty', '/leaderboard?mockBoard=20'],
+      ['week-twenty', '/leaderboard?mockBoard=20&period=week'],
+      ['error', '/leaderboard?mockBoard=error'],
+      ['loading', '/leaderboard?mockBoard=slow'],
+    ]
+    const LB_SCENARIOS = [
+      ...LB_STATES.map(([name, path]) => ({
+        name,
+        session: async () => true,
+        async run(phone, size) {
+          await load(path)
+          await measure(`/leaderboard [${name}]`, size, phone)
+        },
+      })),
+      ...[
+        ['guest-twenty', () => guestSession('')],
+        ['registered-twenty', registeredSession],
+      ].map(([name, session]) => ({
+        name,
+        session,
+        async run(phone, size) {
+          await goto('/leaderboard?mockBoard=20')
+          await settle(1200)
+          await measure(`/leaderboard [${name}]`, size, phone)
+        },
+      })),
+    ]
+    const LB_LABELS = [...LB_STATES.map(([n]) => n), 'guest-twenty', 'registered-twenty'].map((n) => `/leaderboard [${n}]`)
     const measure = async (route, size, phone) => {
       const problems = await cdp.eval(`${MEASURE}(${JSON.stringify({ phone, scrollers: SCROLLERS, decor: DECOR })})`)
       if (shotDir) {
@@ -357,11 +391,22 @@ async function main() {
           await sc.run(phone, size)
         }
       }
-    }    ws.close()
+      if (routes.includes('/leaderboard')) {
+        for (const sc of LB_SCENARIOS) {
+          const ok = await sc.session()
+          if (!ok) {
+            results.push({ route: `/leaderboard [${sc.name}]`, size, problems: ['could not create a mock session'] })
+            continue
+          }
+          await sc.run(phone, size)
+        }
+      }
+    }
+    ws.close()
 
     // Table: one row per route, one column per size.
     const pad = (s, n) => String(s).padEnd(n)
-    const rows = routes.flatMap((r) => (r === '/upload' ? [r, ...UPLOAD_LABELS] : [r]))
+    const rows = routes.flatMap((r) => (r === '/upload' ? [r, ...UPLOAD_LABELS] : r === '/leaderboard' ? [r, ...LB_LABELS] : [r]))
     const rw = Math.max(...rows.map((r) => r.length), 5) + 2
     console.log(pad('route', rw) + sizes.map((s) => pad(s, 10)).join(''))
     for (const route of rows) {

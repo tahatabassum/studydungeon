@@ -41,6 +41,7 @@ import { createMockUpload, type GeneratedSource } from './mockUpload'
 import { readMockQuotaSwitches, type MockQuotaSwitches } from './mockQuota'
 import { createMasteryStore } from '../../learning/masteryStore'
 import { buildMockBoard } from './mockBoard'
+import { applyMockBoardCount, mockBoardError, readMockBoardSwitch } from './mockBoardSwitch'
 import { mockPlayerStats } from './mockStats'
 import { buildMockLeaderboard, runRankOnDemoBoard, type StoredRun } from './mockLeaderboard'
 import { createReviewStore } from './mockReviews'
@@ -829,8 +830,11 @@ export function createMockAdapter(options: MockAdapterOptions = {}): ApiClient {
 
     async getBoard(query) {
       await wait()
+      const sw = readMockBoardSwitch()
+      if (sw === 'error') throw mockBoardError()
+      if (sw === 'slow') await new Promise<never>(() => undefined)
       const me = await auth.getMe()
-      return buildMockBoard({
+      const built = buildMockBoard({
         board: query.board,
         period: query.period,
         nowMs: now(),
@@ -849,6 +853,7 @@ export function createMockAdapter(options: MockAdapterOptions = {}): ApiClient {
             }
           : null,
       })
+      return typeof sw === 'object' && sw !== null ? applyMockBoardCount(built, sw.count) : built
     },
 
     async getRun(runId) {

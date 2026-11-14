@@ -71,7 +71,7 @@ Rules for every task:
   - Give the URL (`/upload`, mock mode, guest and registered; `?mockQuota=<reason>` and `?mockAiBusy=1` for the other states) and the window sizes (1366x650, 1366x768, 1920x1080, 2560x1440, 1099x700, phone portrait and landscape). Wait for approval, then commit this screen separately. Do not push.
 
 - [ ] 6. Leaderboard screen (Part A)
-  - [ ] 6.1 Header row, toolbar and caption (RC9, RC22)
+  - [x] 6.1 Header row, toolbar and caption (RC9, RC22)
     - `leaderboard/LeaderboardPage.tsx`, `board/BoardTabs.tsx`, `styles/leaderboard.css`: back link, title and subtitle left; tabs and period toggle in one row at the right; single Dashboard link; one caption line that changes with selection, reset time from `data.week` for "This week", tooltip when tight; keep `data-testid="lb-hint"` and the tab roles and keyboard handling.
     - _Requirements: 3.1, 3.2, 3.3, 3.4, 3.5, 3.6, 3.7_
   - [ ] 6.2 Board grid, compact podium and rank rows (RC19, RC20, RC21, RC24, RC25, RC27)

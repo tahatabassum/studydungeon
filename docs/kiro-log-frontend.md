@@ -513,3 +513,10 @@ Frontend only; no backend, `src/game`, `src/touch` or `styles/touch.css` touched
 - Copy: notice text and label ('I understand and want to continue'), 'Try another file', drop zone hint. Changed tests in `Upload.test.tsx` (exact text only): the rules assertions now read `file-rules` lines, and 'Choose another file' became 'Try another file'.
 - Layout_Check `/upload` (plus guest and registered, locked, topics, success, quota used up, busy): 72/72 ok at 8 sizes.
 - Handoff: asked Person A whether rejected or failed uploads use the daily quota (`docs/handoff/B-to-A.md`).
+
+## frontend-11 layout fixes: Leaderboard (tasks 6.1 to 6.6), 2026-11-15
+Frontend only; no backend, src/game, src/touch or styles/touch.css touched. Resumed after a cancelled run.
+- Leaderboard (live and legacy): header row with tabs and period toggle on the right, one caption line, podium and 'Your live rank' panel on the left, ranks 4-20 as compact rows on the right (two columns when short), no scrollbars, '1 point' plurals, grid-shaped skeleton, error with Retry. Polling, rank logic, API and schemas unchanged. \plural\ in quotaView.ts is now exported; PageShell got an optional \ctionsLabel\.
+- Dev-only mock switch \?mockBoard=<0..20>|error|slow\ for the Layout_Check.
+- Changed tests in \LiveBoard.test.tsx\ (exact text only): \lb-foot\ became \lb-refresh\; the panel text is now 'Updates instantly. The table refreshes hourly.'.
+- Layout_Check /leaderboard and /upload: 160/160 ok at 8 sizes.

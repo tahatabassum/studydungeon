@@ -247,3 +247,7 @@ Upload verify items (measured with the Layout_Check, 8 sizes, 9 states, 72/72 ok
 - RC12 confirmed and fixed: success floors form a grid with no nested scroll (registered-success state ok at every size).
 - RC13, RC14, RC15, RC16, RC17, RC18 confirmed and fixed: one-row stepper, locked message centred in the zone, 20 px checkbox with label, full notice text, left-aligned card text.
 - Busy (?mockAiBusy=1) and used-up quota (?mockQuota=player_daily_limit) states fit at every size, including 360x740 and 740x360.
+
+Leaderboard verify items (Layout_Check, 8 sizes, 11 states: 0/1/3/8/20 entries, guest, registered, week, error, loading; 88/88 ok):
+- RC9, RC19, RC20, RC21, RC23, RC24, RC25, RC26 confirmed and fixed: one Dashboard link, no inner scrollbar, compact rows in two columns (4-12, 13-20) when the box is short, podium and 'Your live rank' panel on the left, no hidden information, ellipsis with title on long names, grid-shaped skeleton without inline heights.
+- Dev-only mock switch ?mockBoard=<0..20>|error|slow (src/api/mock/mockBoardSwitch.ts) feeds the check; real mode never reads it.

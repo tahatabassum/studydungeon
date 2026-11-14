@@ -57,16 +57,17 @@ export interface BoardTabsProps {
   onPeriod: (p: LeaderboardPeriod) => void
 }
 
-/** Board tabs (Preloaded, Own notes, Overall) and range tabs (All-time, This week) with a one-line explanation. */
+/** The one caption line for the current selection (board explanation, then range explanation). */
+export function boardHint(board: BoardKind, period: LeaderboardPeriod): string {
+  return `${BOARD_TABS.find((t) => t.id === board)?.hint ?? ''} ${PERIOD_TABS.find((t) => t.id === period)?.hint ?? ''}`.trim()
+}
+
+/** Board tabs (Preloaded, Own notes, Overall) and range tabs (All-time, This week), side by side in the toolbar. */
 export function BoardTabs({ board, period, onBoard, onPeriod }: BoardTabsProps) {
-  const hint = `${BOARD_TABS.find((t) => t.id === board)?.hint ?? ''} ${PERIOD_TABS.find((t) => t.id === period)?.hint ?? ''}`.trim()
   return (
-    <div className="sd-lb__tabgroup">
+    <>
       <TabRow name="board" label="Board" tabs={BOARD_TABS} value={board} onSelect={onBoard} />
       <TabRow name="period" label="Time range" tabs={PERIOD_TABS} value={period} onSelect={onPeriod} />
-      <p className="sd-lb__hint" data-testid="lb-hint">
-        {hint}
-      </p>
-    </div>
+    </>
   )
 }

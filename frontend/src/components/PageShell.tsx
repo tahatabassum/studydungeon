@@ -14,6 +14,8 @@ export interface PageShellProps {
   back?: { to: string; label: string }
   /** Top bar actions (links or buttons), right-aligned. */
   actions?: ReactNode
+  /** Accessible name of the actions nav (default Page links). */
+  actionsLabel?: string
   children: ReactNode
   /** Wider content column (the leaderboard table, the dashboard grid). */
   wide?: boolean
@@ -33,7 +35,7 @@ export interface PageShellProps {
 }
 
 /** Shared page chrome: night sky, moon, fog, title block. Decorative layers live in a fixed, clipped container. */
-export function PageShell({ title, subtitle, back, actions, children, wide = false, center = false, testId, variant = 'scroll', className, decor }: PageShellProps) {
+export function PageShell({ title, subtitle, back, actions, children, actionsLabel = 'Page links', wide = false, center = false, testId, variant = 'scroll', className, decor }: PageShellProps) {
   const reduced = useReducedMotion()
   const fit = variant === 'fit'
   return (
@@ -62,7 +64,7 @@ export function PageShell({ title, subtitle, back, actions, children, wide = fal
               <span />
             )}
             {actions && (
-              <nav aria-label="Page links" className="sd-page__actions">
+              <nav aria-label={actionsLabel} className="sd-page__actions">
                 {actions}
               </nav>
             )}

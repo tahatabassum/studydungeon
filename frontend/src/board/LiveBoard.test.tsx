@@ -82,7 +82,7 @@ describe('live leaderboard page', () => {
     })
     expect(screen.getByTestId('podium')).toBeTruthy()
     expect(screen.getByText('Ties go to whoever reached the total first.')).toBeTruthy()
-    expect(screen.getByTestId('lb-foot').textContent).toContain('refreshes hourly')
+    expect(screen.getByTestId('lb-refresh').textContent).toContain('refreshes hourly')
     const before = screen.getByTestId('lb-countdown').textContent
     await act(async () => {
       await vi.advanceTimersByTimeAsync(3000)
@@ -154,7 +154,7 @@ describe('live leaderboard page', () => {
       await vi.advanceTimersByTimeAsync(10)
     })
     const panel = screen.getByTestId('you-panel').textContent ?? ''
-    expect(panel).toContain('can be ahead of the table')
+    expect(panel).toContain('Updates instantly. The table refreshes hourly.')
     expect(panel).toContain('21 points to pass Raven#1024')
     expect(panel).toContain('461 points to enter the top 20')
     cleanup()

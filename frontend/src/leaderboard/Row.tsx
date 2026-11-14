@@ -29,7 +29,9 @@ export function Row({ row, provisional = false }: RowProps) {
         <Avatar kind={avatarKind(entry, row.isMe)} />
         <span className="sd-lb__who">
           <span className="sd-lb__name">
-            {entry.display_name}
+            <span className="sd-lb__nametext" title={entry.display_name}>
+              {entry.display_name}
+            </span>
             {row.isMe && <span className="sd-lb__tag">You</span>}
             {row.isMe && provisional && <span className="sd-lb__tag sd-lb__tag--soft">Provisional</span>}
           </span>
