@@ -50,6 +50,17 @@ describe('FloorMap nodes', () => {
     }
   })
 
+  it('names a preloaded dungeon instead of "your notes"', () => {
+    render(
+      <MemoryRouter>
+        <FloorMap title="Computer Basics Crypt" preloaded floors={buildFloorFixture(2, 'ready').floors} onOpenFloor={vi.fn()} onOpenFinal={vi.fn()} onRetryFloor={vi.fn()} />
+      </MemoryRouter>,
+    )
+    expect(screen.getByRole('heading', { level: 1 }).textContent).toBe('Computer Basics Crypt')
+    expect(screen.queryByText(/Your notes became/)).toBeNull()
+    expect(screen.getByText(/2 floors and a final boss\. 0 of 2 floors cleared\./)).toBeTruthy()
+  })
+
   it('uses the singular for a single floor', () => {
     mount(1)
     expect(screen.getByRole('heading', { level: 1 }).textContent).toBe('Your notes became 1 floor')

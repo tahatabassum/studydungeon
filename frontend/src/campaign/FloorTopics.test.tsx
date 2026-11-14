@@ -11,6 +11,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import { buildFloorFixture } from '../api/mock/fixtures/floorFixture'
 import type { Floor } from '../types/api'
 import { FloorMap } from './FloorMap'
+import { UNTRIED_TEXT } from './TopicList'
 
 afterEach(cleanup)
 
@@ -33,10 +34,12 @@ describe('floor card topic bars', () => {
     expect(list.getAttribute('aria-label')).toBe(`Topics on Floor ${ready.index}`)
     const rows = list.querySelectorAll('li')
     expect(rows).toHaveLength(ready.topics.length)
+    // A floor nobody has answered on yet reads "Not tried yet" instead of "Weak 0".
+    const untried = ready.status !== 'cleared' && ready.topics.every((t) => t.mastery <= 0)
     for (const [i, t] of ready.topics.entries()) {
       const band = t.mastery >= 80 ? 'Strong' : t.mastery >= 50 ? 'Learning' : 'Weak'
       expect(rows[i].textContent).toContain(t.title)
-      expect(rows[i].textContent).toContain(`${band} ${Math.round(t.mastery)}`)
+      expect(rows[i].textContent).toContain(untried ? UNTRIED_TEXT : `${band} ${Math.round(t.mastery)}`)
       expect(rows[i].querySelector('[data-testid="mastery-arc"]')).toBeTruthy()
     }
     const locked = fixture.floors.find((f) => f.status === 'locked')
@@ -61,6 +64,20 @@ describe('floor card topic bars', () => {
     mount(floors, fixture.final_boss)
     const name = within(screen.getByTestId('floor-topics-1')).getByText(long)
     expect(name.getAttribute('title')).toBe(long)
+  })
+})
+
+describe('untried floors', () => {
+  it('shows Not tried yet for every topic of a floor that is still all zero, and the band once any topic moves', () => {
+    const fixture = buildFloorFixture(3, 'ready')
+    const fresh = fixture.floors.map((f, i) => (i === 0 ? { ...f, status: 'ready' as const, topics: f.topics.map((t) => ({ ...t, mastery: 0 })) } : f))
+    mount(fresh, fixture.final_boss)
+    for (const li of screen.getByTestId('floor-topics-1').querySelectorAll('li')) expect(li.textContent).toContain(UNTRIED_TEXT)
+    cleanup()
+    const started = fresh.map((f, i) => (i === 0 ? { ...f, topics: f.topics.map((t, j) => ({ ...t, mastery: j === 0 ? 30 : 0 })) } : f))
+    mount(started, fixture.final_boss)
+    expect(screen.getByTestId('floor-topics-1').textContent).toContain('Weak 30')
+    expect(screen.getByTestId('floor-topics-1').textContent).not.toContain(UNTRIED_TEXT)
   })
 })
 

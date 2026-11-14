@@ -79,7 +79,8 @@ async function openMap() {
   await user.click(await screen.findByRole('button', { name: 'Accept and continue' }))
   await screen.findByRole('button', { name: /Play preloaded dungeons/ })
   act(() => nav.go('/campaign/demo-dungeon'))
-  await screen.findByRole('heading', { level: 1, name: 'Your notes became 2 floors' })
+  // The demo dungeon is Pack 1, so the map names it rather than "your notes".
+  await screen.findByRole('heading', { level: 1, name: demoDungeon.name })
 }
 
 /** Answers every question of one encounter correctly until the scene is told to close it. */
@@ -182,7 +183,7 @@ describe('campaign flow', () => {
     expect(await within(victory).findByRole('button', { name: /Create an account to keep your name and points/ })).toBeTruthy()
 
     await user.click(within(victory).getByRole('button', { name: 'Back to the map' }))
-    await screen.findByRole('heading', { level: 1, name: 'Your notes became 2 floors' })
+    await screen.findByRole('heading', { level: 1, name: demoDungeon.name })
     // The map refetched: Floor 1 is cleared (with a rank) and Floor 2 is now ready.
     await vi.waitFor(() => expect(screen.getByTestId('floor-node-1').getAttribute('data-status')).toBe('cleared'))
     expect(screen.getByTestId('floor-node-2').getAttribute('data-status')).toBe('ready')
@@ -239,7 +240,7 @@ describe('campaign flow', () => {
     advance(500)
     const alert = await screen.findByTestId('map-error')
     expect(alert.textContent).toContain('That floor is still locked.')
-    expect(screen.getByRole('heading', { level: 1 }).textContent).toBe('Your notes became 2 floors')
+    expect(screen.getByRole('heading', { level: 1 }).textContent).toBe(demoDungeon.name)
   })
 
   it('the old /play route still plays the whole dungeon (five rooms)', async () => {

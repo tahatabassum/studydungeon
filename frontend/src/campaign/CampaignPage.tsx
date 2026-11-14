@@ -5,6 +5,7 @@ import { Spinner } from '../components/Spinner'
 import type { Dungeon, FinalBoss, Floor } from '../types/api'
 import { DailyHauntButton } from '../haunt/DailyHauntButton'
 import { ModePickerButton } from '../haunt/ModePickerButton'
+import { capabilityOf } from '../api/ApiClient'
 import { PackHeader } from '../packs/PackHeader'
 import { FloorMap } from './FloorMap'
 import { rejectionMessage } from './rejection'
@@ -29,6 +30,7 @@ export default function CampaignPage() {
   const [dungeon, setDungeon] = useState<Dungeon | null>(null)
   const [loadError, setLoadError] = useState<string | null>(null)
   const [extras, setExtras] = useState(true)
+  const [preloaded, setPreloaded] = useState(false)
   const [message, setMessage] = useState<string | null>(
     () => (location.state as { startError?: string } | null)?.startError ?? null,
   )
@@ -52,7 +54,16 @@ export default function CampaignPage() {
       try {
         const api = await getApi()
         const d = await api.getDungeon(dungeonId)
+        // A pack is a preloaded dungeon: the map header names it rather than "your notes".
+        const isPack =
+          capabilityOf(api, 'packs') === 'off'
+            ? false
+            : await api.getPacks().then(
+                (res) => res.packs.some((p) => p.dungeon_id === dungeonId),
+                () => false,
+              )
         if (cancelled) return
+        setPreloaded(isPack)
         apiRef.current = api
         setLoadError(null)
         // D26: a backend without floors shows its honest single floor and hides the campaign extras.
@@ -132,6 +143,7 @@ export default function CampaignPage() {
       floors={generation.floors}
       finalBoss={finalBoss}
       extras={extras}
+      preloaded={preloaded}
       announcement={generation.announcement}
       errorMessage={message}
       onDismissError={() => setMessage(null)}

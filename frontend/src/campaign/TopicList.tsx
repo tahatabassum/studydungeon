@@ -5,8 +5,11 @@ import type { Floor } from '../types/api'
 
 type Topic = Floor['topics'][number]
 
-function TopicRow({ topic }: { topic: Topic }) {
-  const text = `${MASTERY_BAND_LABEL[masteryBand(topic.mastery)]} ${Math.round(clampMastery(topic.mastery))}`
+/** Before any answer on a floor every topic reads 0; say so instead of labelling the topic Weak. */
+export const UNTRIED_TEXT = 'Not tried yet'
+
+function TopicRow({ topic, untried }: { topic: Topic; untried: boolean }) {
+  const text = untried ? UNTRIED_TEXT : `${MASTERY_BAND_LABEL[masteryBand(topic.mastery)]} ${Math.round(clampMastery(topic.mastery))}`
   return (
     <li className="sd-topic">
       {/* The band is written out next to the name, so the ring is decoration here. */}
@@ -44,6 +47,7 @@ export function TopicList({ floor, rows, tabbable }: TopicListProps) {
   const popoverId = useId()
   const shown = floor.topics.slice(0, rows)
   const rest = floor.topics.slice(rows)
+  const untried = floor.status !== 'cleared' && floor.topics.every((t) => t.mastery <= 0)
 
   useEffect(() => {
     if (!open) return
@@ -67,7 +71,7 @@ export function TopicList({ floor, rows, tabbable }: TopicListProps) {
     <div className="sd-topics" ref={wrapRef} data-open={open ? 'true' : undefined}>
       <ul className="sd-topics__list" aria-label={`Topics on Floor ${floor.index}`} data-testid={`floor-topics-${floor.index}`}>
         {shown.map((t) => (
-          <TopicRow key={t.id} topic={t} />
+          <TopicRow key={t.id} topic={t} untried={untried} />
         ))}
       </ul>
       {rest.length > 0 && (
@@ -88,7 +92,7 @@ export function TopicList({ floor, rows, tabbable }: TopicListProps) {
             <div id={popoverId} role="group" aria-label={`More topics on Floor ${floor.index}`} className="sd-topics__pop" tabIndex={0} data-testid={`floor-more-${floor.index}`}>
               <ul className="sd-topics__list">
                 {rest.map((t) => (
-                  <TopicRow key={t.id} topic={t} />
+                  <TopicRow key={t.id} topic={t} untried={untried} />
                 ))}
               </ul>
             </div>
