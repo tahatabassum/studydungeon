@@ -68,6 +68,8 @@ async def test_pack_rooms_are_zero_based_and_final_boss_is_the_boss(async_client
     assert body["final_boss"]["id"] == bosses[0]["id"]
     assert body["final_boss"]["name"] == "The Exam Warden"
     assert {r["monster_name"] for r in rooms}.isdisjoint({"minion", "floor_boss", "final_boss"})
+    assert [f["status"] for f in body["floors"]] == ["ready"] + ["locked"] * (len(body["floors"]) - 1)
+    assert all("rank" in f and f["rank"] is None for f in body["floors"])
     for floor in body["floors"]:
         assert floor["room_ids"] and bosses[0]["id"] not in floor["room_ids"]
 

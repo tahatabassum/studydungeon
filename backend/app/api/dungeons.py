@@ -12,6 +12,7 @@ from app.core.deps import get_current_user, require_registered_user
 from app.models.all_models import (
     ContentPack,
     Document,
+    GameRun,
     DocumentChunk,
     Dungeon,
     DungeonRoom,
@@ -266,6 +267,13 @@ async def get_dungeon_detail(
             final_boss_room = r
 
     if floor_rooms_map:
+        # One run covers the whole dungeon, so a completed run clears every floor for this player.
+        done_res = await db.execute(
+            select(GameRun.id)
+            .where(GameRun.user_id == user.id, GameRun.dungeon_id == dungeon.id, GameRun.status == "completed")
+            .limit(1)
+        )
+        dungeon_cleared = done_res.scalar_one_or_none() is not None
         from app.schemas.dungeons import DungeonFloorView, FloorBossView, FloorTopicView, FinalBossView
         floors_view = []
         # Sort floor ids deterministically
@@ -283,7 +291,8 @@ async def get_dungeon_detail(
                     id=f_id,
                     index=f_idx,
                     title=f"Floor {f_idx}: {f_rooms[0].topic.name if f_rooms[0].topic else 'Chamber'}",
-                    status="available" if f_idx == 1 else "locked",
+                    # Frontend contract: ready | locked | cleared | generating | failed.
+                    status="cleared" if dungeon_cleared else ("ready" if f_idx == 1 else "locked"),
                     topics=f_topics,
                     boss=FloorBossView(
                         id=f_boss_room.id,
@@ -301,7 +310,7 @@ async def get_dungeon_detail(
                 id=final_boss_room.id,
                 name=final_boss_room.monster_type,
                 hp=final_boss_room.monster_hp,
-                unlocked=False,
+                unlocked=dungeon_cleared,
             )
 
     return DungeonDetailView(

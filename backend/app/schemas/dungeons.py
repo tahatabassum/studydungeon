@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import List, Optional
 
-from pydantic import BaseModel
+from pydantic import BaseModel, model_serializer
 
 
 class QuestionGameplayView(BaseModel):
@@ -42,11 +42,18 @@ class DungeonFloorView(BaseModel):
     id: str
     index: int
     title: str
-    status: str = "available"  # locked, available, ready, generating, failed, cleared
+    status: str = "locked"  # ready, locked, cleared, generating, failed (frontend floorSchema)
     topics: List[FloorTopicView] = []
     boss: FloorBossView
     rank: Optional[str] = None
     room_ids: List[str]
+
+    @model_serializer(mode="wrap")
+    def _keep_rank(self, handler):
+        # The detail route drops None fields, but the frontend contract needs rank present (null before a clear).
+        data = handler(self)
+        data.setdefault("rank", self.rank)
+        return data
 
 
 class FinalBossView(BaseModel):
