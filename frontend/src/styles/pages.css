@@ -270,3 +270,11 @@ a.sd-ghost-btn:hover { border-color: var(--color-accent); background: var(--colo
 html[data-touch] .sd-page--fit { height: auto; min-height: 100dvh; overflow: visible; }
 html[data-touch] .sd-page--fit .sd-page__inner { grid-template-rows: auto auto; }
 html[data-touch] .sd-page--fit .sd-page__body { grid-template-rows: none; }
+/* Compact_Mode: the decorative moon is small and sits in the top-right corner, above content and clear of controls. */
+@media (max-width: 1099px), (pointer: coarse) {
+  .sd-page__atmosphere .sd-moon,
+  .sd-page--fit .sd-page__atmosphere .sd-moon { top: 0.25rem; bottom: auto; right: 0.25rem; width: 2.5rem; opacity: 0.3; }
+}
+@media (max-width: 640px), (max-height: 480px) {
+  .sd-page__atmosphere .sd-moon { display: none; }
+}

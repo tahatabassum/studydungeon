@@ -520,3 +520,11 @@ Frontend only; no backend, src/game, src/touch or styles/touch.css touched. Resu
 - Dev-only mock switch \?mockBoard=<0..20>|error|slow\ for the Layout_Check.
 - Changed tests in \LiveBoard.test.tsx\ (exact text only): \lb-foot\ became \lb-refresh\; the panel text is now 'Updates instantly. The table refreshes hourly.'.
 - Layout_Check /leaderboard and /upload: 160/160 ok at 8 sizes.
+
+## frontend-11 layout fixes: Title screen (tasks 8.1, 8.2, RC29), 2026-11-16
+Frontend only. landing.css: header nav wraps (.sd-landing__nav) and compacts below 420px so Leaderboard no longer overflows at 360x740 (386>360). LandingPage.tsx: nav class only. Layout_Check / 8/8 ok. No tests changed.
+
+## 2026-11-14 Layout pass: floor map (RC30-RC33) and shared moon
+- campaign.css: Compact_Mode (<1100 px or coarse) releases .sd-map to natural page scroll (replaces the max-height:480px rule); .sd-map__scroll stays the only horizontal scroller; topics popover sized to content; floor titles, boss meta and topic names wrap instead of clipping.
+- pages.css/campaign.css: in Compact_Mode the decorative moon is small and top-right; hidden under 640 px wide or 480 px tall.
+- layout:check: 215/216 on best run, 0 real failures; remaining ones were intermittent 'could not create a mock session' on random routes. No tests changed.
