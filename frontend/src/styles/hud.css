@@ -104,6 +104,9 @@
   scrollbar-color: var(--color-witch) transparent;
 }
 .sd-overlay-body::-webkit-scrollbar { width: 8px; }
+/* Children keep their height (the body scrolls instead of panels overlapping); relative keeps sr-only text inside. */
+.sd-overlay-body { position: relative; }
+.sd-overlay-body > * { flex-shrink: 0; }
 .sd-overlay-body::-webkit-scrollbar-thumb { background: var(--color-witch); border-radius: 4px; }
 .sd-overlay-body::-webkit-scrollbar-track { background: transparent; }
 
