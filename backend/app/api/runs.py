@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import select
@@ -8,6 +8,7 @@ from sqlalchemy.orm import selectinload
 from app.core.database import get_db
 from app.core.deps import get_current_user
 from app.models.all_models import (
+    ContentPack,
     Attempt,
     Dungeon,
     DungeonRoom,
@@ -50,19 +51,46 @@ async def start_run(
             detail={"code": "DUNGEON_NOT_FOUND", "message": "Dungeon does not exist."},
         )
 
-    # Guest guard: guests can ONLY play demo dungeon
-    if user.is_guest and not dungeon.is_public_demo:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail={"code": "GUEST_FORBIDDEN", "message": "Guests are only permitted to play the public demo dungeon."},
-        )
+    # Check if dungeon belongs to a preloaded content pack
+    pack_res = await db.execute(select(ContentPack).where(ContentPack.dungeon_id == dungeon.id))
+    content_pack = pack_res.scalar_one_or_none()
 
-    # Check dungeon ownership if not public demo
-    if not dungeon.is_public_demo and dungeon.user_id != user.id:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail={"code": "FORBIDDEN", "message": "You do not own this dungeon."},
-        )
+    if content_pack:
+        # Pack 1 is always unlocked for everyone (guests and registered)
+        if content_pack.order > 1:
+            # Must have cleared previous pack's dungeon
+            prev_pack_res = await db.execute(select(ContentPack).where(ContentPack.order == content_pack.order - 1))
+            prev_pack = prev_pack_res.scalar_one_or_none()
+            if prev_pack:
+                cleared_run_res = await db.execute(
+                    select(GameRun).where(
+                        GameRun.user_id == user.id,
+                        GameRun.dungeon_id == prev_pack.dungeon_id,
+                        GameRun.status == "completed",
+                    )
+                )
+                if not cleared_run_res.scalar_one_or_none():
+                    raise HTTPException(
+                        status_code=status.HTTP_403_FORBIDDEN,
+                        detail={
+                            "code": "PACK_LOCKED",
+                            "message": "Clear the previous dungeon's final boss to unlock it.",
+                        },
+                    )
+    else:
+        # Guest guard: guests can ONLY play demo/pack dungeons
+        if user.is_guest and not dungeon.is_public_demo:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail={"code": "GUEST_FORBIDDEN", "message": "Guests are only permitted to play the public demo dungeon."},
+            )
+
+        # Check dungeon ownership if not public demo
+        if not dungeon.is_public_demo and dungeon.user_id != user.id:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail={"code": "FORBIDDEN", "message": "You do not own this dungeon."},
+            )
 
     # Create run
     run = GameRun(
@@ -504,6 +532,34 @@ async def finish_run(
     else:
         band = "Weak"
 
+    # Check pack progress if run belonged to a pack
+    pack_progress = None
+    pack_res = await db.execute(select(ContentPack).where(ContentPack.dungeon_id == run.dungeon_id))
+    current_pack = pack_res.scalar_one_or_none()
+    if current_pack:
+        # Check next pack
+        next_pack_res = await db.execute(select(ContentPack).where(ContentPack.order == current_pack.order + 1))
+        next_pack = next_pack_res.scalar_one_or_none()
+
+        # Check all packs complete
+        all_packs_res = await db.execute(select(ContentPack))
+        all_packs = all_packs_res.scalars().all()
+        user_cleared_res = await db.execute(
+            select(GameRun.dungeon_id).where(
+                GameRun.user_id == user.id,
+                GameRun.status == "completed",
+            )
+        )
+        cleared_dungeon_ids = set(user_cleared_res.scalars().all())
+        all_completed = all(p.dungeon_id in cleared_dungeon_ids for p in all_packs)
+
+        pack_progress = {
+            "pack_id": current_pack.id,
+            "status": "completed",
+            "unlocked_pack_id": next_pack.id if next_pack else None,
+            "all_completed": all_completed,
+        }
+
     return RunSummaryResponse(
         id=run.id,
         score=run.current_score,
@@ -513,4 +569,5 @@ async def finish_run(
         accuracy=round(accuracy, 2),
         mastery_band=band,
         status=run.status,
+        pack_progress=pack_progress,
     )

@@ -194,7 +194,7 @@ async def list_dungeons(
     ]
 
 
-@dungeons_router.get("/dungeons/{id}", response_model=DungeonDetailView)
+@dungeons_router.get("/dungeons/{id}", response_model=DungeonDetailView, response_model_exclude_none=True)
 async def get_dungeon_detail(
     id: str,
     user: User = Depends(get_current_user),
@@ -240,9 +240,63 @@ async def get_dungeon_detail(
                 monster_type=r.monster_type,
                 monster_hp=r.monster_hp,
                 is_boss=is_boss,
+                floor_id=r.floor_id,
+                monster_kind=r.monster_kind or ("exam_warden" if is_boss else "paper_wraith"),
                 questions=q_views,
             )
         )
+
+    # Build floors & final_boss representation if floors exist
+    floors_view = None
+    final_boss_view = None
+
+    # Group rooms with floor_id
+    floor_rooms_map = {}
+    final_boss_room = None
+    for r in dungeon.rooms:
+        if r.floor_id:
+            floor_rooms_map.setdefault(r.floor_id, []).append(r)
+        elif r.room_order == total_rooms - 1:
+            final_boss_room = r
+
+    if floor_rooms_map:
+        from app.schemas.dungeons import DungeonFloorView, FloorBossView, FloorTopicView, FinalBossView
+        floors_view = []
+        # Sort floor ids deterministically
+        sorted_floor_ids = sorted(floor_rooms_map.keys())
+        for f_idx, f_id in enumerate(sorted_floor_ids, start=1):
+            f_rooms = sorted(floor_rooms_map[f_id], key=lambda x: x.room_order)
+            # Find floor boss room (highest room order in this floor)
+            f_boss_room = f_rooms[-1]
+            f_topics = [
+                FloorTopicView(id=rm.topic_id, title=rm.topic.name if rm.topic else "General", mastery=0)
+                for rm in f_rooms if rm.topic
+            ]
+            floors_view.append(
+                DungeonFloorView(
+                    id=f_id,
+                    index=f_idx,
+                    title=f"Floor {f_idx}: {f_rooms[0].topic.name if f_rooms[0].topic else 'Chamber'}",
+                    status="available" if f_idx == 1 else "locked",
+                    topics=f_topics,
+                    boss=FloorBossView(
+                        id=f_boss_room.id,
+                        name=f_boss_room.monster_type,
+                        hp=f_boss_room.monster_hp,
+                        kind=f_boss_room.monster_kind or "silicon_golem",
+                    ),
+                    rank=None,
+                    room_ids=[rm.id for rm in f_rooms],
+                )
+            )
+
+        if final_boss_room:
+            final_boss_view = FinalBossView(
+                id=final_boss_room.id,
+                name=final_boss_room.monster_type,
+                hp=final_boss_room.monster_hp,
+                unlocked=False,
+            )
 
     return DungeonDetailView(
         id=dungeon.id,
@@ -250,4 +304,6 @@ async def get_dungeon_detail(
         is_public_demo=dungeon.is_public_demo,
         created_at=dungeon.created_at,
         rooms=rooms_view,
+        floors=floors_view,
+        final_boss=final_boss_view,
     )

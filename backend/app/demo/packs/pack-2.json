@@ -1,0 +1,173 @@
+[
+  {
+    "id": "pack-2",
+    "order": 2,
+    "title": "Networking Catacombs",
+    "description": "Packets, protocols, IP addressing, and routing.",
+    "floors_total": 2,
+    "final_boss": {
+      "id": "boss_pack_2",
+      "name": "The Gateway Chimera",
+      "hp": 240,
+      "kind": "exam_warden"
+    },
+    "floors": [
+      {
+        "id": "p2_f1",
+        "index": 1,
+        "title": "The Transport Depths (TCP vs UDP)",
+        "topics": [
+          { "id": "p2_t1", "title": "Transport Layer Protocols", "mastery": 0 }
+        ],
+        "boss": {
+          "id": "m_syn_ack_wraith",
+          "name": "SYN-ACK Wraith",
+          "hp": 85,
+          "kind": "memory_eater"
+        },
+        "rooms": [
+          {
+            "id": "p2_r1",
+            "room_number": 1,
+            "topic_name": "Transport Layer Protocols",
+            "monster_name": "Dropped Packet Imp",
+            "monster_type": "minion",
+            "monster_kind": "paper_wraith",
+            "monster_hp": 40,
+            "is_boss": false,
+            "questions": [
+              {
+                "id": "p2_q1_1",
+                "prompt": "What handshake mechanism does TCP use to establish a reliable connection?",
+                "options": ["Two-way handshake", "Three-way handshake (SYN, SYN-ACK, ACK)", "Four-way handshake", "One-way broadcast"],
+                "correct_option": 1,
+                "difficulty": "easy",
+                "evidence_quote": "TCP establishes a connection using a three-way handshake involving SYN, SYN-ACK, and ACK packets.",
+                "explanation": "TCP ensures both sides agree on sequence numbers via the three-way handshake."
+              },
+              {
+                "id": "p2_q1_2",
+                "prompt": "Why is UDP preferred over TCP for live video streaming and gaming?",
+                "options": ["UDP guarantees encryption", "UDP has lower latency because it does not wait for retransmissions", "UDP packets are always larger", "UDP never loses packets"],
+                "correct_option": 1,
+                "difficulty": "medium",
+                "evidence_quote": "UDP provides connectionless, best-effort transmission without acknowledgment overhead, minimizing latency for real-time applications.",
+                "explanation": "Real-time streaming prioritizes speed over retransmitting outdated video frames."
+              }
+            ]
+          },
+          {
+            "id": "p2_r2",
+            "room_number": 2,
+            "topic_name": "Transport Layer Protocols",
+            "monster_name": "SYN-ACK Wraith",
+            "monster_type": "floor_boss",
+            "monster_kind": "memory_eater",
+            "monster_hp": 85,
+            "is_boss": true,
+            "questions": [
+              {
+                "id": "p2_q1_3",
+                "prompt": "Which TCP mechanism prevents a fast sender from overwhelming a slow receiver?",
+                "options": ["Checksum calculation", "Flow Control via Sliding Window", "DNS Resolution", "Subnet Masking"],
+                "correct_option": 1,
+                "difficulty": "hard",
+                "evidence_quote": "Flow control in TCP uses a sliding window size advertised by the receiver to prevent buffer overflow.",
+                "explanation": "The sliding window regulates transmission speed based on buffer capacity."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "p2_f2",
+        "index": 2,
+        "title": "The IP & DNS Catacombs",
+        "topics": [
+          { "id": "p2_t2", "title": "Network Layer & Name Resolution", "mastery": 0 }
+        ],
+        "boss": {
+          "id": "m_dns_poisoner",
+          "name": "DNS Phantom",
+          "hp": 95,
+          "kind": "silicon_golem"
+        },
+        "rooms": [
+          {
+            "id": "p2_r3",
+            "room_number": 3,
+            "topic_name": "Network Layer & Name Resolution",
+            "monster_name": "Subnet Crawler",
+            "monster_type": "minion",
+            "monster_kind": "paper_wraith",
+            "monster_hp": 45,
+            "is_boss": false,
+            "questions": [
+              {
+                "id": "p2_q2_1",
+                "prompt": "What does DNS (Domain Name System) translate domain names into?",
+                "options": ["MAC addresses", "Numerical IP addresses", "Operating system versions", "Compiler bytecode"],
+                "correct_option": 1,
+                "difficulty": "easy",
+                "evidence_quote": "Domain Name System (DNS) translates human-readable domain names into numerical IP addresses.",
+                "explanation": "DNS acts as the Internet's address book."
+              },
+              {
+                "id": "p2_q2_2",
+                "prompt": "How many bits are in a standard IPv4 address?",
+                "options": ["16 bits", "32 bits", "64 bits", "128 bits"],
+                "correct_option": 1,
+                "difficulty": "medium",
+                "evidence_quote": "An IPv4 address is a 32-bit numeric address written as four decimal octets separated by dots.",
+                "explanation": "IPv4 consists of four 8-bit octets totaling 32 bits."
+              }
+            ]
+          },
+          {
+            "id": "p2_r4",
+            "room_number": 4,
+            "topic_name": "Network Layer & Name Resolution",
+            "monster_name": "DNS Phantom",
+            "monster_type": "floor_boss",
+            "monster_kind": "silicon_golem",
+            "monster_hp": 95,
+            "is_boss": true,
+            "questions": [
+              {
+                "id": "p2_q2_3",
+                "prompt": "Which device inspects destination IP addresses to forward packets across different networks?",
+                "options": ["Hub", "Router", "Unmanaged Switch", "Repeater"],
+                "correct_option": 1,
+                "difficulty": "medium",
+                "evidence_quote": "A router operates at the network layer to forward data packets between different computer networks using routing tables.",
+                "explanation": "Routers determine optimal paths for packets crossing autonomous systems."
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "final_boss_room": {
+      "id": "p2_r5",
+      "room_number": 5,
+      "topic_name": "Network Architecture Exam",
+      "monster_name": "The Gateway Chimera",
+      "monster_type": "final_boss",
+      "monster_kind": "exam_warden",
+      "monster_hp": 240,
+      "is_boss": true,
+      "questions": [
+        {
+          "id": "p2_q3_1",
+          "prompt": "In the 7-layer OSI model, at which layer does TLS/SSL encryption operate?",
+          "options": ["Physical Layer", "Data Link Layer", "Presentation Layer", "Network Layer"],
+          "correct_option": 2,
+          "difficulty": "hard",
+          "evidence_quote": "In the OSI model, data encryption and format translation occur at Layer 6, the Presentation Layer.",
+          "explanation": "The Presentation layer handles syntax translation, compression, and cryptography."
+        }
+      ]
+    }
+  }
+]
+

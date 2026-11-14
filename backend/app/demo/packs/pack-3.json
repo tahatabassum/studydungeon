@@ -1,0 +1,173 @@
+[
+  {
+    "id": "pack-3",
+    "order": 3,
+    "title": "Database Ossuary",
+    "description": "Relational schemas, primary keys, indexing, and ACID transactions.",
+    "floors_total": 2,
+    "final_boss": {
+      "id": "boss_pack_3",
+      "name": "The Deadlock Dragon",
+      "hp": 260,
+      "kind": "exam_warden"
+    },
+    "floors": [
+      {
+        "id": "p3_f1",
+        "index": 1,
+        "title": "The Relational Crypt (Keys & Normalization)",
+        "topics": [
+          { "id": "p3_t1", "title": "Relational Modeling", "mastery": 0 }
+        ],
+        "boss": {
+          "id": "m_null_pointer_fiend",
+          "name": "Null Key Fiend",
+          "hp": 90,
+          "kind": "silicon_golem"
+        },
+        "rooms": [
+          {
+            "id": "p3_r1",
+            "room_number": 1,
+            "topic_name": "Relational Modeling",
+            "monster_name": "Duplicate Row Goblin",
+            "monster_type": "minion",
+            "monster_kind": "paper_wraith",
+            "monster_hp": 45,
+            "is_boss": false,
+            "questions": [
+              {
+                "id": "p3_q1_1",
+                "prompt": "What key property distinguishes a Primary Key in relational databases?",
+                "options": ["It can contain multiple NULL values", "It must uniquely identify every record and cannot be NULL", "It can only store positive integers", "It deletes child rows automatically"],
+                "correct_option": 1,
+                "difficulty": "easy",
+                "evidence_quote": "A primary key is a column or set of columns that uniquely identifies each row in a table and cannot contain NULL values.",
+                "explanation": "Primary keys enforce entity integrity across database rows."
+              },
+              {
+                "id": "p3_q1_2",
+                "prompt": "Which normal form requires removing transitive dependencies between non-key attributes?",
+                "options": ["First Normal Form (1NF)", "Second Normal Form (2NF)", "Third Normal Form (3NF)", "Unnormalized Form"],
+                "correct_option": 2,
+                "difficulty": "medium",
+                "evidence_quote": "Third Normal Form (3NF) requires the table to be in 2NF and have no transitive functional dependencies.",
+                "explanation": "3NF ensures all non-key columns depend directly on the primary key, and nothing else."
+              }
+            ]
+          },
+          {
+            "id": "p3_r2",
+            "room_number": 2,
+            "topic_name": "Relational Modeling",
+            "monster_name": "Null Key Fiend",
+            "monster_type": "floor_boss",
+            "monster_kind": "silicon_golem",
+            "monster_hp": 90,
+            "is_boss": true,
+            "questions": [
+              {
+                "id": "p3_q1_3",
+                "prompt": "What constraint ensures that a foreign key matches an existing primary key in another table?",
+                "options": ["Referential Integrity", "Domain Integrity", "Entity Locking", "Sharding Constraint"],
+                "correct_option": 0,
+                "difficulty": "medium",
+                "evidence_quote": "Referential integrity guarantees that foreign key relationships between tables remain consistent and valid.",
+                "explanation": "Referential integrity prevents orphan records in relational databases."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "p3_f2",
+        "index": 2,
+        "title": "The Transaction Vault (ACID & Indices)",
+        "topics": [
+          { "id": "p3_t2", "title": "ACID Properties & Indexes", "mastery": 0 }
+        ],
+        "boss": {
+          "id": "m_isolation_wraith",
+          "name": "Isolation Wraith",
+          "hp": 100,
+          "kind": "memory_eater"
+        },
+        "rooms": [
+          {
+            "id": "p3_r3",
+            "room_number": 3,
+            "topic_name": "ACID Properties & Indexes",
+            "monster_name": "Table Scan Ghoul",
+            "monster_type": "minion",
+            "monster_kind": "paper_wraith",
+            "monster_hp": 50,
+            "is_boss": false,
+            "questions": [
+              {
+                "id": "p3_q2_1",
+                "prompt": "In the ACID acronym, what does Atomicity guarantee?",
+                "options": ["All operations in a transaction succeed together or all are rolled back", "Data is immediately cached in RAM", "Transactions execute on a single CPU core", "Backups are saved atom by atom"],
+                "correct_option": 0,
+                "difficulty": "easy",
+                "evidence_quote": "Atomicity ensures that all statements within a transaction are executed as a single indivisible unit: either all succeed or none take effect.",
+                "explanation": "Atomicity is the all-or-nothing property of database transactions."
+              },
+              {
+                "id": "p3_q2_2",
+                "prompt": "Which tree data structure is most commonly used for relational database table indexing?",
+                "options": ["Binary Heap", "B+ Tree", "Red-Black Tree", "Trie"],
+                "correct_option": 1,
+                "difficulty": "medium",
+                "evidence_quote": "Most relational database management systems use B+ Trees for indices to keep data sorted and allow searches, sequential access, and insertions in logarithmic time.",
+                "explanation": "B+ Trees minimize disk I/O operations through high fan-out nodes."
+              }
+            ]
+          },
+          {
+            "id": "p3_r4",
+            "room_number": 4,
+            "topic_name": "ACID Properties & Indexes",
+            "monster_name": "Isolation Wraith",
+            "monster_type": "floor_boss",
+            "monster_kind": "memory_eater",
+            "monster_hp": 100,
+            "is_boss": true,
+            "questions": [
+              {
+                "id": "p3_q2_3",
+                "prompt": "What concurrency anomaly occurs when one transaction reads uncommitted changes written by another concurrent transaction?",
+                "options": ["Dirty Read", "Non-repeatable Read", "Phantom Read", "Write Skew"],
+                "correct_option": 0,
+                "difficulty": "hard",
+                "evidence_quote": "A dirty read occurs when a transaction is permitted to read data from a row that has been modified by another running transaction and not yet committed.",
+                "explanation": "Dirty reads happen in the Read Uncommitted isolation level."
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "final_boss_room": {
+      "id": "p3_r5",
+      "room_number": 5,
+      "topic_name": "Master Database Architecture Exam",
+      "monster_name": "The Deadlock Dragon",
+      "monster_type": "final_boss",
+      "monster_kind": "exam_warden",
+      "monster_hp": 260,
+      "is_boss": true,
+      "questions": [
+        {
+          "id": "p3_q3_1",
+          "prompt": "Which deadlock resolution technique cancels one of the conflicting transactions and rolls back its changes?",
+          "options": ["Transaction Victim Selection & Rollback", "Two-Phase Commit Protocol", "Write-Ahead Logging", "Checkpoint Flusher"],
+          "correct_option": 0,
+          "difficulty": "hard",
+          "evidence_quote": "When a deadlock cycle is detected by the lock manager, the database selects one transaction as a victim and rolls it back to break the cycle.",
+          "explanation": "Victim selection terminates one cycle node so other transactions can proceed."
+        }
+      ]
+    }
+  }
+]
+

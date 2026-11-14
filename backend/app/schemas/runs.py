@@ -61,3 +61,4 @@ class RunSummaryResponse(BaseModel):
     accuracy: float
     mastery_band: str  # Weak, Learning, Strong
     status: str
+    pack_progress: Optional[dict] = None

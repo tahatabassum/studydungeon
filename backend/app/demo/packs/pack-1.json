@@ -1,0 +1,173 @@
+[
+  {
+    "id": "pack-1",
+    "order": 1,
+    "title": "Computer Systems Crypt",
+    "description": "CPU, memory, bus architecture, and storage basics.",
+    "floors_total": 2,
+    "final_boss": {
+      "id": "boss_pack_1",
+      "name": "The Exam Warden",
+      "hp": 220,
+      "kind": "exam_warden"
+    },
+    "floors": [
+      {
+        "id": "p1_f1",
+        "index": 1,
+        "title": "The Entry Crypt (CPU & Registers)",
+        "topics": [
+          { "id": "p1_t1", "title": "Central Processing Unit (CPU)", "mastery": 0 }
+        ],
+        "boss": {
+          "id": "m_silicon_golem",
+          "name": "Silicon Golem",
+          "hp": 80,
+          "kind": "silicon_golem"
+        },
+        "rooms": [
+          {
+            "id": "p1_r1",
+            "room_number": 1,
+            "topic_name": "Central Processing Unit (CPU)",
+            "monster_name": "Silicon Imp",
+            "monster_type": "minion",
+            "monster_kind": "paper_wraith",
+            "monster_hp": 40,
+            "is_boss": false,
+            "questions": [
+              {
+                "id": "p1_q1_1",
+                "prompt": "Which component of the CPU carries out mathematical and logical calculations?",
+                "options": ["Control Unit", "Arithmetic Logic Unit (ALU)", "Program Counter", "Memory Data Register"],
+                "correct_option": 1,
+                "difficulty": "easy",
+                "evidence_quote": "The Arithmetic Logic Unit (ALU) performs basic mathematical arithmetic and logic operations.",
+                "explanation": "The ALU is responsible for calculations and boolean evaluations inside the CPU."
+              },
+              {
+                "id": "p1_q1_2",
+                "prompt": "What is the primary function of CPU registers?",
+                "options": ["Permanent secondary storage", "High-speed temporary internal storage", "Displaying pixels to monitors", "Cooling down processor cores"],
+                "correct_option": 1,
+                "difficulty": "medium",
+                "evidence_quote": "Registers provide fast, temporary storage directly inside the processor.",
+                "explanation": "Registers are tiny, ultra-fast memory cells located within the CPU core."
+              }
+            ]
+          },
+          {
+            "id": "p1_r2",
+            "room_number": 2,
+            "topic_name": "Central Processing Unit (CPU)",
+            "monster_name": "Silicon Golem",
+            "monster_type": "floor_boss",
+            "monster_kind": "silicon_golem",
+            "monster_hp": 80,
+            "is_boss": true,
+            "questions": [
+              {
+                "id": "p1_q1_3",
+                "prompt": "During the CPU cycle, what occurs immediately after the Fetch step?",
+                "options": ["Store", "Decode", "Interrupt", "Power down"],
+                "correct_option": 1,
+                "difficulty": "medium",
+                "evidence_quote": "The control unit decodes the instruction fetched from memory to determine the required micro-operations.",
+                "explanation": "The CPU follows the Fetch-Decode-Execute cycle in strict sequential order."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "p1_f2",
+        "index": 2,
+        "title": "The Storage Vault (RAM & SSDs)",
+        "topics": [
+          { "id": "p1_t2", "title": "Primary & Secondary Storage", "mastery": 0 }
+        ],
+        "boss": {
+          "id": "m_memory_wraith",
+          "name": "Memory Wraith",
+          "hp": 90,
+          "kind": "memory_eater"
+        },
+        "rooms": [
+          {
+            "id": "p1_r3",
+            "room_number": 3,
+            "topic_name": "Primary & Secondary Storage",
+            "monster_name": "Cache Phantom",
+            "monster_type": "minion",
+            "monster_kind": "paper_wraith",
+            "monster_hp": 45,
+            "is_boss": false,
+            "questions": [
+              {
+                "id": "p1_q2_1",
+                "prompt": "Why is RAM classified as volatile memory?",
+                "options": ["It can easily physically break", "It loses its data when power is turned off", "It operates at slower speeds than magnetic disks", "It can only be written to once"],
+                "correct_option": 1,
+                "difficulty": "easy",
+                "evidence_quote": "Random Access Memory (RAM) is volatile main memory that loses all stored data when electrical power is disconnected.",
+                "explanation": "Volatile memory requires continuous electrical power to preserve stored bits."
+              },
+              {
+                "id": "p1_q2_2",
+                "prompt": "Which technology do SSDs utilize for non-volatile storage?",
+                "options": ["Spinning magnetic platters", "Flash memory", "Cathode ray tubes", "Dynamic optical laser pits"],
+                "correct_option": 1,
+                "difficulty": "medium",
+                "evidence_quote": "Solid State Drives (SSDs) utilize flash memory to retain non-volatile data persistently across reboots.",
+                "explanation": "SSDs use semiconductor flash memory instead of spinning magnetic disks."
+              }
+            ]
+          },
+          {
+            "id": "p1_r4",
+            "room_number": 4,
+            "topic_name": "Primary & Secondary Storage",
+            "monster_name": "Memory Wraith",
+            "monster_type": "floor_boss",
+            "monster_kind": "memory_eater",
+            "monster_hp": 90,
+            "is_boss": true,
+            "questions": [
+              {
+                "id": "p1_q2_3",
+                "prompt": "Which tier of memory hierarchy provides the lowest latency to CPU cores?",
+                "options": ["Secondary NVMe SSD", "L1 Cache", "Main DDR5 RAM", "Optical Disc"],
+                "correct_option": 1,
+                "difficulty": "hard",
+                "evidence_quote": "L1 cache is integrated directly into the processor core offering the fastest access speed in the memory hierarchy.",
+                "explanation": "Level 1 (L1) cache is tiny, highly specialized SRAM operating at CPU clock frequency."
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "final_boss_room": {
+      "id": "p1_r5",
+      "room_number": 5,
+      "topic_name": "Comprehensive Computer Systems Exam",
+      "monster_name": "The Exam Warden",
+      "monster_type": "final_boss",
+      "monster_kind": "exam_warden",
+      "monster_hp": 220,
+      "is_boss": true,
+      "questions": [
+        {
+          "id": "p1_q3_1",
+          "prompt": "In von Neumann computer architecture, which subsystem interconnects the CPU, memory, and I/O devices?",
+          "options": ["System Bus", "Power Supply Unit", "Audio Codec", "Cooling Heatsink"],
+          "correct_option": 0,
+          "difficulty": "hard",
+          "evidence_quote": "A complete von Neumann computer architecture tightly integrates the processor, main memory, and input/output mechanisms via system buses to execute algorithms reliably.",
+          "explanation": "System buses carry address, data, and control signals between components."
+        }
+      ]
+    }
+  }
+]
+

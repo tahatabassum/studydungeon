@@ -130,6 +130,21 @@ class Question(Base):
     source_chunk: Mapped[Optional["DocumentChunk"]] = relationship("DocumentChunk", back_populates="questions")
 
 
+class ContentPack(Base):
+    __tablename__ = "content_packs"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)  # e.g. "pack-1"
+    order: Mapped[int] = mapped_column(Integer, unique=True, nullable=False)
+    title: Mapped[str] = mapped_column(String(255), nullable=False)
+    description: Mapped[str] = mapped_column(Text, nullable=False)
+    dungeon_id: Mapped[str] = mapped_column(String(36), ForeignKey("dungeons.id", ondelete="CASCADE"), nullable=False, unique=True)
+    floors_total: Mapped[int] = mapped_column(Integer, default=2, nullable=False)
+    version: Mapped[int] = mapped_column(Integer, default=1, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+
+    dungeon: Mapped["Dungeon"] = relationship("Dungeon")
+
+
 class Dungeon(Base):
     __tablename__ = "dungeons"
 
@@ -142,6 +157,7 @@ class Dungeon(Base):
 
     user: Mapped[Optional["User"]] = relationship("User", back_populates="dungeons")
     rooms: Mapped[List["DungeonRoom"]] = relationship("DungeonRoom", back_populates="dungeon", cascade="all, delete-orphan")
+    pack: Mapped[Optional["ContentPack"]] = relationship("ContentPack", back_populates="dungeon", uselist=False)
 
 
 class DungeonRoom(Base):
@@ -153,6 +169,8 @@ class DungeonRoom(Base):
     room_order: Mapped[int] = mapped_column(Integer, nullable=False)
     monster_type: Mapped[str] = mapped_column(String(64), nullable=False)
     monster_hp: Mapped[int] = mapped_column(Integer, nullable=False)
+    floor_id: Mapped[Optional[str]] = mapped_column(String(36), nullable=True, index=True)
+    monster_kind: Mapped[Optional[str]] = mapped_column(String(64), nullable=True)
 
     dungeon: Mapped["Dungeon"] = relationship("Dungeon", back_populates="rooms")
     topic: Mapped["Topic"] = relationship("Topic")
