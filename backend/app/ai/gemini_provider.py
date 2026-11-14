@@ -26,7 +26,8 @@ class GeminiProvider:
 
     async def _call_gemini_raw(self, payload: dict) -> dict:
         headers = {"Content-Type": "application/json"}
-        timeout = httpx.Timeout(25.0, connect=5.0)
+        # Topic and question generation for a full document can take well over 25 s.
+        timeout = httpx.Timeout(90.0, connect=10.0)
         async with httpx.AsyncClient(timeout=timeout) as client:
             for attempt in range(1, 4):
                 try:
@@ -48,7 +49,7 @@ class GeminiProvider:
                     if attempt == 3:
                         raise
                 except Exception as e:
-                    logger.error("Gemini network error on attempt %d: %s", attempt, str(e))
+                    logger.error("Gemini network error on attempt %d: %s %s", attempt, type(e).__name__, str(e))
                     if attempt == 3:
                         raise
         raise RuntimeError("Failed to communicate with Gemini API after 3 attempts.")
@@ -68,6 +69,8 @@ class GeminiProvider:
             "generationConfig": {
                 "responseMimeType": "application/json",
                 "temperature": 0.2,
+                # Structured JSON needs no thinking; 2.5 models think by default and run past the timeout.
+                **({"thinkingConfig": {"thinkingBudget": 0}} if "2.5-flash" in (self.model or "") else {}),
             },
         }
         data = await self._call_gemini_raw(payload)
