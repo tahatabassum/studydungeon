@@ -144,7 +144,7 @@ async def get_run_status(
     run_res = await db.execute(
         select(GameRun)
         .options(
-            selectinload(GameRun.attempts),
+            selectinload(GameRun.attempts).selectinload(Attempt.question),
             selectinload(GameRun.dungeon).selectinload(Dungeon.rooms).selectinload(DungeonRoom.topic),
         )
         .where(GameRun.id == id, GameRun.user_id == user.id)
@@ -202,11 +202,12 @@ async def submit_attempt(
     user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    # 1. Fetch run with dungeon rooms
+    # 1. Fetch run with dungeon rooms. Each attempt needs its question loaded here: a lazy load
+    # under the async session fails with MissingGreenlet from the second answer on.
     run_res = await db.execute(
         select(GameRun)
         .options(
-            selectinload(GameRun.attempts),
+            selectinload(GameRun.attempts).selectinload(Attempt.question),
             selectinload(GameRun.dungeon).selectinload(Dungeon.rooms),
         )
         .where(GameRun.id == id, GameRun.user_id == user.id)
