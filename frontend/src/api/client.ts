@@ -1,5 +1,5 @@
 import type { z } from 'zod'
-import type { ApiCapabilities, ApiClient } from './ApiClient'
+import type { ApiCapabilities, ApiClient, CapabilityKey } from './ApiClient'
 import { ContractError, formatIssuePath } from './ContractError'
 import { ApiError, parseErrorBody, type ApiErrorExtra } from './errors'
 import type { AnswerResult, DueReview, Dungeon, ProgressInfo } from '../types/api'
@@ -11,12 +11,19 @@ import {
   mapDemoSession,
   mapDocumentStatus,
   mapDocumentTopics,
+  mapCreateGuest,
   mapDocumentUpload,
   mapDueReviews,
   mapDueSummary,
   mapDungeon,
+  mapDungeonList,
   mapFinish,
+  mapBoard,
+  mapPacks,
+  mapPlayerStats,
+  mapUploadQuota,
   mapMe,
+  mapNameCheck,
   mapProgress,
   mapRun,
   mapUser,
@@ -33,6 +40,14 @@ export const HTTP_CAPABILITIES: ApiCapabilities = Object.freeze({
   modes: false,
   dailyHaunt: false,
   leaderboard: false,
+  guestIdentity: true,
+  accountUpgrade: true,
+  accountDelete: true,
+  packs: 'unproven',
+  liveBoard: 'unproven',
+  playerCounter: 'unproven',
+  uploadQuota: 'unproven',
+  guestUpload: 'unproven',
 })
 
 async function errorParts(res: Response): Promise<{ message: string; code?: string; extra: ApiErrorExtra }> {
@@ -44,6 +59,11 @@ async function errorParts(res: Response): Promise<{ message: string; code?: stri
     const out: { message: string; code?: string; extra: ApiErrorExtra } = { message: parsed.message ?? res.statusText, extra }
     if (parsed.code !== undefined) out.code = parsed.code
     if (parsed.fields !== undefined) extra.fields = parsed.fields
+    if (parsed.reason !== undefined) extra.reason = parsed.reason
+    if (parsed.retry_after_seconds !== undefined) extra.retry_after_seconds = parsed.retry_after_seconds
+    if (parsed.limit !== undefined) extra.limit = parsed.limit
+    if (parsed.found !== undefined) extra.found = parsed.found
+    if (parsed.offer_packs !== undefined) extra.offer_packs = parsed.offer_packs
     return out
   } catch {
     // body is not JSON; fall through
@@ -72,13 +92,32 @@ export function createHttpClient(baseUrl: string, fetchImpl: typeof fetch = fetc
   /** D26: starts as HTTP_CAPABILITIES (all off) and turns a flag on only when the backend proves it. */
   let caps: ApiCapabilities = HTTP_CAPABILITIES
 
+  /**
+   * D2: runs a call that depends on one capability. 404, 405 or 501 turn it off; success settles an
+   * 'unproven' flag to true; any other error leaves it unchanged. Errors always propagate.
+   */
+  async function withCapability<T>(key: CapabilityKey, call: () => Promise<T>): Promise<T> {
+    try {
+      const result = await call()
+      if (caps[key] === 'unproven') caps = Object.freeze({ ...caps, [key]: true })
+      return result
+    } catch (err) {
+      if (err instanceof ApiError && (err.status === 404 || err.status === 405 || err.status === 501) && caps[key] !== false) {
+        caps = Object.freeze({ ...caps, [key]: false })
+      }
+      throw err
+    }
+  }
+
+  let warmed = false
+
   async function dueList(): Promise<DueReview[]> {
     return mapDueReviews(await request('getDueReviews', 'GET', '/reviews/due'), (q) => roomOfQuestion.get(q))
   }
 
   async function request<K extends EndpointKey>(
     key: K,
-    method: 'GET' | 'POST',
+    method: 'GET' | 'POST' | 'DELETE',
     path: string,
     body?: unknown,
   ): Promise<z.output<(typeof WIRE_ENDPOINTS)[K]['schema']>> {
@@ -261,10 +300,19 @@ export function createHttpClient(baseUrl: string, fetchImpl: typeof fetch = fetc
     },
 
     // Documents (C29): the real upload pipeline.
-    uploadDocument: async (file) => {
+    uploadDocument: async (file, options) => {
       const form = new FormData()
       form.append('file', file, file.name)
-      return mapDocumentUpload(await request('uploadDocument', 'POST', '/documents', form))
+      if (options?.acceptAiNotice) form.append('accept_ai_notice', 'true')
+      try {
+        return mapDocumentUpload(await request('uploadDocument', 'POST', '/documents', form))
+      } catch (err) {
+        // Today's Backend: guests get 403 GUEST_FORBIDDEN. That turns guest upload off for this page session.
+        if (err instanceof ApiError && err.status === 403 && err.code === 'GUEST_FORBIDDEN' && caps.guestUpload !== false) {
+          caps = Object.freeze({ ...caps, guestUpload: false })
+        }
+        throw err
+      }
     },
 
     getDocumentStatus: async (id) => mapDocumentStatus(await request('getDocumentStatus', 'GET', `/documents/${enc(id)}/status`)),
@@ -282,6 +330,58 @@ export function createHttpClient(baseUrl: string, fetchImpl: typeof fetch = fetc
     // The backend has no leaderboard endpoint yet (capabilities.leaderboard is false); the UI never calls this.
     getLeaderboard: async () => {
       throw new ApiError(501, 'The leaderboard is not available yet.', 'UNSUPPORTED')
+    },
+    checkGuestName: (displayName) =>
+      withCapability('guestIdentity', async () =>
+        mapNameCheck(await request('checkGuestName', 'POST', '/guests/name-check', { display_name: displayName })),
+      ),
+
+    createGuest: (req) =>
+      withCapability('guestIdentity', async () =>
+        mapCreateGuest(
+          await request('createGuest', 'POST', '/guests', { display_name: req.display_name, accept_public_notice: true }),
+        ),
+      ),
+
+    upgradeGuest: (credentials) =>
+      withCapability('accountUpgrade', async () => mapUser(await request('upgradeGuest', 'POST', '/auth/upgrade', credentials))),
+
+    deleteAccount: () =>
+      withCapability('accountDelete', async () => {
+        await request('deleteAccount', 'DELETE', '/auth/me', { confirm: 'DELETE' })
+      }),
+
+    listDungeons: async () => mapDungeonList(await request('listDungeons', 'GET', '/dungeons')),
+
+    // PROPOSED (frontend-10): unproven -> on on 2xx, off on 404, 405 or 501.
+    getPacks: () => withCapability('packs', async () => mapPacks(await request('getPacks', 'GET', '/packs'))),
+
+    // PROPOSED (frontend-10): the live board. A 429 keeps Retry-After on the ApiError for the poll scheduler.
+    getBoard: (query) =>
+      withCapability('liveBoard', async () =>
+        mapBoard(await request('getBoard', 'GET', `/leaderboard?board=${enc(query.board)}&period=${enc(query.period)}`)),
+      ),
+
+    // PROPOSED (frontend-10): the player counter.
+    getPlayerStats: () => withCapability('playerCounter', async () => mapPlayerStats(await request('getPlayerStats', 'GET', '/stats/players'))),
+
+    // PROPOSED (frontend-10): the upload quota. A 2xx for a guest proves that guests may upload.
+    getUploadQuota: () =>
+      withCapability('uploadQuota', async () => {
+        const quota = mapUploadQuota(await request('getUploadQuota', 'GET', '/uploads/quota'))
+        if (quota.player.is_guest && caps.guestUpload !== true) caps = Object.freeze({ ...caps, guestUpload: true })
+        return quota
+      }),
+
+    // A cold-server wake-up ping: once per client, no cookies, never throws.
+    warmUp: async () => {
+      if (warmed) return
+      warmed = true
+      try {
+        await fetchImpl(`${base}/health`, { method: 'GET', credentials: 'omit' })
+      } catch {
+        // best effort
+      }
     },
   }
 }

@@ -50,10 +50,15 @@ const FORBIDDEN_DIRS = [
   'badges',
   'auth',
   'pages',
+  'identity',
+  'packs',
+  'points',
+  'board',
+  'counter',
 ]
 
 function isForbidden(spec: string, file: string): boolean {
-  if (/^@\/(api|demo|state|offline|leaderboard|campaign|learning|haunt|rewards|tutorial|scorecard|dashboard|badges|auth|pages)(\/|$)/.test(spec)) return true
+  if (/^@\/(api|demo|state|offline|leaderboard|campaign|learning|haunt|rewards|tutorial|scorecard|dashboard|badges|auth|pages|identity|packs|points|board|counter)(\/|$)/.test(spec)) return true
   if (!spec.startsWith('.')) return false
   // src/game/../api -> ['..', 'api', ...]
   const [up, dir] = resolveFromGame(file, spec)
@@ -77,7 +82,7 @@ describe('game import boundary', () => {
     expect(isForbidden('@/leaderboard/ranking', f)).toBe(true)
     expect(isForbidden('../../offline/adapter', f)).toBe(true)
     expect(isForbidden('../../leaderboard', f)).toBe(true)
-    for (const dir of ['campaign', 'learning', 'haunt', 'rewards', 'tutorial', 'auth', 'pages']) {
+    for (const dir of ['campaign', 'learning', 'haunt', 'rewards', 'tutorial', 'auth', 'pages', 'identity', 'packs', 'points', 'board', 'counter']) {
       expect(isForbidden(`@/${dir}/x`, f)).toBe(true)
       expect(isForbidden(`../../${dir}/x`, f)).toBe(true)
       expect(isForbidden(`../../${dir}`, f)).toBe(true)
@@ -91,7 +96,7 @@ describe('game import boundary', () => {
     ])
   })
 
-  it('no game file imports from api, demo, state, offline, leaderboard, campaign, learning, haunt, rewards, tutorial, auth or pages', () => {
+  it('no game file imports from api, demo, state, offline, leaderboard, campaign, learning, haunt, rewards, tutorial, auth, pages, identity, packs, points, board or counter', () => {
     const violations: string[] = []
     for (const file of files) {
       for (const spec of specifiers(modules[file])) {
@@ -99,5 +104,33 @@ describe('game import boundary', () => {
       }
     }
     expect(violations).toEqual([])
+  })
+})
+
+// Raw text of every non-test screen/component file under src (frontend-10 18.8: no screen renders a guest username).
+const screens = import.meta.glob(['../**/*.tsx', '!../**/*.test.tsx'], {
+  query: '?raw',
+  import: 'default',
+  eager: true,
+}) as Record<string, string>
+
+/** Files (relative to src) that may read `.username`: auth forms, the private login line, the handle helper. */
+const USERNAME_ALLOWED = [/^auth\//, /^pages\/SettingsPage\.tsx$/, /^identity\/handle\.ts$/, /^api\//, /^offline\//, /^types\//]
+
+describe('no screen renders a guest username', () => {
+  it('reads `.username` only in the allowed files', () => {
+    const violations: string[] = []
+    for (const [file, source] of Object.entries(screens)) {
+      const rel = file.replace(/^\.\.\//, '')
+      if (USERNAME_ALLOWED.some((re) => re.test(rel))) continue
+      const code = source.replace(/\/\*[\s\S]*?\*\//g, '').replace(/^\s*\/\/.*$/gm, '')
+      if (/\.username\b/.test(code)) violations.push(`src/${rel}`)
+    }
+    expect(violations).toEqual([])
+  })
+
+  it('scans the screens and finds the allowed readers', () => {
+    expect(Object.keys(screens).length).toBeGreaterThan(10)
+    expect(screens['../pages/SettingsPage.tsx']).toMatch(/\.username\b/)
   })
 })

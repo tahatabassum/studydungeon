@@ -5,9 +5,8 @@
  * **Validates: Requirements 9.1, 9.2, 9.3, 9.4, 9.6, 14.4, 14.5**
  */
 import { useEffect } from 'react'
-import { act, cleanup, render, screen, within } from '@testing-library/react'
+import { act, cleanup, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { MemoryRouter } from 'react-router-dom'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { ApiClient } from '@/api'
 import { createMockAdapter } from '@/api/mock/mockAdapter'
@@ -37,8 +36,7 @@ vi.mock('@/game/GameCanvas', () => ({
   },
 }))
 
-import App from '@/App'
-import { SessionProvider } from '@/state/SessionContext'
+import { openDemoMap } from '@/test/enterDemo'
 
 const dungeon = demoDungeon as unknown as Dungeon
 const sent = (): ToGameEvent[] => h.events as ToGameEvent[]
@@ -56,15 +54,8 @@ let adapter: ApiClient
 let user: ReturnType<typeof userEvent.setup>
 
 async function openFloorEncounter(): Promise<HTMLElement> {
-  render(
-    <MemoryRouter initialEntries={['/']}>
-      <SessionProvider>
-        <App />
-      </SessionProvider>
-    </MemoryRouter>,
-  )
-  await user.click(screen.getByRole('button', { name: /try the demo/i }))
-  await screen.findByRole('heading', { level: 1, name: 'Your notes became 2 floors' })
+  await openDemoMap(user)
+
   await user.click(screen.getByRole('button', { name: 'Continue' }))
   advance(500)
   await vi.waitFor(() => expect(sent().some((e) => e.type === 'load-dungeon')).toBe(true))

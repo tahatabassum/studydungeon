@@ -16,6 +16,21 @@ afterEach(() => {
   rm.reduced = false
 })
 
+describe('Hud player name', () => {
+  it('shows the handle in the full HUD only', () => {
+    const { unmount } = render(<Hud {...base} playerName="Pale Moth#1234" />)
+    expect(screen.getByTestId('hud-player-name').textContent).toBe('Pale Moth#1234')
+    unmount()
+    render(<Hud {...base} compact playerName="Pale Moth#1234" />)
+    expect(screen.queryByTestId('hud-player-name')).toBeNull()
+  })
+
+  it('renders no label without a name', () => {
+    render(<Hud {...base} />)
+    expect(screen.queryByTestId('hud-player-name')).toBeNull()
+  })
+})
+
 describe('Hud halloween frame', () => {
   it('shows no low-health state at full health', () => {
     const { container } = render(<Hud {...base} />)

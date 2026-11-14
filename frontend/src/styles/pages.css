@@ -194,48 +194,79 @@ a.sd-ghost-btn:hover { border-color: var(--color-accent); background: var(--colo
 .sd-ghost-btn[aria-disabled='true'] { opacity: 0.6; cursor: not-allowed; }
 
 /*
- * "fit" variant: exactly one dynamic viewport tall, never a page scrollbar.
- * The root is a flex column; the inner column and the body flex and shrink (min-height: 0). Decorative
- * layers already sit in the fixed, clipped atmosphere container. Only the body can scroll, and only on
- * very small windows, with a thin themed scrollbar.
+ * "fit" variant: exactly one dynamic viewport tall in Desktop_Mode. The root is a grid; the inner column is a
+ * grid with a header row (auto) and a main row (minmax(0, 1fr)). Cards size to content and never carry their
+ * own overflow. Scrolling is opt-in with .sd-scroll on at most one inner element. In Compact_Mode (narrow
+ * window, coarse pointer or html[data-touch]) the fixed height is released and the page scrolls normally.
+ * The root keeps overflow: hidden only to clip decorations; the Layout_Check proves content never relies on it.
  */
 .sd-page--fit {
-  display: flex;
-  flex-direction: column;
+  --sd-fit-width: min(100%, 96rem);
+  --sd-fit-pad: clamp(16px, 3vw, 48px);
+  --sd-form-width: 32rem;
+  display: grid;
+  grid-template-rows: minmax(0, 1fr);
+  justify-items: center;
   height: 100vh;
   height: 100dvh;
   min-height: 0;
   overflow: hidden;
 }
 .sd-page--fit .sd-page__inner {
-  flex: 1 1 auto;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  align-content: stretch;
+  width: var(--sd-fit-width);
+  max-width: none;
   min-height: 0;
-  max-width: 1600px;
+  min-width: 0;
   gap: clamp(0.35rem, 1.4vh, 1rem);
   padding:
     max(clamp(0.4rem, 1.4vh, 0.75rem), env(safe-area-inset-top, 0px))
-    clamp(16px, 3vw, 48px)
+    var(--sd-fit-pad)
     clamp(0.5rem, 1.6vh, 1.25rem);
 }
-.sd-page--fit .sd-page__header { gap: 0.1rem; flex: 0 0 auto; }
+.sd-page--fit .sd-page__header { gap: 0.1rem; }
 .sd-page--fit .sd-page__back,
 .sd-page--fit .sd-page__link { min-height: 2.25rem; }
-.sd-page--fit .sd-page__title { font-size: clamp(1.6rem, 5.2vh, 3.1rem); }
+.sd-page--fit .sd-page__title { font-size: clamp(1.5rem, 4.2vh, 2.5rem); }
+/* The moon sits lower right so it never lies under the top-right controls. */
+.sd-page--fit .sd-page__atmosphere .sd-moon {
+  top: auto;
+  bottom: 7%;
+  right: 4%;
+  pointer-events: none;
+}
 .sd-page__body {
-  flex: 1 1 auto;
   min-height: 0;
-  display: flex;
-  flex-direction: column;
+  min-width: 0;
+  display: grid;
+  grid-template-rows: minmax(0, 1fr);
+  grid-auto-rows: auto;
   gap: clamp(0.5rem, 1.6vh, 1rem);
-  /* Room for focus rings, which the scroll container would otherwise clip. */
-  padding: 4px;
-  margin: -4px;
-  overflow-x: hidden;
+  /* Room for focus rings; nothing here scrolls or clips. */
+  padding: 6px;
+  margin: -6px;
+  overflow: visible;
+}
+/* The one opt-in Designated_Scroller. */
+.sd-scroll {
+  min-height: 0;
   overflow-y: auto;
   overscroll-behavior: contain;
   scrollbar-width: thin;
   scrollbar-color: var(--color-witch) transparent;
 }
-.sd-page__body::-webkit-scrollbar { width: 8px; }
-.sd-page__body::-webkit-scrollbar-thumb { background: var(--color-witch); border-radius: 4px; }
-.sd-page__body::-webkit-scrollbar-track { background: transparent; }
+.sd-scroll::-webkit-scrollbar { width: 8px; }
+.sd-scroll::-webkit-scrollbar-thumb { background: var(--color-witch); border-radius: 4px; }
+.sd-scroll::-webkit-scrollbar-track { background: transparent; }
+
+/* Compact_Mode: release the fixed height for every Fit_Screen; single column, the page scrolls. */
+@media (max-width: 1099px), (pointer: coarse) {
+  .sd-page--fit { height: auto; min-height: 100dvh; overflow: visible; }
+  .sd-page--fit .sd-page__inner { grid-template-rows: auto auto; }
+  .sd-page--fit .sd-page__body { grid-template-rows: none; }
+}
+html[data-touch] .sd-page--fit { height: auto; min-height: 100dvh; overflow: visible; }
+html[data-touch] .sd-page--fit .sd-page__inner { grid-template-rows: auto auto; }
+html[data-touch] .sd-page--fit .sd-page__body { grid-template-rows: none; }

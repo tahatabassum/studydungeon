@@ -3,6 +3,7 @@ import type {
   AnswerResult,
   AuthMe,
   ClearRoomResponse,
+  CreateGuestResponse,
   DemoSessionResponse,
   DocumentStatus,
   DocumentTopic,
@@ -10,12 +11,20 @@ import type {
   DueReview,
   DueReviewsResponse,
   Dungeon,
+  DungeonSummary,
   GenerationStatus,
   LeaderboardResponse,
+  NameCheckResult,
+  BoardResponse,
+  Pack,
+  PackProgress,
+  PacksResponse,
+  PlayerPoints,
   ProgressInfo,
   Run,
   RunSummary,
   StartRunRequest,
+  UploadQuota,
 } from '../types/api'
 
 /**
@@ -40,7 +49,37 @@ export const userSchema = z.object({
   id: z.string(),
   username: z.string(),
   is_guest: z.boolean(),
+  // frontend-10: optional identity fields
+  public_id: z.string().optional(),
+  display_name: z.string().optional(),
+  tag: z.string().optional(),
+  handle: z.string().optional(),
 })
+
+/** frontend-10: POST /guests/name-check. */
+export const nameCheckSchema: z.ZodType<NameCheckResult> = z.object({
+  ok: z.boolean(),
+  display_name: z.string().optional(),
+  reason: z.enum(['too_short', 'too_long', 'characters', 'not_allowed']).optional(),
+  message: z.string().optional(),
+})
+
+/** frontend-10: POST /guests. */
+export const createGuestSchema: z.ZodType<CreateGuestResponse> = z.object({
+  user: userSchema,
+  notice_version: z.string(),
+})
+
+/** frontend-10: GET /dungeons. */
+export const dungeonListSchema: z.ZodType<DungeonSummary[]> = z.array(
+  z.object({
+    id: z.string(),
+    title: z.string(),
+    is_public_demo: z.boolean(),
+    created_at: z.string(),
+    rooms_count: z.number().int().nonnegative(),
+  }),
+)
 
 /** `GET /auth/me`: the user and the session expiry (C22). */
 export const authMeSchema: z.ZodType<AuthMe> = z.object({
@@ -144,6 +183,37 @@ export const runSchema: z.ZodType<Run> = z.object({
   room_ids: z.array(z.string()).optional(),
 })
 
+const packStatusSchema = z.enum(['locked', 'available', 'in_progress', 'completed'])
+export const playerPointsSchema: z.ZodType<PlayerPoints> = z.object({
+  preloaded: z.number(),
+  own_notes: z.number(),
+  overall: z.number(),
+})
+export const packProgressSchema: z.ZodType<PackProgress> = z.object({
+  pack_id: z.string(),
+  status: packStatusSchema,
+  unlocked_pack_id: z.string().nullable(),
+  all_completed: z.boolean(),
+})
+export const packSchema: z.ZodType<Pack> = z.object({
+  id: z.string(),
+  order: z.number(),
+  title: z.string(),
+  description: z.string(),
+  dungeon_id: z.string(),
+  floors_total: z.number(),
+  floors_cleared: z.number(),
+  final_boss_cleared: z.boolean(),
+  status: packStatusSchema,
+  points_earned: z.number(),
+  sample: z.boolean().optional(),
+})
+export const packsResponseSchema: z.ZodType<PacksResponse> = z.object({
+  packs: z.array(packSchema),
+  next_pack_id: z.string().nullable(),
+  all_completed: z.boolean(),
+})
+
 export const answerResultSchema: z.ZodType<AnswerResult> = z.object({
   correct: z.boolean(),
   damage_dealt: z.number(),
@@ -164,11 +234,18 @@ export const answerResultSchema: z.ZodType<AnswerResult> = z.object({
   retry_multiplier: z.number().optional(),
   combo: z.number().optional(),
   correct_answer: z.string().optional(),
+  // PROPOSED (frontend-10)
+  points_awarded: z.number().optional(),
+  points_reason: z.string().optional(),
+  points_bonus: z.number().optional(),
+  player_points: playerPointsSchema.optional(),
 })
 
 export const clearRoomSchema: z.ZodType<ClearRoomResponse> = z.object({
   xp_delta: z.number(),
   is_boss: z.boolean().optional(),
+  points_awarded: z.number().optional(),
+  points_reason: z.string().optional(),
 })
 
 export const chestRewardSchema = z.object({
@@ -197,6 +274,10 @@ export const runSummarySchema: z.ZodType<RunSummary> = z.object({
     .array(z.object({ topic_id: z.string(), title: z.string(), mastery: z.number() }))
     .optional(),
   chest_rewards: z.array(chestRewardSchema).optional(),
+  // PROPOSED (frontend-10)
+  points_earned: z.number().optional(),
+  player_points: playerPointsSchema.optional(),
+  pack_progress: packProgressSchema.optional(),
 })
 
 export const progressSchema: z.ZodType<ProgressInfo> = z.object({
@@ -264,6 +345,27 @@ export const documentStatusSchema: z.ZodType<DocumentStatus> = z.object({
   chunks_count: z.number().int().nonnegative(),
   relevance_score: z.number().nullable(),
   readability_score: z.number().nullable(),
+  // PROPOSED (frontend-10)
+  counts_for_ranking: z.boolean().optional(),
+  ranking_note: z.string().optional(),
+  dungeon_id: z.string().optional(),
+  floors: z.array(z.object({ id: z.string(), status: floorStatusSchema })).optional(),
+})
+
+/** PROPOSED (frontend-10): GET /uploads/quota. */
+export const uploadQuotaSchema: z.ZodType<UploadQuota> = z.object({
+  can_upload: z.boolean(),
+  reason: z.enum(['player_daily_limit', 'ip_daily_limit', 'stored_limit', 'global_daily_limit', 'ai_unavailable']).nullable(),
+  player: z.object({
+    is_guest: z.boolean(),
+    used_today: z.number().int().nonnegative(),
+    limit_today: z.number().int().nonnegative(),
+    stored: z.number().int().nonnegative(),
+    stored_limit: z.number().int().nonnegative(),
+    resets_at: z.string().optional(),
+  }),
+  global: z.object({ available: z.boolean() }).optional(),
+  ranking: z.object({ min_chars: z.number(), min_topics: z.number() }).optional(),
 })
 
 export const documentTopicsSchema: z.ZodType<DocumentTopic[]> = z.array(
@@ -294,18 +396,60 @@ export const leaderboardResponseSchema: z.ZodType<LeaderboardResponse> = z.objec
   updated_at: z.string(),
 })
 
+/** frontend-10 (PROPOSED, V2 D.3): the live board. Domain shape: is_seeded_rival is mock-only and optional. */
+const boardEntrySchema = z.object({
+  rank: z.number().int().min(1),
+  public_id: z.string(),
+  handle: z.string(),
+  display_name: z.string().optional(),
+  tag: z.string().optional(),
+  is_guest: z.boolean(),
+  level: z.number(),
+  points: z.number(),
+  rooms_cleared: z.number(),
+  badge_ids: z.array(z.string()).optional(),
+  is_seeded_rival: z.boolean().optional(),
+})
+export const boardResponseSchema: z.ZodType<BoardResponse> = z.object({
+  board: z.enum(['preloaded', 'own_notes', 'overall']),
+  period: z.enum(['all', 'week']),
+  week: z.object({ timezone: z.string(), starts_at: z.string(), resets_at: z.string() }).optional(),
+  updated_at: z.string(),
+  next_refresh_at: z.string(),
+  total_ranked_players: z.number().optional(),
+  entries: z.array(boardEntrySchema),
+  me: z
+    .object({
+      live: z.boolean(),
+      public_id: z.string().optional(),
+      handle: z.string().optional(),
+      rank: z.number().int().min(1).nullable(),
+      points: z.number(),
+      next_above: z.object({ rank: z.number(), handle: z.string(), points: z.number(), points_needed: z.number() }).nullable(),
+      top20: z.object({ in_top20: z.boolean(), cutoff_points: z.number(), points_needed: z.number() }),
+      reason: z.string().optional(),
+    })
+    .nullable(),
+})
 /** One entry per existing endpoint; the HTTP client and the fixture test both use this table. */
 export const ENDPOINT_SCHEMAS = {
   startDemoSession: { endpoint: 'POST /demo/session', schema: demoSessionSchema },
   register: { endpoint: 'POST /auth/register', schema: userSchema },
   login: { endpoint: 'POST /auth/login', schema: userSchema },
   getMe: { endpoint: 'GET /auth/me', schema: authMeSchema },
+  checkGuestName: { endpoint: 'POST /guests/name-check', schema: nameCheckSchema },
+  createGuest: { endpoint: 'POST /guests', schema: createGuestSchema },
+  upgradeGuest: { endpoint: 'POST /auth/upgrade', schema: userSchema },
+  listDungeons: { endpoint: 'GET /dungeons', schema: dungeonListSchema },
   getDungeon: { endpoint: 'GET /dungeons/{id}', schema: dungeonSchema },
   startRun: { endpoint: 'POST /runs', schema: runSchema },
   getRun: { endpoint: 'GET /runs/{id}', schema: runSchema },
   submitAttempt: { endpoint: 'POST /runs/{id}/attempts', schema: answerResultSchema },
   clearRoom: { endpoint: 'POST /runs/{id}/rooms/{roomId}/clear', schema: clearRoomSchema },
   finishRun: { endpoint: 'POST /runs/{id}/finish', schema: runSummarySchema },
+  getPacks: { endpoint: 'GET /packs', schema: packsResponseSchema },
+  getBoard: { endpoint: 'GET /leaderboard', schema: boardResponseSchema },
+  getUploadQuota: { endpoint: 'GET /uploads/quota', schema: uploadQuotaSchema },
   getProgress: { endpoint: 'GET /progress', schema: progressSchema },
   getDueReviews: { endpoint: 'GET /reviews/due', schema: dueReviewsSchema },
   getDueSummary: { endpoint: 'GET /reviews/due (summary)', schema: dueReviewsResponseSchema },

@@ -9,6 +9,7 @@ import userEvent from '@testing-library/user-event'
 import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { ApiClient } from '@/api'
+import { ApiError } from '@/api/errors'
 import { createMockAdapter } from '@/api/mock/mockAdapter'
 
 const h = vi.hoisted(() => ({ api: null as unknown }))
@@ -52,7 +53,12 @@ function renderUpload(guest = false) {
 }
 
 const txt = (name: string, bytes = 800) => new File(['a'.repeat(bytes)], name, { type: 'text/plain' })
-const picker = () => screen.findByLabelText(/choose a file/i)
+/** Ticks the AI notice, which opens the drop zone, then returns the file input. */
+const picker = async () => {
+  const box = (await screen.findByTestId('ai-notice-check')) as HTMLInputElement
+  if (!box.checked) fireEvent.click(box)
+  return screen.findByLabelText(/choose a file/i)
+}
 
 let adapter: ApiClient
 beforeEach(async () => {
@@ -69,8 +75,9 @@ describe('upload wizard flow', () => {
   it('uploads, reads, lists the topics, summons the floors and links to the map', async () => {
     const user = userEvent.setup()
     renderUpload()
-    expect(await screen.findByText(/Accepted formats: PDF, DOCX, PPTX, TXT, PNG, JPEG\./)).toBeTruthy()
-    expect(screen.getByText(/Up to 15 MB and 30 pages, with at least 500 characters of text\./)).toBeTruthy()
+    const rules = within(await screen.findByTestId('file-rules'))
+    expect(rules.getByText('Formats: PDF, DOCX, PPTX, TXT, PNG, JPEG')).toBeTruthy()
+    for (const line of ['Up to 15 MB', 'PDF up to 30 pages', 'PPTX up to 30 slides', 'DOCX up to 60,000 characters', 'At least 500 characters of text']) expect(rules.getByText(line)).toBeTruthy()
 
     await user.upload(await picker(), txt('Cell biology.txt'))
     // Choosing the file starts the upload; there is no second click and no manual button.
@@ -96,7 +103,7 @@ describe('upload wizard flow', () => {
   })
 
   it('the generated dungeon opens as a map with the same floors', async () => {
-    const sent = await adapter.uploadDocument(txt('Physics.txt'))
+    const sent = await adapter.uploadDocument(txt('Physics.txt'), { acceptAiNotice: true })
     await waitFor(async () => expect((await adapter.getDocumentStatus(sent.id)).status).toBe('accepted'), WAIT)
     const dungeon = await adapter.generateDungeon(sent.id)
     const map = await adapter.getDungeon(dungeon.id)
@@ -107,6 +114,7 @@ describe('upload wizard flow', () => {
   it('starts uploading a dropped file at once and keeps only the first of several', async () => {
     const send = vi.spyOn(adapter, 'uploadDocument')
     renderUpload()
+    await picker()
     const zone = await screen.findByTestId('dropzone')
     fireEvent.dragOver(zone)
     expect(zone.getAttribute('data-over')).toBe('true')
@@ -131,7 +139,7 @@ describe('upload wizard flow', () => {
     expect(screen.queryByRole('button', { name: 'Summon dungeon' })).toBeNull()
     await waitFor(() => expect(screen.getByTestId('upload-live').textContent).toMatch(/^Your notes were rejected\. This does not look/))
 
-    await user.click(within(verdict).getByRole('button', { name: 'Choose another file' }))
+    await user.click(within(verdict).getByRole('button', { name: 'Try another file' }))
     expect(await picker()).toBeTruthy()
   })
 
@@ -152,6 +160,7 @@ describe('upload errors and hints', () => {
     const user = userEvent.setup()
     renderUpload()
     // The picker filters by extension; a drop does not, so the hint and the server are what stop it.
+    await picker()
     fireEvent.drop(await screen.findByTestId('dropzone'), { dataTransfer: { files: [new File(['MZ'], 'virus.exe')] } })
     expect(screen.getByTestId('file-hint').textContent).toMatch(/not on the list/)
     // A hinted file is not sent on its own; the player can still send it and the server decides.
@@ -175,14 +184,14 @@ describe('upload errors and hints', () => {
     expect((await screen.findByTestId('upload-error')).textContent).toMatch(/larger than 15 MB/)
   })
 
-  it('reports the 5 document quota', async () => {
-    for (let i = 0; i < 5; i += 1) await adapter.uploadDocument(txt(`old ${i}.txt`))
-    const user = userEvent.setup()
+  it('blocks the drop zone at the 5 document quota and the server still answers QUOTA_EXCEEDED', async () => {
+    for (let i = 0; i < 5; i += 1) await adapter.uploadDocument(txt(`old ${i}.txt`), { acceptAiNotice: true })
     renderUpload()
-    await user.upload(await picker(), txt('sixth.txt'))
-    expect((await screen.findByTestId('upload-error')).textContent).toMatch(/already have 5 documents/)
+    const panel = await screen.findByTestId('quota-panel')
+    expect(panel.getAttribute('data-allowed')).toBe('false')
+    expect(panel.textContent).toMatch(/5 of 5 documents/)
+    await expect(adapter.uploadDocument(txt('sixth.txt'), { acceptAiNotice: true })).rejects.toMatchObject({ status: 400, code: 'QUOTA_EXCEEDED' })
   })
-
   it('says so when the offline demo cannot upload', async () => {
     h.api = Object.assign({}, adapter, { capabilities: { roomRevenants: false, floors: true, modes: true, dailyHaunt: false, leaderboard: true, uploads: false } })
     renderUpload()
@@ -191,23 +200,104 @@ describe('upload errors and hints', () => {
   })
 })
 
-describe('guest gate', () => {
-  it('hides the wizard and links a guest to /register', async () => {
+describe('guest gate and guest upload', () => {
+  const gateCaps = { roomRevenants: false, floors: true, modes: true, dailyHaunt: false, leaderboard: true }
+
+  it('shows the wizard, the quota and the notice to a guest when the quota answers', async () => {
     await adapter.startDemoSession()
     renderUpload(true)
+    expect(await screen.findByTestId('upload-wizard')).toBeTruthy()
+    expect(screen.getByTestId('quota-panel').textContent).toMatch(/1 upload left today/)
+    expect(screen.getByTestId('ai-notice')).toBeTruthy()
+    expect(screen.queryByTestId('upload-guest')).toBeNull()
+  })
+
+  it('links a visitor without a session to /register', async () => {
+    h.api = createMockAdapter()
+    render(
+      <MemoryRouter initialEntries={['/upload']}>
+        <SessionProvider>
+          <Routes>
+            <Route path="/upload" element={<UploadPage pollMs={15} />} />
+          </Routes>
+        </SessionProvider>
+      </MemoryRouter>,
+    )
     const gate = await screen.findByTestId('upload-guest')
     expect(within(gate).getByText(GUEST_UPLOAD_TEXT)).toBeTruthy()
     expect(within(gate).getByRole('link', { name: /Create an account/ }).getAttribute('href')).toBe('/register')
     expect(screen.queryByTestId('upload-wizard')).toBeNull()
+  })
+
+  it('shows the gate to a guest when guest upload is off', async () => {
+    await adapter.startDemoSession()
+    h.api = Object.assign({}, adapter, { capabilities: { ...gateCaps, guestUpload: false } })
+    renderUpload(true)
+    expect(await screen.findByTestId('upload-guest')).toBeTruthy()
     expect(screen.queryByTestId('dropzone')).toBeNull()
   })
 
-  it('the mock refuses a guest upload with GUEST_FORBIDDEN', async () => {
+  it('shows the gate to a guest when the quota request fails', async () => {
     await adapter.startDemoSession()
-    await expect(adapter.uploadDocument(txt('notes.txt'))).rejects.toMatchObject({ status: 403, code: 'GUEST_FORBIDDEN' })
+    h.api = Object.assign({}, adapter, { getUploadQuota: () => Promise.reject(new Error('down')) })
+    renderUpload(true)
+    expect(await screen.findByTestId('upload-guest')).toBeTruthy()
+  })
+
+  it('the mock lets a guest upload once a day, then blocks with an account offer and the preloaded fallback', async () => {
+    await adapter.startDemoSession()
+    await adapter.uploadDocument(txt('first.txt'), { acceptAiNotice: true })
+    await expect(adapter.uploadDocument(txt('second.txt'), { acceptAiNotice: true })).rejects.toMatchObject({ status: 429, code: 'UPLOAD_LIMIT_PLAYER' })
+    renderUpload(true)
+    const panel = await screen.findByTestId('quota-panel')
+    expect(panel.getAttribute('data-allowed')).toBe('false')
+    expect(within(panel).getByTestId('play-preloaded-instead')).toBeTruthy()
+    expect(await within(panel).findByTestId('upgrade-offer')).toBeTruthy()
+    // Blocked: the drop zone is disabled even after the notice is ticked.
+    fireEvent.click(screen.getByTestId('ai-notice-check'))
+    expect((screen.getByLabelText(/choose a file/i) as HTMLInputElement).disabled).toBe(true)
   })
 })
 
+describe('AI notice and busy state', () => {
+  it('keeps the drop zone disabled until the notice is ticked and sends the notice flag', async () => {
+    const send = vi.spyOn(adapter, 'uploadDocument')
+    const user = userEvent.setup()
+    renderUpload()
+    const input = (await screen.findByLabelText(/choose a file/i)) as HTMLInputElement
+    expect(input.disabled).toBe(true)
+    await user.click(screen.getByTestId('ai-notice-check'))
+    expect(input.disabled).toBe(false)
+    await user.upload(input, txt('notes.txt'))
+    await waitFor(() => expect(send).toHaveBeenCalledTimes(1))
+    expect(send.mock.calls[0][1]).toEqual({ acceptAiNotice: true })
+  })
+
+  it('shows the busy message with the preloaded fallback on AI_BUSY', async () => {
+    vi.spyOn(adapter, 'uploadDocument').mockRejectedValue(new ApiError(503, 'busy', 'AI_BUSY', { retry_after_seconds: 30, offer_packs: true }))
+    const user = userEvent.setup()
+    renderUpload()
+    await user.upload(await picker(), txt('notes.txt'))
+    const busy = await screen.findByTestId('upload-busy')
+    expect(within(busy).getByText(/The summoning circle is busy/)).toBeTruthy()
+    expect(within(busy).getByRole('button', { name: /Play preloaded dungeons instead/ })).toBeTruthy()
+  })
+
+  it('words a limit error with both numbers', async () => {
+    vi.spyOn(adapter, 'uploadDocument').mockRejectedValue(new ApiError(422, 'x', 'TOO_MANY_PAGES', { limit: 30, found: 42 }))
+    const user = userEvent.setup()
+    renderUpload()
+    await user.upload(await picker(), txt('big.txt'))
+    expect((await screen.findByTestId('upload-error')).textContent).toBe('This PDF has 42 pages; the limit is 30.')
+  })
+
+  it('shows the ranking note for short notes', async () => {
+    const user = userEvent.setup()
+    renderUpload()
+    await user.upload(await picker(), txt('short.txt'))
+    expect((await screen.findByTestId('ranking-note', undefined, WAIT)).textContent).toMatch(/will not count for the leaderboard/)
+  })
+})
 describe('keyboard and announcements', () => {
   it('reaches the picker with Tab and runs the whole flow with the keyboard', async () => {
     const user = userEvent.setup()

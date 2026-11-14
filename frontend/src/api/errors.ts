@@ -10,11 +10,22 @@ export interface ApiErrorExtra {
   retryAfter?: string
   /** 422 array detail, one entry per invalid field (C24). */
   fields?: FieldIssue[]
+  /** frontend-10: facts the backend adds inside `detail` (NAME_INVALID reason, quota limit, ...). */
+  reason?: string
+  retry_after_seconds?: number
+  limit?: number
+  found?: number
+  offer_packs?: boolean
 }
 
 export class ApiError extends Error {
   retryAfter?: string
   fields?: FieldIssue[]
+  reason?: string
+  retry_after_seconds?: number
+  limit?: number
+  found?: number
+  offer_packs?: boolean
 
   constructor(
     public status: number,
@@ -27,6 +38,11 @@ export class ApiError extends Error {
     this.name = 'ApiError'
     if (extra?.retryAfter !== undefined) this.retryAfter = extra.retryAfter
     if (extra?.fields !== undefined) this.fields = extra.fields
+    if (extra?.reason !== undefined) this.reason = extra.reason
+    if (extra?.retry_after_seconds !== undefined) this.retry_after_seconds = extra.retry_after_seconds
+    if (extra?.limit !== undefined) this.limit = extra.limit
+    if (extra?.found !== undefined) this.found = extra.found
+    if (extra?.offer_packs !== undefined) this.offer_packs = extra.offer_packs
   }
 }
 
@@ -34,6 +50,11 @@ export interface ParsedErrorBody {
   message?: string
   code?: string
   fields?: FieldIssue[]
+  reason?: string
+  retry_after_seconds?: number
+  limit?: number
+  found?: number
+  offer_packs?: boolean
 }
 
 /**
@@ -57,10 +78,15 @@ export function parseErrorBody(body: unknown): ParsedErrorBody {
     return { message: msg, code: 'VALIDATION_ERROR', ...(fields.length > 0 ? { fields } : {}) }
   }
   if (detail && typeof detail === 'object') {
-    const d = detail as { code?: unknown; message?: unknown }
+    const d = detail as Record<string, unknown>
     const out: ParsedErrorBody = {}
     if (typeof d.message === 'string' && d.message) out.message = d.message
     if (typeof d.code === 'string' && d.code) out.code = d.code
+    if (typeof d.reason === 'string') out.reason = d.reason
+    if (typeof d.retry_after_seconds === 'number') out.retry_after_seconds = d.retry_after_seconds
+    if (typeof d.limit === 'number') out.limit = d.limit
+    if (typeof d.found === 'number') out.found = d.found
+    if (typeof d.offer_packs === 'boolean') out.offer_packs = d.offer_packs
     return out
   }
   if (typeof message === 'string' && message) return { message }
@@ -88,6 +114,23 @@ const FRIENDLY: Readonly<Record<string, string>> = {
   NOT_RETRYABLE: 'Only failed or rejected documents can be retried.',
   NO_CHUNKS_AVAILABLE: 'There is no readable text in that document yet.',
   GENERATION_FAILED: 'The floors could not be summoned. Try again in a moment.',
+  NAME_INVALID: 'That name cannot be used. Pick another one.',
+  NOTICE_NOT_ACCEPTED: 'Please accept the public notice to continue.',
+  SESSION_EXISTS: 'You already have a session. Continue it or sign out first.',
+  GUEST_CREATION_PAUSED: 'New guests are paused for a moment. Try again shortly.',
+  NOT_A_GUEST: 'Only guest accounts can be upgraded.',
+  USERNAME_TAKEN: 'That username is taken. Pick another one.',
+  CONFIRMATION_REQUIRED: 'Type DELETE to confirm.',
+  PACK_LOCKED: 'That pack is still locked. Defeat the final boss of the previous pack first.',
+  AI_BUSY: 'The summoning circle is busy right now. Try again in a moment, or play the preloaded dungeons.',
+  UPLOADS_PAUSED_TODAY: 'Uploads are paused for today. Come back tomorrow, or play the preloaded dungeons.',
+  UPLOAD_LIMIT_PLAYER: 'You have used your uploads for today. Come back tomorrow, or play the preloaded dungeons.',
+  UPLOAD_LIMIT_IP: 'Too many uploads came from this network today. Try again later, or play the preloaded dungeons.',
+  AI_NOTICE_NOT_ACCEPTED: 'Please tick the notice about AI providers before uploading.',
+  TOO_MANY_PAGES: 'This PDF has too many pages.',
+  TOO_MANY_SLIDES: 'This presentation has too many slides.',
+  TOO_MUCH_TEXT: 'This document has too much text.',
+  SYSTEM_USER_PROTECTED: 'This account is protected and cannot be deleted.',
   VALIDATION_ERROR: 'The request was not accepted. Please check your input and try again.',
 }
 

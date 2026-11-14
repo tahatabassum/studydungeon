@@ -42,7 +42,7 @@ function fakeApi(getLeaderboard: ReturnType<typeof vi.fn>, capabilities?: unknow
   return {
     getLeaderboard,
     getProgress: vi.fn().mockResolvedValue({ level: 3, total_xp: 200, xp_to_next: 100 }),
-    ...(capabilities ? { capabilities } : {}),
+    capabilities: { liveBoard: false, ...(capabilities as object | undefined) },
   } as unknown as ApiClient
 }
 

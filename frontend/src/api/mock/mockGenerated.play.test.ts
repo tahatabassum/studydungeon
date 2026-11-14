@@ -37,7 +37,7 @@ async function clearRoomByAnswering(api: ApiClient, runId: string, room: Room, d
 
 async function summon(api: ApiClient): Promise<Dungeon> {
   await api.register({ username: 'gen_player', password: 'correct-horse-9' })
-  const sent = await api.uploadDocument(notes('Cell biology.txt'))
+  const sent = await api.uploadDocument(notes('Cell biology.txt'), { acceptAiNotice: true })
   expect((await api.getDocumentStatus(sent.id)).status).toBe('accepted')
   const created = await api.generateDungeon(sent.id)
   return api.getDungeon(created.id)

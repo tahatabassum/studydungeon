@@ -4,16 +4,35 @@
   display: grid;
   grid-template-columns: minmax(0, 1fr);
   gap: 1rem;
-  align-items: start;
+  align-items: stretch;
+  width: 100%;
+  min-width: 0;
+  text-align: left;
 }
-@media (min-width: 720px) {
-  .sd-dash { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-}
-@media (min-width: 1100px) {
-  .sd-dash { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-  .sd-dash__span2 { grid-column: span 2; }
+.sd-dash > * { min-width: 0; }
+@media (min-width: 768px) {
+  .sd-dash { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.25rem; }
 }
 .sd-dash__wide { grid-column: 1 / -1; }
+/* Stacked cards (Recent runs + Haunted memories) share one grid cell and split its height. */
+.sd-dash__stack { display: flex; flex-direction: column; gap: 1rem; min-width: 0; }
+.sd-dash__stack > .sd-card { flex: 1 1 auto; }
+/* More (Settings) sits beside the Armory; alone it spans the row. */
+.sd-dash__links { grid-column: 1 / -1; }
+@media (min-width: 768px) {
+  .sd-dash__armory + .sd-dash__links { grid-column: auto; }
+}
+.sd-dash__armory + .sd-dash__links { grid-column: auto; }
+@media (max-width: 767px) {
+  .sd-dash__armory + .sd-dash__links { grid-column: 1 / -1; }
+}
+/* Badges: equal tiles, centered, no orphan gaps. */
+.sd-dash .sd-badge-grid:not(.grid-cols-4) {
+  grid-template-columns: repeat(auto-fit, minmax(7rem, 9rem));
+  justify-content: center;
+  align-items: stretch;
+}
+.sd-dash .sd-badge-grid .sd-badge { height: 100%; }
 
 .sd-dash__big {
   margin: 0;

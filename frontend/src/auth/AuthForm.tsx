@@ -7,7 +7,10 @@ import { useSession } from '../state/SessionContext'
 import { StoneFrame } from '../components/StoneFrame'
 import { PixelSprite } from '../components/PixelSprite'
 import { CHARACTER_SPRITES } from '../art/sprites'
-import { mapAuthError, type AuthMode } from './errors'
+import { ApiError } from '../api/errors'
+import { capabilityOf } from '../api/ApiClient'
+import { describeGuestError } from '../identity/guestMessages'
+import { mapAuthError, type AuthErrorView, type AuthMode } from './errors'
 import { useRetryAfter } from './useRetryAfter'
 import { loginErrors, registerErrors, type FieldErrors } from './validation'
 
@@ -36,13 +39,40 @@ const COPY = {
   },
 } as const
 
+export const UPGRADE_HEADING = 'Create an account to keep your name and points'
+const UPGRADE_BLURB = 'Pick a username and a password. Your name, points and progress stay with you.'
+export const UPGRADE_UNAVAILABLE = 'Keeping your name is not available right now. You can still create a new account below.'
+
+/** True when the failed upgrade call has just switched the accountUpgrade capability off. */
+async function upgradeSwitchedOff(err: unknown): Promise<boolean> {
+  if (!(err instanceof ApiError) || ![404, 405, 501].includes(err.status)) return false
+  try {
+    return capabilityOf(await getApi(), 'accountUpgrade') === 'off'
+  } catch {
+    return false
+  }
+}
+
+/** Upgrade errors: the register mapping plus the guest codes (USERNAME_TAKEN, NOT_A_GUEST). */
+function mapUpgradeError(err: unknown): AuthErrorView {
+  if (err instanceof ApiError && err.code === 'NOT_A_GUEST') return { message: describeGuestError('NOT_A_GUEST'), fields: {} }
+  if (err instanceof ApiError && err.code === 'USERNAME_TAKEN') {
+    return { message: describeGuestError('USERNAME_TAKEN'), fields: { username: 'That username is already taken.' } }
+  }
+  return mapAuthError(err, 'register')
+}
+
 /**
  * The shared Login/Register form: exactly two fields (username and password), a show/hide control,
  * field-level messages and friendly status errors. The session is the httpOnly cookie, so nothing here
  * touches localStorage or sessionStorage.
  */
-export function AuthForm({ mode }: { mode: AuthMode }) {
-  const copy = COPY[mode]
+export function AuthForm({ mode, upgrade = false }: { mode: AuthMode; upgrade?: boolean }) {
+  // D11: a Guest with accountUpgrade on upgrades in place; a 404/405/501 answer drops back to a normal register.
+  const [fellBack, setFellBack] = useState(false)
+  const upgrading = mode === 'register' && upgrade && !fellBack
+  const base = COPY[mode]
+  const copy = upgrading ? { ...base, heading: UPGRADE_HEADING, blurb: UPGRADE_BLURB } : base
   const navigate = useNavigate()
   const { setUser } = useSession()
   const retry = useRetryAfter()
@@ -77,11 +107,22 @@ export function AuthForm({ mode }: { mode: AuthMode }) {
     try {
       const api = await getApi()
       const credentials = { username: username.trim(), password }
-      const user = mode === 'login' ? await api.login(credentials) : await api.register(credentials)
+      const user =
+        mode === 'login'
+          ? await api.login(credentials)
+          : upgrading
+            ? await api.upgradeGuest(credentials)
+            : await api.register(credentials)
       setUser(user)
       navigate('/dashboard')
     } catch (err) {
-      const view = mapAuthError(err, mode)
+      if (upgrading && (await upgradeSwitchedOff(err))) {
+        setFellBack(true)
+        setErrors({})
+        setStatus(UPGRADE_UNAVAILABLE)
+        return
+      }
+      const view = upgrading ? mapUpgradeError(err) : mapAuthError(err, mode)
       setErrors(view.fields)
       setStatus(view.message)
       if (view.retryAfter !== undefined) retry.start(view.retryAfter)

@@ -15,6 +15,7 @@ import type {
   Dungeon,
   FloorRank,
   FloorStatus,
+  PackProgress,
   Question,
   Room,
   RunMode,
@@ -33,8 +34,15 @@ import { buildDueSummary, MOCK_REVIEW_INTERVAL_MS } from './mockHaunt'
 import { DEMO_FINAL_BOSS_ROOM_ID, DEMO_FLOOR_DEFS, buildFloors, type FloorDef } from '../../learning/floors'
 import { readMockDelayMs, readMockLevel, readMockPlayer } from './mockLevel'
 import { createMockAuth } from './mockAuth'
+import { createMockGuests } from './mockGuests'
+import { applyPackClear, buildPacksResponse, initialStatuses, type PackDef } from './mockPacks'
+import { createMockPoints, type PointsBoard } from './mockPoints'
 import { createMockUpload, type GeneratedSource } from './mockUpload'
+import { readMockQuotaSwitches, type MockQuotaSwitches } from './mockQuota'
 import { createMasteryStore } from '../../learning/masteryStore'
+import { buildMockBoard } from './mockBoard'
+import { applyMockBoardCount, mockBoardError, readMockBoardSwitch } from './mockBoardSwitch'
+import { mockPlayerStats } from './mockStats'
 import { buildMockLeaderboard, runRankOnDemoBoard, type StoredRun } from './mockLeaderboard'
 import { createReviewStore } from './mockReviews'
 import { buildStreakCalendar, notesConqueredPercent } from './mockProgress'
@@ -59,7 +67,7 @@ export interface MockAdapterOptions {
    */
   demoSessionDelayMs?: number
   /** Timing of the document pipeline: how long a file stays `processing`, and the gap between generated floors. */
-  upload?: { processingMs?: number; stepMs?: number }
+  upload?: { processingMs?: number; stepMs?: number; quota?: MockQuotaSwitches }
   /** Dev override of the player level (from `?mockLevel=N`); otherwise derived from XP. */
   level?: number
   /**
@@ -167,6 +175,9 @@ interface RunRecord {
   roomStats: Map<string, { correct: number; wrong: number; damage: number }>
   damageTaken: number
   revenantsRested: number
+  /** frontend-10 (mock): Leaderboard points earned in this run, and the pack outcome of its final boss clear. */
+  points: number
+  packProgress: PackProgress | null
 }
 
 interface ScopedRun {
@@ -184,6 +195,9 @@ interface ScopedRun {
   retries: number
 }
 
+
+/** Fixed creation time of the seeded demo dungeon in the mock dungeon list. */
+const MOCK_DEMO_CREATED_AT = '2026-01-01T00:00:00.000Z'
 
 const randomSuffix = (): string => Math.random().toString(36).slice(2, 6).padEnd(4, '0')
 
@@ -205,8 +219,36 @@ export function createMockAdapter(options: MockAdapterOptions = {}): ApiClient {
 
   const now = options.now ?? Date.now
   const auth = createMockAuth({ now })
-  const upload = createMockUpload({ now, session: () => auth.getMe(), ...options.upload })
-  const mastery = createMasteryStore()
+  const upload = createMockUpload({ now, session: () => auth.getMe(), quota: readMockQuotaSwitches(), ...options.upload })
+  const guests = createMockGuests(auth)
+  const points = createMockPoints(now)
+  // frontend-10 D14: Pack 1 is the demo dungeon; Packs 2 and 3 are generated placeholder dungeons.
+  const packDefs: PackDef[] = [
+    {
+      id: 'pack-1',
+      order: 1,
+      title: demoDungeon.name,
+      description: 'The seeded demo dungeon.',
+      dungeonId: demoDungeon.id,
+      sample: false,
+    },
+    ...[2, 3].map(
+      (n): PackDef => ({
+        id: `pack-${n}`,
+        order: n,
+        title: `Sample Pack ${n}`,
+        description: 'Placeholder content for the mock.',
+        dungeonId: upload.registerPack(`pack-${n}`, `Sample Pack ${n}`, 4),
+        sample: true,
+      }),
+    ),
+  ]
+  let packStatuses = initialStatuses(packDefs)
+  const packOfDungeon = (dungeonId: string): PackDef | undefined => packDefs.find((d) => d.dungeonId === dungeonId)
+  const boardOf = (dungeonId: string): PointsBoard => (packOfDungeon(dungeonId) ? 'preloaded' : 'own_notes')
+  const isPracticeRun = (run: RunRecord): boolean =>
+    run.scoped?.mode === 'weak_topics' || run.scoped?.mode === 'exam' || run.scoped?.mode === 'daily_haunt'
+  let mastery = createMasteryStore()
   const ranks = new Map<string, FloorRank>()
   const forced = new Map<string, FloorStatus>((options.failedFloorIds ?? []).map((id) => [id, 'failed']))
   /** Question id -> ms when the next review falls due, for questions answered correctly. */
@@ -369,6 +411,10 @@ export function createMockAdapter(options: MockAdapterOptions = {}): ApiClient {
       await wait()
       const dungeonId = typeof request === 'string' ? request : request.dungeon_id
       const ctx = ctxFor(dungeonId)
+      const lockedPack = packOfDungeon(dungeonId)
+      if (lockedPack && packStatuses.get(lockedPack.id) === 'locked') {
+        throw new ApiError(403, 'That pack is still locked.', 'PACK_LOCKED')
+      }
       let scoped: ScopedRun | null = null
       const mode: RunMode = typeof request === 'string' ? 'floor' : request.mode
       if (typeof request !== 'string') {
@@ -449,6 +495,8 @@ export function createMockAdapter(options: MockAdapterOptions = {}): ApiClient {
         roomStats: new Map(),
         damageTaken: 0,
         revenantsRested: 0,
+        points: 0,
+        packProgress: null,
       })
       const haunt = scoped?.mode === 'daily_haunt'
       return {
@@ -572,6 +620,22 @@ export function createMockAdapter(options: MockAdapterOptions = {}): ApiClient {
       if (isCorrect) run.correct += 1
       run.score += result.score_delta
       run.xp += result.xp_delta ?? 0
+      // frontend-10 (PROPOSED): Leaderboard points, idempotent per attempt_id.
+      const pack = packOfDungeon(run.dungeonId)
+      const award = points.attempt({
+        attemptId: req.attempt_id,
+        questionId: req.question_id,
+        correct: isCorrect,
+        hard: ctx.hardIds.has(req.question_id),
+        isRetry,
+        practice: isPracticeRun(run),
+        board: boardOf(run.dungeonId),
+        ...(pack ? { packId: pack.id } : {}),
+      })
+      full.points_awarded = award.points_awarded
+      full.points_reason = award.points_reason
+      full.player_points = award.player_points
+      run.points += award.points_awarded
       run.attempts.set(req.attempt_id, full)
       return structuredClone(full)
     },
@@ -583,11 +647,31 @@ export function createMockAdapter(options: MockAdapterOptions = {}): ApiClient {
       if (!room) throw new ApiError(404, `Room not found: ${roomId}`)
       if ((run.monsterHp.get(roomId) ?? 0) > 0) throw new ApiError(409, 'Monster is still alive')
       const xpDelta = room.is_boss ? BOSS_CLEAR_XP : ROOM_CLEAR_XP
+      const ctx = ctxFor(run.dungeonId)
       if (!run.cleared.has(roomId)) {
         run.cleared.add(roomId)
         run.xp += xpDelta
+        const practice = isPracticeRun(run)
+        const pack = packOfDungeon(run.dungeonId)
+        const award = points.clear({
+          clearId: `:${roomId}`,
+          boss: room.is_boss,
+          practice,
+          board: boardOf(run.dungeonId),
+          ...(pack ? { packId: pack.id } : {}),
+        })
+        run.points += award.points_awarded
+        // The final boss of a pack completes it (Pack N+1 unlocks).
+        if (pack && !practice && roomId === ctx.finalBossRoomId) {
+          const applied = applyPackClear(packDefs, packStatuses, pack.id)
+          packStatuses = applied.statuses
+          run.packProgress = applied.progress
+          run.points += points.packComplete(pack.id, 'preloaded')
+        }
+        return { xp_delta: xpDelta, points_awarded: award.points_awarded, points_reason: award.points_reason }
       }
-      return { xp_delta: xpDelta }
+      const again = points.clear({ clearId: `:${roomId}`, boss: room.is_boss, practice: isPracticeRun(run), board: boardOf(run.dungeonId) })
+      return { xp_delta: xpDelta, points_awarded: again.points_awarded, points_reason: again.points_reason }
     },
 
     async finishRun(runId) {
@@ -682,6 +766,9 @@ export function createMockAdapter(options: MockAdapterOptions = {}): ApiClient {
             finishedAt: now(),
           })
         }
+        summary.points_earned = run.points
+        summary.player_points = points.totals()
+        if (run.packProgress) summary.pack_progress = run.packProgress
         run.finishedAt = now()
         run.summary = summary
       }
@@ -741,6 +828,34 @@ export function createMockAdapter(options: MockAdapterOptions = {}): ApiClient {
       })
     },
 
+    async getBoard(query) {
+      await wait()
+      const sw = readMockBoardSwitch()
+      if (sw === 'error') throw mockBoardError()
+      if (sw === 'slow') await new Promise<never>(() => undefined)
+      const me = await auth.getMe()
+      const built = buildMockBoard({
+        board: query.board,
+        period: query.period,
+        nowMs: now(),
+        player: me
+          ? {
+              publicId: me.user.public_id ?? `p_${me.user.id}`,
+              handle: me.user.handle ?? me.user.display_name ?? sessionName,
+              ...(me.user.display_name !== undefined ? { displayName: me.user.display_name } : {}),
+              ...(me.user.tag !== undefined ? { tag: me.user.tag } : {}),
+              isGuest: me.user.is_guest,
+              level: playerLevel(),
+              roomsCleared: clearedRooms().size,
+              all: points.totals(),
+              week: points.weekTotals(now()),
+              reachedAtMs: now(),
+            }
+          : null,
+      })
+      return typeof sw === 'object' && sw !== null ? applyMockBoardCount(built, sw.count) : built
+    },
+
     async getRun(runId) {
       await wait()
       const run = getRun(runId)
@@ -777,9 +892,13 @@ export function createMockAdapter(options: MockAdapterOptions = {}): ApiClient {
       return { dungeon_id: dungeonId, floors: floorView().floors.map((f) => ({ id: f.id, status: f.status })) }
     },
 
-    uploadDocument: async (file) => {
+    uploadDocument: async (file, opts) => {
       await wait()
-      return upload.uploadDocument(file)
+      return upload.uploadDocument(file, opts)
+    },
+    getUploadQuota: async () => {
+      await wait()
+      return upload.quota()
     },
     getDocumentStatus: async (id) => {
       await wait()
@@ -809,6 +928,84 @@ export function createMockAdapter(options: MockAdapterOptions = {}): ApiClient {
       if (forced.get(floorId) !== 'failed') throw new ApiError(409, 'That floor has not failed.', 'FLOOR_NOT_FAILED')
       forced.delete(floorId)
     },
+    // frontend-10 task 3.3: guest identity (memory only, D25). One shared session with mockAuth.
+    checkGuestName: async (displayName) => {
+      await wait()
+      return guests.checkName(displayName)
+    },
+    createGuest: async (request) => {
+      await wait()
+      const created = await guests.create(request)
+      sessionName = created.user.handle ?? created.user.display_name ?? 'Guest'
+      return created
+    },
+    upgradeGuest: async (credentials) => {
+      await wait()
+      return auth.upgrade(credentials)
+    },
+    // `confirm` is optional: the Http client sends {confirm: "DELETE"}; a different value is rejected.
+    deleteAccount: async (confirm?: string) => {
+      await wait()
+      const me = await auth.getMe()
+      if (!me) throw new ApiError(401, 'Not authenticated', 'UNAUTHORIZED')
+      if (confirm !== undefined && confirm !== 'DELETE') {
+        throw new ApiError(422, 'Type DELETE to confirm.', 'CONFIRMATION_REQUIRED')
+      }
+      guests.release(me.user)
+      auth.remove()
+      runs.clear()
+      finishedRuns.length = 0
+      ranks.clear()
+      scheduled.clear()
+      mastery = createMasteryStore()
+      dailyStreak = 0
+      lastHauntDay = ''
+      points.reset()
+      packStatuses = initialStatuses(packDefs)
+      upload.clear()
+      generatedCtx.clear()
+      sessionName = 'Guest'
+    },
+    async getPlayerStats() {
+      await wait()
+      return mockPlayerStats()
+    },
+    async getPacks() {
+      await wait()
+      const me = await auth.getMe()
+      if (!me) throw new ApiError(401, 'Not authenticated', 'UNAUTHORIZED')
+      const cleared = clearedRooms()
+      return buildPacksResponse(packDefs, packStatuses, (def) => {
+        const ctx = ctxFor(def.dungeonId)
+        const floors = floorViewOf(ctx).floors
+        return {
+          floorsTotal: floors.length,
+          floorsCleared: floors.filter((fl) => fl.status === 'cleared' || fl.room_ids.every((id) => cleared.has(id))).length,
+          points: points.ofPack(def.id),
+        }
+      })
+    },
+    listDungeons: async () => {
+      await wait()
+      const me = await auth.getMe()
+      if (!me) throw new ApiError(401, 'Not authenticated', 'UNAUTHORIZED')
+      return [
+        {
+          id: demoDungeon.id,
+          title: demoDungeon.name,
+          is_public_demo: true,
+          created_at: MOCK_DEMO_CREATED_AT,
+          rooms_count: demoDungeon.rooms.length,
+        },
+        ...upload.list().map((g) => ({
+          id: g.id,
+          title: g.name,
+          is_public_demo: false,
+          created_at: new Date(g.startedAt).toISOString(),
+          rooms_count: g.roomsCount,
+        })),
+      ]
+    },
   }
 }
 export const mockAdapter: ApiClient = createMockAdapter({
@@ -817,3 +1014,4 @@ export const mockAdapter: ApiClient = createMockAdapter({
   demoSessionDelayMs: readMockDelayMs(),
 })
 export default mockAdapter
+

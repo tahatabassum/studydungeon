@@ -6,6 +6,7 @@ import { BadgeGrid } from '../badges/BadgeGrid'
 import { Button } from '../components/Button'
 import { OverlayFrame } from '../components/OverlayFrame'
 import { SourceLine } from '../components/SourceLine'
+import { UpgradeOffer } from '../identity/UpgradeOffer'
 import { ShareDialog } from '../share/ShareDialog'
 import { Spinner } from '../components/Spinner'
 import { VictoryFx } from '../components/VictoryFx'
@@ -17,6 +18,8 @@ import { MASTERY_BAND_LABEL, classifyMastery, topicRows } from './mastery'
 import { useCountUp } from './useCountUp'
 
 export interface ScorecardProps {
+  /** Pack flow: shown on a final boss clear when packs are on. Opens the unlock or completion screen, else the map. */
+  onContinue?: () => void
   summary: RunSummary | null
   pending?: boolean
   error?: string | null
@@ -38,6 +41,8 @@ export interface ScorecardProps {
   leaderboardEnabled?: boolean
   onViewLeaderboard?(): void
   onCreateAccount?(): void
+  /** Opens the upgrade flow (`/register?upgrade=1`). Defaults to `onCreateAccount`. */
+  onUpgrade?(): void
   /** Slot for the frontend-08 Chest (Phase 5 of that spec), shown under the chest rewards. */
   chestSlot?: ReactNode
   /** Name shown on the share card. */
@@ -51,7 +56,7 @@ const percent = (ratio: number): number => Math.round(Math.min(1, Math.max(0, ra
 
 /** Text for the polite live region: the final results, announced once when the summary arrives. */
 export function scorecardAnnouncement(summary: RunSummary, leaderboardEnabled = true): string {
-  const parts = [`Run complete. Score ${summary.score}.`, `Accuracy ${percent(summary.accuracy)} percent.`, `${summary.xp} XP earned.`]
+  const parts = [`Run complete. Dungeon score ${summary.score}.`, `Accuracy ${percent(summary.accuracy)} percent.`, `${summary.xp} XP earned.`]
   if (summary.floor_rank) parts.push(`Floor rank ${summary.floor_rank}.`)
   if (summary.level_up) parts.push(`Level up, level ${summary.level_up.from} to ${summary.level_up.to}.`)
   if (summary.weapon_unlocked) parts.push(`Weapon unlocked: ${resolveWeapon(summary.weapon_unlocked).name}.`)
@@ -212,6 +217,7 @@ export function Scorecard({
   onRetry,
   onPlayAgain,
   onExit,
+  onContinue,
   title = 'The Exam Warden falls!',
   subtitle = 'Dungeon cleared',
   playAgainLabel = 'Play again',
@@ -221,6 +227,7 @@ export function Scorecard({
   leaderboardEnabled = true,
   onViewLeaderboard,
   onCreateAccount,
+  onUpgrade,
   chestSlot,
   dungeonName = 'StudyDungeon',
 }: ScorecardProps) {
@@ -260,7 +267,7 @@ export function Scorecard({
           <p>{error}</p>
           {received && (
             <p className="sd-score__meta" data-testid="received-values">
-              {`Score so far ${received.score}, XP earned ${received.xp}.`}
+              {`Dungeon score so far ${received.score}, XP earned ${received.xp}.`}
             </p>
           )}
           {onRetry && (
@@ -279,17 +286,26 @@ export function Scorecard({
 
           <section className="sd-score__hero" aria-label="Results">
             <div className="sd-score__total">
-              <span className="sd-score__label">Score</span>
+              <span className="sd-score__label">Dungeon score</span>
               <span className="sd-score__num" aria-hidden="true" data-testid="score-counter">
                 {scoreShown}
               </span>
-              <span className="sr-only">{`Score ${summary.score}`}</span>
+              <span className="sr-only">{`Dungeon score ${summary.score}`}</span>
               <span className="sd-score__meta">{`${summary.correct} / ${summary.total} correct`}</span>
             </div>
             <AccuracyRing ratio={summary.accuracy} />
             {summary.floor_rank && <RankSeal rank={summary.floor_rank} />}
           </section>
 
+          {summary.points_earned !== undefined && (
+            <section className="sd-score__block" aria-label="Leaderboard points" data-testid="leaderboard-points">
+              <p className="sd-score__meta">
+                <strong>Leaderboard points</strong>{' '}
+                <span data-testid="leaderboard-points-value">{summary.points_earned}</span>
+              </p>
+              <p className="sd-score__meta">Leaderboard points are what the ranking counts. Dungeon score is just for this run.</p>
+            </section>
+          )}
           <div className="sd-score__cols">
             <div className="sd-score__col">
               <XpBlock summary={summary} progress={progress} reduced={reduced} />
@@ -383,6 +399,11 @@ export function Scorecard({
         <Button variant="secondary" onClick={onExit}>
           {exitLabel}
         </Button>
+        {summary && onContinue && (
+          <Button variant="secondary" onClick={onContinue} data-testid="scorecard-continue">
+            Continue
+          </Button>
+        )}
         {leaderboardEnabled && onViewLeaderboard && (
           <Button variant="secondary" onClick={onViewLeaderboard}>
             <Trophy aria-hidden="true" size={16} />
@@ -396,10 +417,17 @@ export function Scorecard({
           </Button>
         )}
         {summary && isGuest && onCreateAccount && (
-          <Button variant="secondary" onClick={onCreateAccount}>
-            <UserPlus aria-hidden="true" size={16} />
-            Create account
-          </Button>
+          <UpgradeOffer
+            isGuest
+            onActivate={onUpgrade ?? onCreateAccount}
+            icon={<UserPlus aria-hidden="true" size={16} />}
+            fallback={
+              <Button variant="secondary" onClick={onCreateAccount}>
+                <UserPlus aria-hidden="true" size={16} />
+                Create account
+              </Button>
+            }
+          />
         )}
       </div>
       {shareOpen && summary && (

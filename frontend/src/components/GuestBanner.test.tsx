@@ -26,6 +26,11 @@ describe('GuestBanner', () => {
     expect(screen.queryByText(TEXT)).toBeNull()
   })
 
+  it('names the player by handle when one is given', () => {
+    render(<GuestBanner isGuest handle="Pale Moth#1234" />)
+    expect(screen.getByRole('status').textContent).toBe('Playing as Pale Moth#1234. Progress is temporary. Create an account to save.')
+  })
+
   it('stays permanently without autoHideMs and has no dismiss button', () => {
     render(<GuestBanner isGuest />)
     advance(60_000)

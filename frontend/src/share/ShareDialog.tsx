@@ -95,7 +95,7 @@ export function ShareDialog({ data, onClose }: ShareDialogProps) {
           height={CARD_H}
           className="sd-share__canvas"
           role="img"
-          aria-label={`Share card preview. Score ${Math.round(data.score)}. ${data.dungeonName}.`}
+          aria-label={`Share card preview. Dungeon score ${Math.round(data.score)}. ${data.dungeonName}.`}
           data-ready={drawn ? 'true' : 'false'}
         />
         <div className="sd-share__actions font-(family-name:--font-label)">

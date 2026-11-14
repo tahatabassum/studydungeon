@@ -10,7 +10,8 @@
     "preview": "vite preview",
     "lint": "eslint .",
     "test": "vitest --run",
-    "test:contract": "vitest --run src/contract"
+    "test:contract": "vitest --run src/contract",
+    "layout:check": "node scripts/layout-check.mjs"
   },
   "dependencies": {
     "@fontsource/cinzel": "5.3.0",

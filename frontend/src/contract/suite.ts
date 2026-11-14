@@ -1,5 +1,6 @@
-import { beforeAll, describe, expect, it } from 'vitest'
-import type { ApiClient } from '../api/ApiClient'
+import { beforeAll, describe, expect, it, type TestContext } from 'vitest'
+import { capabilityOf, type ApiClient, type CapabilityKey } from '../api/ApiClient'
+import { ApiError } from '../api/errors'
 import { ENDPOINT_SCHEMAS } from '../api/schemas'
 import type { AnswerResult, Dungeon, DemoSessionResponse, Run } from '../types/api'
 
@@ -25,9 +26,33 @@ export interface ContractSuiteOptions {
    * (a few tens of ms); the real backend needs real files and an AI provider, so it is left out.
    */
   uploads?: boolean
+  /**
+   * Gives a client with its own cookie jar / session, so each identity case starts without a session
+   * (`POST /guests` answers 409 when a cookie exists). Without it the identity cases are skipped.
+   * In real mode these cases create and delete accounts: run them against a DISPOSABLE backend only.
+   */
+  makeFreshClient?: () => ApiClient | Promise<ApiClient>
+}
+
+/**
+ * Runs `call` and skips the case when the endpoint answers 404, 405 or 501 (an older Backend), or when
+ * the client turned the capability 'off' after the call. Keeps the real suite green against old backends.
+ */
+export async function provedOrSkip<T>(ctx: TestContext, api: ApiClient, key: CapabilityKey, call: () => Promise<T>): Promise<T> {
+  let value: T
+  try {
+    value = await call()
+  } catch (err) {
+    if (err instanceof ApiError && [404, 405, 501].includes(err.status)) ctx.skip(`${key} is not available on this backend`)
+    throw err
+  }
+  if (capabilityOf(api, key) === 'off') ctx.skip(`${key} is off`)
+  return value
 }
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
+/** frontend-10: every upload sends the AI notice field. A Backend that does not know it ignores it. */
+const NOTICE = { acceptAiNotice: true } as const
 
 function textFile(name: string, bytes = 800): File {
   return new File(['a'.repeat(bytes)], name, { type: 'text/plain' })
@@ -267,6 +292,171 @@ export function defineContractSuite(opts: ContractSuiteOptions): void {
       for (const w of summary.weak_concepts ?? []) expect(w.text.length).toBeGreaterThan(0)
     })
 
+    // Identity cases (frontend-10, Phase 1). Each one uses a fresh client so no session is shared.
+    describe.skipIf(opts.auth === false || !opts.makeFreshClient)('identity (frontend-10)', () => {
+      const HANDLE = /^[A-Za-z0-9 _-]{3,16}#\d{4,5}$/
+      const fresh = async () => opts.makeFreshClient!()
+      const stamp = Date.now().toString(36).slice(-6)
+
+      it('name check accepts a valid name and refuses bad ones with the right reason', async (ctx) => {
+        const c = await fresh()
+        const ok = await provedOrSkip(ctx, c, 'guestIdentity', () => c.checkGuestName('Raven'))
+        expect(ok.ok).toBe(true)
+        const cases: Array<[string, string]> = [
+          ['ab', 'too_short'],
+          ['a'.repeat(17), 'too_long'],
+          ['Adm1n', 'not_allowed'],
+          ['ghost rival', 'not_allowed'],
+        ]
+        for (const [name, reason] of cases) {
+          const r = await c.checkGuestName(name)
+          expect(r.ok, name).toBe(false)
+          expect(r.reason, name).toBe(reason)
+        }
+      })
+
+      it('createGuest returns a handle and getMe returns the same handle and public_id', async (ctx) => {
+        const c = await fresh()
+        const created = await provedOrSkip(ctx, c, 'guestIdentity', () => c.createGuest({ display_name: `Raven${stamp}`.slice(0, 16), accept_public_notice: true }))
+        expect(created.user.is_guest).toBe(true)
+        expect(created.user.handle).toMatch(HANDLE)
+        expect(created.user.public_id).toBeTruthy()
+        const me = await c.getMe()
+        expect(me?.user.is_guest).toBe(true)
+        expect(me?.user.handle).toBe(created.user.handle)
+        expect(me?.user.public_id).toBe(created.user.public_id)
+      })
+
+      it('two guests with one name get different tags', async (ctx) => {
+        const a = await fresh()
+        const first = await provedOrSkip(ctx, a, 'guestIdentity', () => a.createGuest({ display_name: 'Twin', accept_public_notice: true }))
+        // Separate clients can only draw the same random tag by chance (1 in 9000), so allow two redraws.
+        let second = first
+        for (let i = 0; i < 3 && second.user.handle === first.user.handle; i += 1) {
+          const b = await fresh()
+          second = await b.createGuest({ display_name: 'Twin', accept_public_notice: true })
+        }
+        expect(second.user.display_name).toBe(first.user.display_name)
+        expect(second.user.handle).not.toBe(first.user.handle)
+        expect(second.user.tag).not.toBe(first.user.tag)
+      })
+
+      it('upgrade keeps id, public_id and handle; a second upgrade answers NOT_A_GUEST', async (ctx) => {
+        const c = await fresh()
+        const created = await provedOrSkip(ctx, c, 'guestIdentity', () => c.createGuest({ display_name: 'Upgrader', accept_public_notice: true }))
+        const username = `up_${stamp}${Math.random().toString(36).slice(2, 6)}`
+        const credentials = { username, password: 'correct-horse-9' }
+        const upgraded = await provedOrSkip(ctx, c, 'accountUpgrade', () => c.upgradeGuest(credentials))
+        expect(upgraded.is_guest).toBe(false)
+        expect(upgraded.id).toBe(created.user.id)
+        expect(upgraded.public_id).toBe(created.user.public_id)
+        expect(upgraded.handle).toBe(created.user.handle)
+        await expect(c.upgradeGuest({ username: `${username}x`, password: 'correct-horse-9' })).rejects.toMatchObject({
+          code: 'NOT_A_GUEST',
+        })
+      })
+
+      it('delete account then getMe answers null', async (ctx) => {
+        const c = await fresh()
+        await provedOrSkip(ctx, c, 'guestIdentity', () => c.createGuest({ display_name: 'Leaver', accept_public_notice: true }))
+        await provedOrSkip(ctx, c, 'accountDelete', () => c.deleteAccount())
+        expect(await c.getMe()).toBeNull()
+      })
+
+      it('listDungeons includes a public demo dungeon for a named guest', async (ctx) => {
+        const c = await fresh()
+        await provedOrSkip(ctx, c, 'guestIdentity', () => c.createGuest({ display_name: 'Lister', accept_public_notice: true }))
+        const list = await c.listDungeons()
+        expect(list.some((d) => d.is_public_demo)).toBe(true)
+      })
+
+      it('creating a guest while a session exists is 409 SESSION_EXISTS', async (ctx) => {
+        const c = await fresh()
+        await provedOrSkip(ctx, c, 'guestIdentity', () => c.createGuest({ display_name: 'Early', accept_public_notice: true }))
+        await expect(c.createGuest({ display_name: 'Again', accept_public_notice: true })).rejects.toMatchObject({
+          status: 409,
+          code: 'SESSION_EXISTS',
+        })
+      })
+    })
+
+    // Packs and points (frontend-10, Phase 2). A fresh client keeps the pack state apart from the other cases.
+    describe.skipIf(opts.auth === false || !opts.makeFreshClient)('packs and points (frontend-10)', () => {
+      const withSession = async () => {
+        const c = await opts.makeFreshClient!()
+        await c.startDemoSession()
+        return c
+      }
+      it('GET /packs returns ordered packs with the contract fields and a valid next pack', async (ctx) => {
+        const c = await withSession()
+        const res = await provedOrSkip(ctx, c, 'packs', () => c.getPacks())
+        expectSchema('getPacks', res)
+        expect(res.packs.length).toBeGreaterThan(0)
+        expect(res.packs.map((p) => p.order)).toEqual([...res.packs.map((p) => p.order)].sort((a, b) => a - b))
+        for (const p of res.packs) {
+          expect(p.floors_cleared).toBeLessThanOrEqual(p.floors_total)
+          expect(p.points_earned).toBeGreaterThanOrEqual(0)
+        }
+        if (res.next_pack_id) expect(res.packs.some((p) => p.id === res.next_pack_id)).toBe(true)
+      })
+      it('starting a run on a locked pack is 403 PACK_LOCKED', async (ctx) => {
+        const c = await withSession()
+        const res = await provedOrSkip(ctx, c, 'packs', () => c.getPacks())
+        const locked = res.packs.find((p) => p.status === 'locked')
+        if (!locked) return ctx.skip('no locked pack on this backend')
+        await expect(c.startRun(locked.dungeon_id)).rejects.toMatchObject({ status: 403, code: 'PACK_LOCKED' })
+      })
+      it('clearing the final boss of the open pack reports pack_progress and points', async (ctx) => {
+        const answer = opts.correctAnswer
+        if (!answer) return ctx.skip('needs the answer key (mock only)')
+        const c = await withSession()
+        const res = await provedOrSkip(ctx, c, 'packs', () => c.getPacks())
+        const open = res.packs.find((p) => p.status === 'available' || p.status === 'in_progress')
+        if (!open) return ctx.skip('no open pack')
+        const d = await c.getDungeon(open.dungeon_id)
+        const boss = d.rooms.find((r) => r.is_boss)!
+        const r = await c.startRun(d.id)
+        for (let i = 0; i < boss.monster.question_ids.length * 2; i += 1) {
+          const qid = boss.monster.question_ids[i % boss.monster.question_ids.length]
+          const hit = await c.submitAttempt(r.id, { attempt_id: `pk-${i}`, question_id: qid, selected_answer: answer(qid) ?? 'x' })
+          if (hit.monster_hp_remaining <= 0) break
+        }
+        const cleared = await c.clearRoom(r.id, boss.id)
+        if (cleared.points_awarded !== undefined) expect(cleared.points_awarded).toBeGreaterThanOrEqual(0)
+        const summary = await c.finishRun(r.id)
+        expectSchema('finishRun', summary)
+        expect(summary.pack_progress).toMatchObject({ pack_id: open.id, status: 'completed' })
+        expect(summary.points_earned).toBeGreaterThanOrEqual(0)
+        const after = await c.getPacks()
+        expect(after.packs.find((p) => p.id === open.id)?.status).toBe('completed')
+      })
+    })
+    // Live board (frontend-10, Phase 3).
+    describe.skipIf(opts.auth === false || !opts.makeFreshClient)('live board (frontend-10)', () => {
+      it('GET /leaderboard has at most 20 entries with increasing ranks from 1, and no private keys', async (ctx) => {
+        const c = await opts.makeFreshClient!()
+        const res = await provedOrSkip(ctx, c, 'liveBoard', () => c.getBoard({ board: 'overall', period: 'all' }))
+        expectSchema('getBoard', res)
+        expect(res.entries.length).toBeLessThanOrEqual(20)
+        res.entries.forEach((e, i) => expect(e.rank).toBe(i + 1))
+        const text = JSON.stringify(res.entries)
+        expect(text).not.toMatch(/"(username|user_id|id)":/)
+        expect(res.me).toBeNull()
+      })
+      it('GET /stats/players returns a non-negative integer player count', async (ctx) => {
+        const c = await opts.makeFreshClient!()
+        const res = await provedOrSkip(ctx, c, 'playerCounter', () => c.getPlayerStats())
+        expect(Number.isInteger(res.players)).toBe(true)
+        expect(res.players).toBeGreaterThanOrEqual(0)
+      })
+      it('GET /leaderboard with a session returns a me block', async (ctx) => {
+        const c = await opts.makeFreshClient!()
+        await c.startDemoSession()
+        const res = await provedOrSkip(ctx, c, 'liveBoard', () => c.getBoard({ board: 'overall', period: 'week' }))
+        expectSchema('getBoard', res)
+        if (res.me) expect(res.me.top20.points_needed).toBeGreaterThanOrEqual(0)
+      })
+    })
     // Auth cases come last: logging out ends the guest session the cases above use.
     describe.skipIf(opts.auth === false)('auth (C22 to C24)', () => {
       const stamp = Date.now().toString(36)
@@ -320,14 +510,19 @@ export function defineContractSuite(opts: ContractSuiteOptions): void {
         throw new Error('document stayed in processing')
       }
 
-      it('POST /documents as a guest is 403 GUEST_FORBIDDEN', async () => {
+      it('POST /documents as a guest is 403 GUEST_FORBIDDEN (today) or accepted within the quota (frontend-10)', async () => {
         await api.startDemoSession()
-        await expect(api.uploadDocument(textFile('notes.txt'))).rejects.toMatchObject({ status: 403, code: 'GUEST_FORBIDDEN' })
+        const outcome = await api.uploadDocument(textFile('notes.txt'), NOTICE).then(
+          (sent) => sent,
+          (err: unknown) => err,
+        )
+        if (outcome instanceof Error) expect(outcome).toMatchObject({ status: 403, code: 'GUEST_FORBIDDEN' })
+        else expectSchema('uploadDocument', outcome)
       })
 
       it('upload, status, topics and generate-dungeon follow the real shapes', async () => {
         await api.register({ username: name, password: 'correct-horse-9' })
-        const sent = await api.uploadDocument(textFile('Cell biology.txt'))
+        const sent = await api.uploadDocument(textFile('Cell biology.txt'), NOTICE)
         expectSchema('uploadDocument', sent)
         expect(sent.status).toBe('processing')
 
@@ -353,7 +548,7 @@ export function defineContractSuite(opts: ContractSuiteOptions): void {
       })
 
       it('a document that fails the relevance check is rejected with a reason and can be retried', async () => {
-        const sent = await api.uploadDocument(textFile('lunch receipt.txt'))
+        const sent = await api.uploadDocument(textFile('lunch receipt.txt'), NOTICE)
         const verdict = await settled(sent.id)
         expect(verdict.status).toBe('rejected')
         expect((verdict.rejection_reason ?? '').length).toBeGreaterThan(0)
@@ -366,7 +561,7 @@ export function defineContractSuite(opts: ContractSuiteOptions): void {
       })
 
       it('retry on an accepted document is 400 NOT_RETRYABLE; an unknown document is 404', async () => {
-        const sent = await api.uploadDocument(textFile('Chemistry.txt'))
+        const sent = await api.uploadDocument(textFile('Chemistry.txt'), NOTICE)
         await settled(sent.id)
         await expect(api.retryDocument(sent.id)).rejects.toMatchObject({ status: 400, code: 'NOT_RETRYABLE' })
         await expect(api.getDocumentStatus('missing')).rejects.toMatchObject({ status: 404, code: 'DOCUMENT_NOT_FOUND' })
@@ -375,20 +570,44 @@ export function defineContractSuite(opts: ContractSuiteOptions): void {
       it('an oversize file is 413 FILE_TOO_LARGE and an unsupported type is 415 UNSUPPORTED_FILE_TYPE', async () => {
         const big = textFile('big.pdf', 10)
         Object.defineProperty(big, 'size', { value: 16 * 1024 * 1024 })
-        await expect(api.uploadDocument(big)).rejects.toMatchObject({ status: 413, code: 'FILE_TOO_LARGE' })
-        await expect(api.uploadDocument(textFile('virus.exe'))).rejects.toMatchObject({ status: 415, code: 'UNSUPPORTED_FILE_TYPE' })
+        await expect(api.uploadDocument(big, NOTICE)).rejects.toMatchObject({ status: 413, code: 'FILE_TOO_LARGE' })
+        await expect(api.uploadDocument(textFile('virus.exe'), NOTICE)).rejects.toMatchObject({ status: 415, code: 'UNSUPPORTED_FILE_TYPE' })
       })
 
       it('the sixth stored document is 400 QUOTA_EXCEEDED', async () => {
         let last: unknown = null
         for (let i = 0; i < 6 && last === null; i += 1) {
           try {
-            await api.uploadDocument(textFile(`extra ${i}.txt`))
+            await api.uploadDocument(textFile(`extra ${i}.txt`), NOTICE)
           } catch (err) {
             last = err
           }
         }
         expect(last).toMatchObject({ status: 400, code: 'QUOTA_EXCEEDED' })
+      })
+    })
+
+    // Upload quota and AI notice (frontend-10, Phase 5). A case is skipped when the Backend has no such endpoint.
+    describe.skipIf(opts.auth === false || !opts.makeFreshClient)('upload quota (frontend-10)', () => {
+      it('GET /uploads/quota has the proposed shape and never offers a blocked upload', async (ctx) => {
+        const c = await opts.makeFreshClient!()
+        await provedOrSkip(ctx, c, 'guestIdentity', () => c.createGuest({ display_name: 'Quota Tester', accept_public_notice: true }))
+        const quota = await provedOrSkip(ctx, c, 'uploadQuota', () => c.getUploadQuota())
+        expectSchema('getUploadQuota', quota)
+        expect(quota.player.used_today).toBeGreaterThanOrEqual(0)
+        expect(quota.player.limit_today).toBeGreaterThanOrEqual(0)
+        if (!quota.can_upload) expect(quota.reason).not.toBeNull()
+        if (quota.can_upload) expect(quota.reason).toBeNull()
+        // A 2xx for a guest turns guest upload on.
+        if (quota.player.is_guest) expect(capabilityOf(c, 'guestUpload')).not.toBe('off')
+      })
+
+      it.skipIf(!opts.uploads)('POST /documents without the notice is 422 AI_NOTICE_NOT_ACCEPTED', async (ctx) => {
+        const c = await opts.makeFreshClient!()
+        await provedOrSkip(ctx, c, 'guestIdentity', () => c.createGuest({ display_name: 'Notice Tester', accept_public_notice: true }))
+        await expect(c.uploadDocument(textFile('notes.txt'))).rejects.toMatchObject({ status: 422, code: 'AI_NOTICE_NOT_ACCEPTED' })
+        const sent = await c.uploadDocument(textFile('notes.txt'), NOTICE)
+        expectSchema('uploadDocument', sent)
       })
     })
   })

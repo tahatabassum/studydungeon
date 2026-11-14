@@ -9,6 +9,7 @@ defineContractSuite({
   makeClient: () => createMockAdapter({ upload: { processingMs: 30, stepMs: 20 } }),
   correctAnswer: (qid) => answerKey[qid]?.correct,
   uploads: true,
+  makeFreshClient: () => createMockAdapter(),
 })
 
 describe('contract: Mock_Adapter real balance (C12, C13)', () => {

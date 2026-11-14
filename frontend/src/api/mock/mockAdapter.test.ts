@@ -161,7 +161,7 @@ describe('mock adapter unit tests', () => {
     const { api, run } = await freshRun()
     await expect(api.clearRoom(run.id, 'room-1')).rejects.toMatchObject({ status: 409 })
     await killRoom(api, run.id, 'room-1')
-    await expect(api.clearRoom(run.id, 'room-1')).resolves.toEqual({ xp_delta: 25 })
+    await expect(api.clearRoom(run.id, 'room-1')).resolves.toMatchObject({ xp_delta: 25 })
   })
 
   it('startRun begins in the first room with full player and room-1 monster HP', async () => {
@@ -230,9 +230,9 @@ describe('multi-room mock behaviour', () => {
     await expect(api.clearRoom(run.id, 'room-5')).rejects.toMatchObject({ status: 409 })
     await expect(api.clearRoom(run.id, 'nope')).rejects.toMatchObject({ status: 404 })
     await killRoom(api, run.id, 'room-2')
-    await expect(api.clearRoom(run.id, 'room-2')).resolves.toEqual({ xp_delta: 25 })
+    await expect(api.clearRoom(run.id, 'room-2')).resolves.toMatchObject({ xp_delta: 25 })
     await killRoom(api, run.id, 'room-5')
-    await expect(api.clearRoom(run.id, 'room-5')).resolves.toEqual({ xp_delta: 100 })
+    await expect(api.clearRoom(run.id, 'room-5')).resolves.toMatchObject({ xp_delta: 100 })
   })
 
   it('finishRun is 409 before the boss is cleared, then returns a stable summary', async () => {

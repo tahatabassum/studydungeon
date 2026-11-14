@@ -15,6 +15,7 @@ import { entrySide } from './entrySide'
 import { keyToOption } from './keys'
 import { linesFor, pickLine } from './lines'
 import { REVENANT_INTRO } from './revenants'
+import { PointsPop } from '../points/PointsPop'
 import { poseFor } from './pose'
 import { SpeechPanel } from './SpeechPanel'
 import { Typewriter } from './Typewriter'
@@ -385,6 +386,7 @@ function EncounterBody({
                   >
                     {`-${shownResult.damage_dealt}`}
                   </span>
+                  <PointsPop awarded={shownResult.points_awarded} reason={shownResult.points_reason} />
                   {critical && (
                     <span
                       data-testid="critical-marker"

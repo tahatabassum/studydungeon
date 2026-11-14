@@ -30,7 +30,9 @@ import { TouchControls } from '@/touch/TouchControls'
 import { useTouchMode } from '@/touch/useTouchMode'
 import { PauseButton } from '@/components/PauseButton'
 import { damageReceived, isCombatActive } from '@/state/combatMachine'
+import { displayHandle } from '@/identity/handle'
 import { useSession } from '@/state/SessionContext'
+import { usePackContinue } from '@/packs/usePackContinue'
 import { campaignPath, usePlaySession, type PlayScope } from './usePlaySession'
 
 export interface PlayPageProps {
@@ -57,6 +59,7 @@ export default function PlayPage({ scope, examMinutes = null }: PlayPageProps = 
   // A short landscape phone also gets the compact HUD, so the top bar leaves room for the stage.
   const compact = hudMode(useViewportWidth()) === 'compact' || (touch && viewportHeight < 480)
   const bridge = s.bridge
+  const packContinue = usePackContinue(state.summary, s.campaign?.isFinal === true && s.campaign.unit === 'floor', s.exit)
   useEffect(() => {
     // In-world prompts say "Tap Engage" instead of "Press E". Only sent in touch mode (desktop is unchanged).
     if (touch) bridge.send({ type: 'set-touch-mode', value: true })
@@ -168,10 +171,12 @@ export default function PlayPage({ scope, examMinutes = null }: PlayPageProps = 
               clearedRoomIds={s.clearedRoomIds}
               hauntedDue={s.hauntedDue}
               roomNoun={haunt ? 'Hall' : undefined}
+              playerName={user ? displayHandle(user) : undefined}
             />
             {!compact && !guestBannerDone && (
               <GuestBanner
                 isGuest={user?.is_guest ?? false}
+                handle={user ? displayHandle(user) : undefined}
                 autoHideMs={GUEST_BANNER_MS}
                 onDone={() => setGuestBannerDone(true)}
               />
@@ -277,9 +282,11 @@ export default function PlayPage({ scope, examMinutes = null }: PlayPageProps = 
           leaderboardEnabled={s.leaderboardEnabled}
           onViewLeaderboard={() => navigate('/leaderboard')}
           onCreateAccount={() => navigate('/register')}
+          onUpgrade={() => navigate('/register?upgrade=1')}
           onRetry={() => void s.retryFinish()}
           onPlayAgain={() => void s.playAgain()}
           onExit={s.exit}
+          {...(packContinue ? { onContinue: packContinue } : {})}
           {...(s.campaign
             ? {
                 title: s.campaign.scorecard.title,

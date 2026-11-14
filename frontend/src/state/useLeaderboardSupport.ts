@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { getApi } from '../api'
+import { capabilityOf, type ApiClient } from '../api/ApiClient'
 
 export type LeaderboardSupport = 'unknown' | 'yes' | 'no'
 
@@ -24,4 +25,31 @@ export function useLeaderboardSupport(): LeaderboardSupport {
     }
   }, [])
   return support
+}
+
+/** frontend-10 (D16): which leaderboard the page shows. */
+export type LeaderboardView = 'unknown' | 'live' | 'legacy' | 'soon'
+
+/** Live when `liveBoard` is not off; else legacy when the old `leaderboard` capability is not false; else soon. */
+export function leaderboardViewOf(api: Pick<ApiClient, 'capabilities'>): Exclude<LeaderboardView, 'unknown'> {
+  if (capabilityOf(api, 'liveBoard') !== 'off') return 'live'
+  return api.capabilities?.leaderboard === false ? 'soon' : 'legacy'
+}
+
+export function useLeaderboardView(): LeaderboardView {
+  const [view, setView] = useState<LeaderboardView>('unknown')
+  useEffect(() => {
+    let cancelled = false
+    void getApi()
+      .then((api) => {
+        if (!cancelled) setView(leaderboardViewOf(api))
+      })
+      .catch(() => {
+        if (!cancelled) setView('soon')
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [])
+  return view
 }

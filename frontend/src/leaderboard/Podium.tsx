@@ -30,9 +30,11 @@ export function Podium({ rows }: PodiumProps) {
             <span className="sd-podium__crown" aria-hidden="true">
               {i === 0 && <Crown size={22} />}
             </span>
-            <Avatar kind={avatarKind(entry, row.isMe)} size={i === 0 ? 52 : 44} className="sd-podium__avatar" />
+            <Avatar kind={avatarKind(entry, row.isMe)} size={i === 0 ? 44 : 38} className="sd-podium__avatar" />
             <span className="sd-podium__name">
-              {entry.display_name}
+              <span className="sd-lb__nametext" title={entry.display_name}>
+                {entry.display_name}
+              </span>
               {row.isMe && <span className="sd-lb__tag">You</span>}
             </span>
             {row.label && <span className="sd-lb__rival">{row.label}</span>}

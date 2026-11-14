@@ -328,6 +328,11 @@ export function usePlaySession(scope?: PlayScope) {
             return
           }
           if (err instanceof StartRejected) {
+            // A locked pack opens the pack page, which explains how to unlock it.
+            if (err.original instanceof ApiError && err.original.code === 'PACK_LOCKED') {
+              navigateRef.current('/packs', { replace: true, state: { packLocked: err.original.message } })
+              return
+            }
             // A rejected start keeps the player on the map, with the Backend's message.
             navigateRef.current(campaignPath(dungeonId), {
               replace: true,

@@ -17,6 +17,8 @@ if (enabled) {
   defineContractSuite({
     label: `Http_Client at ${flags.apiBaseUrl}`,
     makeClient: () => createHttpClient(flags.apiBaseUrl, createCookieFetch()),
+    // Own cookie jar per client. The identity cases create and delete accounts: DISPOSABLE backend only.
+    makeFreshClient: () => createHttpClient(flags.apiBaseUrl, createCookieFetch()),
   })
 } else {
   describe.skip('contract: Http_Client (skipped: set VITE_API_BASE and VITE_USE_MOCKS=false to run)', () => {

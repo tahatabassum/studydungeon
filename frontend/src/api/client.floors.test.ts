@@ -24,7 +24,7 @@ describe('Http_Client with floors (frontend-08)', () => {
     expect(d.floors).toHaveLength(1)
     expect(d.floors![0]).toMatchObject({ title: 'The Crypt', status: 'ready', rank: null })
     expect(d.floors![0].room_ids).toEqual(d.rooms.map((r) => r.id))
-    expect(api.capabilities).toEqual({ roomRevenants: false, floors: false, modes: false, dailyHaunt: false, leaderboard: false })
+    expect(api.capabilities).toMatchObject({ roomRevenants: false, floors: false, modes: false, dailyHaunt: false, leaderboard: false })
     expect(HTTP_CAPABILITIES).toEqual(api.capabilities)
   })
 

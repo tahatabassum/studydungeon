@@ -7,6 +7,7 @@ import type { ApiClient } from '@/api'
 import { ApiError } from '@/api/errors'
 import { createMockAdapter } from '@/api/mock/mockAdapter'
 import { clearFinishedRuns, recordFinishedRun } from '@/leaderboard/sessionRuns'
+import type { User } from '@/types/api'
 
 const h = vi.hoisted(() => ({ api: null as unknown }))
 vi.mock('@/api', async (importOriginal) => {
@@ -17,19 +18,20 @@ vi.mock('@/api', async (importOriginal) => {
 import { SessionProvider, useSession } from '@/state/SessionContext'
 import DashboardPage from './DashboardPage'
 
-function Seed({ guest, children }: { guest: boolean; children: ReactNode }) {
+function Seed({ guest, user, children }: { guest: boolean; user?: User; children: ReactNode }) {
   const { setSession } = useSession()
   useEffect(() => {
-    setSession({ user: { id: 'u1', username: 'Sam', is_guest: guest }, dungeon_id: 'demo-dungeon', expires_at: '2099-01-01T00:00:00.000Z' })
-  }, [guest, setSession])
+    setSession({ user: user ?? { id: 'u1', username: 'Sam', is_guest: guest }, dungeon_id: 'demo-dungeon', expires_at: '2099-01-01T00:00:00.000Z' })
+  }, [guest, user, setSession])
   return <>{children}</>
 }
 
 function Where() {
-  return <p data-testid="where">{useLocation().pathname}</p>
+  const loc = useLocation()
+  return <p data-testid="where">{loc.pathname + loc.search}</p>
 }
 
-function renderDash(opts: { session?: 'guest' | 'player' | null; slot?: ReactNode } = {}) {
+function renderDash(opts: { session?: 'guest' | 'player' | null; slot?: ReactNode; user?: User } = {}) {
   const session = opts.session === undefined ? 'player' : opts.session
   const page = (
     <>
@@ -42,7 +44,7 @@ function renderDash(opts: { session?: 'guest' | 'player' | null; slot?: ReactNod
   )
   return render(
     <MemoryRouter initialEntries={['/dashboard']}>
-      <SessionProvider>{session === null ? page : <Seed guest={session === 'guest'}>{page}</Seed>}</SessionProvider>
+      <SessionProvider>{session === null ? page : <Seed guest={session === 'guest'} user={opts.user}>{page}</Seed>}</SessionProvider>
     </MemoryRouter>,
   )
 }
@@ -68,7 +70,11 @@ describe('DashboardPage, signed-in player', () => {
     expect(within(cont).getByTestId('continue-link').getAttribute('href')).toBe('/campaign/demo-dungeon/play/floor-1')
     expect(within(cont).getByRole('link', { name: /Open the map/ }).getAttribute('href')).toBe('/campaign/demo-dungeon')
     expect(within(cont).getByRole('button', { name: 'Play Demo' })).toBeTruthy()
-    expect(within(cont).getByRole('link', { name: /Upload notes/ }).getAttribute('href')).toBe('/upload')
+    // The Upload notes link became the upload card of the compact Path_Choice.
+    const choice = within(cont).getByTestId('path-choice')
+    expect(choice.getAttribute('data-variant')).toBe('compact')
+    expect(within(choice).getByRole('button', { name: /Play preloaded dungeons/ })).toBeTruthy()
+    expect(within(choice).getByRole('button', { name: /Upload my notes/ })).toBeTruthy()
 
     const board = await screen.findByTestId('board-preview')
     await vi.waitFor(() => expect(within(board).getAllByRole('listitem')).toHaveLength(5))
@@ -79,8 +85,16 @@ describe('DashboardPage, signed-in player', () => {
     expect(within(screen.getByTestId('badges-card')).getAllByRole('listitem')).toHaveLength(8)
     expect(screen.getByTestId('armory')).toBeTruthy()
     const links = screen.getByTestId('links-card')
-    expect(within(links).queryByRole('link', { name: /Upload notes/ })).toBeNull()
-    expect(within(links).getByRole('button', { name: /Settings/ }).getAttribute('aria-disabled')).toBe('true')
+    expect(within(links).queryByRole('link', { name: /Upload/ })).toBeNull()
+    expect(within(links).getByRole('link', { name: /Settings/ }).getAttribute('href')).toBe('/settings')
+    expect(links.textContent).not.toMatch(/coming soon/i)
+  })
+
+  it('the Settings button opens /settings', async () => {
+    renderDash()
+    const links = await screen.findByTestId('links-card')
+    await userEvent.click(within(links).getByRole('link', { name: /Settings/ }))
+    expect(screen.getByTestId('where').textContent).toBe('/settings')
   })
 
   it('shows mastery bars per topic with band labels', async () => {
@@ -205,6 +219,19 @@ describe('DashboardPage, signed-in player', () => {
   })
 })
 
+describe('DashboardPage, handle display for a registered player', () => {
+  it('welcomes by username when there is no handle, and shows no upgrade offer', async () => {
+    renderDash()
+    expect(await screen.findByText('Welcome back, Sam')).toBeTruthy()
+    expect(screen.queryByTestId('upgrade-offer')).toBeNull()
+  })
+
+  it('welcomes by handle when the backend sends one', async () => {
+    renderDash({ session: 'player', user: { id: 'u1', username: 'sam', is_guest: false, handle: 'Sam#0042' } })
+    expect(await screen.findByText('Welcome back, Sam#0042')).toBeTruthy()
+  })
+})
+
 describe('DashboardPage, guest', () => {
   it('shows the demo card, provisional stats and a Create account call to action instead of the player cards', async () => {
     renderDash({ session: null })
@@ -214,7 +241,10 @@ describe('DashboardPage, guest', () => {
     expect(within(stats).getByRole('button', { name: /Create account/ })).toBeTruthy()
     expect(screen.queryByTestId('level-card')).toBeNull()
     expect(screen.queryByTestId('links-card')).toBeNull()
-    expect(within(screen.getByTestId('demo-card')).getByRole('link', { name: /Upload notes/ }).getAttribute('href')).toBe('/register')
+    // The guest-only Create an account gate link was replaced by the compact Path_Choice (guests may open /upload).
+    const choice = within(screen.getByTestId('demo-card')).getByTestId('path-choice')
+    expect(within(choice).getByRole('button', { name: /Play preloaded dungeons/ })).toBeTruthy()
+    expect(within(choice).getByRole('button', { name: /Upload my notes/ })).toBeTruthy()
   })
 
   it('shows this tab’s runs and a provisional rank on the demo board', async () => {
@@ -224,6 +254,32 @@ describe('DashboardPage, guest', () => {
     await vi.waitFor(() => expect(within(stats).getByText(/^#\d/)).toBeTruthy())
     expect(within(stats).getByText('2,300')).toBeTruthy()
     expect(within(stats).getByText('80%')).toBeTruthy()
+  })
+
+  it('shows the handle and the upgrade offer for a guest and never the internal username', async () => {
+    renderDash({ session: 'guest', user: { id: 'u1', username: 'guest_ab12cd34', is_guest: true, handle: 'Pale Moth#1234' } })
+    expect(await screen.findByText('Playing as Pale Moth#1234')).toBeTruthy()
+    const stats = screen.getByTestId('guest-stats')
+    const offer = await within(stats).findByRole('button', { name: /Create an account to keep your name and points/ })
+    const user = userEvent.setup()
+    await user.click(offer)
+    expect(screen.getByTestId('where').textContent).toBe('/register?upgrade=1')
+  })
+
+  it('a guest without a handle shows Guest, not guest_xxxxxxxx', async () => {
+    renderDash({ session: 'guest', user: { id: 'u1', username: 'guest_ab12cd34', is_guest: true } })
+    expect(await screen.findByText('Playing as Guest')).toBeTruthy()
+    await within(screen.getByTestId('guest-stats')).findByTestId('upgrade-offer')
+    expect(document.body.textContent).not.toContain('guest_ab12cd34')
+  })
+
+  it('keeps the plain Create account button when accountUpgrade is off', async () => {
+    h.api = { ...createMockAdapter({ player: true }), capabilities: { accountUpgrade: false } }
+    renderDash({ session: 'guest', user: { id: 'u1', username: 'guest_ab12cd34', is_guest: true, handle: 'Pale Moth#1234' } })
+    const stats = await screen.findByTestId('guest-stats')
+    await new Promise((r) => setTimeout(r, 30))
+    expect(within(stats).getByRole('button', { name: 'Create account' })).toBeTruthy()
+    expect(within(stats).queryByTestId('upgrade-offer')).toBeNull()
   })
 
   it('Create account goes to the sign-in page', async () => {

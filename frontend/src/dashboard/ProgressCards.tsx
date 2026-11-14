@@ -131,7 +131,7 @@ export function BadgesCard({ earned, className = '' }: { earned: readonly string
 export function ArmoryCard({ weapons, level }: { weapons: ProgressInfo['weapons']; level: number }) {
   if (!weapons || weapons.length === 0) return null
   return (
-    <section className="sd-card" data-testid="armory-card">
+    <section className="sd-card sd-dash__armory" data-testid="armory-card">
       <Armory weapons={weapons} level={level} equippable />
     </section>
   )

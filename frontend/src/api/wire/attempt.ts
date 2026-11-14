@@ -1,5 +1,6 @@
 import { z } from 'zod'
 import type { AnswerResult } from '../../types/api'
+import { mapPlayerPoints, wirePlayerPointsSchema, wirePointsFields } from './packs'
 
 /** `POST /runs/{id}/attempts` (AttemptResponse, C10). */
 export const wireAttemptSchema = z.object({
@@ -20,6 +21,10 @@ export const wireAttemptSchema = z.object({
   retry_multiplier: z.number().optional(),
   combo: z.number().int().nonnegative().optional(),
   correct_answer: z.string().nullish(),
+  // PROPOSED (frontend-10): Leaderboard points, absent on today's backend.
+  ...wirePointsFields,
+  points_bonus: z.number().int().nonnegative().optional(),
+  player_points: wirePlayerPointsSchema.optional(),
 })
 
 export type WireAttempt = z.output<typeof wireAttemptSchema>
@@ -55,5 +60,9 @@ export function mapAttempt(w: WireAttempt, ctx: AttemptContext): AnswerResult {
     ...(w.retry_multiplier !== undefined ? { retry_multiplier: w.retry_multiplier } : {}),
     ...(w.combo !== undefined ? { combo: w.combo } : {}),
     ...(w.correct_answer ? { correct_answer: w.correct_answer } : {}),
+    ...(w.points_awarded !== undefined ? { points_awarded: w.points_awarded } : {}),
+    ...(w.points_reason !== undefined ? { points_reason: w.points_reason } : {}),
+    ...(w.points_bonus !== undefined ? { points_bonus: w.points_bonus } : {}),
+    ...(w.player_points !== undefined ? { player_points: mapPlayerPoints(w.player_points) } : {}),
   }
 }

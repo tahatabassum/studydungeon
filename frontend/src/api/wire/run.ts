@@ -1,6 +1,7 @@
 import { z } from 'zod'
 import type { ClearRoomResponse, Run, RunSummary } from '../../types/api'
 import { chestRewardSchema, floorRankSchema } from '../schemas'
+import { mapPackProgress, mapPlayerPoints, wirePackProgressSchema, wirePlayerPointsSchema, wirePointsFields } from './packs'
 
 /** `POST /runs` (201) and `GET /runs/{id}`: RunDetailResponse (C8, C21). */
 export const wireRunRoomSchema = z.object({
@@ -55,10 +56,17 @@ export const wireClearSchema = z.object({
   is_cleared: z.boolean().optional(),
   xp_delta: z.number().int().nonnegative(),
   is_boss: z.boolean().optional(),
+  // PROPOSED (frontend-10).
+  ...wirePointsFields,
 })
 
 export function mapClear(w: z.output<typeof wireClearSchema>): ClearRoomResponse {
-  return { xp_delta: w.xp_delta, ...(w.is_boss !== undefined ? { is_boss: w.is_boss } : {}) }
+  return {
+    xp_delta: w.xp_delta,
+    ...(w.is_boss !== undefined ? { is_boss: w.is_boss } : {}),
+    ...(w.points_awarded !== undefined ? { points_awarded: w.points_awarded } : {}),
+    ...(w.points_reason !== undefined ? { points_reason: w.points_reason } : {}),
+  }
 }
 
 /** `POST /runs/{id}/finish` (C15). */
@@ -75,6 +83,10 @@ export const wireFinishSchema = z.object({
   floor_rank: floorRankSchema.optional(),
   mastery_by_topic: z.array(z.object({ topic_id: z.string(), title: z.string(), mastery: z.number() })).optional(),
   chest_rewards: z.array(chestRewardSchema).optional(),
+  // PROPOSED (frontend-10).
+  points_earned: z.number().int().nonnegative().optional(),
+  player_points: wirePlayerPointsSchema.optional(),
+  pack_progress: wirePackProgressSchema.nullish(),
 })
 
 export function mapFinish(w: z.output<typeof wireFinishSchema>): RunSummary {
@@ -88,5 +100,8 @@ export function mapFinish(w: z.output<typeof wireFinishSchema>): RunSummary {
     ...(w.floor_rank !== undefined ? { floor_rank: w.floor_rank } : {}),
     ...(w.mastery_by_topic !== undefined ? { mastery_by_topic: w.mastery_by_topic } : {}),
     ...(w.chest_rewards !== undefined ? { chest_rewards: w.chest_rewards } : {}),
+    ...(w.points_earned !== undefined ? { points_earned: w.points_earned } : {}),
+    ...(w.player_points !== undefined ? { player_points: mapPlayerPoints(w.player_points) } : {}),
+    ...(w.pack_progress != null ? { pack_progress: mapPackProgress(w.pack_progress) } : {}),
   }
 }

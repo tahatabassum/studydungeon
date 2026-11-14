@@ -27,7 +27,7 @@ describe('Property 21: Share post text', () => {
   it('keeps the dungeon name on one line and names only known badges', () => {
     const text = buildPostText({ score: 1200, rank: 3, badges: ['first_blood', 'nope'], dungeonName: 'Line one\nLine two' })
     expect(text.split('\n')[0]).toContain('Line one Line two')
-    expect(text).toContain('Score 1200, rank #3.')
+    expect(text).toContain('Dungeon score 1200, rank #3.')
     expect(text).toContain('Badges: First Blood.')
     expect(text).not.toContain('nope')
   })

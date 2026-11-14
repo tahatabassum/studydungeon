@@ -29,7 +29,7 @@ export function DefeatOverlay({ onRetry, xp, score }: DefeatOverlayProps) {
       <p id="defeat-desc" className="text-ink">
         The monster won this round. Review your notes and try again.
         {xp !== undefined && <span className="block text-ink-muted">XP earned: {xp}</span>}
-        {score !== undefined && <span className="block text-ink-muted">Score: {score}</span>}
+        {score !== undefined && <span className="block text-ink-muted">Dungeon score: {score}</span>}
       </p>
       <DefeatCandles />
       <div className="font-(family-name:--font-label)">

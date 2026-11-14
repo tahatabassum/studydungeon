@@ -1,6 +1,6 @@
 import { cleanup, render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { MemoryRouter } from 'react-router-dom'
+import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 const rm = vi.hoisted(() => ({ reduced: false, start: vi.fn() }))
@@ -125,28 +125,27 @@ describe('first run on the landing page', () => {
     return render(
       <MemoryRouter>
         <SessionProvider>
-          <LandingPage />
+          <Routes>
+            <Route path="/" element={<LandingPage />} />
+            <Route path="/play-as-guest" element={<p data-testid="name-screen-stub">Name</p>} />
+          </Routes>
         </SessionProvider>
       </MemoryRouter>,
     )
   }
 
-  it('shows intro then tutorial once, then nothing on later visits', async () => {
+  it('never opens the intro or tutorial on its own: Try the Demo goes straight to the Name_Screen', async () => {
     const user = userEvent.setup()
     renderLanding()
-    await user.click(screen.getByRole('button', { name: 'Try the Demo' }))
-    expect(screen.getByTestId('intro-story')).toBeTruthy()
-    for (let i = 0; i < 4; i++) await user.keyboard('{Enter}')
-    expect(screen.getByTestId('tutorial')).toBeTruthy()
-    expect(rm.start).not.toHaveBeenCalled()
-    await user.click(screen.getByRole('button', { name: 'Skip tutorial' }))
-    expect(rm.start).toHaveBeenCalledTimes(1)
-    await user.click(screen.getByRole('button', { name: 'Try the Demo' }))
     expect(screen.queryByTestId('tutorial')).toBeNull()
+    await user.click(screen.getByRole('button', { name: 'Try the Demo' }))
     expect(screen.queryByTestId('intro-story')).toBeNull()
-    expect(rm.start).toHaveBeenCalledTimes(2)
+    expect(screen.queryByTestId('tutorial')).toBeNull()
+    expect(rm.start).not.toHaveBeenCalled()
+    expect(screen.getByTestId('name-screen-stub')).toBeTruthy()
+    expect(localStorage.getItem(INTRO_FLAG_KEY)).toBeNull()
+    expect(localStorage.getItem(TUTORIAL_FLAG_KEY)).toBeNull()
   })
-
   it('replays the tutorial on request without starting a run', async () => {
     const user = userEvent.setup()
     markTutorialSeen()

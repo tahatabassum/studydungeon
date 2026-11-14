@@ -5,9 +5,8 @@
  * **Validates: Requirements 8.1, 8.2, 8.3, 8.4, 8.5, 8.6**
  */
 import { useEffect } from 'react'
-import { act, cleanup, render, screen, within } from '@testing-library/react'
+import { act, cleanup, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { MemoryRouter } from 'react-router-dom'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { ApiClient } from '@/api'
 import { supportsPracticeModes } from '@/api/ApiClient'
@@ -38,8 +37,7 @@ vi.mock('@/game/GameCanvas', () => ({
   },
 }))
 
-import App from '@/App'
-import { SessionProvider } from '@/state/SessionContext'
+import { openDemoMap } from '@/test/enterDemo'
 
 const dungeon = demoDungeon as unknown as Dungeon
 const sent = (): ToGameEvent[] => h.events as ToGameEvent[]
@@ -51,15 +49,8 @@ let adapter: ApiClient
 let user: ReturnType<typeof userEvent.setup>
 
 async function openMap() {
-  render(
-    <MemoryRouter initialEntries={['/']}>
-      <SessionProvider>
-        <App />
-      </SessionProvider>
-    </MemoryRouter>,
-  )
-  await user.click(screen.getByRole('button', { name: /try the demo/i }))
-  await screen.findByRole('heading', { level: 1, name: 'Your notes became 2 floors' })
+  await openDemoMap(user)
+
 }
 
 /** Opens the picker from the keyboard: focus the button, press Enter. */

@@ -5,6 +5,7 @@ import { Spinner } from '../components/Spinner'
 import type { Dungeon, FinalBoss, Floor } from '../types/api'
 import { DailyHauntButton } from '../haunt/DailyHauntButton'
 import { ModePickerButton } from '../haunt/ModePickerButton'
+import { PackHeader } from '../packs/PackHeader'
 import { FloorMap } from './FloorMap'
 import { rejectionMessage } from './rejection'
 import { campaignView } from './floorRooms'
@@ -143,6 +144,7 @@ export default function CampaignPage() {
       onRetryFloor={(f) => void retryFloor(f)}
       headerTools={
         <>
+          <PackHeader dungeonId={dungeonId} />
           <DailyHauntButton dungeonId={dungeonId} compact />
           <ModePickerButton dungeonId={dungeonId} floors={generation.floors} />
         </>

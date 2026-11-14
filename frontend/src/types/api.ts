@@ -6,8 +6,47 @@
 
 export interface User {
   id: string
+  /** '' for a Guest whose wire username is null. Never shown publicly (use displayHandle). */
   username: string
   is_guest: boolean
+  /** frontend-10: public identity fields; absent on older Backends. */
+  public_id?: string
+  display_name?: string
+  tag?: string
+  handle?: string
+}
+
+/** frontend-10 (D2): a feature switch; 'unproven' until the first call of a PROPOSED feature answers. */
+export type CapabilityState = boolean | 'unproven'
+
+export type NameReason = 'too_short' | 'too_long' | 'characters' | 'not_allowed'
+
+/** POST /guests/name-check. */
+export interface NameCheckResult {
+  ok: boolean
+  display_name?: string
+  reason?: NameReason
+  message?: string
+}
+
+/** POST /guests body. The notice acceptance is always true when sent. */
+export interface CreateGuestRequest {
+  display_name: string
+  accept_public_notice: true
+}
+
+export interface CreateGuestResponse {
+  user: User
+  notice_version: string
+}
+
+/** One item of GET /dungeons. */
+export interface DungeonSummary {
+  id: string
+  title: string
+  is_public_demo: boolean
+  created_at: string
+  rooms_count: number
 }
 
 /** Body of register and login. The Backend normalizes the username (lowercase) and is the validator. */
@@ -179,14 +218,26 @@ export interface AnswerResult {
   combo?: number
   /** PROPOSED (frontend-08): revealed only after a wrong answer. */
   correct_answer?: string
+  /** PROPOSED (frontend-10): Leaderboard points for this answer. */
+  points_awarded?: number
+  points_reason?: string
+  points_bonus?: number
+  player_points?: PlayerPoints
 }
 
 export interface ClearRoomResponse {
   xp_delta: number
   is_boss?: boolean
+  /** PROPOSED (frontend-10): Leaderboard points for this clear. */
+  points_awarded?: number
+  points_reason?: string
 }
 
 export interface RunSummary {
+  /** PROPOSED (frontend-10): Leaderboard points earned in this run, the player's totals and the pack outcome. */
+  points_earned?: number
+  player_points?: PlayerPoints
+  pack_progress?: PackProgress
   score: number
   xp: number
   correct: number
@@ -292,6 +343,32 @@ export interface DocumentStatus {
   chunks_count: number
   relevance_score: number | null
   readability_score: number | null
+  /** frontend-10 (PROPOSED): false when the notes are too short to count for the ranking. */
+  counts_for_ranking?: boolean
+  ranking_note?: string
+  /** frontend-10 (PROPOSED): the dungeon built from this document, once it exists. */
+  dungeon_id?: string
+  /** frontend-10 (PROPOSED): one row per floor while the dungeon generates. */
+  floors?: { id: string; status: FloorStatus }[]
+}
+
+/** frontend-10 (PROPOSED, V2 G): why an upload is blocked. */
+export type QuotaReason = 'player_daily_limit' | 'ip_daily_limit' | 'stored_limit' | 'global_daily_limit' | 'ai_unavailable'
+
+/** frontend-10 (PROPOSED): GET /uploads/quota. */
+export interface UploadQuota {
+  can_upload: boolean
+  reason: QuotaReason | null
+  player: {
+    is_guest: boolean
+    used_today: number
+    limit_today: number
+    stored: number
+    stored_limit: number
+    resets_at?: string
+  }
+  global?: { available: boolean }
+  ranking?: { min_chars: number; min_topics: number }
 }
 
 /** `GET /documents/{id}/topics`: one detected topic. */
@@ -333,6 +410,47 @@ export interface LeaderboardResponse {
   updated_at: string
 }
 
+/** frontend-10 (V2 D.3, PROPOSED): the live leaderboard of real players. */
+export type BoardKind = 'preloaded' | 'own_notes' | 'overall'
+export interface BoardQuery {
+  board: BoardKind
+  period: LeaderboardPeriod
+}
+export interface BoardEntry {
+  rank: number
+  public_id: string
+  handle: string
+  display_name?: string
+  tag?: string
+  is_guest: boolean
+  level: number
+  points: number
+  rooms_cleared: number
+  badge_ids?: string[]
+  /** Mock domain only: a seeded Ghost Rival. The wire mapper never produces it. */
+  is_seeded_rival?: boolean
+}
+export interface BoardMe {
+  live: boolean
+  public_id?: string
+  handle?: string
+  rank: number | null
+  points: number
+  next_above: { rank: number; handle: string; points: number; points_needed: number } | null
+  top20: { in_top20: boolean; cutoff_points: number; points_needed: number }
+  reason?: string
+}
+export interface BoardResponse {
+  board: BoardKind
+  period: LeaderboardPeriod
+  week?: { timezone: string; starts_at: string; resets_at: string }
+  updated_at: string
+  next_refresh_at: string
+  total_ranked_players?: number
+  entries: BoardEntry[]
+  me: BoardMe | null
+}
+
 /** PROPOSED (pending Person A) */
 export type WeaponId =
   | 'rusty_dagger'
@@ -351,3 +469,58 @@ export type BadgeId =
   | 'memory_keeper'
   | 'speed_reader'
   | 'dungeon_master'
+
+/** frontend-10 (V2 B.2, PROPOSED): preloaded packs and Leaderboard points. */
+export type PackStatus = 'locked' | 'available' | 'in_progress' | 'completed'
+export interface Pack {
+  id: string
+  order: number
+  title: string
+  description: string
+  dungeon_id: string
+  floors_total: number
+  floors_cleared: number
+  final_boss_cleared: boolean
+  status: PackStatus
+  points_earned: number
+  /** Mock only: placeholder content. */
+  sample?: boolean
+}
+export interface PacksResponse {
+  packs: Pack[]
+  next_pack_id: string | null
+  all_completed: boolean
+}
+export interface PackProgress {
+  pack_id: string
+  status: PackStatus
+  unlocked_pack_id: string | null
+  all_completed: boolean
+}
+export type PointsReason =
+  | 'first_correct'
+  | 'repeat_correct'
+  | 'retry'
+  | 'wrong'
+  | 'too_fast'
+  | 'practice'
+  | 'not_ranked'
+  | 'daily_cap'
+  | 'room_clear'
+  | 'boss_clear'
+  | 'pack_complete'
+export interface PlayerPoints {
+  preloaded: number
+  own_notes: number
+  overall: number
+}
+
+/** frontend-10 (PROPOSED): GET /stats/players. Only \players\ is used by the title line. */
+export interface PlayerStats {
+  players: number
+  rooms_cleared_total?: number
+  answers_total?: number
+  packs_completed_total?: number
+  updated_at?: string
+  cache_seconds?: number
+}
