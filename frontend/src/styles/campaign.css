@@ -499,23 +499,14 @@
   line-height: 1.2;
   color: var(--color-bone);
   overflow-wrap: anywhere;
-  /* Two lines at most; the full title is in the tooltip and in the DOM. */
-  display: -webkit-box;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
-  line-clamp: 2;
-  overflow: hidden;
+  /* Wraps in full; nothing is clipped. */
 }
 .sd-fnode__meta {
   margin: 0;
   font-size: clamp(0.7rem, 1.7vh, 0.78rem);
   color: var(--color-ink-muted);
 }
-.sd-fnode__meta--boss {
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
+.sd-fnode__meta--boss { overflow-wrap: anywhere; }
 .sd-fnode__row {
   display: flex;
   flex-wrap: wrap;
@@ -557,9 +548,7 @@
 .sd-topic__name {
   display: block;
   min-width: 0;
-  overflow: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
+  overflow-wrap: anywhere;
   color: var(--color-ink);
   font-size: clamp(0.72rem, 1.8vh, 0.8rem);
   line-height: 1.25;
@@ -599,8 +588,8 @@
   right: -0.5rem;
   bottom: calc(100% - 1.5rem);
   z-index: 30;
-  max-height: min(40vh, 16rem);
-  overflow-y: auto;
+  max-height: none;
+  overflow: visible;
   padding: 0.55rem 0.65rem;
   border-radius: 0.5rem;
   border: 2px solid var(--color-accent);
@@ -733,14 +722,12 @@
   .sd-map__notice { margin-left: 0; text-align: left; }
 }
 
-/* Only on very short windows (under 480 px tall) the screen scrolls inside itself, never the page. */
-@media (max-height: 480px) {
-  .sd-map {
-    overflow-y: auto;
-    overflow-x: hidden;
-  }
-  .sd-map__stage {
-    flex: 1 0 20rem;
-    min-height: 20rem;
-  }
+/* Compact_Mode (under 1100 px or touch): natural page scrolling; only .sd-map__scroll scrolls sideways. */
+@media (max-width: 1099px), (pointer: coarse) {
+  .sd-map { height: auto; min-height: 100dvh; overflow: visible; }
+  .sd-map__stage { flex: 0 0 auto; height: max(22rem, 70dvh); min-height: 22rem; }
+  .sd-map__atmosphere .sd-moon { top: 0.5rem; bottom: auto; right: 0.5rem; width: 2.5rem; opacity: 0.3; }
+}
+@media (max-width: 640px), (max-height: 480px) {
+  .sd-map__atmosphere .sd-moon { display: none; }
 }

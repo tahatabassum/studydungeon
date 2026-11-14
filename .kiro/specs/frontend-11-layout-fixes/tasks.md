@@ -105,7 +105,7 @@ Rules for every task:
   - URL `/`, sizes as above. Wait for approval, then commit separately.
 
 - [ ] 10. Floor map audit and fix (RC30, RC31, RC32, RC33)
-  - [ ] 10.1 Measure and fix `/campaign/:id`
+  - [x] 10.1 Measure and fix `/campaign/:id`
     - `styles/campaign.css` and floor card markup only: horizontal map scroller allow-listed; floor cards not clipped at 1366x650; popover and ellipsis per Q7; the `max-height: 480px` page scroll replaced by the shared Compact_Mode release. No change to the map data, node order or Event_Bridge.
     - _Requirements: 11.1, 11.2, 11.3_
   - [ ] 10.2 Verify the floor map
