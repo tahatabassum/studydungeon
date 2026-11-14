@@ -553,10 +553,22 @@ async def finish_run(
         cleared_dungeon_ids = set(user_cleared_res.scalars().all())
         all_completed = all(p.dungeon_id in cleared_dungeon_ids for p in all_packs)
 
+        # Only the first completion of a pack reports the unlock; replays get null.
+        earlier_res = await db.execute(
+            select(GameRun.id).where(
+                GameRun.user_id == user.id,
+                GameRun.dungeon_id == run.dungeon_id,
+                GameRun.status == "completed",
+                GameRun.id != run.id,
+                GameRun.finished_at < run.finished_at,
+            ).limit(1)
+        )
+        first_completion = earlier_res.scalar_one_or_none() is None
+
         pack_progress = {
             "pack_id": current_pack.id,
             "status": "completed",
-            "unlocked_pack_id": next_pack.id if next_pack else None,
+            "unlocked_pack_id": next_pack.id if (next_pack and first_completion) else None,
             "all_completed": all_completed,
         }
 

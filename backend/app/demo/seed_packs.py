@@ -39,6 +39,25 @@ async def seed_content_packs(db: AsyncSession) -> list[ContentPack]:
         existing_pack = res.scalar_one_or_none()
 
         if existing_pack:
+            # Packs seeded before this fix used 1-based room_order; run logic is 0-based
+            # (boss = room_order == total_rooms - 1). Shift those rows down once.
+            rooms_res = await db.execute(select(DungeonRoom).where(DungeonRoom.dungeon_id == existing_pack.dungeon_id))
+            existing_rooms = rooms_res.scalars().all()
+            offset = min((r.room_order for r in existing_rooms), default=0)
+            # They also stored the role ("minion", "floor_boss") as the monster name.
+            names = {rm["id"]: rm.get("monster_name") for f in p_data["floors"] for rm in f["rooms"]}
+            if p_data.get("final_boss_room"):
+                names[p_data["final_boss_room"]["id"]] = p_data["final_boss_room"].get("monster_name")
+            renamed = False
+            for r in existing_rooms:
+                if names.get(r.id) and r.monster_type != names[r.id]:
+                    r.monster_type = names[r.id]
+                    renamed = True
+            if offset > 0:
+                for r in existing_rooms:
+                    r.room_order -= offset
+            if offset > 0 or renamed:
+                await db.commit()
             seeded_packs.append(existing_pack)
             continue
 
@@ -67,7 +86,7 @@ async def seed_content_packs(db: AsyncSession) -> list[ContentPack]:
         await db.flush()
 
         # Create Floors & Rooms
-        room_order = 1
+        room_order = 0  # 0-based, matching seed.py and the run logic
         for floor in p_data["floors"]:
             floor_id = floor["id"]
             for room in floor["rooms"]:
@@ -99,7 +118,7 @@ async def seed_content_packs(db: AsyncSession) -> list[ContentPack]:
                     dungeon_id=dungeon.id,
                     topic_id=topic.id,
                     room_order=room_order,
-                    monster_type=room["monster_type"],
+                    monster_type=room.get("monster_name") or room["monster_type"],
                     monster_hp=room["monster_hp"],
                     floor_id=floor_id,
                     monster_kind=room.get("monster_kind", "paper_wraith"),
@@ -153,7 +172,7 @@ async def seed_content_packs(db: AsyncSession) -> list[ContentPack]:
                 dungeon_id=dungeon.id,
                 topic_id=topic.id,
                 room_order=room_order,
-                monster_type=final_room["monster_type"],
+                monster_type=final_room.get("monster_name") or final_room["monster_type"],
                 monster_hp=final_room["monster_hp"],
                 floor_id=None,  # Final boss is not part of normal floors
                 monster_kind=final_room.get("monster_kind", "exam_warden"),

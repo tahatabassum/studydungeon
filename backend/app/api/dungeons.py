@@ -10,6 +10,7 @@ from app.ai.provider import ExtractedChunk
 from app.core.database import get_db
 from app.core.deps import get_current_user, require_registered_user
 from app.models.all_models import (
+    ContentPack,
     Document,
     DocumentChunk,
     Dungeon,
@@ -207,7 +208,12 @@ async def get_dungeon_detail(
         )
         .where(
             Dungeon.id == id,
-            or_(Dungeon.user_id == user.id, Dungeon.is_public_demo == True),
+            or_(
+                Dungeon.user_id == user.id,
+                Dungeon.is_public_demo == True,
+                # Preloaded content packs are readable by every player; POST /runs enforces PACK_LOCKED.
+                Dungeon.id.in_(select(ContentPack.dungeon_id)),
+            ),
         )
     )
     res = await db.execute(stmt)
