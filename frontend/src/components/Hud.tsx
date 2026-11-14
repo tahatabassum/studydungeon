@@ -93,16 +93,16 @@ export function Hud({
         data-low-health={lowHealth ? 'true' : undefined}
       >
         <div className="mb-0.5 flex items-center justify-between gap-2 text-sm font-semibold">
-          <span className="flex items-center gap-1.5 font-label tracking-wide">
+          <span className="flex min-w-0 items-center gap-1.5 font-label tracking-wide">
             <PixelSprite map={ICONS.heart} scale={1} />
             Hero
             {!compact && playerName && (
-              <span data-testid="hud-player-name" className="max-w-28 truncate text-xs font-normal text-ink/80" title={playerName}>
+              <span data-testid="hud-player-name" className="min-w-0 max-w-44 truncate text-xs font-normal text-ink/80" title={playerName}>
                 {playerName}
               </span>
             )}
           </span>
-          <span className="tabular-nums">
+          <span className="shrink-0 whitespace-nowrap tabular-nums">
             {playerHp} / {maxPlayerHp}
           </span>
         </div>
@@ -145,11 +145,11 @@ export function Hud({
         </span>
         {level !== undefined && <span className="font-label text-[color-mix(in_srgb,var(--color-magic),var(--color-ink)_40%)]">{`Lv ${level}`}</span>}
         {!compact && level !== undefined && totalXp !== undefined && xpToNext !== undefined && (
-          <span className="text-xs text-ink/80">{`Total ${totalXp} XP · ${xpToNext} to next`}</span>
+          <span className="whitespace-nowrap text-[0.8rem] font-normal text-ink/85">{`Total ${totalXp} XP · ${xpToNext} to next`}</span>
         )}
         {/* Real mode sends no xp_to_next: show the total only. */}
         {!compact && level !== undefined && totalXp !== undefined && xpToNext === undefined && (
-          <span className="text-xs text-ink/80">{`Total ${totalXp} XP`}</span>
+          <span className="whitespace-nowrap text-[0.8rem] font-normal text-ink/85">{`Total ${totalXp} XP`}</span>
         )}
         {streak !== undefined && streak > 0 && (
           <span className="flex items-center gap-1 text-accent">
@@ -228,7 +228,7 @@ function MonsterBlock({
                 </span>
               )}
             </span>
-            <span className="tabular-nums">
+            <span className="shrink-0 whitespace-nowrap tabular-nums">
               {monsterHp} / {maxMonsterHp}
             </span>
           </div>

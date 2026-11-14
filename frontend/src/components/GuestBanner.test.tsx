@@ -5,7 +5,7 @@ import { GuestBanner } from './GuestBanner'
 const rm = vi.hoisted(() => ({ reduced: false }))
 vi.mock('@/state/useReducedMotion', () => ({ useReducedMotion: () => rm.reduced }))
 
-const TEXT = 'Playing as guest. Progress is temporary. Create an account to save.'
+const TEXT = 'Playing as guest. Progress is temporary.'
 const advance = (ms: number) =>
   act(() => {
     vi.advanceTimersByTime(ms)
@@ -28,7 +28,7 @@ describe('GuestBanner', () => {
 
   it('names the player by handle when one is given', () => {
     render(<GuestBanner isGuest handle="Pale Moth#1234" />)
-    expect(screen.getByRole('status').textContent).toBe('Playing as Pale Moth#1234. Progress is temporary. Create an account to save.')
+    expect(screen.getByRole('status').textContent).toBe('Playing as Pale Moth#1234. Progress is temporary.')
   })
 
   it('stays permanently without autoHideMs and has no dismiss button', () => {
