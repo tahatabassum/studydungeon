@@ -94,7 +94,7 @@ Rules for every task:
   - Give the URL (`/leaderboard`, `?board=overall&period=week`, mock mode with 0, 1, 3, 8, 20 entries) and the window sizes. Wait for approval, then commit this screen separately. Do not push.
 
 - [ ] 8. Title screen audit and fix (RC29)
-  - [ ] 8.1 Measure and fix `/`
+  - [x] 8.1 Measure and fix `/`
     - `styles/landing.css`, `pages/LandingPage.tsx` markup only: Layout_Check at all Test_Sizes; remove any Nested_Scrollbar except `.sd-landing__main` below 1100x560; keep the player counter zero-height box; shared padding token.
     - _Requirements: 11.1, 11.2, 1.1_
   - [ ] 8.2 Verify the title screen

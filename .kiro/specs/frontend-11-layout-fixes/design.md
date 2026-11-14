@@ -251,3 +251,4 @@ Upload verify items (measured with the Layout_Check, 8 sizes, 9 states, 72/72 ok
 Leaderboard verify items (Layout_Check, 8 sizes, 11 states: 0/1/3/8/20 entries, guest, registered, week, error, loading; 88/88 ok):
 - RC9, RC19, RC20, RC21, RC23, RC24, RC25, RC26 confirmed and fixed: one Dashboard link, no inner scrollbar, compact rows in two columns (4-12, 13-20) when the box is short, podium and 'Your live rank' panel on the left, no hidden information, ellipsis with title on long names, grid-shaped skeleton without inline heights.
 - Dev-only mock switch ?mockBoard=<0..20>|error|slow (src/api/mock/mockBoardSwitch.ts) feeds the check; real mode never reads it.
+- RC29 confirmed and fixed (task 8): .sd-landing__main only scrolls below 1100x560; header nav now wraps/compacts at narrow widths (360x740 clip 386>360 gone). Layout_Check / 8/8 ok.

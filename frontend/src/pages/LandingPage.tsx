@@ -113,7 +113,7 @@ export default function LandingPage() {
       <header className="sd-landing__bar relative flex items-center gap-2">
         <Skull aria-hidden="true" className="h-6 w-6 text-danger" />
         <span className="font-(family-name:--font-label) font-semibold tracking-wide">StudyDungeon</span>
-        <nav aria-label="Main" className="ml-auto flex items-center gap-4 font-(family-name:--font-label) text-sm">
+        <nav aria-label="Main" className="sd-landing__nav ml-auto flex items-center gap-4 font-(family-name:--font-label) text-sm">
           <Link to="/dashboard" className="rounded px-1 py-2 text-ink underline-offset-4 hover:underline">
             Dashboard
           </Link>

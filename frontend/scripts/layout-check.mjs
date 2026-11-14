@@ -158,6 +158,20 @@ const MEASURE = `(${function measure(cfg) {
     const txt = (el.innerText || '').trim()
     if (el.classList.contains('sd-page--fit') || txt) out.push(`clipped ${desc(el)} ${clippedV ? el.scrollHeight + '>' + el.clientHeight + 'v' : el.scrollWidth + '>' + el.clientWidth + 'h'}`)
   }
+  const vis = (el) => {
+    const s = getComputedStyle(el)
+    const r = el.getBoundingClientRect()
+    return s.display !== 'none' && s.visibility !== 'hidden' && r.width > 0 && r.height > 0
+  }
+  const hits = [...document.querySelectorAll('a, button, input, select, textarea')].filter(vis)
+  for (const moon of document.querySelectorAll('.sd-moon')) {
+    if (!vis(moon)) continue
+    const m = moon.getBoundingClientRect()
+    for (const el of hits) {
+      const r = el.getBoundingClientRect()
+      if (r.left < m.right && r.right > m.left && r.top < m.bottom && r.bottom > m.top) out.push('moon-overlap ' + desc(el) + ' "' + (el.innerText || '').trim().slice(0, 20) + '"')
+    }
+  }
   return [...new Set(out)]
 }.toString()})`
 
@@ -343,7 +357,7 @@ async function main() {
     ]
     const LB_LABELS = [...LB_STATES.map(([n]) => n), 'guest-twenty', 'registered-twenty'].map((n) => `/leaderboard [${n}]`)
     const measure = async (route, size, phone) => {
-      const problems = await cdp.eval(`${MEASURE}(${JSON.stringify({ phone, scrollers: SCROLLERS, decor: DECOR })})`)
+      const problems = await cdp.eval(`${MEASURE}(${JSON.stringify({ phone, scrollers: phone ? SCROLLERS.replace(', .sd-landing__main', '') : SCROLLERS, decor: DECOR })})`)
       if (shotDir) {
         mkdirSync(shotDir, { recursive: true })
         const shot = await cdp.send('Page.captureScreenshot', { format: 'png' })

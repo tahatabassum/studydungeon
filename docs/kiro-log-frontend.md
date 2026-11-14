@@ -520,3 +520,6 @@ Frontend only; no backend, src/game, src/touch or styles/touch.css touched. Resu
 - Dev-only mock switch \?mockBoard=<0..20>|error|slow\ for the Layout_Check.
 - Changed tests in \LiveBoard.test.tsx\ (exact text only): \lb-foot\ became \lb-refresh\; the panel text is now 'Updates instantly. The table refreshes hourly.'.
 - Layout_Check /leaderboard and /upload: 160/160 ok at 8 sizes.
+
+## frontend-11 layout fixes: Title screen (tasks 8.1, 8.2, RC29), 2026-11-16
+Frontend only. landing.css: header nav wraps (.sd-landing__nav) and compacts below 420px so Leaderboard no longer overflows at 360x740 (386>360). LandingPage.tsx: nav class only. Layout_Check / 8/8 ok. No tests changed.
