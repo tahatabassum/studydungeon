@@ -23,3 +23,12 @@
 .sd-points-pop { font-weight: 700; color: var(--color-gold); animation: sd-pack-pop 0.5s ease-out both; }
 @media (prefers-reduced-motion: reduce) { .sd-points-pop { animation: none; } }
 .sd-points-pop[data-reduced='true'] { animation: none; }
+/* Desktop: the three packs sit side by side so the page fits one screen; compact keeps one column and scrolls. */
+@media (min-width: 1100px) and (pointer: fine) {
+  html:not([data-touch]) .sd-packs { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); align-items: stretch; }
+  html:not([data-touch]) .sd-pack { justify-content: flex-start; text-align: center; }
+  html:not([data-touch]) .sd-pack .sd-cta { margin-top: auto; }
+}
+.sd-pack .sd-card__h { display: inline-flex; align-items: center; gap: 0.5rem; justify-content: center; text-align: center; margin: 0; }
+.sd-pack > p { margin: 0; }
+.sd-pack [data-testid='pack-locked-text'] svg { display: inline-block; vertical-align: -2px; }

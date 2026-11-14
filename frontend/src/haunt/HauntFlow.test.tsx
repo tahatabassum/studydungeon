@@ -168,7 +168,7 @@ describe('Daily Haunt', () => {
     }
     const finale = await screen.findByTestId('haunt-finale')
     await user.click(within(finale).getByRole('button', { name: 'Open the map' }))
-    await screen.findByRole('heading', { level: 1, name: 'Your notes became 2 floors' })
+    await screen.findByRole('heading', { level: 1, name: 'Computer Basics Crypt' })
   })
 
   it('with nothing due it celebrates and gives the next due time, and the hall does not open', async () => {

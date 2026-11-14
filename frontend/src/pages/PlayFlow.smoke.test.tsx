@@ -289,7 +289,7 @@ describe('play flow smoke test', () => {
 
   it('guest banner shows at the start, hides after 6 s and does not return after restart', async () => {
     // The banner names the player by displayHandle (never the internal guest username).
-    const text = /^Playing as (?!guest_).+\. Progress is temporary\. Create an account to save\.$/
+    const text = /^Playing as (?!guest_).+\. Progress is temporary\.$/
     await startDemo()
     expect(await screen.findByText(text)).toBeTruthy()
     advance(6000)

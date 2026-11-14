@@ -156,7 +156,17 @@ const MEASURE = `(${function measure(cfg) {
     if (!clippedV && !clippedH) continue
     if (el.hasAttribute('title') && s.textOverflow === 'ellipsis') continue
     const txt = (el.innerText || '').trim()
-    if (el.classList.contains('sd-page--fit') || txt) out.push(`clipped ${desc(el)} ${clippedV ? el.scrollHeight + '>' + el.clientHeight + 'v' : el.scrollWidth + '>' + el.clientWidth + 'h'}`)
+    if (!el.classList.contains('sd-page--fit') && !txt) continue
+    // Name the descendant that reaches furthest past the box, to point at the cause.
+    const box = el.getBoundingClientRect()
+    let worst = null
+    let reach = 0
+    for (const d of el.querySelectorAll('*')) {
+      const r = d.getBoundingClientRect()
+      const over = clippedV ? r.bottom - box.bottom : r.right - box.right
+      if (over > reach + 0.5) { reach = over; worst = d }
+    }
+    out.push(`clipped ${desc(el)} ${clippedV ? el.scrollHeight + '>' + el.clientHeight + 'v' : el.scrollWidth + '>' + el.clientWidth + 'h'}${worst ? ' by ' + desc(worst) : ''}`)
   }
   const vis = (el) => {
     const s = getComputedStyle(el)
@@ -211,8 +221,9 @@ async function main() {
     await cdp.send('Runtime.enable')
 
     const results = [] // { route, size, problems }
-    const publicRoutes = routes.filter((r) => !SESSION_ROUTES.has(r))
-    const sessionRoutes = routes.filter((r) => SESSION_ROUTES.has(r))
+    const isSession = (r) => SESSION_ROUTES.has(r) || /^\/(campaign|haunt|packs)\//.test(r)
+    const publicRoutes = routes.filter((r) => !isSession(r))
+    const sessionRoutes = routes.filter(isSession)
 
     const settle = async (extra = 700) => {
       await waitFor(() => cdp.eval(`document.readyState === 'complete' && !!document.querySelector('main')`), 'the page', 20000).catch(() => {})
@@ -363,7 +374,7 @@ async function main() {
     ]
     const LB_LABELS = [...LB_STATES.map(([n]) => n), 'guest-twenty', 'registered-twenty'].map((n) => `/leaderboard [${n}]`)
     const measure = async (route, size, phone) => {
-      const problems = await cdp.eval(`${MEASURE}(${JSON.stringify({ phone, scrollers: phone ? SCROLLERS.replace(', .sd-landing__main', '') : SCROLLERS, decor: DECOR })})`)
+      const problems = await cdp.eval(`${MEASURE}(${JSON.stringify({ phone, scrollers: phone ? SCROLLERS.replace(', .sd-landing__main', '') + ', .sd-overlay-body' : SCROLLERS, decor: DECOR })})`)
       if (shotDir) {
         mkdirSync(shotDir, { recursive: true })
         const shot = await cdp.send('Page.captureScreenshot', { format: 'png' })
@@ -396,7 +407,7 @@ async function main() {
             continue
           }
           await goto(route)
-          await settle(route.startsWith('/campaign') ? 1500 : 700)
+          await settle(route.includes('/play/') ? 8000 : route.startsWith('/campaign') ? 1500 : 700)
           await measure(route, size, phone)
         }
       }

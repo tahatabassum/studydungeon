@@ -11,8 +11,8 @@ import '../styles/live.css'
 import { quotaView } from '../upload/quotaView'
 import { resolvePreloadedDungeon } from './resolvePreloaded'
 
-export const PRELOADED_TITLE = 'Play preloaded dungeons (try the game)'
-export const UPLOAD_TITLE = 'Upload my notes (play from your own material)'
+export const PRELOADED_TITLE = 'Play preloaded dungeons'
+export const UPLOAD_TITLE = 'Upload my notes'
 export const RESOLVE_ERROR = 'We could not reach the preloaded dungeons. Check your connection and try again.'
 
 /** Req 5.8: the quota line on the upload card, from the Backend, when `uploadQuota` is not off and a session exists. */
@@ -70,8 +70,14 @@ export function PathChoice({ variant = 'full', autoFocus }: PathChoiceProps) {
     if (focusOnMount) preloadedRef.current?.focus()
   }, [focusOnMount])
 
+  // On the Dashboard the Play Demo button already opens Pack 1, so this card opens the full pack list.
+  const toPackList = compact && packsOn
   const openPreloaded = useCallback(async () => {
     if (busy) return
+    if (toPackList) {
+      navigate('/packs')
+      return
+    }
     setBusy(true)
     setFailed(false)
     try {
@@ -84,7 +90,7 @@ export function PathChoice({ variant = 'full', autoFocus }: PathChoiceProps) {
     } finally {
       setBusy(false)
     }
-  }, [busy, user, setSession, navigate])
+  }, [busy, toPackList, user, setSession, navigate])
 
   return (
     <div className={`sd-choice${compact ? ' sd-choice--compact' : ''}`} data-testid="path-choice" data-variant={variant}>
@@ -100,17 +106,19 @@ export function PathChoice({ variant = 'full', autoFocus }: PathChoiceProps) {
         >
           <Skull aria-hidden="true" size={compact ? 18 : 28} />
           <span className="sd-choice__title">{PRELOADED_TITLE}</span>
-          {!compact && <span className="sd-choice__desc">Jump in and try the game right away.</span>}
+          <span className="sd-choice__desc">
+            {toPackList ? 'Every dungeon, unlocked one by one.' : 'Jump in and try the game right away.'}
+          </span>
           <span className="sd-choice__tag">Recommended</span>
         </button>
         <button type="button" className="sd-choice__card" onClick={() => navigate('/upload')} data-testid="choice-upload">
           <BookOpen aria-hidden="true" size={compact ? 18 : 28} />
           <span className="sd-choice__title">{UPLOAD_TITLE}</span>
-          {!compact && <span className="sd-choice__desc">Turn your own notes into a dungeon.</span>}
+          <span className="sd-choice__desc">Turn your own notes into a dungeon.</span>
           {quota && <span className="sd-choice__quota">{quota}</span>}
         </button>
       </div>
-      {packsOn && (
+      {packsOn && !compact && (
         <p className="sd-choice__more">
           <Link to="/packs" data-testid="choice-packs">
             See all dungeons

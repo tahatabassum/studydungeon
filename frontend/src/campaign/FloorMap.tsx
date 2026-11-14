@@ -49,6 +49,8 @@ export interface FloorMapProps {
   title: string
   floors: readonly Floor[]
   finalBoss?: FinalBoss | null
+  /** A preloaded dungeon (a pack), not the player's notes: the header names the dungeon instead. */
+  preloaded?: boolean
   /** Campaign extras (floor count header, mastery rings, Final_Boss). False for a backend without floors. */
   extras?: boolean
   /** Live-region text from the generation poller. */
@@ -105,6 +107,7 @@ export function FloorMap({
   floors,
   finalBoss = null,
   extras = true,
+  preloaded = false,
   announcement = '',
   errorMessage = null,
   onDismissError,
@@ -137,7 +140,8 @@ export function FloorMap({
   const viewportW = size.w || DEFAULT_WIDTH
   const viewportH = size.h || DEFAULT_HEIGHT
   const pitch = fitPitch(total, viewportW, viewportH)
-  const layout = useMemo(() => layoutFloors(total, viewportH, pitch), [total, viewportH, pitch])
+  const maxTopics = floors.reduce((m, f) => Math.max(m, f.topics.length), 0)
+  const layout = useMemo(() => layoutFloors(total, viewportH, pitch, maxTopics), [total, viewportH, pitch, maxTopics])
   const colH = Math.max(viewportH, layout.metrics.minHeight)
   const range = visibleRange(scrollLeft - PAD_X, viewportW, total, pitch, OVERSCAN_COLS, focusIndex)
 
@@ -471,12 +475,14 @@ export function FloorMap({
   const clearedCount = floors.filter((f) => f.status === 'cleared').length
   const heading = extras
     ? floors.length > 0
-      ? `Your notes became ${floors.length} ${floors.length === 1 ? 'floor' : 'floors'}`
+      ? preloaded
+        ? title
+        : `Your notes became ${floors.length} ${floors.length === 1 ? 'floor' : 'floors'}`
       : 'Your notes are not ready yet'
     : title
   const sub = extras
     ? floors.length > 0
-      ? `${title}. ${clearedCount} of ${floors.length} ${floors.length === 1 ? 'floor' : 'floors'} cleared.`
+      ? `${preloaded ? `${floors.length} ${floors.length === 1 ? 'floor' : 'floors'} and a final boss` : title}. ${clearedCount} of ${floors.length} ${floors.length === 1 ? 'floor' : 'floors'} cleared.`
       : title
     : floors.length === 1
       ? `One floor: ${floors[0].title}.`

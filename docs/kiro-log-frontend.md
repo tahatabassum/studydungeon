@@ -534,3 +534,12 @@ Frontend only. landing.css: header nav wraps (.sd-landing__nav) and compacts bel
 - layout-check.mjs: guest login step now waits for the input and an enabled button, retries up to 3 times; /dashboard supported (page scroll allowed, overflow and nested scrollbars still checked).
 - Final layout:check (all routes, 8 sizes): 216/216 ok, 0 failures. All rows ok at 1366x650, 1366x768, 1536x864, 1920x960, 1920x1080, 2560x1440, 360x740, 740x360.
 - Dashboard 1366x768 and 360x740: no horizontal overflow, no nested scrollbars. Known cosmetic: decorative moon overlaps the Leaderboard link at desktop (not fixed, pre-existing).
+## 2026-11-14 Design pass after backend-08 merge
+- Backend check: contract 27/0/13 against backend-08; fixed pack dungeon 404, 1-based pack room_order, role names as monster names, repeated unlock on replay (see B-to-A.md).
+- Packs page: three cards in a row on desktop (fits 1366x768), in-world mock copy, inline lock icon.
+- Scorecard: left score rail on wide desktop so it fits 1366x768 and 1280x720; overlay panels no longer shrink and overlap; .sd-overlay-body is relative (sr-only text no longer stretched the overlay).
+- Floor map: packs show the dungeon name and "N floors and a final boss"; untouched topics read "Not tried yet"; path and cards centred using the topic rows the cards show.
+- Dashboard: compact preloaded card opens /packs (Play Demo already opens Pack 1), shorter card titles, Your visit shows empty stats.
+- HUD: HP numbers never wrap, longer handle, readable XP totals; guest banner text no longer repeats its button.
+- layout-check.mjs: /packs/ is a session route, overlay body is a sanctioned scroller on phones, clipped reports name the overflowing element.
+- Verify: typecheck, lint, 1478 passed / 27 skipped, contract 46/1, build, layout:check 216/216.

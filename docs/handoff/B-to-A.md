@@ -696,3 +696,12 @@ Each case is skipped when its endpoint answers 404, 405 or 501. Run against a di
 
 #### Question from frontend-11 layout fixes (2026-11-14)
 - Do rejected or failed uploads (for example a file the server rejects as unreadable or too short) consume the daily upload quota, or only accepted uploads? The upload screen currently refreshes the quota after every send and shows whatever GET /uploads/quota returns. Please confirm the rule so the copy next to the quota chip can say it.
+
+#### backend-08 check and fixes by Person B (2026-11-14)
+- Contract suite against backend-08 (local, mock AI, fresh SQLite): 27 passed, 0 failed, 13 skipped (skips are capability-gated or mock-only answer key cases).
+- Fixed in `backend/` (commit "fix(backend): pack dungeons readable..."), with `tests/test_pack_progress_replay.py`:
+  - `GET /dungeons/{id}` answered 404 for pack dungeons (owned by system_demo, `is_public_demo` false), so the floor map could not open Packs 1-3 in real mode. Pack dungeons are now readable by every player; `POST /runs` still enforces `PACK_LOCKED`.
+  - `seed_packs.py` used 1-based `room_order` while every run check is 0-based (`room_order == total_rooms - 1` is the boss). The final boss was never treated as the boss, `final_boss` was missing from the dungeon view and `room_number` started at 2. Seeding is 0-based now and existing rows are shifted once on startup.
+  - `monster_type` stored the role (`minion`, `floor_boss`, `final_boss`), which the game shows as the monster name. It now stores the JSON `monster_name`; existing rows are renamed on startup.
+  - `POST /runs/{id}/finish` reported `unlocked_pack_id` on every replay of a cleared pack, which sent players to the "Pack unlocked" screen again. It is now set only on the first completion (re-finishing the same run is unchanged).
+- Still open for Person A: floor titles in `GET /dungeons/{id}` are built as "Floor N: first topic" instead of the pack JSON floor title; floor `status` and `rank` are not per player yet (Floor 1 always available, others locked); finish has no `points_*` fields. Two pytest cases fail locally before and after these changes (`test_session_attack_tampered_signature`, `test_gemini_model_config_exists`), likely local `.env` values.

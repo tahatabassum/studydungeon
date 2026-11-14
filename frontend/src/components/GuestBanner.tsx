@@ -75,7 +75,7 @@ export function GuestBanner({ isGuest, handle, onCreateAccount, autoHideMs, onDo
       className="flex flex-wrap items-center justify-between gap-x-2 rounded-md border border-deep bg-surface-2/80 px-2 py-0.5 text-xs leading-tight text-ink-muted"
     >
       <p role="status" className="min-w-0 truncate">
-        {handle ? `Playing as ${handle}. ` : 'Playing as guest. '}Progress is temporary. Create an account to save.
+        {handle ? `Playing as ${handle}. ` : 'Playing as guest. '}Progress is temporary.
       </p>
       <div className="flex items-center gap-1">
         <UpgradeOffer

@@ -52,7 +52,7 @@ describe('Offline label and guest banner', () => {
 
   it('keeps the guest banner text exact and sends Create account to /register', () => {
     render(<GuestBanner isGuest />)
-    expect(screen.getByText('Playing as guest. Progress is temporary. Create an account to save.')).toBeTruthy()
+    expect(screen.getByText('Playing as guest. Progress is temporary.')).toBeTruthy()
     expect(screen.getByRole('link', { name: 'Create account' }).getAttribute('href')).toBe('/register')
   })
 })

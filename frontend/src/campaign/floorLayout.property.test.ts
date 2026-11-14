@@ -151,7 +151,8 @@ describe('floor map logic', () => {
   it('keeps a full card inside the map height the layout asks for, and widens a short path to the viewport', () => {
     for (const h of [300, 450, 500, 650, 900, 1300]) {
       const m = layoutFloors(5, h).metrics
-      expect(m.minHeight).toBeGreaterThan(m.padTop + 2 * m.finalR + 2 * m.amp)
+      // The path, its wave and a full card below it still end inside the map, however far the spare height moved them down.
+      expect(m.padTop - 18 + m.minHeight).toBeLessThanOrEqual(Math.max(h, m.minHeight))
       if (h >= m.minHeight) expect(m.padTop + 2 * m.finalR + 2 * m.amp).toBeLessThan(h)
     }
     // 4 nodes on a 1366 px map fill the width; 25 nodes keep the base pitch.

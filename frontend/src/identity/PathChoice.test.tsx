@@ -53,7 +53,7 @@ function renderChoose(opts: { session?: boolean; compact?: boolean } = {}) {
 }
 
 const where = () => screen.getByTestId('where').textContent
-const preloaded = () => screen.getByRole('button', { name: /Play preloaded dungeons \(try the game\)/ })
+const preloaded = () => screen.getByRole('button', { name: /Play preloaded dungeons/ })
 
 /** The mock with a session-less-safe GET /dungeons and optional overrides. */
 function fake(over: Record<string, unknown> = {}) {
@@ -89,7 +89,7 @@ describe('PathChoice page', () => {
     const user = userEvent.setup()
     renderChoose()
     const card = preloaded()
-    expect(screen.getByRole('button', { name: /Upload my notes \(play from your own material\)/ })).toBeTruthy()
+    expect(screen.getByRole('button', { name: /Upload my notes/ })).toBeTruthy()
     expect(card.className).toContain('sd-choice__card--default')
     expect(card.textContent).toContain('Recommended')
     expect(document.activeElement).toBe(card)
@@ -184,6 +184,16 @@ describe('PathChoice compact', () => {
     renderChoose({ compact: true })
     expect(screen.getByTestId('path-choice').getAttribute('data-variant')).toBe('compact')
     expect(document.activeElement).not.toBe(preloaded())
+  })
+  it('opens the pack list from the Dashboard when packs are on, with no separate See all dungeons link', async () => {
+    const api = fake()
+    const user = userEvent.setup()
+    renderChoose({ compact: true })
+    await vi.waitFor(() => expect(preloaded().textContent).toContain('Every dungeon, unlocked one by one.'))
+    expect(screen.queryByTestId('choice-packs')).toBeNull()
+    await user.click(preloaded())
+    await vi.waitFor(() => expect(where()).toBe('/packs'))
+    expect(api.listDungeons).not.toHaveBeenCalled()
   })
 })
 

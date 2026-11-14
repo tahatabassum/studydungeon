@@ -250,7 +250,7 @@ export function Scorecard({
       titleId="victory-title"
       initialFocus="button[data-play-again]"
       backdrop={<VictoryFx />}
-      widthClass="max-w-4xl"
+      widthClass="max-w-4xl min-[1100px]:max-w-6xl"
     >
       <p className="font-(family-name:--font-label) text-ink-muted">{subtitle}</p>
 
