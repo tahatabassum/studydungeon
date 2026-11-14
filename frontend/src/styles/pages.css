@@ -17,9 +17,11 @@
   pointer-events: none;
   overflow: hidden;
 }
+/* Lower right on every page so it never lies under the top-right links (Dashboard: Leaderboard, Log out). */
 .sd-page__atmosphere .sd-moon {
-  top: 3%;
-  right: 5%;
+  top: auto;
+  bottom: 7%;
+  right: 4%;
   opacity: 0.45;
   width: clamp(5rem, 11vw, 8.5rem);
 }
@@ -204,6 +206,7 @@ a.sd-ghost-btn:hover { border-color: var(--color-accent); background: var(--colo
   --sd-fit-width: min(100%, 96rem);
   --sd-fit-pad: clamp(16px, 3vw, 48px);
   --sd-form-width: 32rem;
+  --sd-wide-width: 48rem;
   display: grid;
   grid-template-rows: minmax(0, 1fr);
   justify-items: center;
