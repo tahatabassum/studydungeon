@@ -28,7 +28,8 @@ export default function SettingsPage() {
       title="Settings"
       back={{ to: '/dashboard', label: 'Dashboard' }}
     >
-      <div className="sd-live__body sd-live__notice sd-settings">
+      <div className="sd-live__body sd-live__body--wide sd-settings">
+        <div className="sd-settings__cards">
         <section className="sd-card" aria-labelledby="set-account">
           <h2 id="set-account" className="sd-card__h">
             Account
@@ -50,6 +51,7 @@ export default function SettingsPage() {
             {`Reduced motion follows your device setting. It is currently ${reduced ? 'on' : 'off'}.`}
           </p>
         </section>
+        </div>
 
         <div className="sd-dash__actions">
           {registered && (

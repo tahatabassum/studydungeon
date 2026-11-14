@@ -2,9 +2,9 @@
 
 .sd-auth {
   width: 100%;
-  max-width: 30rem;
-  /* Centred in the fit body; auto margins fall back to the top edge when the body must scroll. */
-  margin: auto;
+  max-width: var(--sd-form-width, 30rem);
+  /* Centred by the fit grid, not by margins. */
+  margin: 0;
   flex: 0 0 auto;
   padding: clamp(0.75rem, 2.4vh, 1.25rem) clamp(1rem, 2vw, 1.5rem);
 }

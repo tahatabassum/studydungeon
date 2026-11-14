@@ -18,7 +18,7 @@ import { fileURLToPath } from 'node:url'
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 
 const ALL_ROUTES = ['/', '/login', '/register', '/upload', '/leaderboard', '/choose', '/play-as-guest', '/settings', '/campaign/demo-dungeon']
-const SESSION_ROUTES = new Set(['/choose', '/settings', '/campaign/demo-dungeon'])
+const SESSION_ROUTES = new Set(['/choose', '/settings', '/campaign/demo-dungeon', '/dashboard'])
 const ALL_SIZES = ['1366x650', '1366x768', '1536x864', '1920x960', '1920x1080', '2560x1440', '360x740', '740x360']
 const PHONES = new Set(['360x740', '740x360'])
 const SCROLLERS = '.sd-scroll, .sd-map__scroll, .sd-landing__main'
@@ -227,21 +227,27 @@ async function main() {
       await loaded
       await settle()
     }
-    const guestSession = async (query) => {
+    const guestAttempt = async (query) => {
       await load('/play-as-guest' + query)
       return cdp.eval(`(async () => {
-        const input = document.querySelector('#display-name')
+        const wait = async (fn, n = 50) => { for (let i = 0; i < n; i++) { const v = fn(); if (v) return v; await new Promise((r) => setTimeout(r, 200)) } return null }
+        const input = await wait(() => document.querySelector('#display-name'))
         if (!input) return false
         const set = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set
         set.call(input, 'Layout Tester')
         input.dispatchEvent(new Event('input', { bubbles: true }))
-        await new Promise((r) => setTimeout(r, 200))
-        const btn = [...document.querySelectorAll('button')].find((b) => /accept and continue|start the demo/i.test(b.textContent))
+        const btn = await wait(() => [...document.querySelectorAll('button')].find((b) => !b.disabled && /accept and continue|start the demo/i.test(b.textContent)))
         if (!btn) return false
         btn.click()
-        for (let i = 0; i < 50 && !location.pathname.startsWith('/choose'); i++) await new Promise((r) => setTimeout(r, 200))
-        return location.pathname.startsWith('/choose')
+        return !!(await wait(() => location.pathname.startsWith('/choose'), 60))
       })()`)
+    }
+    const guestSession = async (query) => {
+      for (let attempt = 0; attempt < 3; attempt++) {
+        if (await guestAttempt(query).catch(() => false)) return true
+        await cdp.eval(`sessionStorage.clear(); localStorage.clear()`).catch(() => {})
+      }
+      return false
     }
     const registeredSession = async () => {
       await load('/register')
@@ -364,7 +370,8 @@ async function main() {
         const name = `${route === '/' ? 'home' : route.replace(/^\//, '').replace(/[^\w-]+/g, '_').replace(/_+$/, '')}_${size}.png`
         writeFileSync(join(shotDir, name), Buffer.from(shot.data, 'base64'))
       }
-      results.push({ route, size, problems })
+      // The Dashboard is a scroll page (not a Fit_Screen): vertical page scroll is expected there.
+      results.push({ route, size, problems: route === '/dashboard' ? problems.filter((p) => !p.startsWith('page-v')) : problems })
     }
 
     for (const size of sizes) {

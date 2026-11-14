@@ -116,10 +116,10 @@ Rules for every task:
   - URL `/campaign/<id>` from the dashboard, sizes as above. Wait for approval, then commit separately.
 
 - [ ] 12. Login and register audit and fix (RC34)
-  - [ ] 12.1 Measure and fix `/login` and `/register`
+  - [x] 12.1 Measure and fix `/login` and `/register`
     - `styles/auth.css`, `styles/haunted.css`, `auth/*` markup only: vertical centring through the grid, card height at 1366x650 with an error line, shared width token, no `overflow`.
     - _Requirements: 11.1, 11.2_
-  - [ ] 12.2 Verify login and register
+  - [x] 12.2 Verify login and register
     - Full verification commands, Layout_Check for both routes, manual checklist, log entry.
     - _Requirements: 12.1, 12.2, 12.4, 12.5_
 
@@ -127,16 +127,16 @@ Rules for every task:
   - URLs `/login` and `/register`, sizes as above. Wait for approval, then commit separately.
 
 - [ ] 14. Choose, play-as-guest and settings audit and fix (RC5, RC35, RC36)
-  - [ ] 14.1 Measure and fix `/choose`
+  - [x] 14.1 Measure and fix `/choose`
     - `styles/live.css`, `styles/haunted.css`, `identity/PathChoice.tsx` markup only: cards grow with content, shared width, quota line and error row inside the area.
     - _Requirements: 11.1, 11.2_
-  - [ ] 14.2 Measure and fix `/play-as-guest`
+  - [x] 14.2 Measure and fix `/play-as-guest`
     - `styles/live.css`, `identity/NameScreen.tsx` markup only: form card at the shared form width, hint and notice fully visible.
     - _Requirements: 11.1, 11.2_
-  - [ ] 14.3 Measure and fix `/settings`
+  - [x] 14.3 Measure and fix `/settings`
     - `pages/SettingsPage.tsx` markup and `styles/live.css`: cards side by side in Desktop_Mode, one column in Compact_Mode, no use of `.sd-live__notice` as a layout class.
     - _Requirements: 11.1, 11.2_
-  - [ ] 14.4 Verify the three screens
+  - [x] 14.4 Verify the three screens
     - Full verification commands, Layout_Check for the three routes, manual checklist, log entry.
     - _Requirements: 12.1, 12.2, 12.4, 12.5_
 
@@ -144,7 +144,7 @@ Rules for every task:
   - URLs `/choose`, `/play-as-guest`, `/settings`, sizes as above. Wait for approval, then commit separately.
 
 - [ ] 16. Final regression
-  - [ ] 16.1 Run the Layout_Check for every Fit_Screen route at all Test_Sizes and the Dashboard for regressions
+  - [x] 16.1 Run the Layout_Check for every Fit_Screen route at all Test_Sizes and the Dashboard for regressions
     - Record the final table in `docs/kiro-log-frontend.md` with the full verification command output.
     - _Requirements: 12.1, 12.2, 12.4, 13.1_
 

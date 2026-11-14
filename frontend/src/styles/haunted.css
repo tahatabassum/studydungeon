@@ -32,7 +32,7 @@
   align-items: center;
 }
 .sd-haunted.sd-fit--center .sd-page__body > * { width: 100%; }
-.sd-haunted.sd-fit--center .sd-page__body:has(> .sd-live__body--wide) { max-width: 48rem; }
+.sd-haunted.sd-fit--center .sd-page__body:has(> .sd-live__body--wide) { max-width: var(--sd-wide-width); }
 .sd-haunted .sd-page__sub { color: #cdbfe3; margin-bottom: 0.5rem; }
 .sd-haunted .sd-card {
   background: rgb(18 10 32 / 0.78);
@@ -48,8 +48,8 @@
   align-items: center;
   justify-content: center;
   gap: 0.6rem;
-  min-height: clamp(11rem, 32vh, 16rem);
-  padding: 1.5rem 1.25rem;
+  min-height: 0;
+  padding: clamp(0.9rem, 3vh, 1.5rem) 1.25rem;
   text-align: center;
   color: var(--color-ink);
   background: rgb(18 10 32 / 0.8);
@@ -111,15 +111,15 @@
 [data-reduced='true'] .sd-haunted-backdrop { display: none; }
 @media (max-width: 640px) {
   .sd-haunted-fig:nth-of-type(n + 3) { display: none; }
-  .sd-haunted .sd-choice:not(.sd-choice--compact) .sd-choice__card { min-height: 8.5rem; padding: 1rem; }
+  .sd-haunted .sd-choice:not(.sd-choice--compact) .sd-choice__card { padding: 1rem; }
 }
 
 /* Shared dark glass form card: /login, /register (StoneFrame .sd-auth) and /play-as-guest (.sd-glass-form). */
 .sd-haunted .sd-auth,
 .sd-haunted .sd-glass-form {
   width: 100%;
-  max-width: 30rem;
-  margin: 0 auto;
+  max-width: var(--sd-form-width);
+  margin: 0;
   padding: clamp(1rem, 3vh, 1.75rem) clamp(1rem, 3vw, 1.75rem);
   text-align: left;
   background: rgb(18 10 32 / 0.8);
@@ -255,6 +255,10 @@
 }
 
 /* /settings: equal-width cards, small gap, centered actions */
-.sd-haunted .sd-settings { gap: 0.75rem; align-items: center; }
-.sd-haunted .sd-settings > .sd-card { width: 100%; }
+.sd-haunted .sd-settings { display: flex; flex-direction: column; gap: 0.75rem; align-items: center; text-align: left; }
+.sd-haunted .sd-settings__cards { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.75rem; width: 100%; align-items: stretch; }
+@media (max-width: 1099px), (pointer: coarse) {
+  .sd-haunted .sd-settings__cards { grid-template-columns: minmax(0, 1fr); }
+}
+html[data-touch] .sd-haunted .sd-settings__cards { grid-template-columns: minmax(0, 1fr); }
 .sd-haunted .sd-settings .sd-dash__actions { justify-content: center; flex-wrap: wrap; }

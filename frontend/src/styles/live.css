@@ -67,7 +67,7 @@
 }
 
 .sd-live__body--wide {
-  max-width: 48rem;
+  max-width: var(--sd-wide-width, 48rem);
 }
 /* Path_Choice (Req 5): two big cards, the preloaded one highlighted as the default. */
 .sd-choice {
@@ -87,7 +87,6 @@
   align-items: flex-start;
   gap: 0.6rem;
   padding: 1.25rem;
-  min-height: 9rem;
   font: inherit;
   text-align: left;
   color: var(--color-ink);

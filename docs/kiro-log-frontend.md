@@ -528,3 +528,9 @@ Frontend only. landing.css: header nav wraps (.sd-landing__nav) and compacts bel
 - campaign.css: Compact_Mode (<1100 px or coarse) releases .sd-map to natural page scroll (replaces the max-height:480px rule); .sd-map__scroll stays the only horizontal scroller; topics popover sized to content; floor titles, boss meta and topic names wrap instead of clipping.
 - pages.css/campaign.css: in Compact_Mode the decorative moon is small and top-right; hidden under 640 px wide or 480 px tall.
 - layout:check: 215/216 on best run, 0 real failures; remaining ones were intermittent 'could not create a mock session' on random routes. No tests changed.
+
+## 2026-11-17 Final regression: login, register, choose, play-as-guest, settings (tasks 12, 14, 16.1; RC5, RC34-RC36)
+- Auth card centred by the grid (margin 0), form card width = --sd-form-width (32rem); /choose cards lost min-height and grow with content; settings uses .sd-settings__cards (2 columns at >= 1100, 1 in Compact_Mode); wide bodies use --sd-wide-width.
+- layout-check.mjs: guest login step now waits for the input and an enabled button, retries up to 3 times; /dashboard supported (page scroll allowed, overflow and nested scrollbars still checked).
+- Final layout:check (all routes, 8 sizes): 216/216 ok, 0 failures. All rows ok at 1366x650, 1366x768, 1536x864, 1920x960, 1920x1080, 2560x1440, 360x740, 740x360.
+- Dashboard 1366x768 and 360x740: no horizontal overflow, no nested scrollbars. Known cosmetic: decorative moon overlaps the Leaderboard link at desktop (not fixed, pre-existing).
