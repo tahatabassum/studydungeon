@@ -140,7 +140,8 @@ export function FloorMap({
   const viewportW = size.w || DEFAULT_WIDTH
   const viewportH = size.h || DEFAULT_HEIGHT
   const pitch = fitPitch(total, viewportW, viewportH)
-  const layout = useMemo(() => layoutFloors(total, viewportH, pitch), [total, viewportH, pitch])
+  const maxTopics = floors.reduce((m, f) => Math.max(m, f.topics.length), 0)
+  const layout = useMemo(() => layoutFloors(total, viewportH, pitch, maxTopics), [total, viewportH, pitch, maxTopics])
   const colH = Math.max(viewportH, layout.metrics.minHeight)
   const range = visibleRange(scrollLeft - PAD_X, viewportW, total, pitch, OVERSCAN_COLS, focusIndex)
 

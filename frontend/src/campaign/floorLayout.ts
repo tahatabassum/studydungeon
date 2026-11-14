@@ -38,7 +38,8 @@ export interface MapMetrics {
 const clamp = (n: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, n))
 
 /** Sizes that scale with the height the map has been given. */
-export function mapMetrics(height: number): MapMetrics {
+/** `maxTopics`: the most topics any card lists, so a map of short cards is centred on what it really shows. */
+export function mapMetrics(height: number, maxTopics: number = Number.POSITIVE_INFINITY): MapMetrics {
   const h = Math.max(0, height)
   const sealR = clamp(Math.round(h * 0.085), 26, 56)
   const finalR = Math.round(sealR * 1.2)
@@ -46,10 +47,11 @@ export function mapMetrics(height: number): MapMetrics {
   const topicRows = h >= 760 ? 4 : h >= 430 ? 3 : h >= 350 ? 2 : 1
   const top = 18
   // seal diameter + wave + gap + a card with its chrome and its topic rows (about 30 px a row) + "+N more" + breathing room.
-  const cardEstimate = 150 + topicRows * 30 + 30
+  const shownRows = Math.min(topicRows, Math.max(0, maxTopics))
+  const cardEstimate = 150 + shownRows * 30 + (maxTopics > topicRows ? 30 : 0)
   const minHeight = top + 2 * finalR + 2 * amp + CARD_GAP + cardEstimate + 16
-  // Spare height moves the whole path down a little so a tall window is not top-heavy.
-  const padTop = top + Math.round(Math.max(0, h - minHeight) * 0.3)
+  // Spare height moves the whole path down so the path and its cards sit near the middle, not under the header.
+  const padTop = top + Math.round(Math.max(0, h - minHeight) * 0.5)
   return { sealR, finalR, amp, padTop, topicRows, minHeight }
 }
 
@@ -72,9 +74,14 @@ export function fitPitch(count: number, viewportW: number, viewportH: number = 0
 }
 
 /** Seal centres on a wave: `y = top + amp * (1 + sin(i * 0.9))`, one column per node. */
-export function layoutFloors(count: number, height: number, pitch: number = COL_PITCH): MapLayout {
+export function layoutFloors(
+  count: number,
+  height: number,
+  pitch: number = COL_PITCH,
+  maxTopics: number = Number.POSITIVE_INFINITY,
+): MapLayout {
   const n = Math.max(0, Math.floor(count))
-  const metrics = mapMetrics(height)
+  const metrics = mapMetrics(height, maxTopics)
   const base = metrics.padTop + metrics.finalR
   const points: NodePoint[] = Array.from({ length: n }, (_, i) => ({
     x: PAD_X + i * pitch + pitch / 2,
