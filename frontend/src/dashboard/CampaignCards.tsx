@@ -219,8 +219,28 @@ export function GuestStatsCard({ runs, best, rank, onCreateAccount, onUpgrade }:
         <UserPlus aria-hidden="true" size={18} />
         Your visit
       </h2>
-      {runs.length === 0 ? (
+      {runs.length === 0 && (
         <p className="sd-card__muted">No runs yet. Play the demo to see your stats and a provisional rank.</p>
+      )}
+      {runs.length === 0 ? (
+        <dl className="sd-dash__stats" data-empty="true">
+          <div>
+            <dt>Runs</dt>
+            <dd>0</dd>
+          </div>
+          <div>
+            <dt>Best score</dt>
+            <dd>0</dd>
+          </div>
+          <div>
+            <dt>Best accuracy</dt>
+            <dd>None yet</dd>
+          </div>
+          <div>
+            <dt>Provisional rank</dt>
+            <dd>None yet</dd>
+          </div>
+        </dl>
       ) : (
         <dl className="sd-dash__stats">
           <div>
