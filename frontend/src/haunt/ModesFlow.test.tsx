@@ -146,7 +146,7 @@ describe('practice modes', () => {
     await vi.waitFor(() => expect(finish).toHaveBeenCalledTimes(1))
     const card = await screen.findByRole('dialog', { name: /Weak topics practiced/ })
     await user.click(within(card).getByRole('button', { name: 'Back to the map' }))
-    await screen.findByRole('heading', { level: 1, name: 'Your notes became 2 floors' })
+    await screen.findByRole('heading', { level: 1, name: 'Computer Basics Crypt' })
     // Practice never clears a floor.
     expect(screen.getByTestId('floor-node-1').getAttribute('data-status')).toBe('ready')
   })

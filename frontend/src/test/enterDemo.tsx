@@ -47,5 +47,5 @@ export async function enterDemoAsGuest(user: ReturnType<typeof userEvent.setup>)
 export async function openDemoMap(user: ReturnType<typeof userEvent.setup>): Promise<void> {
   await enterDemoAsGuest(user)
   act(() => nav.go('/campaign/demo-dungeon'))
-  await screen.findByRole('heading', { level: 1, name: 'Your notes became 2 floors' })
+  await screen.findByRole('heading', { level: 1, name: 'Computer Basics Crypt' })
 }
