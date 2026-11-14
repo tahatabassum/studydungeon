@@ -12,6 +12,7 @@ from app.core.deps import get_current_user, require_registered_user
 from app.models.all_models import (
     ContentPack,
     Document,
+    GameRun,
     DocumentChunk,
     Dungeon,
     DungeonRoom,
@@ -35,7 +36,13 @@ async def get_document_topics(
     return [{"id": t.id, "name": t.name, "description": t.description, "order_index": t.order_index} for t in topics]
 
 
-@dungeons_router.post("/documents/{id}/generate-dungeon", status_code=status.HTTP_201_CREATED, response_model=DungeonDetailView)
+@dungeons_router.post(
+    "/documents/{id}/generate-dungeon",
+    status_code=status.HTTP_201_CREATED,
+    response_model=DungeonDetailView,
+    # Same shape as GET /dungeons/{id}: absent, not null (the frontend rejects floor_id: null).
+    response_model_exclude_none=True,
+)
 async def generate_dungeon(
     id: str,
     user: User = Depends(require_registered_user),
@@ -74,6 +81,33 @@ async def generate_dungeon(
             detail={"code": "GENERATION_FAILED", "message": "AI failed to cluster topics and generate grounded questions."},
         )
 
+    # Keep only questions whose evidence quote appears verbatim (whitespace-normalised) in some chunk,
+    # with at least 2 options and a valid answer index. A topic left with no questions gets no room.
+    def _norm(s: str) -> str:
+        return " ".join((s or "").split()).lower()
+
+    norm_chunks = [(c, _norm(c.text)) for c in chunks]
+
+    def _grounded(q):
+        quote = _norm(q.evidence_quote)
+        if not quote or len(q.options or []) < 2 or not (0 <= q.correct_option < len(q.options)):
+            return None
+        return next((c for c, text in norm_chunks if quote in text), None)
+
+    kept = []
+    for t_data in generated_topics:
+        qs = [(q, src) for q in t_data.questions if (src := _grounded(q)) is not None]
+        if qs:
+            kept.append((t_data, qs))
+    if not kept:
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            detail={
+                "code": "GENERATION_FAILED",
+                "message": "The AI could not write enough questions grounded in these notes. Try again or upload a longer document.",
+            },
+        )
+
     # Create Dungeon
     dungeon = Dungeon(
         user_id=user.id,
@@ -84,10 +118,10 @@ async def generate_dungeon(
     db.add(dungeon)
     await db.flush()
 
-    total_topics = len(generated_topics)
+    total_topics = len(kept)
     rooms_view: List[DungeonRoomView] = []
 
-    for idx, t_data in enumerate(generated_topics):
+    for idx, (t_data, grounded_qs) in enumerate(kept):
         topic = Topic(
             document_id=doc.id,
             user_id=user.id,
@@ -113,17 +147,10 @@ async def generate_dungeon(
         await db.flush()
 
         q_views: List[QuestionGameplayView] = []
-        # Find matching chunk for evidence verification
-        first_chunk = chunks[0] if chunks else None
-
-        for q in t_data.questions:
-            # Evidence quote invariant verification: must be verbatim substring
-            if first_chunk and q.evidence_quote and q.evidence_quote not in first_chunk.text:
-                continue
-
+        for q, src_chunk in grounded_qs:
             q_record = Question(
                 topic_id=topic.id,
-                source_chunk_id=first_chunk.id if first_chunk else None,
+                source_chunk_id=src_chunk.id,
                 question_type="mcq",
                 difficulty=q.difficulty,
                 prompt=q.prompt,
@@ -266,6 +293,13 @@ async def get_dungeon_detail(
             final_boss_room = r
 
     if floor_rooms_map:
+        # One run covers the whole dungeon, so a completed run clears every floor for this player.
+        done_res = await db.execute(
+            select(GameRun.id)
+            .where(GameRun.user_id == user.id, GameRun.dungeon_id == dungeon.id, GameRun.status == "completed")
+            .limit(1)
+        )
+        dungeon_cleared = done_res.scalar_one_or_none() is not None
         from app.schemas.dungeons import DungeonFloorView, FloorBossView, FloorTopicView, FinalBossView
         floors_view = []
         # Sort floor ids deterministically
@@ -283,7 +317,8 @@ async def get_dungeon_detail(
                     id=f_id,
                     index=f_idx,
                     title=f"Floor {f_idx}: {f_rooms[0].topic.name if f_rooms[0].topic else 'Chamber'}",
-                    status="available" if f_idx == 1 else "locked",
+                    # Frontend contract: ready | locked | cleared | generating | failed.
+                    status="cleared" if dungeon_cleared else ("ready" if f_idx == 1 else "locked"),
                     topics=f_topics,
                     boss=FloorBossView(
                         id=f_boss_room.id,
@@ -301,7 +336,7 @@ async def get_dungeon_detail(
                 id=final_boss_room.id,
                 name=final_boss_room.monster_type,
                 hp=final_boss_room.monster_hp,
-                unlocked=False,
+                unlocked=dungeon_cleared,
             )
 
     return DungeonDetailView(
