@@ -15,7 +15,7 @@ export interface AnswerGridProps {
 /** Large answer buttons with number badges (keys 1 to 4). Names are the option text. */
 export function AnswerGrid({ options, trueFalse, disabled, selected, outcome, onPick }: AnswerGridProps) {
   return (
-    <ul className="sd-answers" data-layout={trueFalse ? 'wide' : 'grid'}>
+    <ul aria-label="Answer options" className="sd-answers" data-layout={trueFalse ? 'wide' : 'grid'}>
       {options.map((opt, i) => {
         const isSelected = selected === opt
         const tone =
@@ -25,6 +25,7 @@ export function AnswerGrid({ options, trueFalse, disabled, selected, outcome, on
             <button
               type="button"
               disabled={disabled}
+              aria-keyshortcuts={String(i + 1)}
               aria-pressed={outcome !== null ? isSelected : undefined}
               data-tone={tone}
               onClick={() => onPick(opt)}

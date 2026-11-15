@@ -30,7 +30,7 @@ describe('ComboMeter', () => {
     const meter = screen.getByTestId('combo-meter')
     expect(meter.getAttribute('data-tier')).toBe(tier)
     expect(screen.getByRole('group', { name: `Combo ${name}, streak ${value}` })).toBeTruthy()
-    expect(screen.getByRole('status').textContent).toBe(`${name} combo`)
+    expect(screen.queryByRole('status')).toBeNull()
     expect(meter.querySelectorAll('.sd-combo__pips i').length).toBe(Number(tier))
   })
 

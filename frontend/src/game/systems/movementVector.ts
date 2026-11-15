@@ -31,10 +31,19 @@ export function combineMovement(
 }
 
 /** Pure: unit-length (or zero) direction. Opposite keys cancel; diagonals are normalized. */
-export function movementVector(input: MoveInput): { x: number; y: number } {
+export function movementVector(
+  input: MoveInput,
+  out: { x: number; y: number } = { x: 0, y: 0 },
+): { x: number; y: number } {
   const x = (input.right ? 1 : 0) - (input.left ? 1 : 0)
   const y = (input.down ? 1 : 0) - (input.up ? 1 : 0)
-  if (x === 0 && y === 0) return { x: 0, y: 0 }
+  if (x === 0 && y === 0) {
+    out.x = 0
+    out.y = 0
+    return out
+  }
   const len = Math.hypot(x, y)
-  return { x: x / len, y: y / len }
+  out.x = x / len
+  out.y = y / len
+  return out
 }

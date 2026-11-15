@@ -36,7 +36,6 @@ export function ComboMeter({ value }: ComboMeterProps) {
         {name}
       </span>
       <span aria-hidden="true" className="sd-combo__count">{`x${value}`}</span>
-      <span role="status" className="sr-only">{`${name} combo`}</span>
     </div>
   )
 }

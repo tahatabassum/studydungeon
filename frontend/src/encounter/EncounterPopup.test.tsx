@@ -262,9 +262,21 @@ describe('EncounterPopup result view', () => {
     expect(screen.getByText('You took 15 damage')).toBeTruthy()
   })
 
-  it('announces the result through a status region', () => {
-    setup({ combat: 'next', result: result() })
-    expect(within(screen.getByRole('dialog')).getByRole('status').textContent).toContain('Correct!')
+  it('announces from one polite region inside the dialog, not from the result banner', () => {
+    setup({ combat: 'next', result: result(), announcement: 'Correct. You dealt 20 damage.' })
+    const dialog = screen.getByRole('dialog')
+    expect(within(dialog).getByTestId('result-banner').textContent).toContain('Correct!')
+    const live = dialog.querySelectorAll('[aria-live], [role="status"]')
+    expect(live).toHaveLength(1)
+    expect(within(dialog).getByTestId('encounter-live').textContent).toBe('Correct. You dealt 20 damage.')
+    expect(live[0]!.getAttribute('aria-live')).toBe('polite')
+  })
+
+  it('names the answer group and the number key of each option', () => {
+    setup()
+    expect(screen.getByRole('list', { name: 'Answer options' })).toBeTruthy()
+    const keys = screen.getAllByRole('button', { name: /Nucleus|Mitochondria|Ribosome|Golgi/ }).map((b) => b.getAttribute('aria-keyshortcuts'))
+    expect(keys).toEqual(['1', '2', '3', '4'])
   })
 
   it('switches the portrait pose to hurt on a correct answer and taunt on a wrong one', () => {

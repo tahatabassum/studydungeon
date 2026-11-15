@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef } from 'react'
 import { RotateCcw, ScrollText } from 'lucide-react'
 import { sfx } from '../audio/sfx'
 import { SourceLine } from '../components/SourceLine'
@@ -18,7 +18,7 @@ export interface MemoryScrollProps {
   returnsIn?: number | null
 }
 
-/** The words a screen reader hears when the scroll opens. Built only from what the response carries. */
+/** The words a screen reader hears when the scroll opens (sent to the play screen's single live region). Built only from what the response carries. */
 export function scrollAnnouncement(result: Pick<AnswerResult, 'correct_answer' | 'explanation'>): string {
   const parts = ['Memory scroll.']
   if (result.correct_answer) parts.push(`The correct answer is ${result.correct_answer}.`)
@@ -34,17 +34,11 @@ export function scrollAnnouncement(result: Pick<AnswerResult, 'correct_answer' |
 export function MemoryScroll({ result, reduced, onRetry, onContinue, returnsIn = null }: MemoryScrollProps) {
   const retryRef = useRef<HTMLButtonElement>(null)
   const continueRef = useRef<HTMLButtonElement>(null)
-  const [announced, setAnnounced] = useState('')
 
   useEffect(() => {
     ;(retryRef.current ?? continueRef.current)?.focus()
     sfx.play('scroll')
   }, [])
-  // Filled after mount so the polite live region reads it as a change.
-  useEffect(() => {
-    const id = setTimeout(() => setAnnounced(scrollAnnouncement(result)), 0)
-    return () => clearTimeout(id)
-  }, [result])
 
   const quote = result.evidence_quote?.trim()
   // SourceLine shows the page when there is one and the quote otherwise; with a page, the quote gets its own line.
@@ -59,9 +53,6 @@ export function MemoryScroll({ result, reduced, onRetry, onContinue, returnsIn =
     >
       <span aria-hidden="true" className="sd-scroll__rod sd-scroll__rod--top" />
       <div className="sd-scroll__paper">
-        <div aria-live="polite" className="sr-only" data-testid="scroll-live">
-          {announced}
-        </div>
         <p className="sd-scroll__title">
           <ScrollText aria-hidden="true" size={16} />
           Memory scroll
