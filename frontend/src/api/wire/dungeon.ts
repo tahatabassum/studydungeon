@@ -21,8 +21,8 @@ export const wireRoomSchema = z.object({
   monster_hp: z.number().int().positive(),
   is_boss: z.boolean(),
   questions: z.array(wireQuestionSchema),
-  /** PROPOSED (frontend-08) */
-  floor_id: z.string().optional(),
+  /** Optional, and a null counts as absent (an older backend or an untouched generated dungeon has no floor ids). */
+  floor_id: z.string().nullish(),
 })
 
 export const wireDungeonSchema = z.object({
@@ -31,9 +31,9 @@ export const wireDungeonSchema = z.object({
   is_public_demo: z.boolean().optional(),
   created_at: z.string().optional(),
   rooms: z.array(wireRoomSchema).min(1),
-  /** PROPOSED (frontend-08): absent on today's backend, which makes one legacy Floor (D17). */
-  floors: z.array(floorSchema).optional(),
-  final_boss: finalBossSchema.optional(),
+  /** Absent or null (a generated dungeon, an older backend): one legacy Floor "The Crypt" is made (D17). */
+  floors: z.array(floorSchema).nullish(),
+  final_boss: finalBossSchema.nullish(),
 })
 
 export type WireDungeon = z.output<typeof wireDungeonSchema>
@@ -61,7 +61,7 @@ export function mapDungeon(w: WireDungeon): Dungeon {
         label: r.topic_name,
         order: r.room_number,
         is_boss: r.is_boss,
-        ...(r.floor_id !== undefined ? { floor_id: r.floor_id } : {}),
+        ...(r.floor_id != null ? { floor_id: r.floor_id } : {}),
         monster: {
           id: `monster-${r.id}`,
           name: r.monster_name,
@@ -77,7 +77,7 @@ export function mapDungeon(w: WireDungeon): Dungeon {
     name: w.title,
     rooms,
     questions,
-    ...(w.floors !== undefined ? { floors: w.floors } : {}),
-    ...(w.final_boss !== undefined ? { final_boss: w.final_boss } : {}),
+    ...(w.floors != null ? { floors: w.floors } : {}),
+    ...(w.final_boss != null ? { final_boss: w.final_boss } : {}),
   })
 }
