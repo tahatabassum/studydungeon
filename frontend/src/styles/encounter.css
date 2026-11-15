@@ -129,6 +129,8 @@
 }
 /* Only this inner block scrolls, so scrolled text never slides under the portrait's lean zone. */
 .sd-speech__scroll {
+  /* Contains the absolutely positioned sr-only text, so it cannot stretch the clipped parchment around it. */
+  position: relative;
   flex: 1 1 auto;
   min-height: 0;
   overflow-x: hidden;
