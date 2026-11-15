@@ -1,8 +1,13 @@
+import logging
+
 from fastapi import Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from starlette.exceptions import HTTPException as StarletteHTTPException
+
 from app.core.config import settings
+
+logger = logging.getLogger("studydungeon")
 
 
 def _cors_headers_for_request(request: Request) -> dict[str, str]:
@@ -50,6 +55,8 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
 
 
 async def generic_exception_handler(request: Request, exc: Exception):
+    # The client only sees a generic message; keep the traceback in the server log.
+    logger.exception("Unhandled error on %s %s", request.method, request.url.path, exc_info=exc)
     return JSONResponse(
         status_code=500,
         content={

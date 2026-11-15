@@ -40,8 +40,9 @@ async def main():
 
         # 2. Test Vision OCR with a valid test PNG
         print("[RUN] Testing vision OCR payload...")
-        from PIL import Image
         import io
+
+        from PIL import Image
         img = Image.new("RGB", (50, 50), color=(255, 255, 255))
         buf = io.BytesIO()
         img.save(buf, format="PNG")

@@ -1,4 +1,5 @@
 from typing import Optional
+
 from fastapi import APIRouter, Depends
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -6,7 +7,7 @@ from sqlalchemy.orm import selectinload
 
 from app.core.database import get_db
 from app.core.deps import get_current_user_optional
-from app.models.all_models import ContentPack, Dungeon, DungeonRoom, GameRun, PointEvent, User
+from app.models.all_models import ContentPack, Dungeon, GameRun, PointEvent, User
 from app.schemas.packs import PackItem, PacksResponse
 
 packs_router = APIRouter(tags=["packs"])

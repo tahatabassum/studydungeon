@@ -47,7 +47,7 @@ async def test_env_threshold_min_500_chars(async_client: AsyncClient, db_session
     short_text = "This note is only 100 characters long, well below the 500 character default requirement."
     files = {"file": ("short.txt", io.BytesIO(short_text.encode("utf-8")), "text/plain")}
 
-    resp = await async_client.post("/documents", files=files)
+    resp = await async_client.post("/documents", files=files, data={"accept_ai_notice": "true"})
     doc_id = resp.json()["id"]
 
     from app.api.documents import process_document_background

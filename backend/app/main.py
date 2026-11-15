@@ -6,7 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from app.api.auth import auth_router, demo_router, guests_router
-from app.api.documents import documents_router
+from app.api.documents import documents_router, uploads_router
 from app.api.dungeons import dungeons_router
 from app.api.health import health_router
 from app.api.leaderboard import leaderboard_router
@@ -25,12 +25,14 @@ from app.core.errors import (
 async def lifespan(app: FastAPI):
     # Idempotent startup seed for demo & pack content (P1 fix)
     try:
+        from datetime import datetime, timedelta
+
+        from sqlalchemy import update
+
         from app.core.database import async_session_maker
         from app.demo.seed import seed_demo_dungeon
         from app.demo.seed_packs import seed_content_packs
         from app.models.all_models import Document
-        from sqlalchemy import update
-        from datetime import datetime, timedelta
         async with async_session_maker() as session:
             await seed_demo_dungeon(session)
             await seed_content_packs(session)
@@ -81,6 +83,7 @@ def create_app() -> FastAPI:
     app.include_router(packs_router)
     app.include_router(leaderboard_router)
     app.include_router(documents_router)
+    app.include_router(uploads_router)
     app.include_router(dungeons_router)
     app.include_router(runs_router)
     app.include_router(progress_router)

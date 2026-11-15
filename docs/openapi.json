@@ -454,27 +454,6 @@
         }
       }
     },
-    "/documents/uploads/quota": {
-      "get": {
-        "tags": [
-          "documents"
-        ],
-        "summary": "Get Upload Quota",
-        "operationId": "get_upload_quota_documents_uploads_quota_get",
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/UploadQuotaResponse"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "/documents": {
       "get": {
         "tags": [
@@ -694,6 +673,27 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/uploads/quota": {
+      "get": {
+        "tags": [
+          "uploads"
+        ],
+        "summary": "Get Upload Quota",
+        "operationId": "get_upload_quota_uploads_quota_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UploadQuotaResponse"
                 }
               }
             }
@@ -2821,7 +2821,7 @@
           "player": {
             "$ref": "#/components/schemas/QuotaPlayerView"
           },
-          "global_": {
+          "global": {
             "anyOf": [
               {
                 "$ref": "#/components/schemas/QuotaGlobalView"

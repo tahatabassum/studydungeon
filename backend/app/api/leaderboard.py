@@ -1,7 +1,8 @@
 import time
 from datetime import datetime, timedelta
 from typing import Optional
-from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
+
+from fastapi import APIRouter, Depends, Query, Response
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -33,6 +34,13 @@ _LEADERBOARD_SNAPSHOT_CACHE = {}  # key: (board, period, week_start_str) -> (sna
 _STATS_PLAYERS_CACHE = {"data": None, "expires_at": 0.0}
 
 
+def _public_handle(u: User, public_id: str) -> str:
+    """Name#Tag, else the opaque public id. Never the login name (leaderboard rule: no usernames)."""
+    if u.display_name and u.tag:
+        return f"{u.display_name}#{u.tag}"
+    return public_id
+
+
 @leaderboard_router.get(
     "/leaderboard",
     response_model=LeaderboardResponse,
@@ -52,8 +60,8 @@ async def get_leaderboard(
     cache_entry = _LEADERBOARD_SNAPSHOT_CACHE.get(cache_key)
     need_refresh = True
     if cache_entry:
-        snapshot, updated_at, next_refresh_at = cache_entry
-        if now < next_refresh_at:
+        _entries, _updated_at, cached_next_refresh_at, _total = cache_entry
+        if now < cached_next_refresh_at:
             need_refresh = False
 
     if need_refresh:
@@ -105,7 +113,7 @@ async def get_leaderboard(
 
         entries = []
         for rank_idx, (stats_row, u, up) in enumerate(rows, start=1):
-            handle = f"{u.display_name}#{u.tag}" if u.display_name and u.tag else (u.username or stats_row.public_id)
+            handle = _public_handle(u, stats_row.public_id)
             points_val = getattr(stats_row, f"points_{board}")
             entries.append(
                 BoardEntryView(
@@ -147,7 +155,7 @@ async def get_leaderboard(
         my_points = getattr(p_stat, f"points_{board}", 0) if p_stat else 0
         my_reached = getattr(p_stat, f"reached_at_{board}", now) if p_stat else now
         my_public_id = user.public_id or f"p_{user.id[:8]}"
-        my_handle = f"{user.display_name}#{user.tag}" if user.display_name and user.tag else user.username
+        my_handle = _public_handle(user, my_public_id)
 
         if my_points == 0:
             top20_cutoff = entries[-1].points if len(entries) >= 20 else 0
@@ -195,7 +203,7 @@ async def get_leaderboard(
                 if above_row:
                     ab_stat, ab_user = above_row
                     ab_pts = getattr(ab_stat, f"points_{board}")
-                    ab_handle = f"{ab_user.display_name}#{ab_user.tag}" if ab_user.display_name and ab_user.tag else ab_user.username
+                    ab_handle = _public_handle(ab_user, ab_stat.public_id)
                     next_above = NextAboveView(
                         rank=my_rank - 1,
                         handle=ab_handle,
