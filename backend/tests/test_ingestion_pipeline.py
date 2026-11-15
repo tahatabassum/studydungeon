@@ -10,8 +10,8 @@ from app.models.all_models import User
 
 
 @pytest.mark.asyncio
-async def test_guest_upload_blocked(async_client: AsyncClient, db_session: AsyncSession):
-    """Guests (is_guest=True) must be blocked from uploading documents with 403."""
+async def test_guest_upload_needs_the_ai_notice(async_client: AsyncClient, db_session: AsyncSession):
+    """Guests may upload within their quota, but only with the AI notice: missing is 422, accepted is 202."""
     guest = User(username="guest_tester123", is_guest=True, password_hash=None)
     db_session.add(guest)
     await db_session.commit()
@@ -20,10 +20,29 @@ async def test_guest_upload_blocked(async_client: AsyncClient, db_session: Async
     token = create_session_token(guest.id, session_version=guest.session_version, is_guest=True)
     async_client.cookies.set(settings.SESSION_COOKIE_NAME, token)
 
-    files = {"file": ("notes.txt", io.BytesIO(b"Some lecture notes here"), "text/plain")}
-    resp = await async_client.post("/documents", files=files)
-    assert resp.status_code == 403
-    assert resp.json()["detail"]["code"] in ("GUEST_FORBIDDEN", "GUEST_RESTRICTED")
+    notes = b"Some lecture notes about cells, membranes and organelles. " * 20
+    resp = await async_client.post("/documents", files={"file": ("notes.txt", io.BytesIO(notes), "text/plain")})
+    assert resp.status_code == 422
+    assert resp.json()["detail"]["code"] == "AI_NOTICE_NOT_ACCEPTED"
+
+    resp = await async_client.post(
+        "/documents", files={"file": ("notes.txt", io.BytesIO(notes), "text/plain")}, data={"accept_ai_notice": "true"}
+    )
+    assert resp.status_code == 202
+
+
+@pytest.mark.asyncio
+async def test_registered_upload_without_notice_is_422(async_client: AsyncClient, db_session: AsyncSession):
+    """Registered players need the notice too: an omitted field is not consent."""
+    user = User(username="no_notice_student", is_guest=False, password_hash="hash")
+    db_session.add(user)
+    await db_session.commit()
+    await db_session.refresh(user)
+    async_client.cookies.set(settings.SESSION_COOKIE_NAME, create_session_token(user.id, session_version=user.session_version))
+
+    resp = await async_client.post("/documents", files={"file": ("notes.txt", io.BytesIO(b"x" * 800), "text/plain")})
+    assert resp.status_code == 422
+    assert resp.json()["detail"]["code"] == "AI_NOTICE_NOT_ACCEPTED"
 
 
 @pytest.mark.asyncio
@@ -38,7 +57,7 @@ async def test_upload_invalid_extension_rejected(async_client: AsyncClient, db_s
     async_client.cookies.set(settings.SESSION_COOKIE_NAME, token)
 
     files = {"file": ("malicious.exe", io.BytesIO(b"MZfakebinary"), "application/x-dosexec")}
-    resp = await async_client.post("/documents", files=files)
+    resp = await async_client.post("/documents", files=files, data={"accept_ai_notice": "true"})
     assert resp.status_code == 415
     assert resp.json()["detail"]["code"] == "UNSUPPORTED_FILE_TYPE"
 
@@ -57,7 +76,7 @@ async def test_upload_oversized_file_rejected(async_client: AsyncClient, db_sess
     # 16 MB dummy buffer (exceeds default 15MB)
     huge_data = b"X" * (16 * 1024 * 1024)
     files = {"file": ("huge_notes.txt", io.BytesIO(huge_data), "text/plain")}
-    resp = await async_client.post("/documents", files=files)
+    resp = await async_client.post("/documents", files=files, data={"accept_ai_notice": "true"})
     assert resp.status_code == 413
     assert resp.json()["detail"]["code"] == "FILE_TOO_LARGE"
 
@@ -88,7 +107,7 @@ async def test_valid_text_document_ingestion_lifecycle(async_client: AsyncClient
         "Deadlocks happen when processes hold resources while waiting for others, requiring prevention algorithms."
     )
     files = {"file": ("os_lecture_1.txt", io.BytesIO(notes_content.encode("utf-8")), "text/plain")}
-    resp = await async_client.post("/documents", files=files)
+    resp = await async_client.post("/documents", files=files, data={"accept_ai_notice": "true"})
     assert resp.status_code == 202
     data = resp.json()
     doc_id = data["id"]

@@ -1,5 +1,6 @@
 from typing import Optional
-from pydantic import BaseModel, ConfigDict
+
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class QuotaPlayerView(BaseModel):
@@ -26,6 +27,7 @@ class UploadQuotaResponse(BaseModel):
     can_upload: bool
     reason: Optional[str] = None
     player: QuotaPlayerView
-    global_: Optional[QuotaGlobalView] = None
+    # global is a Python keyword: the field is global_ in code and "global" on the wire (the contract key).
+    global_: Optional[QuotaGlobalView] = Field(default=None, alias="global")
     ranking: Optional[QuotaRankingView] = None
 

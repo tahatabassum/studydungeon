@@ -575,3 +575,8 @@ Frontend only. landing.css: header nav wraps (.sd-landing__nav) and compacts bel
 
 ## 2026-11-17 generate-dungeon without floor data
 - `src/api/wire/dungeon.ts`: `floor_id`, `floors` and `final_boss` accept absent or `null`. A dungeon without floor data becomes ONE legacy Floor "The Crypt" (id `floor-legacy`) holding every room, with the boss room (else the last room) as the floor boss. A `floor_id` the backend does send is kept. New tests in `wire.test.ts` (absent, null, kept, endpoint schema). Noted in `docs/handoff/B-to-A.md`.
+
+## 2026-11-17 Integration with the Day 4 backend (main 4e722ad)
+- Fast-forwarded `feature/frontend-live-players` to `main` (PR #23 plus the backend points, leaderboard, quota and file-limit commit), then ran both sides against a local backend (temporary SQLite, mock AI). Backend fixes are listed in `docs/handoff/B-to-A.md` (leaderboard cache 500, username leak, quota path, `global` alias, AI notice, guest topics/summon/retry, 500 logging, tampered-cookie test, ruff).
+- Frontend: the Http_Client logs in right after `POST /auth/register` (register sets no cookie, so new players were not signed in); 2 tests. Upload wizard: no "Topics found (0)" before summoning. Contract suite: the real-backend file runs in the Node environment (jsdom FormData was sent empty), `VITE_CONTRACT_UPLOADS=true` turns the upload cases on for a mock-AI backend, and four cases no longer rely on mock-only triggers.
+- Verify: backend 112 passed, ruff clean, Alembic up/down/up clean. Frontend typecheck, lint, build clean; `npm test` 1510 passed / 27 skipped; `test:contract` (mock) 46 / 1; live contract suite against the backend 38 passed, 0 failed, 2 skipped (need the mock answer key).

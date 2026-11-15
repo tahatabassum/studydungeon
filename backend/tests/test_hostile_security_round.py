@@ -21,7 +21,7 @@ async def test_hostile_path_traversal_filename_upload(async_client: AsyncClient)
     await async_client.post("/auth/login", json={"username": "traversaluser", "password": "Password123!"})
 
     files = {"file": ("../../etc/passwd.txt", b"Safe educational content about operating systems " * 20, "text/plain")}
-    res = await async_client.post("/documents", files=files)
+    res = await async_client.post("/documents", files=files, data={"accept_ai_notice": "true"})
     assert res.status_code == 202
     # File is saved with random uuid on disk, not traversal path
     assert "id" in res.json()
@@ -43,7 +43,7 @@ async def test_hostile_idor_document_access(async_client: AsyncClient):
     await async_client.post("/auth/register", json={"username": "victimuser", "password": "Password123!"})
     await async_client.post("/auth/login", json={"username": "victimuser", "password": "Password123!"})
     files = {"file": ("notes.txt", b"Private lecture notes for victim user only " * 20, "text/plain")}
-    doc_res = await async_client.post("/documents", files=files)
+    doc_res = await async_client.post("/documents", files=files, data={"accept_ai_notice": "true"})
     doc_id = doc_res.json()["id"]
 
     # User B logs in and attempts to access User A's source preview

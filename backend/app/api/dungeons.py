@@ -8,14 +8,14 @@ from sqlalchemy.orm import selectinload
 from app.ai.factory import get_ai_provider
 from app.ai.provider import ExtractedChunk
 from app.core.database import get_db
-from app.core.deps import get_current_user, require_registered_user
+from app.core.deps import get_current_user
 from app.models.all_models import (
     ContentPack,
     Document,
-    GameRun,
     DocumentChunk,
     Dungeon,
     DungeonRoom,
+    GameRun,
     Question,
     Topic,
     User,
@@ -28,7 +28,8 @@ dungeons_router = APIRouter(tags=["dungeons"])
 @dungeons_router.get("/documents/{id}/topics")
 async def get_document_topics(
     id: str,
-    user: User = Depends(require_registered_user),
+    # Guests may upload within their quota (frontend-10), so they may also read their own topics and summon.
+    user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
     res = await db.execute(select(Topic).where(Topic.document_id == id, Topic.user_id == user.id))
@@ -45,7 +46,7 @@ async def get_document_topics(
 )
 async def generate_dungeon(
     id: str,
-    user: User = Depends(require_registered_user),
+    user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
     # Verify document exists and belongs to user
@@ -329,7 +330,7 @@ async def get_dungeon_detail(
             .limit(1)
         )
         dungeon_cleared = done_res.scalar_one_or_none() is not None
-        from app.schemas.dungeons import DungeonFloorView, FloorBossView, FloorTopicView, FinalBossView
+        from app.schemas.dungeons import DungeonFloorView, FinalBossView, FloorBossView, FloorTopicView
         floors_view = []
         # Sort floor ids deterministically
         sorted_floor_ids = sorted(floor_rooms_map.keys())

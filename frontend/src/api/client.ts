@@ -203,7 +203,12 @@ export function createHttpClient(baseUrl: string, fetchImpl: typeof fetch = fetc
     startDemoSession: async () => mapDemoSession(await request('startDemoSession', 'POST', '/demo/session')),
 
     // Auth (C22): bare bodies, the session is the httpOnly cookie. Nothing is kept in JS storage.
-    register: async (credentials) => mapUser(await request('register', 'POST', '/auth/register', credentials)),
+    // POST /auth/register creates the account but sets no session cookie (only /auth/login does), so the client
+    // logs in right after: otherwise a new player looks signed in but every request runs without a session.
+    register: async (credentials) => {
+      await request('register', 'POST', '/auth/register', credentials)
+      return mapUser(await request('login', 'POST', '/auth/login', credentials))
+    },
 
     login: async (credentials) => mapUser(await request('login', 'POST', '/auth/login', credentials)),
 

@@ -23,7 +23,7 @@ async def test_break_ingestion_meme_rejection(async_client: AsyncClient, db_sess
     meme_text = "LOL funny cat meme! I can haz cheezburger receipt total $45.99 payment processed." * 10
     files = {"file": ("cat_meme.txt", io.BytesIO(meme_text.encode("utf-8")), "text/plain")}
 
-    resp = await async_client.post("/documents", files=files)
+    resp = await async_client.post("/documents", files=files, data={"accept_ai_notice": "true"})
     assert resp.status_code == 202
     doc_id = resp.json()["id"]
 
@@ -55,7 +55,7 @@ async def test_break_ingestion_prompt_injection(async_client: AsyncClient, db_se
     )
     files = {"file": ("injection.txt", io.BytesIO(injection_text.encode("utf-8")), "text/plain")}
 
-    resp = await async_client.post("/documents", files=files)
+    resp = await async_client.post("/documents", files=files, data={"accept_ai_notice": "true"})
     assert resp.status_code == 202
     doc_id = resp.json()["id"]
 
@@ -91,6 +91,6 @@ async def test_break_ingestion_quota_exceeded(async_client: AsyncClient, db_sess
     # Attempt 6th upload
     valid_text = "Good study material covering compilers, lexers, parsers, and abstract syntax trees." * 10
     files = {"file": ("doc_6.txt", io.BytesIO(valid_text.encode("utf-8")), "text/plain")}
-    resp = await async_client.post("/documents", files=files)
+    resp = await async_client.post("/documents", files=files, data={"accept_ai_notice": "true"})
     assert resp.status_code == 400
     assert resp.json()["detail"]["code"] == "QUOTA_EXCEEDED"

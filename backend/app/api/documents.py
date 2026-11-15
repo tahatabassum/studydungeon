@@ -1,5 +1,6 @@
 import logging
 import uuid
+from datetime import datetime, timedelta
 from typing import List, Optional
 
 from fastapi import (
@@ -13,7 +14,6 @@ from fastapi import (
     UploadFile,
     status,
 )
-from datetime import datetime, timedelta
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -22,8 +22,7 @@ from app.core.config import settings
 from app.core.database import async_session_maker, get_db
 from app.core.deps import get_current_user, require_registered_user
 from app.core.file_limits import FileLimitExceededError
-from app.core.rate_limit import get_client_ip
-from app.models.all_models import Document, DocumentChunk, RateLimitRecord, User
+from app.models.all_models import Document, DocumentChunk, User
 from app.schemas.documents import DocumentResponse, DocumentStatusResponse
 from app.schemas.uploads import (
     QuotaGlobalView,
@@ -42,6 +41,8 @@ from app.services.ingestion import check_text_quality
 
 logger = logging.getLogger("studydungeon.documents")
 documents_router = APIRouter(prefix="/documents", tags=["documents"])
+# No prefix: the contract path is GET /uploads/quota (under documents_router it was /documents/uploads/quota, a 404).
+uploads_router = APIRouter(tags=["uploads"])
 
 
 async def process_document_background(
@@ -127,7 +128,7 @@ async def process_document_background(
             await _worker(db)
 
 
-@documents_router.get("/uploads/quota", response_model=UploadQuotaResponse, response_model_exclude_none=True)
+@uploads_router.get("/uploads/quota", response_model=UploadQuotaResponse, response_model_exclude_none=True)
 async def get_upload_quota(
     user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
@@ -191,20 +192,13 @@ async def upload_document(
     user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    # 0. Check guest permissions
-    if user.is_guest:
-        if accept_ai_notice is not True:
-            # If notice not accepted (or missing in legacy test), block guest with 403 GUEST_FORBIDDEN
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail={"code": "GUEST_FORBIDDEN", "message": "Create an account or accept the AI notice to upload your own notes."},
-            )
-    else:
-        if accept_ai_notice is False:
-            raise HTTPException(
-                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-                detail={"code": "AI_NOTICE_NOT_ACCEPTED", "message": "You must accept the AI data processing notice to upload study materials."},
-            )
+    # 0. The AI notice is required for everyone (guests and registered players). Missing or false is 422,
+    #    checked before any quota or AI work. Guests may upload within their own quota (frontend-10, V2 G).
+    if accept_ai_notice is not True:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail={"code": "AI_NOTICE_NOT_ACCEPTED", "message": "You must accept the AI data processing notice to upload study materials."},
+        )
 
     now = datetime.utcnow()
     today_start = datetime(now.year, now.month, now.day)
@@ -347,7 +341,8 @@ async def get_document_status(
 async def retry_document_processing(
     id: str,
     background_tasks: BackgroundTasks,
-    user: User = Depends(require_registered_user),
+    # Guests may retry their own failed upload (they can upload within their quota).
+    user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
     """Retries processing for a failed or interrupted document."""

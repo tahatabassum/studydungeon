@@ -10,19 +10,39 @@ from app.models.all_models import Document, DocumentChunk, User
 
 
 @pytest.mark.asyncio
-async def test_guest_cannot_generate_dungeon(async_client: AsyncClient, db_session: AsyncSession):
-    """Guests (is_guest=True) must be blocked from POST /documents/{id}/generate-dungeon with 403."""
+async def test_guest_generates_only_from_own_document(async_client: AsyncClient, db_session: AsyncSession):
+    """Guests may upload within their quota (frontend-10), so they may summon a dungeon from THEIR document,
+    and still get 404 for anyone else's."""
+    owner = User(username="other_owner", is_guest=False, password_hash="hash")
     guest = User(username="guest_dungeon_user", is_guest=True, password_hash=None)
-    db_session.add(guest)
+    db_session.add_all([owner, guest])
     await db_session.commit()
+    await db_session.refresh(owner)
     await db_session.refresh(guest)
 
-    token = create_session_token(guest.id, session_version=guest.session_version, is_guest=True)
-    async_client.cookies.set(settings.SESSION_COOKIE_NAME, token)
+    def accepted_doc(user: User) -> Document:
+        return Document(user_id=user.id, title="Raft", original_filename="raft.txt", file_type="txt", status="accepted",
+                        relevance_score=0.95, readability_score=0.90)
 
-    resp = await async_client.post("/documents/some-doc-id/generate-dungeon")
-    assert resp.status_code == 403
-    assert resp.json()["detail"]["code"] in ("GUEST_FORBIDDEN", "GUEST_RESTRICTED")
+    theirs, mine = accepted_doc(owner), accepted_doc(guest)
+    db_session.add_all([theirs, mine])
+    await db_session.commit()
+    for d, u in ((theirs, owner), (mine, guest)):
+        await db_session.refresh(d)
+        db_session.add(DocumentChunk(document_id=d.id, user_id=u.id, chunk_index=0, page_number=1,
+                                     text="The Raft consensus algorithm relies on leader election and log replication for consistency."))
+    await db_session.commit()
+
+    async_client.cookies.set(settings.SESSION_COOKIE_NAME, create_session_token(guest.id, session_version=guest.session_version, is_guest=True))
+
+    assert (await async_client.post(f"/documents/{theirs.id}/generate-dungeon")).status_code == 404
+    assert (await async_client.get(f"/documents/{theirs.id}/topics")).json() == []
+
+    resp = await async_client.post(f"/documents/{mine.id}/generate-dungeon")
+    assert resp.status_code == 201, resp.text
+    assert len(resp.json()["rooms"]) >= 1
+    topics = (await async_client.get(f"/documents/{mine.id}/topics")).json()
+    assert len(topics) >= 1
 
 
 @pytest.mark.asyncio

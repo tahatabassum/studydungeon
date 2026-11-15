@@ -136,6 +136,9 @@ async def test_session_attack_tampered_signature(async_client: AsyncClient):
     # Tamper payload
     tampered_cookie = f"{payload_b64}a.{sig}"
 
+    # Login stored the real cookie under the test host's domain; set() without a domain would add a second
+    # cookie and the request would carry both. Clear the jar so only the tampered token is sent.
+    async_client.cookies.clear()
     async_client.cookies.set(settings.SESSION_COOKIE_NAME, tampered_cookie)
     res = await async_client.get("/auth/me")
     assert res.status_code == 401

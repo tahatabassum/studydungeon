@@ -42,7 +42,9 @@ export function announcementFor(phase: UploadPhase, extra: { floors?: number; to
     case 'processing':
       return 'Reading your notes...'
     case 'accepted':
-      return `Your notes passed the check. ${extra.topics ?? 0} ${extra.topics === 1 ? 'topic was' : 'topics were'} found.`
+      // The real backend maps the topics while it summons, so none are listed before that.
+      if (!extra.topics) return 'Your notes passed the check. Summon the dungeon to map their topics.'
+      return `Your notes passed the check. ${extra.topics} ${extra.topics === 1 ? 'topic was' : 'topics were'} found.`
     case 'rejected':
       return `Your notes were rejected. ${extra.reason ?? ''}`.trim()
     case 'failed':

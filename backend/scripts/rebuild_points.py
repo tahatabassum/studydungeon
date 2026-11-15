@@ -1,8 +1,10 @@
 import asyncio
 import logging
-from sqlalchemy import select, func
+
+from sqlalchemy import func, select
+
 from app.core.database import async_session_maker
-from app.models.all_models import PlayerStats, PlayerWeekStats, PointEvent, User
+from app.models.all_models import PlayerStats, PointEvent, User
 
 logger = logging.getLogger("studydungeon.rebuild_points")
 

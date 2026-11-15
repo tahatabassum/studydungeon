@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import datetime
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import func, select
@@ -8,8 +8,8 @@ from sqlalchemy.orm import selectinload
 from app.core.database import get_db
 from app.core.deps import get_current_user
 from app.models.all_models import (
-    ContentPack,
     Attempt,
+    ContentPack,
     Dungeon,
     DungeonRoom,
     GameRun,
@@ -239,7 +239,7 @@ async def submit_attempt(
                     remaining_hp = max(0, target_r.monster_hp - tot_dmg)
 
             # Fetch existing point event for this attempt if any
-            from app.models.all_models import PointEvent, PlayerStats
+            from app.models.all_models import PlayerStats, PointEvent
             pe_res = await db.execute(select(PointEvent).where(PointEvent.attempt_id == req.attempt_id).limit(1))
             pe = pe_res.scalar_one_or_none()
             ps_res = await db.execute(select(PlayerStats).where(PlayerStats.user_id == user.id))
@@ -637,7 +637,7 @@ async def finish_run(
             )
 
     # Compute points earned in this run from ledger
-    from app.models.all_models import PointEvent, PlayerStats
+    from app.models.all_models import PlayerStats, PointEvent
     pe_run_res = await db.execute(
         select(func.coalesce(func.sum(PointEvent.points), 0)).where(PointEvent.run_id == run.id)
     )
