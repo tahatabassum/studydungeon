@@ -705,3 +705,29 @@ Each case is skipped when its endpoint answers 404, 405 or 501. Run against a di
   - `monster_type` stored the role (`minion`, `floor_boss`, `final_boss`), which the game shows as the monster name. It now stores the JSON `monster_name`; existing rows are renamed on startup.
   - `POST /runs/{id}/finish` reported `unlocked_pack_id` on every replay of a cleared pack, which sent players to the "Pack unlocked" screen again. It is now set only on the first completion (re-finishing the same run is unchanged).
 - Still open for Person A: floor titles in `GET /dungeons/{id}` are built as "Floor N: first topic" instead of the pack JSON floor title; floor `status` and `rank` are not per player yet (Floor 1 always available, others locked); finish has no `points_*` fields. Two pytest cases fail locally before and after these changes (`test_session_attack_tampered_signature`, `test_gemini_model_config_exists`), likely local `.env` values.
+
+#### frontend-04 rpg-ui-combat-flow: `getProgress()` (2026-11-22)
+
+Spec: `.kiro/specs/frontend-04-rpg-ui-combat-flow/` (Requirement 20). Nothing under `backend/` was changed.
+
+**`GET /progress` is already implemented on `main`.** It is not a new endpoint, and no backend work is needed for this spec. I checked `backend/app/api/progress.py` and `docs/handoff/BACKEND_REMAINING_WORK.md` (Section 1 lists it as working; Section 9 says `xp_to_next` is not yet read by the frontend).
+
+- The frontend now calls it through `ApiClient.getProgress()` and shows the level, total XP and XP to next in the HUD. The call happens after run start and after each monster defeat. Errors are ignored and the level display is hidden when there is no data.
+- Response the frontend reads (current backend): `{ user_id, level, total_xp, unlocked_weapons }`. The `unlocked_weapons` list holds weapon names. The wire mapper in `src/api/wire/progress.ts` converts them to ids. A user without a `UserProgress` row gets level 1, 0 XP and `["Rusty Dagger"]`.
+- **`xp_to_next` is not returned by the backend yet.** The frontend treats it as optional. Without it the HUD shows level and total XP only. The frontend never computes XP to next in real mode. Only the mock computes it (`mockAdapter.ts`, from run XP), for development.
+- PROPOSED, optional: add `xp_to_next` (int > 0) to `GET /progress`. This repeats item 7 of "frontend-08 campaign additions" and the `xp_to_next` row in `BACKEND_REMAINING_WORK.md`. Adding it needs no frontend change: the schema already accepts it, and unknown extra fields are ignored.
+- Update since the earlier "Progress never changes" observation: `POST /runs/{id}/finish` now writes `UserProgress` (`runs.py`). Level and total XP therefore change after a finished run, not mid-run. The HUD refetch after a monster defeat will show the same values until the run finishes, which is expected. Whether room-clear XP should be added to `total_xp` earlier is still a backend decision.
+- Keep `GET /progress` working for guests (the HUD calls it for guest sessions).
+
+**`AnswerResult` is unchanged.** `POST /runs/{id}/attempts` request and response shapes are the same as before this spec. The continuous question flow only changes when the frontend submits attempts (one per answer, a stable `attempt_id` per presented question, reused on retry). Idempotent replay must keep returning the stored result, as it does today.
+
+**Removed bridge events are frontend-internal.** The Phaser/React Event_Bridge events `load-room` and `room-cleared` (and the legacy scene path) were removed, and `set-view-inset` was added. They never cross the network, so there is **no backend impact**.
+
+---
+
+## Update 2026-11-17: frontend-11 and frontend-04 follow-ups (no backend change needed)
+
+Frontend only. Nothing under `backend/` was changed.
+
+- **`POST /documents/{id}/generate-dungeon` without floor data.** The frontend now accepts a dungeon whose rooms have no `floor_id` (absent or `null`) and that has no `floors` or `final_boss` (absent or `null`). It builds ONE legacy Floor, "The Crypt", holding every room in order, with the boss room (else the last room) as its boss. Your current `response_model_exclude_none=True` omits those fields, which is fine. If you later send `floors`, send them as a complete list (`id`, `index`, `title`, `status`, `topics`, `boss`, `rank`, `room_ids`) and give each room its `floor_id`; a partial `floors` list is still rejected as a contract error, loudly, by design.
+- **Live region.** While the question dialog is open the frontend announces results from a polite region inside the dialog; otherwise from the shell region. Frontend internal, no API effect.

@@ -45,3 +45,16 @@ copied or traced, and no image files are used. They carry the same license as th
 - The tutorial scene (a five-cell corridor, hero and monster) uses `lucide-react` line icons (ISC licence, already a dependency) and CSS only. The sample memory scroll is the existing code-drawn component.
 - Five new sound cues, `requeue`, `scroll`, `combo`, `finale` and `chest`, are synthesized at runtime with the Web Audio API in `src/audio/sfx.ts` (oscillators and filtered noise). They are quiet and follow the mute switch.
 - No image, sprite or audio files were added. No emoji. No new dependencies.
+## Art sets (frontend-04 RPG polish, final inventory)
+Every art set below is original work made for this project, authored as code (pixel maps or Canvas2D drawing) from the project palette. No third-party art, sprite packs, traced or copied characters, or image files are used. No third-party art licences apply; the art carries the same licence as the project source.
+- **Monsters** (`src/art/sprites/monsters.ts`, pixel maps): `paper_wraith`, `toxic_slime`, `gear_golem`, `memory_eater`, `exam_warden`.
+- **Player** (`src/art/sprites/player.ts`, pixel maps): `player_idle`, `player_idle_walk_0`, `player_idle_walk_1`.
+- **Icons** (`src/art/sprites/icons.ts`, pixel maps): `heart`, `crown`, `lock`, `check`, `skull`, `star`.
+- **Decor** (`src/art/sprites/decor.ts`, pixel maps): `decor_bookshelf`, `decor_candle`, `decor_cobweb`, `decor_cauldron`, `decor_potion`, `decor_gear`, `decor_chain`, `decor_tomb`, `decor_rune`, `decor_column`.
+- **Characters** (`src/art/sprites/characters.ts`, pixel maps): `friendly_ghost`, `small_vampire`, `skeleton_companion`, `bat`, `black_cat`, `haunted_portrait`.
+- **Encounter portraits** (`src/art/portraits`, Canvas2D): original drawings, described in the portraits sections above.
+- **Room art** (`src/art/room`, Canvas2D): original floors, walls and dressing generated from code.
+## Audio
+All sound is original synthesis: cues are synthesized at runtime with the Web Audio API (oscillators and filtered noise) in `src/audio/`. There are no audio files and no samples.
+## Fonts
+Pirata One, Cinzel and Inter are licensed under the SIL Open Font License 1.1 (<https://openfontlicense.org/>); sources are in the Fonts table at the top of this file.
