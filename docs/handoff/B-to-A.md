@@ -731,3 +731,45 @@ Frontend only. Nothing under `backend/` was changed.
 
 - **`POST /documents/{id}/generate-dungeon` without floor data.** The frontend now accepts a dungeon whose rooms have no `floor_id` (absent or `null`) and that has no `floors` or `final_boss` (absent or `null`). It builds ONE legacy Floor, "The Crypt", holding every room in order, with the boss room (else the last room) as its boss. Your current `response_model_exclude_none=True` omits those fields, which is fine. If you later send `floors`, send them as a complete list (`id`, `index`, `title`, `status`, `topics`, `boss`, `rank`, `room_ids`) and give each room its `floor_id`; a partial `floors` list is still rejected as a contract error, loudly, by design.
 - **Live region.** While the question dialog is open the frontend announces results from a polite region inside the dialog; otherwise from the shell region. Frontend internal, no API effect.
+
+---
+
+## Update 2026-11-17: integration check of the Day 4 backend (points, leaderboard, quota, file limits)
+
+Person B merged `main` (4e722ad) into the frontend branch and ran everything against a local backend (temporary SQLite, `AI_PROVIDER=mock`). The user asked for every fix needed to make the project work, so Person B changed some files under `backend/`. Each change is small and has a test; please review them in the PR.
+
+**Backend fixes (Person A, please review):**
+
+1. `GET /leaderboard` answered **500** on every second request within the hour. The snapshot cache stores 4 values (`total_ranked` was added) but the cached path unpacked 3. Fixed in `app/api/leaderboard.py`.
+2. `GET /leaderboard` exposed **login names**. When a player had no `display_name` and `tag`, the `handle` in entries, `me` and `next_above` fell back to `user.username`. It now falls back to the opaque `public_id` (`_public_handle`). V2 D says entries never contain usernames.
+3. `GET /uploads/quota` was served at **`/documents/uploads/quota`** (declared under the `/documents` prefix), so `/uploads/quota` was 404. The frontend therefore never showed the quota chip and never turned guest upload on. Moved to `uploads_router` (no prefix) in `app/api/documents.py`, registered in `main.py`.
+4. The quota response sent the `global` block as **`"global_"`**. Added `Field(alias="global")` in `app/schemas/uploads.py`.
+5. **AI notice:** a guest without `accept_ai_notice` got 403 `GUEST_FORBIDDEN`, and a registered player who omitted the field could upload without the notice. Now missing or false is 422 `AI_NOTICE_NOT_ACCEPTED` for everyone (V2 G 6.2), checked first. Backend tests that upload now send the field, as the frontend always does.
+6. **Guests could upload but not finish.** `GET /documents/{id}/topics`, `POST /documents/{id}/generate-dungeon` and `POST /documents/{id}/retry` required a registered user (403). They now accept any session; every query is still filtered by `user_id`. `GET /documents` (list) and `DELETE /documents/{id}` stay registered-only.
+7. The generic 500 handler now logs the traceback (`logger.exception`). This is how bug 1 was found. Your CORS headers on error responses were already in place.
+8. `tests/test_break_baseline.py::test_session_attack_tampered_signature` failed (200 instead of 401). The server is correct; the test's cookie jar held two `studydungeon_session` cookies (the login one under the test host and the tampered one with no domain), and the real one was sent. The test now clears the jar first.
+9. `ruff check .` had 32 errors from the Day 4 commit (unused imports, import order, missing final newline); fixed with `ruff --fix`. `docs/openapi.json` regenerated.
+
+New tests: `tests/test_leaderboard_cache_and_privacy.py` (both fail on the Day 4 code), `tests/test_upload_quota_path.py`, and updated guest cases in `test_ingestion_pipeline.py` and `test_questions_pipeline.py`. Backend: **112 passed**, ruff clean, Alembic upgrade, downgrade to base and upgrade again all clean.
+
+**Frontend fixes in the same change:**
+
+- **Register did not sign the player in.** `POST /auth/register` sets no cookie (only login does), but the Register screen went straight to the Dashboard, so new players were not actually signed in. The Http_Client now calls `POST /auth/login` right after a successful register.
+- The upload wizard no longer says "Topics found (0) / No topics were listed" before summoning. The real backend maps topics while it summons, so it now says the topics are mapped when you summon.
+- Contract suite: `src/contract/http.contract.test.ts` runs in the Node environment (jsdom's `FormData` was not serialised by Node's `fetch`, so uploads arrived empty), and `VITE_CONTRACT_UPLOADS=true` runs the document and upload cases against a mock-AI backend. Four cases relied on the mock's file-name triggers or ordering and now check the real behaviour.
+
+**Live contract suite against this backend: 38 passed, 0 failed, 2 skipped** (the 2 need the mock answer key). Before: 30 passed, 10 skipped, and 2 leaderboard failures once points existed.
+
+**Still open for Person A (not built, the frontend copes without them):**
+- Per-IP daily upload limit (429 `UPLOAD_LIMIT_IP`) and the global daily cap (503 `UPLOADS_PAUSED_TODAY`). `get_client_ip` and `RateLimitRecord` were imported in `documents.py` but unused.
+- Open question: do rejected or failed uploads use the daily quota? (They do today: every `POST /documents` row counts.)
+- The deployed URL `studydungeon-api.onrender.com` answers 404 `x-render-routing: no-server`. Please confirm the real Render URL; `frontend/vercel.json` points there.
+
+**Proposed steering change (needs both of us; not applied):** `.kiro/steering/architecture.md` section 7 and `.kiro/steering/api-contract.md` section 2 still say guests get 403 on `POST /documents` and `generate-dungeon`. With V2 G shipped, proposed wording:
+
+```diff
+- Guests attempting to call `POST /documents` or `POST /documents/{id}/generate-dungeon` receive `403 Forbidden`.
++ Guests may upload within their own quota (1 per UTC day, 2 stored) after accepting the AI notice
++ (`accept_ai_notice=true`, else 422 `AI_NOTICE_NOT_ACCEPTED`), and may read topics, summon and retry
++ their own documents. Listing and deleting documents stay registered-only.
+```

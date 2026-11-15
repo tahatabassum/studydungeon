@@ -5,20 +5,20 @@ Last updated: 2026-11-17. Branch `feature/frontend-live-players`.
 ## Current state
 
 - **Frontend (Person B):** all required tasks in frontend-04, 06, 07, 08, 10 and 11 are done. Playable against the mock and against the real backend.
-- **Backend (Person A):** specs backend-01 to 06 are done and backend-08 (packs, floors, unlocks) is merged. backend-07 (identity) shows 0 of 6 tasks ticked, but its endpoints (`/guests`, `/guests/name-check`, `/auth/upgrade`, `DELETE /auth/me`) are live, so its checklist is probably stale. backend-08 has no `tasks.md`.
-- **Last verified numbers (frontend):** typecheck, lint and build clean; `npm test` 1508 passed and 27 skipped; `test:contract` 46 passed and 1 skipped; `layout:check` 240/240 (30 route states at 8 window sizes, including the question panel).
+- **Backend (Person A):** specs backend-01 to 06 are done, backend-08 (packs, floors, unlocks) is merged, and the Day 4 work (points ledger, real leaderboard, player counter, upload quota, file limits) is merged and integration-checked (see docs/handoff/B-to-A.md, 2026-11-17). backend-07 (identity) shows 0 of 6 tasks ticked, but its endpoints (`/guests`, `/guests/name-check`, `/auth/upgrade`, `DELETE /auth/me`) are live, so its checklist is probably stale. backend-08 has no `tasks.md`.
+- **Last verified numbers:** backend `pytest` 112 passed, ruff clean. Frontend typecheck, lint and build clean; `npm test` 1510 passed and 27 skipped; `test:contract` 46 passed and 1 skipped; live contract suite against a local backend 38 passed, 0 failed, 2 skipped; `layout:check` 240/240 (30 route states at 8 window sizes).
 
 ## Next steps
 
-1. Person A: build the features that still answer 404, listed with exact shapes in `docs/handoff/BACKEND_REMAINING_WORK.md` (real leaderboard and points, `/stats/players`, `/uploads/quota` with guest uploads, file-size limits, run modes and Daily Haunt, floor retry, learning-loop extras). About 15 contract cases skip until then.
+1. Person A: review the backend fixes in `docs/handoff/B-to-A.md` (2026-11-17). Still to build: run modes and Daily Haunt, floor retry, learning-loop extras, the per-IP and global upload limits.
 2. Person A: decide whether rejected or failed uploads use the daily quota (open question in `docs/handoff/B-to-A.md`).
-3. Person A: send CORS headers on unhandled 500s (see Known issues).
+3. Both owners: agree the steering change proposed in `B-to-A.md` (guests may upload, summon and retry their own documents).
 4. Person B: when `POST /runs` accepts `floor_id` and `mode`, switch them on in `frontend/src/api/client.ts` and turn on the `modes` and `dailyHaunt` capabilities.
 5. Optional frontend tests still open: frontend-00 (5.3, 6.7, 8.5), frontend-03 (8.6), frontend-08 (11.10), frontend-10 (9.3 to 9.5, 11.5 to 11.7).
 
 ## Known issues
 
-- **A 500 looks like a CORS error in the browser.** The generic `Exception` handler's response is built outside `CORSMiddleware`, so an unhandled 500 carries no `access-control-*` headers. Reproduced on commit `bc7da57` (second question of a generated dungeon, `MissingGreenlet`); fixed in `0d15f34`, but the next unhandled error will show the same symptom. Fix is in `backend/` (Person A).
+- **Per-IP and global upload limits are not enforced** (429 `UPLOAD_LIMIT_IP`, 503 `UPLOADS_PAUSED_TODAY`). The player daily and stored limits are.
 - **Deployed URLs not verified.** `studydungeon-api.onrender.com` and `studydungeon.vercel.app` both answered 404 on 2026-11-17 (`x-render-routing: no-server`). The real Render URL needs confirming; `frontend/vercel.json` points at the first one.
 - **Live region not tested with a real screen reader.** The result announcements (inside the question dialog while it is open, otherwise the shell region) are only checked in jsdom. Test with NVDA, JAWS or VoiceOver.
 - **Manual browser checks still open** at 1366x768, 1920x1080 and 1280x720: full demo run to victory, defeat run, retreat and re-engage, pause and exit, mute, reduced motion.
@@ -43,7 +43,7 @@ The layout check starts its own Vite server in mock mode and drives a local Chro
 
 ### Contract suite
 
-`npm run test:contract` always runs the mock suite (46 tests). The same suite runs against a real backend when these are set; one case is skipped without a backend.
+`npm run test:contract` always runs the mock suite (46 tests). The same suite runs against a real backend when these are set; one case is skipped without a backend. Add `VITE_CONTRACT_UPLOADS='true'` to run the document and upload cases too (only against a backend started with `AI_PROVIDER=mock`). Use a fresh database for each full run: the suite creates guests and uploads, and the per-IP and per-player limits are real.
 
 ```powershell
 # 1. Start a disposable backend from backend/ (its own database, mock AI):
