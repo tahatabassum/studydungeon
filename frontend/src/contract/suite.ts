@@ -54,9 +54,11 @@ const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
 /** frontend-10: every upload sends the AI notice field. A Backend that does not know it ignores it. */
 const NOTICE = { acceptAiNotice: true } as const
 
-function textFile(name: string, bytes = 800): File {
-  return new File(['a'.repeat(bytes)], name, { type: 'text/plain' })
+function textFile(name: string, bytes = 800, text = 'a'): File {
+  return new File([text.repeat(Math.ceil(bytes / text.length)).slice(0, bytes)], name, { type: 'text/plain' })
 }
+/** A real backend judges the content, the mock the file name: this file is a receipt for both. */
+const RECEIPT = 'Lunch receipt. Total paid 12.40, card ending 4321, thank you for your visit. '
 
 function expectSchema<K extends keyof typeof ENDPOINT_SCHEMAS>(key: K, data: unknown): void {
   const r = ENDPOINT_SCHEMAS[key].schema.safeParse(data)
@@ -533,13 +535,15 @@ export function defineContractSuite(opts: ContractSuiteOptions): void {
         expect(done.chunks_count).toBeGreaterThan(0)
         expect(done.rejection_reason).toBeNull()
 
+        // The mock lists topics at once; the real backend maps them while it summons, so only the shape is checked here.
+        expectSchema('getDocumentTopics', await api.getDocumentTopics(sent.id))
+
+        const dungeon = await api.generateDungeon(sent.id)
+        expectSchema('generateDungeon', dungeon)
         const topics = await api.getDocumentTopics(sent.id)
         expectSchema('getDocumentTopics', topics)
         expect(topics.length).toBeGreaterThan(0)
         expect(topics.map((t) => t.order_index)).toEqual([...topics.map((t) => t.order_index)].sort((a, b) => a - b))
-
-        const dungeon = await api.generateDungeon(sent.id)
-        expectSchema('generateDungeon', dungeon)
         expect(dungeon.floors!.length).toBeGreaterThan(0)
         const again = await api.getDungeon(dungeon.id)
         expect(again.floors!.map((f) => f.id)).toEqual(dungeon.floors!.map((f) => f.id))
@@ -548,7 +552,7 @@ export function defineContractSuite(opts: ContractSuiteOptions): void {
       })
 
       it('a document that fails the relevance check is rejected with a reason and can be retried', async () => {
-        const sent = await api.uploadDocument(textFile('lunch receipt.txt'), NOTICE)
+        const sent = await api.uploadDocument(textFile('lunch receipt.txt', 800, RECEIPT), NOTICE)
         const verdict = await settled(sent.id)
         expect(verdict.status).toBe('rejected')
         expect((verdict.rejection_reason ?? '').length).toBeGreaterThan(0)
@@ -568,13 +572,16 @@ export function defineContractSuite(opts: ContractSuiteOptions): void {
       })
 
       it('an oversize file is 413 FILE_TOO_LARGE and an unsupported type is 415 UNSUPPORTED_FILE_TYPE', async () => {
-        const big = textFile('big.pdf', 10)
-        Object.defineProperty(big, 'size', { value: 16 * 1024 * 1024 })
-        await expect(api.uploadDocument(big, NOTICE)).rejects.toMatchObject({ status: 413, code: 'FILE_TOO_LARGE' })
-        await expect(api.uploadDocument(textFile('virus.exe'), NOTICE)).rejects.toMatchObject({ status: 415, code: 'UNSUPPORTED_FILE_TYPE' })
+        // A real 16 MB body: a faked size property cannot be sent over a real HTTP connection.
+        const big = new File([new Uint8Array(16 * 1024 * 1024)], 'big.pdf', { type: 'application/pdf' })
+        // Its own account: the uploads above already used this player's daily limit, which a backend checks first.
+        const c = opts.makeFreshClient ? await opts.makeFreshClient() : api
+        if (c !== api) await c.register({ username: `${name}_size`, password: 'correct-horse-9' })
+        await expect(c.uploadDocument(big, NOTICE)).rejects.toMatchObject({ status: 413, code: 'FILE_TOO_LARGE' })
+        await expect(c.uploadDocument(textFile('virus.exe'), NOTICE)).rejects.toMatchObject({ status: 415, code: 'UNSUPPORTED_FILE_TYPE' })
       })
 
-      it('the sixth stored document is 400 QUOTA_EXCEEDED', async () => {
+      it('repeated uploads stop at a quota: 400 QUOTA_EXCEEDED (stored) or 429 UPLOAD_LIMIT_PLAYER (daily)', async () => {
         let last: unknown = null
         for (let i = 0; i < 6 && last === null; i += 1) {
           try {
@@ -583,7 +590,9 @@ export function defineContractSuite(opts: ContractSuiteOptions): void {
             last = err
           }
         }
-        expect(last).toMatchObject({ status: 400, code: 'QUOTA_EXCEEDED' })
+        // With a daily limit (3 registered) below the stored limit (5), the daily one is reached first.
+        const stop = last as { status?: number; code?: string } | null
+        expect(['400 QUOTA_EXCEEDED', '429 UPLOAD_LIMIT_PLAYER']).toContain(`${stop?.status} ${stop?.code}`)
       })
     })
 

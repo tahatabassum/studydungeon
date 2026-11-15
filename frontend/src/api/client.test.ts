@@ -286,3 +286,27 @@ describe('createHttpClient', () => {
     expect((err as ApiError).status).toBe(0)
   })
 })
+
+describe('register signs the new player in', () => {
+  it('creates the account, then logs in so the session cookie is set, and returns the logged-in user', async () => {
+    const user = { id: 'u_new', username: 'sam', is_guest: false }
+    const f = routedFetch({ 'POST /auth/register': [user, 201], 'POST /auth/login': user })
+    const api = createHttpClient('http://api.test', f as unknown as typeof fetch)
+    const got = await api.register({ username: 'sam', password: 'correct-horse-9' })
+    expect(got).toMatchObject({ id: 'u_new', is_guest: false })
+    const calls = f.mock.calls.map(([url, init]) => `${init?.method} ${new URL(String(url)).pathname}`)
+    expect(calls).toEqual(['POST /auth/register', 'POST /auth/login'])
+    const sent = f.mock.calls.map(([, init]) => JSON.parse(String(init?.body)))
+    expect(sent).toEqual([
+      { username: 'sam', password: 'correct-horse-9' },
+      { username: 'sam', password: 'correct-horse-9' },
+    ])
+  })
+
+  it('does not log in when registering fails (409 taken)', async () => {
+    const f = routedFetch({ 'POST /auth/register': [{ detail: { code: 'USERNAME_TAKEN', message: 'Taken.' } }, 409] })
+    const api = createHttpClient('http://api.test', f as unknown as typeof fetch)
+    await expect(api.register({ username: 'sam', password: 'correct-horse-9' })).rejects.toMatchObject({ status: 409 })
+    expect(f.mock.calls).toHaveLength(1)
+  })
+})

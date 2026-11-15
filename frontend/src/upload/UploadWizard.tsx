@@ -171,10 +171,10 @@ export function UploadWizard({ noticeAccepted = false, blocked = false, blockedR
             <section className="sd-card sd-up__panel" aria-labelledby="up-topics-title" data-testid="upload-topics">
               <h2 id="up-topics-title" className="sd-card__h">
                 <Sparkles aria-hidden="true" size={18} />
-                {`Topics found (${flow.topics.length})`}
+                {flow.topics.length === 0 ? 'Your notes passed the check' : `Topics found (${flow.topics.length})`}
               </h2>
               {flow.topics.length === 0 ? (
-                <p className="sd-card__muted">No topics were listed for this document.</p>
+                <p className="sd-card__muted" data-testid="upload-topics-later">The topics are mapped when you summon the dungeon.</p>
               ) : (
                 <ul className="sd-up__topics">
                   {flow.topics.map((t) => (

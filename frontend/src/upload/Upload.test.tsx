@@ -344,6 +344,7 @@ describe('steps, hints and announcements (pure)', () => {
     expect(announcementFor('done', { floors: 1 })).toBe('Your notes became 1 floor.')
     expect(announcementFor('done', { floors: 3 })).toBe('Your notes became 3 floors.')
     expect(announcementFor('accepted', { topics: 1 })).toBe('Your notes passed the check. 1 topic was found.')
+    expect(announcementFor('accepted', { topics: 0 })).toBe('Your notes passed the check. Summon the dungeon to map their topics.')
     expect(announcementFor('staged', {})).toBe('')
   })
 
