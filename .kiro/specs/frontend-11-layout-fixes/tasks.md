@@ -40,82 +40,82 @@ Rules for every task:
     - `styles/live.css`: remove the `sd-live`-only release rule (moved to the shell).
     - `components/PageShell.tsx`: optional `center` prop; `wide` kept and ignored on fit. Add `sd-fit--center` to login, register, choose, play-as-guest and settings.
     - _Requirements: 1.1, 1.2, 1.3, 1.5, 1.6, 1.7, 1.8, 2.1, 2.2, 2.4_
-  - [ ]* 3.3 Write component tests for `PageShell`
+  - [x]* 3.3 Write component tests for `PageShell`
     - fit variant adds `sd-page--fit`; `center` adds `sd-fit--center`; back link renders once; body exists.
     - _Requirements: 1.5, 2.4_
 
-- [ ] 4. Upload screen (Part B)
+- [x] 4. Upload screen (Part B)
   - [x] 4.1 Regroup the upload markup and write the grid CSS (RC10, RC11, RC12, RC13, RC18)
     - `upload/UploadPage.tsx`, `upload/UploadWizard.tsx`, `styles/upload.css`: header row, `StepList`, `.sd-up__grid` with `.sd-up__aside` (about 40 percent) and `.sd-up__main` (about 60 percent); remove `overflow`, `max-width: 42rem`, `margin-block: auto` from cards; `intro` stays a prop and renders in the aside; Compact_Mode order: quota, notice, drop zone, rules, stepper strip.
     - _Requirements: 7.1, 7.5, 8.1, 9.1, 10.6, 2.2_
-  - [ ] 4.2 Slim stepper (RC15)
+  - [x] 4.2 Slim stepper (RC15)
     - `upload/StepList.tsx`, `styles/upload.css`: one row, mark and label inline, state text `sr-only`, active step shows progress, icon shape for each state, compact strip in Compact_Mode.
     - _Requirements: 7.2, 7.3, 7.4_
-  - [ ] 4.3 Quota chip, AI notice and file rules (RC16, RC17)
+  - [x] 4.3 Quota chip, AI notice and file rules (RC16, RC17)
     - `upload/QuotaPanel.tsx`: inline chip, same text from `quotaView`. `upload/AiNotice.tsx`: shortened text with the same meaning, label "I understand and want to continue", styled checkbox (20 px box, focus ring, clickable label). New `upload/FileRules.tsx` built from `limits.ts` (no number literals), shown in the aside. Update the tests that assert the old label and text.
     - _Requirements: 8.1, 8.2, 8.3, 8.4, 8.5, 8.6_
-  - [ ] 4.4 Drop zone locked, active and disabled states (RC11, RC14)
+  - [x] 4.4 Drop zone locked, active and disabled states (RC11, RC14)
     - `upload/Dropzone.tsx`, `styles/upload.css`: icon, "Drop your notes here", "or", "Choose a file", one-line hint, locked state with the message centred inside, `aria-disabled`, quota-used-up state with "Play preloaded dungeons instead", fills the right column.
     - _Requirements: 9.1, 9.2, 9.3, 9.4, 9.5_
-  - [ ] 4.5 Upload states inside the grid (RC10, RC12)
+  - [x] 4.5 Upload states inside the grid (RC10, RC12)
     - `upload/UploadWizard.tsx`, `upload/SummonResult.tsx`, `upload/FloorProgressList.tsx`, `styles/upload.css`: chosen file (name, size) while uploading and processing, rejected with reason and "Try another file", busy message with fallback, topics, success with the map link; floors as a responsive grid; no `overflow` on cards. Keep auto-start (Q1 unless the user decides otherwise).
     - _Requirements: 10.1, 10.2, 10.3, 10.4, 10.5, 10.6, 10.7_
-  - [ ]* 4.6 Write component tests for the upload layout
+  - [x]* 4.6 Write component tests for the upload layout
     - FileRules text from limits, notice label click toggles the box, locked message, five steps with `aria-current`, guest and registered render the same grid, plural quota chip.
     - _Requirements: 8.3, 8.5, 9.3, 7.2, 10.5_
-  - [ ] 4.7 Verify the upload screen
+  - [x] 4.7 Verify the upload screen
     - Typecheck, lint, test, test:contract, build; Layout_Check `/upload` (guest, registered, quota used up, busy, rejected, success) at all Test_Sizes plus phone portrait and landscape; manual checklist; append the log entry.
     - _Requirements: 12.1, 12.2, 12.4, 12.5, 7.3, 2.3_
 
-- [ ] 5. STOP: Upload screen checkpoint
+- [x] 5. STOP: Upload screen checkpoint
   - Give the URL (`/upload`, mock mode, guest and registered; `?mockQuota=<reason>` and `?mockAiBusy=1` for the other states) and the window sizes (1366x650, 1366x768, 1920x1080, 2560x1440, 1099x700, phone portrait and landscape). Wait for approval, then commit this screen separately. Do not push.
 
-- [ ] 6. Leaderboard screen (Part A)
+- [x] 6. Leaderboard screen (Part A)
   - [x] 6.1 Header row, toolbar and caption (RC9, RC22)
     - `leaderboard/LeaderboardPage.tsx`, `board/BoardTabs.tsx`, `styles/leaderboard.css`: back link, title and subtitle left; tabs and period toggle in one row at the right; single Dashboard link; one caption line that changes with selection, reset time from `data.week` for "This week", tooltip when tight; keep `data-testid="lb-hint"` and the tab roles and keyboard handling.
     - _Requirements: 3.1, 3.2, 3.3, 3.4, 3.5, 3.6, 3.7_
-  - [ ] 6.2 Board grid, compact podium and rank rows (RC19, RC20, RC21, RC24, RC25, RC27)
+  - [x] 6.2 Board grid, compact podium and rank rows (RC19, RC20, RC21, RC24, RC25, RC27)
     - `board/LiveBoard.tsx`, `leaderboard/Podium.tsx`, `styles/leaderboard.css`: `.sd-lb__grid` left Podium and You panel, right Rank_Rows with `--sd-row-h` between 36 and 44 px via `clamp()`; two columns (ranks 4 to 12 and 13 to 20) when 17 rows do not fit; no `overflow`, no minimum heights, no hidden information; truncate names with an ellipsis and `title`; Compact_Mode single column.
     - _Requirements: 4.1, 4.2, 4.3, 4.4, 4.5, 4.6, 4.7, 1.2_
-  - [ ] 6.3 Your live rank panel and plurals (RC23)
+  - [x] 6.3 Your live rank panel and plurals (RC23)
     - `board/YouPanelView.tsx`, `styles/leaderboard.css`: label "Your live rank", note "Updates instantly. The table refreshes hourly.", rank, points, pass line, enter line, updated-at and next refresh, guest "Create account" CTA, not-on-board message; use the existing `plural()` for "1 point"; no change to `youPanelView` logic. Update tests that assert the old label.
     - _Requirements: 5.1, 5.2, 5.3, 5.4, 5.5, 5.6_
-  - [ ] 6.4 Loading, empty, error and legacy board (RC26, RC28)
+  - [x] 6.4 Loading, empty, error and legacy board (RC26, RC28)
     - `board/LiveBoard.tsx`, `leaderboard/LeaderboardPage.tsx`, `styles/leaderboard.css`: skeleton in the grid shape without inline pixel heights, error card with Retry, "Be the first to enter" for 0 entries, 1 and 3 entries, reduced-motion skeleton, legacy board uses the same toolbar, grid and compact rows.
     - _Requirements: 6.1, 6.2, 6.3, 6.4, 6.5, 6.6_
-  - [ ]* 6.5 Write component tests for the leaderboard layout
+  - [x]* 6.5 Write component tests for the leaderboard layout
     - "Your live rank" label and note, "1 point" and "2 points", one Dashboard link, truncated long name has `title`, 0 / 1 / 3 / 8 / 20 entries render without error, ranks 4 to 12 and 13 to 20 split, skeleton has no inline height style.
     - _Requirements: 3.3, 4.4, 4.5, 5.1, 5.5, 6.1_
-  - [ ] 6.6 Verify the leaderboard screen
+  - [x] 6.6 Verify the leaderboard screen
     - Typecheck, lint, test, test:contract, build; Layout_Check `/leaderboard` with 0, 1, 3, 8 and 20 entries, guest and registered, all board and period combinations, loading and error, at all Test_Sizes plus phones and 1100x560; manual checklist (focus order, reduced motion, AA contrast); append the log entry.
     - _Requirements: 12.1, 12.2, 12.4, 12.5, 4.2, 6.6_
 
-- [ ] 7. STOP: Leaderboard screen checkpoint
+- [x] 7. STOP: Leaderboard screen checkpoint
   - Give the URL (`/leaderboard`, `?board=overall&period=week`, mock mode with 0, 1, 3, 8, 20 entries) and the window sizes. Wait for approval, then commit this screen separately. Do not push.
 
-- [ ] 8. Title screen audit and fix (RC29)
+- [x] 8. Title screen audit and fix (RC29)
   - [x] 8.1 Measure and fix `/`
     - `styles/landing.css`, `pages/LandingPage.tsx` markup only: Layout_Check at all Test_Sizes; remove any Nested_Scrollbar except `.sd-landing__main` below 1100x560; keep the player counter zero-height box; shared padding token.
     - _Requirements: 11.1, 11.2, 1.1_
-  - [ ] 8.2 Verify the title screen
+  - [x] 8.2 Verify the title screen
     - Full verification commands, Layout_Check, manual checklist, log entry.
     - _Requirements: 12.1, 12.2, 12.4, 12.5_
 
-- [ ] 9. STOP: Title screen checkpoint
+- [x] 9. STOP: Title screen checkpoint
   - URL `/`, sizes as above. Wait for approval, then commit separately.
 
-- [ ] 10. Floor map audit and fix (RC30, RC31, RC32, RC33)
+- [x] 10. Floor map audit and fix (RC30, RC31, RC32, RC33)
   - [x] 10.1 Measure and fix `/campaign/:id`
     - `styles/campaign.css` and floor card markup only: horizontal map scroller allow-listed; floor cards not clipped at 1366x650; popover and ellipsis per Q7; the `max-height: 480px` page scroll replaced by the shared Compact_Mode release. No change to the map data, node order or Event_Bridge.
     - _Requirements: 11.1, 11.2, 11.3_
-  - [ ] 10.2 Verify the floor map
+  - [x] 10.2 Verify the floor map
     - Full verification commands, Layout_Check (preloaded and generated dungeon), manual checklist, log entry.
     - _Requirements: 12.1, 12.2, 12.4, 12.5_
 
-- [ ] 11. STOP: Floor map checkpoint
+- [x] 11. STOP: Floor map checkpoint
   - URL `/campaign/<id>` from the dashboard, sizes as above. Wait for approval, then commit separately.
 
-- [ ] 12. Login and register audit and fix (RC34)
+- [x] 12. Login and register audit and fix (RC34)
   - [x] 12.1 Measure and fix `/login` and `/register`
     - `styles/auth.css`, `styles/haunted.css`, `auth/*` markup only: vertical centring through the grid, card height at 1366x650 with an error line, shared width token, no `overflow`.
     - _Requirements: 11.1, 11.2_
@@ -123,10 +123,10 @@ Rules for every task:
     - Full verification commands, Layout_Check for both routes, manual checklist, log entry.
     - _Requirements: 12.1, 12.2, 12.4, 12.5_
 
-- [ ] 13. STOP: Login and register checkpoint
+- [x] 13. STOP: Login and register checkpoint
   - URLs `/login` and `/register`, sizes as above. Wait for approval, then commit separately.
 
-- [ ] 14. Choose, play-as-guest and settings audit and fix (RC5, RC35, RC36)
+- [x] 14. Choose, play-as-guest and settings audit and fix (RC5, RC35, RC36)
   - [x] 14.1 Measure and fix `/choose`
     - `styles/live.css`, `styles/haunted.css`, `identity/PathChoice.tsx` markup only: cards grow with content, shared width, quota line and error row inside the area.
     - _Requirements: 11.1, 11.2_
@@ -140,10 +140,10 @@ Rules for every task:
     - Full verification commands, Layout_Check for the three routes, manual checklist, log entry.
     - _Requirements: 12.1, 12.2, 12.4, 12.5_
 
-- [ ] 15. STOP: Choose, play-as-guest and settings checkpoint
+- [x] 15. STOP: Choose, play-as-guest and settings checkpoint
   - URLs `/choose`, `/play-as-guest`, `/settings`, sizes as above. Wait for approval, then commit separately.
 
-- [ ] 16. Final regression
+- [x] 16. Final regression
   - [x] 16.1 Run the Layout_Check for every Fit_Screen route at all Test_Sizes and the Dashboard for regressions
     - Record the final table in `docs/kiro-log-frontend.md` with the full verification command output.
     - _Requirements: 12.1, 12.2, 12.4, 13.1_
