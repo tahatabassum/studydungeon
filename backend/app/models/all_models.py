@@ -242,3 +242,54 @@ class UserProgress(Base):
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
     user: Mapped["User"] = relationship("User", back_populates="progress")
+
+
+class PointEvent(Base):
+    __tablename__ = "point_events"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    user_id: Mapped[str] = mapped_column(String(36), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+    attempt_id: Mapped[Optional[str]] = mapped_column(String(36), nullable=True, index=True)
+    run_id: Mapped[str] = mapped_column(String(36), ForeignKey("game_runs.id", ondelete="CASCADE"), nullable=False, index=True)
+    board: Mapped[str] = mapped_column(String(32), nullable=False)  # preloaded, own_notes
+    reason: Mapped[str] = mapped_column(String(64), nullable=False)  # first_correct, repeat_correct, retry, too_fast, room_clear, boss_clear, pack_complete
+    points: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    week_start: Mapped[datetime] = mapped_column(DateTime, nullable=False, index=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, nullable=False)
+    question_id: Mapped[Optional[str]] = mapped_column(String(36), nullable=True)
+    room_id: Mapped[Optional[str]] = mapped_column(String(36), nullable=True)
+    pack_id: Mapped[Optional[str]] = mapped_column(String(36), nullable=True)
+
+
+class PlayerStats(Base):
+    __tablename__ = "player_stats"
+
+    user_id: Mapped[str] = mapped_column(String(36), ForeignKey("users.id", ondelete="CASCADE"), primary_key=True)
+    public_id: Mapped[str] = mapped_column(String(16), unique=True, index=True, nullable=False)
+    points_preloaded: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    points_own_notes: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    points_overall: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    reached_at_preloaded: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, nullable=False)
+    reached_at_own_notes: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, nullable=False)
+    reached_at_overall: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, nullable=False)
+    rooms_cleared: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    is_ranked: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
+    updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
+
+
+class PlayerWeekStats(Base):
+    __tablename__ = "player_week_stats"
+
+    id: Mapped[str] = mapped_column(String(72), primary_key=True)  # user_id:week_start_str
+    user_id: Mapped[str] = mapped_column(String(36), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+    week_start: Mapped[datetime] = mapped_column(DateTime, nullable=False, index=True)
+    public_id: Mapped[str] = mapped_column(String(16), nullable=False, index=True)
+    points_preloaded: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    points_own_notes: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    points_overall: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    reached_at_preloaded: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, nullable=False)
+    reached_at_own_notes: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, nullable=False)
+    reached_at_overall: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, nullable=False)
+    rooms_cleared: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    is_ranked: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
+    updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)

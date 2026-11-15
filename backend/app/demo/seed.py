@@ -104,7 +104,10 @@ DEMO_DATA = {
 
 async def seed_demo_dungeon(db: AsyncSession) -> Dungeon:
     # Check if demo dungeon already exists
-    res = await db.execute(select(Dungeon).where(Dungeon.is_public_demo == True))
+    res = await db.execute(
+        select(Dungeon)
+        .where(Dungeon.is_public_demo == True, Dungeon.title == DEMO_DATA["title"])
+    )
     existing = res.scalar_one_or_none()
     if existing:
         return existing

@@ -169,3 +169,48 @@ Below is the authoritative reconciliation table comparing frontend expectations 
 | `POST /rooms/{id}/clear` | `{ xp_delta }` | `{ room_id, is_cleared, xp_delta }` | Person B | Returns 409 `MONSTER_ALIVE` if monster HP > 0; 25 XP for topic room, 100 XP for boss. |
 | `POST /runs/{id}/finish` | `RunSummary` | `{ run_id, status, total_score, xp_earned, rooms_cleared, accuracy (0.0-1.0), mastery_band }` | Both Agreed | Idempotent on repeat call; 409 `BOSS_NOT_CLEARED` before boss defeat. |
 | Errors (`4xx`/`5xx`) | `{"detail": {"code": str, "message": str}}` | `{"detail": {"code": str, "message": str}}` across all status codes | Both Agreed | Uniform JSON error structure across entire API. |
+
+---
+
+## [Day 4] - Person A Backend Tasks Completion (Points, Leaderboard, Quota, File Limits)
+
+Dated: 2026-11-15
+All backend tasks from `PERSON_A_BACKEND_TASKS.md` have been implemented, tested, and contract-verified with Person B's frontend suite.
+
+### 1. New & Updated Endpoints Shipped
+
+#### `GET /leaderboard`
+- Query Params: `board=preloaded|own_notes|overall`, `period=all|week`.
+- Server-authoritative top 20 entries with 1-hour snapshot cache.
+- Live `me` block with tie-breaks and next-above target (or `reason: "no_points_yet"` when 0 points).
+- Shape strictly satisfies `wireBoardSchema`.
+
+#### `GET /stats/players`
+- Returns `{ "players": <int> }` (count of ranked players with `rooms_cleared > 0`), cached for 300s.
+
+#### `GET /uploads/quota`
+- Returns upload limits:
+  - Daily: 1 for guests, 3 for registered players.
+  - Stored: 2 for guests, 5 for registered players.
+- Shape strictly satisfies `wireUploadQuotaSchema`.
+
+#### `POST /documents` (Updated)
+- Enforces `accept_ai_notice: true` header/form field (raises 422 `AI_NOTICE_NOT_ACCEPTED` if missing).
+- Checks text / page limits before running AI:
+  - PDF: 30 pages (422 `TOO_MANY_PAGES`)
+  - PPTX: 30 slides (422 `TOO_MANY_SLIDES`)
+  - DOCX / TXT: 60,000 characters (422 `TOO_MUCH_TEXT`)
+
+#### Points & Packs Updates
+- `POST /runs/{id}/attempts`: returns `points_awarded` and `player_points` breakdown (`overall`, `preloaded`, `own_notes`, `today`).
+- `POST /rooms/{id}/clear`: returns `points_awarded` and `player_points`.
+- `POST /runs/{id}/finish`: returns `points_earned`, `player_points`, and `pack_progress`.
+- `GET /packs`: returns `points_earned` per pack.
+- `GET /dungeons`: demo dungeon points to Pack 1 with `is_public_demo: true`.
+
+### 2. Contract Verification Results
+- Backend pytest: **107 passed, 0 failed**.
+- Frontend vitest: **1478 passed, 0 failed** (including full mock contract suite).
+- HTTP live contract suite: **30 passed, 0 failed, 10 skipped**.
+- Parity script: **100% Contract Parity**.
+

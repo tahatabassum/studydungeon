@@ -1,12 +1,12 @@
 from typing import Optional
 from fastapi import APIRouter, Depends
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from app.core.database import get_db
 from app.core.deps import get_current_user_optional
-from app.models.all_models import ContentPack, Dungeon, DungeonRoom, GameRun, User
+from app.models.all_models import ContentPack, Dungeon, DungeonRoom, GameRun, PointEvent, User
 from app.schemas.packs import PackItem, PacksResponse
 
 packs_router = APIRouter(tags=["packs"])
@@ -73,6 +73,18 @@ async def list_packs(
         if p_status != "completed" and next_pack_id is None and p_status != "locked":
             next_pack_id = pack.id
 
+        # Determine points earned on this pack by user
+        pack_points = 0
+        if user:
+            pack_runs_subq = select(GameRun.id).where(GameRun.user_id == user.id, GameRun.dungeon_id == pack.dungeon_id)
+            pts_res = await db.execute(
+                select(func.coalesce(func.sum(PointEvent.points), 0)).where(
+                    PointEvent.user_id == user.id,
+                    PointEvent.run_id.in_(pack_runs_subq)
+                )
+            )
+            pack_points = pts_res.scalar_one()
+
         pack_items.append(
             PackItem(
                 id=pack.id,
@@ -84,7 +96,7 @@ async def list_packs(
                 floors_cleared=floors_cleared,
                 final_boss_cleared=fb_cleared,
                 status=p_status,
-                points_earned=0,
+                points_earned=pack_points,
             )
         )
 

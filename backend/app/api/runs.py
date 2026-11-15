@@ -1,7 +1,7 @@
 from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
@@ -238,6 +238,19 @@ async def submit_attempt(
                     tot_dmg = sum(att.damage_dealt for att in run.attempts if att.question and att.question.topic_id == target_r.topic_id)
                     remaining_hp = max(0, target_r.monster_hp - tot_dmg)
 
+            # Fetch existing point event for this attempt if any
+            from app.models.all_models import PointEvent, PlayerStats
+            pe_res = await db.execute(select(PointEvent).where(PointEvent.attempt_id == req.attempt_id).limit(1))
+            pe = pe_res.scalar_one_or_none()
+            ps_res = await db.execute(select(PlayerStats).where(PlayerStats.user_id == user.id))
+            ps = ps_res.scalar_one_or_none()
+            pp_dict = None
+            if ps:
+                pp_dict = {
+                    "preloaded": ps.points_preloaded,
+                    "own_notes": ps.points_own_notes,
+                    "overall": ps.points_overall,
+                }
             return AttemptResponse(
                 attempt_id=a.id,
                 is_correct=a.is_correct,
@@ -250,6 +263,10 @@ async def submit_attempt(
                 monster_hp_remaining=remaining_hp,
                 explanation=cached_q.explanation if cached_q else "Idempotent replay.",
                 evidence_quote=cached_q.evidence_quote if cached_q else None,
+                points_awarded=pe.points if pe else 0,
+                points_reason=pe.reason if pe else ("first_correct" if a.is_correct else "wrong"),
+                points_bonus=0,
+                player_points=pp_dict,
             )
 
     # 3. Fetch Question
@@ -359,6 +376,20 @@ async def submit_attempt(
     )
     db.add(attempt)
 
+    # 5.1 Award Authoritative Points Ledger
+    from app.services.points import award_attempt_points
+    pts_awarded, pts_reason, pts_bonus, player_pts = await award_attempt_points(
+        user=user,
+        run=run,
+        dungeon=run.dungeon,
+        question_id=question.id,
+        attempt_id=req.attempt_id,
+        is_correct=is_correct,
+        difficulty=question.difficulty,
+        duration_ms=0,
+        db=db,
+    )
+
     # 6. SRS Queue Update (P4: Upsert single ReviewItem per user & question)
     existing_rev_res = await db.execute(
         select(ReviewItem).where(ReviewItem.user_id == user.id, ReviewItem.question_id == question.id)
@@ -411,6 +442,10 @@ async def submit_attempt(
         monster_hp_remaining=monster_remaining,
         explanation=question.explanation,
         evidence_quote=question.evidence_quote,
+        points_awarded=pts_awarded,
+        points_reason=pts_reason,
+        points_bonus=pts_bonus,
+        player_points=player_pts,
     )
 
 
@@ -453,9 +488,27 @@ async def clear_room(
 
     # Persist room clear XP to run (P3 fix)
     run.xp_earned += xp_delta
+
+    # Authoritative Room Clear Points
+    from app.services.points import award_room_clear_points
+    pts_awarded, pts_reason = await award_room_clear_points(
+        user=user,
+        run=run,
+        dungeon=run.dungeon,
+        room=room,
+        db=db,
+    )
+
     await db.commit()
 
-    return {"success": True, "room_id": room.id, "xp_delta": xp_delta, "is_boss": is_boss}
+    return {
+        "success": True,
+        "room_id": room.id,
+        "xp_delta": xp_delta,
+        "is_boss": is_boss,
+        "points_awarded": pts_awarded,
+        "points_reason": pts_reason,
+    }
 
 
 @runs_router.post("/{id}/finish", response_model=RunSummaryResponse)
@@ -573,6 +626,33 @@ async def finish_run(
             "all_completed": all_completed,
         }
 
+        # Pack complete points
+        if first_completion:
+            from app.services.points import award_pack_completion_points
+            await award_pack_completion_points(
+                user=user,
+                run=run,
+                pack_id=current_pack.id,
+                db=db,
+            )
+
+    # Compute points earned in this run from ledger
+    from app.models.all_models import PointEvent, PlayerStats
+    pe_run_res = await db.execute(
+        select(func.coalesce(func.sum(PointEvent.points), 0)).where(PointEvent.run_id == run.id)
+    )
+    points_earned = pe_run_res.scalar_one()
+
+    ps_res = await db.execute(select(PlayerStats).where(PlayerStats.user_id == user.id))
+    ps = ps_res.scalar_one_or_none()
+    pp_dict = None
+    if ps:
+        pp_dict = {
+            "preloaded": ps.points_preloaded,
+            "own_notes": ps.points_own_notes,
+            "overall": ps.points_overall,
+        }
+
     return RunSummaryResponse(
         id=run.id,
         score=run.current_score,
@@ -582,5 +662,7 @@ async def finish_run(
         accuracy=round(accuracy, 2),
         mastery_band=band,
         status=run.status,
+        points_earned=points_earned,
+        player_points=pp_dict,
         pack_progress=pack_progress,
     )

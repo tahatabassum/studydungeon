@@ -1,7 +1,7 @@
 from typing import List
 
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy import or_, select
+from sqlalchemy import and_, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
@@ -56,6 +56,18 @@ async def generate_dungeon(
             status_code=status.HTTP_404_NOT_FOUND,
             detail={"code": "DOCUMENT_NOT_FOUND", "message": "Document not found or does not belong to user."},
         )
+
+    # Check if dungeon already exists for this document (idempotent summon)
+    existing_dungeon_res = await db.execute(
+        select(Dungeon)
+        .options(
+            selectinload(Dungeon.rooms).selectinload(DungeonRoom.topic).selectinload(Topic.questions)
+        )
+        .where(Dungeon.document_id == doc.id, Dungeon.user_id == user.id)
+    )
+    existing_dungeon = existing_dungeon_res.scalar_one_or_none()
+    if existing_dungeon:
+        return await get_dungeon_detail(id=existing_dungeon.id, user=user, db=db)
 
     # Fetch chunks
     chunks_res = await db.execute(
@@ -201,11 +213,21 @@ async def list_dungeons(
     user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    # Returns dungeons owned by user OR public demo dungeons
+    # Returns dungeons owned by user OR public demo dungeons (excluding old legacy demo if pack 1 exists)
+    pack1_dungeon_id_subq = select(ContentPack.dungeon_id).where(ContentPack.order == 1)
     stmt = (
         select(Dungeon)
         .options(selectinload(Dungeon.rooms))
-        .where(or_(Dungeon.user_id == user.id, Dungeon.is_public_demo == True))
+        .where(
+            or_(
+                Dungeon.user_id == user.id,
+                and_(
+                    Dungeon.is_public_demo == True,
+                    Dungeon.title != "Computer Systems & Architecture (Seeded Demo)"
+                ),
+                Dungeon.id.in_(pack1_dungeon_id_subq)
+            )
+        )
         .order_by(Dungeon.created_at.desc())
     )
     res = await db.execute(stmt)
@@ -293,6 +315,13 @@ async def get_dungeon_detail(
             final_boss_room = r
 
     if floor_rooms_map:
+        # Load pack metadata if available for floor titles and boss metadata
+        from app.demo.packs_validator import load_all_packs
+        pack_meta_map = {}
+        for p in load_all_packs():
+            for f in p.get("floors", []):
+                pack_meta_map[f["id"]] = f
+
         # One run covers the whole dungeon, so a completed run clears every floor for this player.
         done_res = await db.execute(
             select(GameRun.id)
@@ -312,19 +341,25 @@ async def get_dungeon_detail(
                 FloorTopicView(id=rm.topic_id, title=rm.topic.name if rm.topic else "General", mastery=0)
                 for rm in f_rooms if rm.topic
             ]
+            f_meta = pack_meta_map.get(f_id, {})
+            f_title = f_meta.get("title") or f"Floor {f_idx}: {f_rooms[0].topic.name if f_rooms[0].topic else 'Chamber'}"
+            boss_meta = f_meta.get("boss", {})
+            boss_name = boss_meta.get("name") or f_boss_room.monster_type
+            boss_kind = boss_meta.get("kind") or f_boss_room.monster_kind or "silicon_golem"
+
             floors_view.append(
                 DungeonFloorView(
                     id=f_id,
                     index=f_idx,
-                    title=f"Floor {f_idx}: {f_rooms[0].topic.name if f_rooms[0].topic else 'Chamber'}",
+                    title=f_title,
                     # Frontend contract: ready | locked | cleared | generating | failed.
                     status="cleared" if dungeon_cleared else ("ready" if f_idx == 1 else "locked"),
                     topics=f_topics,
                     boss=FloorBossView(
                         id=f_boss_room.id,
-                        name=f_boss_room.monster_type,
+                        name=boss_name,
                         hp=f_boss_room.monster_hp,
-                        kind=f_boss_room.monster_kind or "silicon_golem",
+                        kind=boss_kind,
                     ),
                     rank=None,
                     room_ids=[rm.id for rm in f_rooms],

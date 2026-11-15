@@ -9,6 +9,7 @@ from app.api.auth import auth_router, demo_router, guests_router
 from app.api.documents import documents_router
 from app.api.dungeons import dungeons_router
 from app.api.health import health_router
+from app.api.leaderboard import leaderboard_router
 from app.api.packs import packs_router
 from app.api.progress import progress_router
 from app.api.runs import runs_router
@@ -27,9 +28,21 @@ async def lifespan(app: FastAPI):
         from app.core.database import async_session_maker
         from app.demo.seed import seed_demo_dungeon
         from app.demo.seed_packs import seed_content_packs
+        from app.models.all_models import Document
+        from sqlalchemy import update
+        from datetime import datetime, timedelta
         async with async_session_maker() as session:
             await seed_demo_dungeon(session)
             await seed_content_packs(session)
+
+            # Recover stuck ingestion jobs
+            stuck_threshold = datetime.utcnow() - timedelta(seconds=settings.INGESTION_TIMEOUT_SECONDS * 4)
+            await session.execute(
+                update(Document)
+                .where(Document.status == "processing", Document.created_at < stuck_threshold)
+                .values(status="failed", rejection_reason="Processing was interrupted. Please retry.")
+            )
+            await session.commit()
     except Exception as e:
         import logging
         logging.getLogger("studydungeon").warning("Startup seed notice: %s", str(e))
@@ -66,6 +79,7 @@ def create_app() -> FastAPI:
     app.include_router(demo_router)
     app.include_router(guests_router)
     app.include_router(packs_router)
+    app.include_router(leaderboard_router)
     app.include_router(documents_router)
     app.include_router(dungeons_router)
     app.include_router(runs_router)

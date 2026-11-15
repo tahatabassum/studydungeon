@@ -15,6 +15,12 @@ class AttemptRequest(BaseModel):
     weapon_name: str = "Rusty Dagger"
 
 
+class PlayerPointsView(BaseModel):
+    preloaded: int
+    own_notes: int
+    overall: int
+
+
 class AttemptResponse(BaseModel):
     attempt_id: str
     is_correct: bool
@@ -27,6 +33,10 @@ class AttemptResponse(BaseModel):
     monster_hp_remaining: int
     explanation: Optional[str] = None
     evidence_quote: Optional[str] = None
+    points_awarded: Optional[int] = None
+    points_reason: Optional[str] = None
+    points_bonus: Optional[int] = None
+    player_points: Optional[PlayerPointsView] = None
 
 
 class RunRoomState(BaseModel):
@@ -52,6 +62,16 @@ class RunDetailResponse(BaseModel):
     rooms: List[RunRoomState]
 
 
+class ClearRoomResponse(BaseModel):
+    xp_delta: int
+    success: Optional[bool] = True
+    room_id: Optional[str] = None
+    is_cleared: Optional[bool] = True
+    is_boss: Optional[bool] = None
+    points_awarded: Optional[int] = None
+    points_reason: Optional[str] = None
+
+
 class RunSummaryResponse(BaseModel):
     id: str
     score: int
@@ -61,4 +81,6 @@ class RunSummaryResponse(BaseModel):
     accuracy: float
     mastery_band: str  # Weak, Learning, Strong
     status: str
+    points_earned: Optional[int] = None
+    player_points: Optional[PlayerPointsView] = None
     pack_progress: Optional[dict] = None

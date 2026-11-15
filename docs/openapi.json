@@ -357,6 +357,124 @@
         }
       }
     },
+    "/packs": {
+      "get": {
+        "tags": [
+          "packs"
+        ],
+        "summary": "List Packs",
+        "operationId": "list_packs_packs_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PacksResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/leaderboard": {
+      "get": {
+        "tags": [
+          "leaderboard"
+        ],
+        "summary": "Get Leaderboard",
+        "operationId": "get_leaderboard_leaderboard_get",
+        "parameters": [
+          {
+            "name": "board",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "pattern": "^(preloaded|own_notes|overall)$",
+              "default": "overall",
+              "title": "Board"
+            }
+          },
+          {
+            "name": "period",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "pattern": "^(all|week)$",
+              "default": "all",
+              "title": "Period"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LeaderboardResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/stats/players": {
+      "get": {
+        "tags": [
+          "leaderboard"
+        ],
+        "summary": "Get Player Stats",
+        "operationId": "get_player_stats_stats_players_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlayerStatsSummaryResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/documents/uploads/quota": {
+      "get": {
+        "tags": [
+          "documents"
+        ],
+        "summary": "Get Upload Quota",
+        "operationId": "get_upload_quota_documents_uploads_quota_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UploadQuotaResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/documents": {
       "get": {
         "tags": [
@@ -1116,6 +1234,49 @@
               }
             ],
             "title": "Evidence Quote"
+          },
+          "points_awarded": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Points Awarded"
+          },
+          "points_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Points Reason"
+          },
+          "points_bonus": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Points Bonus"
+          },
+          "player_points": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PlayerPointsView"
+              },
+              {
+                "type": "null"
+              }
+            ]
           }
         },
         "type": "object",
@@ -1132,12 +1293,178 @@
         ],
         "title": "AttemptResponse"
       },
+      "BoardEntryView": {
+        "properties": {
+          "rank": {
+            "type": "integer",
+            "title": "Rank"
+          },
+          "public_id": {
+            "type": "string",
+            "title": "Public Id"
+          },
+          "handle": {
+            "type": "string",
+            "title": "Handle"
+          },
+          "display_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Display Name"
+          },
+          "tag": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tag"
+          },
+          "is_guest": {
+            "type": "boolean",
+            "title": "Is Guest"
+          },
+          "level": {
+            "type": "integer",
+            "title": "Level"
+          },
+          "points": {
+            "type": "integer",
+            "title": "Points"
+          },
+          "rooms_cleared": {
+            "type": "integer",
+            "title": "Rooms Cleared"
+          },
+          "badge_ids": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Badge Ids"
+          }
+        },
+        "type": "object",
+        "required": [
+          "rank",
+          "public_id",
+          "handle",
+          "is_guest",
+          "level",
+          "points",
+          "rooms_cleared"
+        ],
+        "title": "BoardEntryView"
+      },
+      "BoardMeView": {
+        "properties": {
+          "live": {
+            "type": "boolean",
+            "title": "Live",
+            "default": true
+          },
+          "public_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Public Id"
+          },
+          "handle": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Handle"
+          },
+          "rank": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rank"
+          },
+          "points": {
+            "type": "integer",
+            "title": "Points",
+            "default": 0
+          },
+          "next_above": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/NextAboveView"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "top20": {
+            "$ref": "#/components/schemas/Top20View"
+          },
+          "reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason"
+          }
+        },
+        "type": "object",
+        "required": [
+          "top20"
+        ],
+        "title": "BoardMeView"
+      },
       "Body_upload_document_documents_post": {
         "properties": {
           "file": {
             "type": "string",
             "contentMediaType": "application/octet-stream",
             "title": "File"
+          },
+          "accept_ai_notice": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Accept Ai Notice"
           }
         },
         "type": "object",
@@ -1387,6 +1714,30 @@
             },
             "type": "array",
             "title": "Rooms"
+          },
+          "floors": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/DungeonFloorView"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Floors"
+          },
+          "final_boss": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/FinalBossView"
+              },
+              {
+                "type": "null"
+              }
+            ]
           }
         },
         "type": "object",
@@ -1398,6 +1749,65 @@
           "rooms"
         ],
         "title": "DungeonDetailView"
+      },
+      "DungeonFloorView": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "index": {
+            "type": "integer",
+            "title": "Index"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status",
+            "default": "locked"
+          },
+          "topics": {
+            "items": {
+              "$ref": "#/components/schemas/FloorTopicView"
+            },
+            "type": "array",
+            "title": "Topics",
+            "default": []
+          },
+          "boss": {
+            "$ref": "#/components/schemas/FloorBossView"
+          },
+          "rank": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rank"
+          },
+          "room_ids": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Room Ids"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "index",
+          "title",
+          "boss",
+          "room_ids"
+        ],
+        "title": "DungeonFloorView"
       },
       "DungeonRoomView": {
         "properties": {
@@ -1428,6 +1838,28 @@
           "is_boss": {
             "type": "boolean",
             "title": "Is Boss"
+          },
+          "floor_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Floor Id"
+          },
+          "monster_kind": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Monster Kind"
           },
           "questions": {
             "items": {
@@ -1483,6 +1915,91 @@
           "rooms_count"
         ],
         "title": "DungeonSummary"
+      },
+      "FinalBossView": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "hp": {
+            "type": "integer",
+            "title": "Hp"
+          },
+          "unlocked": {
+            "type": "boolean",
+            "title": "Unlocked",
+            "default": false
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "hp"
+        ],
+        "title": "FinalBossView"
+      },
+      "FloorBossView": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "hp": {
+            "type": "integer",
+            "title": "Hp"
+          },
+          "kind": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Kind"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "hp"
+        ],
+        "title": "FloorBossView"
+      },
+      "FloorTopicView": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "mastery": {
+            "type": "integer",
+            "title": "Mastery",
+            "default": 0
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "title"
+        ],
+        "title": "FloorTopicView"
       },
       "GuestNameCheckRequest": {
         "properties": {
@@ -1556,6 +2073,282 @@
         "type": "object",
         "title": "HTTPValidationError"
       },
+      "LeaderboardResponse": {
+        "properties": {
+          "board": {
+            "type": "string",
+            "title": "Board"
+          },
+          "period": {
+            "type": "string",
+            "title": "Period"
+          },
+          "week": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/WeekWindowView"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "updated_at": {
+            "type": "string",
+            "title": "Updated At"
+          },
+          "next_refresh_at": {
+            "type": "string",
+            "title": "Next Refresh At"
+          },
+          "total_ranked_players": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Total Ranked Players"
+          },
+          "entries": {
+            "items": {
+              "$ref": "#/components/schemas/BoardEntryView"
+            },
+            "type": "array",
+            "title": "Entries"
+          },
+          "me": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/BoardMeView"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "type": "object",
+        "required": [
+          "board",
+          "period",
+          "updated_at",
+          "next_refresh_at",
+          "entries"
+        ],
+        "title": "LeaderboardResponse"
+      },
+      "NextAboveView": {
+        "properties": {
+          "rank": {
+            "type": "integer",
+            "title": "Rank"
+          },
+          "handle": {
+            "type": "string",
+            "title": "Handle"
+          },
+          "points": {
+            "type": "integer",
+            "title": "Points"
+          },
+          "points_needed": {
+            "type": "integer",
+            "title": "Points Needed"
+          }
+        },
+        "type": "object",
+        "required": [
+          "rank",
+          "handle",
+          "points",
+          "points_needed"
+        ],
+        "title": "NextAboveView"
+      },
+      "PackItem": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "order": {
+            "type": "integer",
+            "title": "Order"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "description": {
+            "type": "string",
+            "title": "Description"
+          },
+          "dungeon_id": {
+            "type": "string",
+            "title": "Dungeon Id"
+          },
+          "floors_total": {
+            "type": "integer",
+            "title": "Floors Total"
+          },
+          "floors_cleared": {
+            "type": "integer",
+            "title": "Floors Cleared",
+            "default": 0
+          },
+          "final_boss_cleared": {
+            "type": "boolean",
+            "title": "Final Boss Cleared",
+            "default": false
+          },
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "points_earned": {
+            "type": "integer",
+            "title": "Points Earned",
+            "default": 0
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "order",
+          "title",
+          "description",
+          "dungeon_id",
+          "floors_total",
+          "status"
+        ],
+        "title": "PackItem"
+      },
+      "PacksResponse": {
+        "properties": {
+          "packs": {
+            "items": {
+              "$ref": "#/components/schemas/PackItem"
+            },
+            "type": "array",
+            "title": "Packs"
+          },
+          "next_pack_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Pack Id"
+          },
+          "all_completed": {
+            "type": "boolean",
+            "title": "All Completed",
+            "default": false
+          }
+        },
+        "type": "object",
+        "required": [
+          "packs"
+        ],
+        "title": "PacksResponse"
+      },
+      "PlayerPointsView": {
+        "properties": {
+          "preloaded": {
+            "type": "integer",
+            "title": "Preloaded"
+          },
+          "own_notes": {
+            "type": "integer",
+            "title": "Own Notes"
+          },
+          "overall": {
+            "type": "integer",
+            "title": "Overall"
+          }
+        },
+        "type": "object",
+        "required": [
+          "preloaded",
+          "own_notes",
+          "overall"
+        ],
+        "title": "PlayerPointsView"
+      },
+      "PlayerStatsSummaryResponse": {
+        "properties": {
+          "players": {
+            "type": "integer",
+            "title": "Players"
+          },
+          "rooms_cleared_total": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rooms Cleared Total"
+          },
+          "answers_total": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Answers Total"
+          },
+          "packs_completed_total": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Packs Completed Total"
+          },
+          "updated_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Updated At"
+          },
+          "cache_seconds": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cache Seconds"
+          }
+        },
+        "type": "object",
+        "required": [
+          "players"
+        ],
+        "title": "PlayerStatsSummaryResponse"
+      },
       "ProgressResponse": {
         "properties": {
           "user_id": {
@@ -1617,6 +2410,77 @@
           "difficulty"
         ],
         "title": "QuestionGameplayView"
+      },
+      "QuotaGlobalView": {
+        "properties": {
+          "available": {
+            "type": "boolean",
+            "title": "Available",
+            "default": true
+          }
+        },
+        "type": "object",
+        "title": "QuotaGlobalView"
+      },
+      "QuotaPlayerView": {
+        "properties": {
+          "is_guest": {
+            "type": "boolean",
+            "title": "Is Guest"
+          },
+          "used_today": {
+            "type": "integer",
+            "title": "Used Today"
+          },
+          "limit_today": {
+            "type": "integer",
+            "title": "Limit Today"
+          },
+          "stored": {
+            "type": "integer",
+            "title": "Stored"
+          },
+          "stored_limit": {
+            "type": "integer",
+            "title": "Stored Limit"
+          },
+          "resets_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Resets At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "is_guest",
+          "used_today",
+          "limit_today",
+          "stored",
+          "stored_limit"
+        ],
+        "title": "QuotaPlayerView"
+      },
+      "QuotaRankingView": {
+        "properties": {
+          "min_chars": {
+            "type": "integer",
+            "title": "Min Chars",
+            "default": 3000
+          },
+          "min_topics": {
+            "type": "integer",
+            "title": "Min Topics",
+            "default": 2
+          }
+        },
+        "type": "object",
+        "title": "QuotaRankingView"
       },
       "ReviewQuestionItem": {
         "properties": {
@@ -1793,6 +2657,39 @@
           "status": {
             "type": "string",
             "title": "Status"
+          },
+          "points_earned": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Points Earned"
+          },
+          "player_points": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PlayerPointsView"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "pack_progress": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Pack Progress"
           }
         },
         "type": "object",
@@ -1859,6 +2756,29 @@
         ],
         "title": "StartRunRequest"
       },
+      "Top20View": {
+        "properties": {
+          "in_top20": {
+            "type": "boolean",
+            "title": "In Top20"
+          },
+          "cutoff_points": {
+            "type": "integer",
+            "title": "Cutoff Points"
+          },
+          "points_needed": {
+            "type": "integer",
+            "title": "Points Needed"
+          }
+        },
+        "type": "object",
+        "required": [
+          "in_top20",
+          "cutoff_points",
+          "points_needed"
+        ],
+        "title": "Top20View"
+      },
       "UpgradeGuestRequest": {
         "properties": {
           "username": {
@@ -1880,6 +2800,54 @@
           "password"
         ],
         "title": "UpgradeGuestRequest"
+      },
+      "UploadQuotaResponse": {
+        "properties": {
+          "can_upload": {
+            "type": "boolean",
+            "title": "Can Upload"
+          },
+          "reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason"
+          },
+          "player": {
+            "$ref": "#/components/schemas/QuotaPlayerView"
+          },
+          "global_": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/QuotaGlobalView"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "ranking": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/QuotaRankingView"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "type": "object",
+        "required": [
+          "can_upload",
+          "player"
+        ],
+        "title": "UploadQuotaResponse"
       },
       "UserLoginRequest": {
         "properties": {
@@ -2053,6 +3021,29 @@
           "type"
         ],
         "title": "ValidationError"
+      },
+      "WeekWindowView": {
+        "properties": {
+          "timezone": {
+            "type": "string",
+            "title": "Timezone"
+          },
+          "starts_at": {
+            "type": "string",
+            "title": "Starts At"
+          },
+          "resets_at": {
+            "type": "string",
+            "title": "Resets At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "timezone",
+          "starts_at",
+          "resets_at"
+        ],
+        "title": "WeekWindowView"
       }
     }
   }

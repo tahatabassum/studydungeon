@@ -23,7 +23,7 @@ from app.core.security import (
     verify_password,
     verify_session_token,
 )
-from app.models.all_models import Dungeon, RateLimitRecord, User, UserProgress
+from app.models.all_models import ContentPack, Dungeon, RateLimitRecord, User, UserProgress
 from app.schemas.auth import (
     CreateGuestRequest,
     CreateGuestResponse,
@@ -373,10 +373,15 @@ async def create_guest(
     progress = UserProgress(user_id=guest.id)
     db.add(progress)
 
-    # Fetch default preloaded demo dungeon id to return to frontend (Issue #4 fix)
-    dungeon_res = await db.execute(select(Dungeon).where(Dungeon.is_public_demo == True))
-    demo_dungeon = dungeon_res.scalar_one_or_none()
-    demo_dungeon_id = demo_dungeon.id if demo_dungeon else "demo-dungeon-seeded-id"
+    # Fetch default preloaded demo dungeon id to return to frontend (Pack 1)
+    pack1_res = await db.execute(select(ContentPack).where(ContentPack.order == 1))
+    pack1 = pack1_res.scalar_one_or_none()
+    if pack1 and pack1.dungeon_id:
+        demo_dungeon_id = pack1.dungeon_id
+    else:
+        dungeon_res = await db.execute(select(Dungeon).where(Dungeon.is_public_demo == True))
+        demo_dungeon = dungeon_res.scalar_one_or_none()
+        demo_dungeon_id = demo_dungeon.id if demo_dungeon else "demo-dungeon-seeded-id"
 
     # Lazy purge of guests inactive for >30 days
     thirty_days_ago = now - timedelta(days=settings.GUEST_SESSION_DAYS)
@@ -447,10 +452,15 @@ async def create_demo_session(request: Request, response: Response, db: AsyncSes
     progress = UserProgress(user_id=guest_user.id)
     db.add(progress)
 
-    # Get public demo dungeon or fallback
-    dungeon_res = await db.execute(select(Dungeon).where(Dungeon.is_public_demo == True))
-    demo_dungeon = dungeon_res.scalar_one_or_none()
-    demo_dungeon_id = demo_dungeon.id if demo_dungeon else "demo-dungeon-seeded-id"
+    # Get public demo dungeon or fallback (Pack 1)
+    pack1_res = await db.execute(select(ContentPack).where(ContentPack.order == 1))
+    pack1 = pack1_res.scalar_one_or_none()
+    if pack1 and pack1.dungeon_id:
+        demo_dungeon_id = pack1.dungeon_id
+    else:
+        dungeon_res = await db.execute(select(Dungeon).where(Dungeon.is_public_demo == True))
+        demo_dungeon = dungeon_res.scalar_one_or_none()
+        demo_dungeon_id = demo_dungeon.id if demo_dungeon else "demo-dungeon-seeded-id"
 
     await db.commit()
     await db.refresh(guest_user)

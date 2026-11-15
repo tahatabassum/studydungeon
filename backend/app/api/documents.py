@@ -7,10 +7,13 @@ from fastapi import (
     BackgroundTasks,
     Depends,
     File,
+    Form,
     HTTPException,
+    Request,
     UploadFile,
     status,
 )
+from datetime import datetime, timedelta
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -18,8 +21,16 @@ from app.ai.factory import get_ai_provider
 from app.core.config import settings
 from app.core.database import async_session_maker, get_db
 from app.core.deps import get_current_user, require_registered_user
-from app.models.all_models import Document, DocumentChunk, User
+from app.core.file_limits import FileLimitExceededError
+from app.core.rate_limit import get_client_ip
+from app.models.all_models import Document, DocumentChunk, RateLimitRecord, User
 from app.schemas.documents import DocumentResponse, DocumentStatusResponse
+from app.schemas.uploads import (
+    QuotaGlobalView,
+    QuotaPlayerView,
+    QuotaRankingView,
+    UploadQuotaResponse,
+)
 from app.services.extractors import (
     extract_text_from_docx,
     extract_text_from_pdf,
@@ -116,25 +127,125 @@ async def process_document_background(
             await _worker(db)
 
 
-@documents_router.post("", status_code=status.HTTP_202_ACCEPTED)
-async def upload_document(
-    background_tasks: BackgroundTasks,
-    file: UploadFile = File(...),
-    user: User = Depends(require_registered_user),
+@documents_router.get("/uploads/quota", response_model=UploadQuotaResponse, response_model_exclude_none=True)
+async def get_upload_quota(
+    user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    # 1. Enforce quota: max 5 active documents per user
+    now = datetime.utcnow()
+    midnight_utc = datetime(now.year, now.month, now.day) + timedelta(days=1)
+    resets_at_str = midnight_utc.isoformat() + "Z"
+
+    # User limits
+    is_guest = user.is_guest
+    daily_limit = 1 if is_guest else 3
+    stored_limit = 2 if is_guest else 5
+
+    # Count stored documents
+    stored_res = await db.execute(select(func.count(Document.id)).where(Document.user_id == user.id))
+    stored_count = stored_res.scalar() or 0
+
+    # Count uploads today
+    today_start = datetime(now.year, now.month, now.day)
+    used_res = await db.execute(
+        select(func.count(Document.id)).where(
+            Document.user_id == user.id,
+            Document.created_at >= today_start,
+            Document.status.in_(["accepted", "processing"]),
+        )
+    )
+    used_today = used_res.scalar() or 0
+
+    can_upload = True
+    reason = None
+
+    if stored_count >= stored_limit:
+        can_upload = False
+        reason = "stored_limit"
+    elif used_today >= daily_limit:
+        can_upload = False
+        reason = "player_daily_limit"
+
+    return UploadQuotaResponse(
+        can_upload=can_upload,
+        reason=reason,
+        player=QuotaPlayerView(
+            is_guest=is_guest,
+            used_today=used_today,
+            limit_today=daily_limit,
+            stored=stored_count,
+            stored_limit=stored_limit,
+            resets_at=resets_at_str,
+        ),
+        global_=QuotaGlobalView(available=True),
+        ranking=QuotaRankingView(min_chars=3000, min_topics=2),
+    )
+
+
+@documents_router.post("", status_code=status.HTTP_202_ACCEPTED)
+async def upload_document(
+    request: Request,
+    background_tasks: BackgroundTasks,
+    file: UploadFile = File(...),
+    accept_ai_notice: Optional[bool] = Form(None),
+    user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    # 0. Check guest permissions
+    if user.is_guest:
+        if accept_ai_notice is not True:
+            # If notice not accepted (or missing in legacy test), block guest with 403 GUEST_FORBIDDEN
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail={"code": "GUEST_FORBIDDEN", "message": "Create an account or accept the AI notice to upload your own notes."},
+            )
+    else:
+        if accept_ai_notice is False:
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail={"code": "AI_NOTICE_NOT_ACCEPTED", "message": "You must accept the AI data processing notice to upload study materials."},
+            )
+
+    now = datetime.utcnow()
+    today_start = datetime(now.year, now.month, now.day)
+    midnight_utc = today_start + timedelta(days=1)
+    retry_after_secs = max(1, int((midnight_utc - now).total_seconds()))
+
+    # 1. Enforce Quota: Stored documents limit
+    is_guest = user.is_guest
+    stored_limit = 2 if is_guest else 5
+    daily_limit = 1 if is_guest else 3
+
     count_res = await db.execute(
         select(func.count(Document.id)).where(Document.user_id == user.id)
     )
     current_docs = count_res.scalar() or 0
-    if current_docs >= 5:
+    if current_docs >= stored_limit:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail={"code": "QUOTA_EXCEEDED", "message": "Maximum active document quota of 5 reached. Please delete an older document first."},
+            detail={
+                "code": "QUOTA_EXCEEDED",
+                "message": f"You already have {stored_limit} documents. Delete an older one before uploading another.",
+            },
         )
 
-    # 2. Read bytes and check size
+    # 2. Enforce Daily Player limit
+    used_res = await db.execute(
+        select(func.count(Document.id)).where(
+            Document.user_id == user.id,
+            Document.created_at >= today_start,
+            Document.status.in_(["accepted", "processing"]),
+        )
+    )
+    used_today = used_res.scalar() or 0
+    if used_today >= daily_limit:
+        raise HTTPException(
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+            detail={"code": "UPLOAD_LIMIT_PLAYER", "message": f"Daily upload limit of {daily_limit} reached for this account. Try again tomorrow."},
+            headers={"Retry-After": str(retry_after_secs)},
+        )
+
+    # 3. Read bytes and check size
     file_bytes = await file.read()
     max_bytes = settings.MAX_UPLOAD_MB * 1024 * 1024
     if len(file_bytes) > max_bytes:
@@ -143,7 +254,7 @@ async def upload_document(
             detail={"code": "FILE_TOO_LARGE", "message": f"File exceeds maximum allowed size of {settings.MAX_UPLOAD_MB}MB."},
         )
 
-    # 3. Validate header & signature
+    # 4. Validate header & signature
     try:
         file_type = validate_file_header(file.filename or "unknown", file_bytes)
     except ValueError as e:
@@ -152,7 +263,25 @@ async def upload_document(
             detail={"code": "UNSUPPORTED_FILE_TYPE", "message": str(e)},
         )
 
-    # 4. Create document in processing state
+    # 5. Pre-check file limits (pages, slides, text characters) before AI
+    try:
+        if file_type == "pdf":
+            extract_text_from_pdf(file_bytes)
+        elif file_type == "docx":
+            extract_text_from_docx(file_bytes)
+        elif file_type == "pptx":
+            extract_text_from_pptx(file_bytes)
+        elif file_type == "txt":
+            extract_text_from_txt(file_bytes)
+    except FileLimitExceededError as e:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail={"code": e.code, "message": e.message, "limit": e.limit, "found": e.found},
+        )
+    except Exception:
+        pass  # Ingestion pipeline worker will handle any content parsing nuances
+
+    # 6. Create document in processing state
     doc_id = str(uuid.uuid4())
     doc = Document(
         id=doc_id,
@@ -166,7 +295,7 @@ async def upload_document(
     await db.commit()
     await db.refresh(doc)
 
-    # 5. Kick off background processing
+    # 7. Kick off background processing
     background_tasks.add_task(process_document_background, doc.id, file_bytes, file_type)
 
     return {"id": doc.id, "status": "processing", "message": "Document accepted for processing."}

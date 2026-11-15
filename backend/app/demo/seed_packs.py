@@ -56,6 +56,13 @@ async def seed_content_packs(db: AsyncSession) -> list[ContentPack]:
             if offset > 0:
                 for r in existing_rooms:
                     r.room_order -= offset
+            # Ensure Pack 1's dungeon is marked is_public_demo = True
+            if pack_id == "pack-1":
+                d_res = await db.execute(select(Dungeon).where(Dungeon.id == existing_pack.dungeon_id))
+                d_obj = d_res.scalar_one_or_none()
+                if d_obj and not d_obj.is_public_demo:
+                    d_obj.is_public_demo = True
+                    renamed = True
             if offset > 0 or renamed:
                 await db.commit()
             seeded_packs.append(existing_pack)
@@ -75,7 +82,7 @@ async def seed_content_packs(db: AsyncSession) -> list[ContentPack]:
         await db.flush()
 
         # Create Dungeon
-        is_demo = False  # Seeded baseline demo dungeon is distinct from pack dungeons
+        is_demo = (pack_id == "pack-1")  # Pack 1 serves as the public demo dungeon
         dungeon = Dungeon(
             user_id=sys_user.id,
             document_id=doc.id,

@@ -8,6 +8,7 @@ import pymupdf
 from PIL import Image
 
 from app.ai.provider import ExtractedChunk
+from app.core.file_limits import FileLimitExceededError
 from app.services.ingestion import clean_and_normalize_text
 
 ALLOWED_EXTENSIONS = {".pdf", ".txt", ".docx", ".pptx", ".png", ".jpg", ".jpeg"}
@@ -60,7 +61,12 @@ def extract_text_from_pdf(file_bytes: bytes, max_pages: int = 30) -> List[Extrac
     doc = pymupdf.open(stream=file_bytes, filetype="pdf")
     page_count = len(doc)
     if page_count > max_pages:
-        raise ValueError(f"Document exceeds maximum limit of {max_pages} pages (has {page_count} pages).")
+        raise FileLimitExceededError(
+            code="TOO_MANY_PAGES",
+            message=f"This PDF has {page_count} pages; the limit is {max_pages}.",
+            limit=max_pages,
+            found=page_count,
+        )
 
     for idx, page in enumerate(doc):
         text = page.get_text()
@@ -70,7 +76,7 @@ def extract_text_from_pdf(file_bytes: bytes, max_pages: int = 30) -> List[Extrac
     return chunks
 
 
-def extract_text_from_docx(file_bytes: bytes) -> List[ExtractedChunk]:
+def extract_text_from_docx(file_bytes: bytes, max_chars: int = 60000) -> List[ExtractedChunk]:
     chunks: List[ExtractedChunk] = []
     doc = docx.Document(io.BytesIO(file_bytes))
     paragraphs_text = []
@@ -88,6 +94,13 @@ def extract_text_from_docx(file_bytes: bytes) -> List[ExtractedChunk]:
 
     full_text = "\n\n".join(paragraphs_text)
     clean = clean_and_normalize_text(full_text)
+    if len(clean) > max_chars:
+        raise FileLimitExceededError(
+            code="TOO_MUCH_TEXT",
+            message=f"This document has {len(clean)} characters; the limit is {max_chars}.",
+            limit=max_chars,
+            found=len(clean),
+        )
     if clean:
         # Split into logical ~1000-char chunks
         paragraphs = clean.split("\n\n")
@@ -127,7 +140,12 @@ def extract_text_from_pptx(file_bytes: bytes, max_slides: int = 30) -> List[Extr
     prs = pptx.Presentation(io.BytesIO(file_bytes))
     slide_count = len(prs.slides)
     if slide_count > max_slides:
-        raise ValueError(f"Presentation exceeds maximum limit of {max_slides} slides (has {slide_count} slides).")
+        raise FileLimitExceededError(
+            code="TOO_MANY_SLIDES",
+            message=f"This presentation has {slide_count} slides; the limit is {max_slides}.",
+            limit=max_slides,
+            found=slide_count,
+        )
 
     for idx, slide in enumerate(prs.slides):
         slide_texts = []
@@ -141,13 +159,20 @@ def extract_text_from_pptx(file_bytes: bytes, max_slides: int = 30) -> List[Extr
     return chunks
 
 
-def extract_text_from_txt(file_bytes: bytes) -> List[ExtractedChunk]:
+def extract_text_from_txt(file_bytes: bytes, max_chars: int = 60000) -> List[ExtractedChunk]:
     try:
         decoded = file_bytes.decode("utf-8")
     except UnicodeDecodeError:
         decoded = file_bytes.decode("latin-1")
 
     clean = clean_and_normalize_text(decoded)
+    if len(clean) > max_chars:
+        raise FileLimitExceededError(
+            code="TOO_MUCH_TEXT",
+            message=f"This document has {len(clean)} characters; the limit is {max_chars}.",
+            limit=max_chars,
+            found=len(clean),
+        )
     chunks: List[ExtractedChunk] = []
     # Segment into ~1000 char chunks
     paras = clean.split("\n\n")
