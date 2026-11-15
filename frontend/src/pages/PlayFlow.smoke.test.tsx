@@ -152,7 +152,9 @@ describe('play flow smoke test', () => {
       expect(sent().some((e) => e.type === 'gate-open' && e.roomId === room1.id)).toBe(true),
     )
     await vi.waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
-    expect(await screen.findByText(/Room cleared/)).toBeTruthy()
+    // The banner text is also mirrored in the single live region.
+    expect((await screen.findAllByText(/Room cleared/)).length).toBeGreaterThan(0)
+    expect(screen.getByTestId('shell-live').textContent).toMatch(/Room cleared! \+\d+ XP/)
     expect(encounters).toBe(1)
     expect(new Set(seen).size).toBe(4)
     expect(clearSpy).toHaveBeenCalledTimes(1)
@@ -324,7 +326,9 @@ describe('play flow smoke test', () => {
     await vi.waitFor(() =>
       expect(sent().some((e) => e.type === 'gate-open' && e.roomId === room1.id)).toBe(true),
     )
-    expect(await screen.findByText(/Room cleared/)).toBeTruthy()
+    // The banner text is also mirrored in the single live region.
+    expect((await screen.findAllByText(/Room cleared/)).length).toBeGreaterThan(0)
+    expect(screen.getByTestId('shell-live').textContent).toMatch(/Room cleared! \+\d+ XP/)
 
     act(() => {
       gameBridge().emit({ type: 'gate-opened', roomId: room1.id })

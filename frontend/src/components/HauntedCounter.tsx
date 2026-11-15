@@ -5,6 +5,8 @@ export interface HauntedCounterProps {
   count: number
   /** Compact top bar: icon and number only (the full label stays for assistive tech). */
   compact?: boolean
+  /** Polite live region (default). The play screen passes false: it has one shared region. */
+  live?: boolean
   className?: string
 }
 
@@ -31,12 +33,11 @@ function GhostIcon() {
  * "Haunted memories due" counter, shown in the floating HUD and reused by the Dashboard.
  * It is a polite live region so a decrement after a memory is laid to rest is announced.
  */
-export function HauntedCounter({ count, compact = false, className = '' }: HauntedCounterProps) {
+export function HauntedCounter({ count, compact = false, live = true, className = '' }: HauntedCounterProps) {
   const n = Number.isFinite(count) ? Math.max(0, Math.floor(count)) : 0
   return (
     <div
-      role="status"
-      aria-live="polite"
+      {...(live ? { role: 'status', 'aria-live': 'polite' as const } : {})}
       data-testid="haunted-counter"
       data-count={n}
       className={`sd-stone flex items-center gap-1.5 px-2 py-1 text-sm font-semibold text-ink ${className}`.trim()}

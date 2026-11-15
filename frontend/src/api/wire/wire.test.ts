@@ -325,3 +325,38 @@ describe('error bodies (C16, C18, C24, C28)', () => {
     expect(new ApiError(401, 'x').code).toBeUndefined()
   })
 })
+
+describe('mapDungeon without floor data (generate-dungeon)', () => {
+  const room = (over: Record<string, unknown> = {}) => ({
+    id: 'r1',
+    room_number: 1,
+    topic_name: 'Cells',
+    monster_name: 'Cell Wraith',
+    monster_type: 'Wraith',
+    monster_hp: 90,
+    is_boss: true,
+    questions: [{ id: 'q1', prompt: 'What is a cell?', options: ['A unit', 'A rock'], difficulty: 'easy' }],
+    ...over,
+  })
+  const body = (over: Record<string, unknown> = {}) => ({ id: 'd1', title: 'My notes', rooms: [room()], ...over })
+
+  it.each([
+    ['floor_id and floors absent', body()],
+    ['floor_id and floors null', body({ rooms: [room({ floor_id: null })], floors: null, final_boss: null })],
+  ])('%s: one legacy Floor "The Crypt" holds every room', (_name, wire) => {
+    const dungeon = mapDungeon(wireDungeonSchema.parse(wire))
+    expect(dungeon.rooms[0].floor_id).toBeUndefined()
+    expect(dungeon.floors).toHaveLength(1)
+    expect(dungeon.floors?.[0]).toMatchObject({ id: 'floor-legacy', title: 'The Crypt', status: 'ready', room_ids: ['r1'] })
+    expect(dungeon.final_boss).toBeUndefined()
+  })
+
+  it('keeps a floor_id the backend does send', () => {
+    const dungeon = mapDungeon(wireDungeonSchema.parse(body({ rooms: [room({ floor_id: 'f_1' })] })))
+    expect(dungeon.rooms[0].floor_id).toBe('f_1')
+  })
+
+  it('the generate-dungeon endpoint schema accepts the body without floor data', () => {
+    expect(WIRE_ENDPOINTS.generateDungeon.schema.safeParse(body()).success).toBe(true)
+  })
+})

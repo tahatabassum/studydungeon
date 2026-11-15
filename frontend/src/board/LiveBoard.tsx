@@ -197,8 +197,12 @@ export function LiveBoard({ board, period, isGuest }: LiveBoardProps) {
                 Play
               </Link>
             </section>
+          ) : view.rows.length === 0 ? (
+            <p className="sd-card__muted sd-lb__rows-empty" data-testid="lb-rows-empty">
+              No one else has points on this board yet.
+            </p>
           ) : (
-            view.rows.length > 0 && (
+            (
               <div className="sd-lb__rowsbox">
                 <table className="sd-lb__table" aria-label="Rankings" data-many={view.rows.length > 8 ? 'true' : undefined} style={rowsVars(view.rows.length)}>
                   <thead className="sr-only">

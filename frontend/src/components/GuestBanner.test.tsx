@@ -28,7 +28,7 @@ describe('GuestBanner', () => {
 
   it('names the player by handle when one is given', () => {
     render(<GuestBanner isGuest handle="Pale Moth#1234" />)
-    expect(screen.getByRole('status').textContent).toBe('Playing as Pale Moth#1234. Progress is temporary.')
+    expect(screen.getByText('Playing as Pale Moth#1234. Progress is temporary.')).toBeTruthy()
   })
 
   it('stays permanently without autoHideMs and has no dismiss button', () => {
@@ -42,7 +42,7 @@ describe('GuestBanner', () => {
     const onDone = vi.fn()
     render(<GuestBanner isGuest autoHideMs={6000} onDone={onDone} />)
     expect(screen.getByText(TEXT)).toBeTruthy()
-    expect(screen.getByRole('status').textContent).toBe(TEXT)
+    expect(screen.queryByRole('status')).toBeNull()
     advance(5900)
     expect(screen.getByText(TEXT)).toBeTruthy()
     advance(100)

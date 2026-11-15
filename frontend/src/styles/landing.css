@@ -32,6 +32,11 @@
   animation: sd-moon-float 4.5s ease-in-out infinite alternate !important;
 }
 
+/* Desktop: keep the floating moon (it rises 28px) clear of the top bar links (Dashboard, Leaderboard). */
+@media (min-width: 1100px) {
+  .sd-landing__sky .sd-moon { top: max(8%, 6.5rem); }
+}
+
 @keyframes sd-moon-float {
   0% {
     transform: translateY(0px) scale(1);
@@ -176,7 +181,8 @@
   .sd-landing__sky { position: absolute; }
   .sd-landing__main { flex: 1 0 auto; overflow: visible; padding-top: 0.5rem; padding-bottom: 1rem; }
   .sd-landing__foot { padding: 0.75rem 1rem 1rem; }
-  .sd-moon { top: 3.75rem; right: 5%; width: 4rem; box-shadow: 0 0 16px 4px color-mix(in srgb, var(--color-bone) 28%, transparent); }
+  /* top = bar height + the 28px the moon floats up (sd-moon-float), so it never reaches the top bar links. */
+  .sd-moon { top: calc(3.75rem + 28px); right: 5%; width: 4rem; box-shadow: 0 0 16px 4px color-mix(in srgb, var(--color-bone) 28%, transparent); }
 }
 @media (max-width: 420px) {
   .sd-landing__bar { gap: 0 0.4rem; flex-wrap: wrap; }

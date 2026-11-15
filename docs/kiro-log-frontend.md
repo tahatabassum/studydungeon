@@ -543,3 +543,35 @@ Frontend only. landing.css: header nav wraps (.sd-landing__nav) and compacts bel
 - HUD: HP numbers never wrap, longer handle, readable XP totals; guest banner text no longer repeats its button.
 - layout-check.mjs: /packs/ is a session route, overlay body is a sanctioned scroller on phones, clipped reports name the overflowing element.
 - Verify: typecheck, lint, 1478 passed / 27 skipped, contract 46/1, build, layout:check 216/216.
+## 2026-11-17 frontend-04 task 7.2: per-frame allocation review (Req 21.4, 18.4)
+- Reviewed the update() paths: GameScene.update, MovementSystem, InteractionSystem, RoomTracker (plus roomTracking/roomAt), AtmosphereSystem. Frontend only. Behaviour is unchanged in every file below.
+- Changed (five files):
+  - `src/game/world/DungeonLayout.ts`: `roomAt` (called every frame from RoomTracker.update) used for-of and destructuring; now an indexed loop reading the rect fields directly. Same results.
+  - `src/game/scenes/GameScene.ts`: `update()` iterated `monsters.values()` (a Map iterator each frame); it now loops over a `monsterList` array kept in step with the map (push on build, cleared on shutdown). The RoomTracker position callback returns one reused point instead of a new object each frame.
+  - `src/game/systems/InteractionSystem.ts`: reuses a scratch player point and one `EngageInput` object instead of two object literals per frame.
+  - `src/game/systems/MovementSystem.ts`: reuses one key-input object and one vector instead of creating them per frame.
+  - `src/game/systems/movementVector.ts`: `movementVector` takes an optional `out` vector (default is a new object, so existing callers and tests are unaffected).
+- Already allocation free: AtmosphereSystem (no update(); pooled images and looping tweens), RoomTracker (one position point; closures are created once in build()).
+- Not changed, outside the listed files: `LightSystem.update` still uses for-of over an array (no per-frame objects in practice).
+- Correction: the first version of this entry said only `roomAt` changed. That was wrong; the diff shows the five files above.
+- Verify: typecheck, lint clean; 1487 passed / 27 skipped at the time.
+
+## 2026-11-17 frontend-04 task 7.3: accessibility pass (Req 4.1, 9.5, 12.1, 16.2)
+- One polite live region speaks at a time. While the question dialog (EncounterPopup) is open, the result text ("Correct. You dealt N damage.", "Incorrect. You took N damage.", low health, the Memory scroll answer) is announced from a region INSIDE the dialog (`data-testid="encounter-live"`), because a modal dialog can hide regions outside it from assistive technology. When no dialog is open (room cleared, level up, hall at rest, fullscreen messages) the AppShell region (`shell-live`) speaks. `routeAnnouncement(text, dialogOpen)` in `src/pages/playAnnouncements.ts` sends the text to exactly one of them.
+- Removed the other `role="status"` / `aria-live` elements on the play screen (result banner, "Resolving", Memory scroll, ComboMeter, GuestBanner, low-health line, room-cleared and hall panels). `HauntedCounter` has a `live` prop (default true; the HUD passes false).
+- `AnswerGrid` has the label "Answer options" and each option has `aria-keyshortcuts` 1 to 4. Blocking errors keep `role="alert"`.
+- New: `src/pages/playAnnouncements.ts` and its test (damage always read from the server values, level-up message shown once). Updated tests: EncounterPopup, LearningLoop.flow, PlayFlow.smoke, ComboMeter, GuestBanner.
+- NOT tested with a real screen reader. Only jsdom tests assert the regions and their text; how NVDA, JAWS or VoiceOver announce them is unknown. Test with at least one before relying on it.
+- Verify: typecheck and lint clean; the page, encounter, learning and component suites pass (209 tests).
+
+## 2026-11-17 frontend-11 follow-ups and layout:check
+- Leaderboard: with 1 to 3 entries the rank rows rendered nothing; they now show "No one else has points on this board yet." (`lb-rows-empty`).
+- Moon: on desktop (>= 1100 px) the landing moon is lower (`top: max(8%, 6.5rem)`) so its 28 px float never reaches the top-bar links. On compact windows (landing.css, max-width 1099) its top is now `calc(3.75rem + 28px)`, which fixes the overlap with the Leaderboard link at 740x360. This is a CSS fix; the moon is not hidden.
+- `scripts/layout-check.mjs` measures the moon truthfully: it adds the 28 px float travel whenever the computed `animation-name` includes `sd-moon-float`, at every size (before, only at widths >= 1100, which hid the 740x360 overlap).
+- `scripts/layout-check.mjs` has a new scenario, `--routes /play`: it opens the floor map, presses Continue, walks the hero up with real key events (CDP) and presses E until the question dialog opens, then measures `[exploring]`, `[question-panel]` and `[question-result]` (after answering with key 1) at every size. The legacy `/play` route is not used because it needs a session dungeon id the headless run does not set.
+- Found by that scenario and fixed: the parchment (`.sd-speech`, overflow hidden) reported clipped content at 360x740 and 740x360. Cause: `sr-only` text inside the scroller is absolutely positioned against the outer panel, which stretched its scroll height to the end of the content. `.sd-speech__scroll` is now `position: relative`. On phones the inner `.sd-speech__scroll` is a sanctioned scroller (like `.sd-overlay-body`); at 740x360 the Retreat button sits below the fold inside it.
+- New tests: `UploadLayout.test.tsx` (6) and `LeaderboardLayout.test.tsx` (10, one is an `it.each` over 0, 1, 3, 8, 20 entries).
+- `frontend-04` and `frontend-11` task checklists synced to what was already built; `tasks.meta.json` bookkeeping files added.
+
+## 2026-11-17 generate-dungeon without floor data
+- `src/api/wire/dungeon.ts`: `floor_id`, `floors` and `final_boss` accept absent or `null`. A dungeon without floor data becomes ONE legacy Floor "The Crypt" (id `floor-legacy`) holding every room, with the boss room (else the last room) as the floor boss. A `floor_id` the backend does send is kept. New tests in `wire.test.ts` (absent, null, kept, endpoint schema). Noted in `docs/handoff/B-to-A.md`.

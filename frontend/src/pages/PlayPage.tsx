@@ -33,6 +33,8 @@ import { damageReceived, isCombatActive } from '@/state/combatMachine'
 import { displayHandle } from '@/identity/handle'
 import { useSession } from '@/state/SessionContext'
 import { usePackContinue } from '@/packs/usePackContinue'
+import { isLowHealth } from '@/components/hudHelpers'
+import { composeAnnouncement, routeAnnouncement, useLevelAnnouncement } from './playAnnouncements'
 import { campaignPath, usePlaySession, type PlayScope } from './usePlaySession'
 
 export interface PlayPageProps {
@@ -59,6 +61,7 @@ export default function PlayPage({ scope, examMinutes = null }: PlayPageProps = 
   // A short landscape phone also gets the compact HUD, so the top bar leaves room for the stage.
   const compact = hudMode(useViewportWidth()) === 'compact' || (touch && viewportHeight < 480)
   const bridge = s.bridge
+  const levelNote = useLevelAnnouncement(s.progress?.level, state.combat === 'question')
   const packContinue = usePackContinue(state.summary, s.campaign?.isFinal === true && s.campaign.unit === 'floor', s.exit)
   useEffect(() => {
     // In-world prompts say "Tap Engage" instead of "Press E". Only sent in touch mode (desktop is unchanged).
@@ -101,8 +104,21 @@ export default function PlayPage({ scope, examMinutes = null }: PlayPageProps = 
     state.phase === 'exploring' && !combatActive && !showVictory && !confirmingExit && !s.clearError && !chestVisible
   const pauseVisible = (state.phase === 'exploring' || state.phase === 'encounter') && !showVictory
 
+  // One polite region speaks at a time: inside the encounter dialog while it is open, else the AppShell one.
+  const announcement = composeAnnouncement({
+    combat: state.combat,
+    result: state.lastResult,
+    damageReceived: state.lastResult ? damageReceived(state.prevPlayerHp, state.lastResult) : undefined,
+    isRevenant: s.revenantView,
+    lowHealth: isLowHealth(state.playerHp, state.maxPlayerHp),
+    roomCleared: showTopicCleared && !s.clearError ? `Room cleared! +${s.clearedXp} XP. The gate opens.` : null,
+    hallRest: showHallRest,
+    level: levelNote,
+    shell: fullscreen.message,
+  })
+
   return (
-    <AppShell announcement={fullscreen.message} className="sd-shell--play">
+    <AppShell announcement={routeAnnouncement(announcement, panelVisible).shell} className="sd-shell--play">
       {/* The canvas fills the whole shell; the backdrop shows through its transparent clear colour. */}
       <div ref={gameWrapRef} className="sd-game-area absolute inset-0 z-[1]">
         <GameCanvas bridge={s.bridge} className="absolute inset-0 size-full" />
@@ -112,7 +128,7 @@ export default function PlayPage({ scope, examMinutes = null }: PlayPageProps = 
 
       {haunt && !showVictory && (
         <div className="sd-hall-banner">
-          <Panel tone="gold" className="sd-hall-banner__chip" role={showHallRest ? 'status' : undefined}>
+          <Panel tone="gold" className="sd-hall-banner__chip">
             {showHallRest
               ? 'This hall is at rest. The gate opens.'
               : touch
@@ -128,7 +144,7 @@ export default function PlayPage({ scope, examMinutes = null }: PlayPageProps = 
 
       {showTopicCleared && !s.clearError && (
         <div className="pointer-events-none absolute inset-x-0 top-28 z-10 flex justify-center">
-          <Panel tone="gold" role="status" className="px-6 py-3 text-lg font-bold text-accent">
+          <Panel tone="gold" className="px-6 py-3 text-lg font-bold text-accent">
             Room cleared! +{s.clearedXp} XP — the gate opens
           </Panel>
         </div>
@@ -215,6 +231,7 @@ export default function PlayPage({ scope, examMinutes = null }: PlayPageProps = 
         onQuickRetry={s.quickRetry}
         onRetreat={s.retreat}
         keysEnabled={state.phase !== 'paused' && state.phase !== 'defeated' && !showVictory}
+        announcement={routeAnnouncement(announcement, panelVisible).dialog}
       />
 
       {state.phase === 'paused' && !confirmingExit && (
@@ -260,7 +277,7 @@ export default function PlayPage({ scope, examMinutes = null }: PlayPageProps = 
       )}
       {haunt && showVictory && !state.summary && (
         <div className="sd-hall-banner">
-          <Panel tone={s.finishError ? 'danger' : 'gold'} role={s.finishError ? 'alert' : 'status'} className="sd-hall-banner__chip">
+          <Panel tone={s.finishError ? 'danger' : 'gold'} role={s.finishError ? 'alert' : undefined} className="sd-hall-banner__chip">
             {s.finishError ?? 'Counting the memories laid to rest...'}
             {s.finishError && (
               <Button variant="secondary" onClick={() => void s.retryFinish()}>

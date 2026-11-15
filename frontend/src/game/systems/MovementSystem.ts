@@ -38,6 +38,9 @@ export class MovementSystem {
   private touchX = 0
   private touchY = 0
   private readonly mix = { x: 0, y: 0 }
+  // Scratch objects reused every frame so update() allocates nothing.
+  private readonly keyInput = { up: false, down: false, left: false, right: false }
+  private readonly keyVec = { x: 0, y: 0 }
 
   /** Virtual joystick vector from React (length at most 1). (0, 0) releases it. */
   setTouchVector(x: number, y: number): void {
@@ -70,12 +73,12 @@ export class MovementSystem {
       let ky = 0
       if (this.keys) {
         const k = this.keys
-        const v = movementVector({
-          up: k.w.isDown || k.up.isDown,
-          down: k.s.isDown || k.down.isDown,
-          left: k.a.isDown || k.left.isDown,
-          right: k.d.isDown || k.right.isDown,
-        })
+        const input = this.keyInput
+        input.up = k.w.isDown || k.up.isDown
+        input.down = k.s.isDown || k.down.isDown
+        input.left = k.a.isDown || k.left.isDown
+        input.right = k.d.isDown || k.right.isDown
+        const v = movementVector(input, this.keyVec)
         kx = v.x
         ky = v.y
       }

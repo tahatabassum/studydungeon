@@ -97,6 +97,8 @@ export class GameScene extends Phaser.Scene {
   /** Display-only rooms without a monster (the Haunted Hall); their gate opens only on an explicit event. */
   private hallRooms = new Set<string>()
   private monsters = new Map<string, Monster>() // room id -> monster
+  /** Same monsters as `monsters`, as an array so update() iterates without creating a Map iterator. */
+  private readonly monsterList: Monster[] = []
   private activeMonster: Monster | null = null
 
   /** Touch input: last joystick vector and mode (re-applied when the actors are rebuilt). */
@@ -283,7 +285,8 @@ export class GameScene extends Phaser.Scene {
     this.lighting?.update(time)
     this.pieces?.update(time)
     this.revenants?.update(time)
-    for (const m of this.monsters.values()) m.tick(time)
+    const list = this.monsterList
+    for (let i = 0; i < list.length; i++) list[i]!.tick(time)
     // A gate glows once its room's monster is defeated (derived from existing state only).
     const id = this.tracker?.currentRoomId
     if (id && !this.hallRooms.has(id) && this.monsters.get(id)?.alive === false) this.gates.get(id)?.setOpenable()
@@ -332,6 +335,7 @@ export class GameScene extends Phaser.Scene {
     this.tracker = null
     for (const m of this.monsters.values()) m.destroy()
     this.monsters.clear()
+    this.monsterList.length = 0
     this.activeMonster = null
     this.player?.destroy()
     this.player = null
@@ -582,6 +586,7 @@ export class GameScene extends Phaser.Scene {
       const at = { x: MONSTER_SPAWN.x + b.rect.x, y: MONSTER_SPAWN.y + b.rect.y }
       const monster = new Monster(this, room.monster, at, this.reducedMotion, b.isBoss)
       this.monsters.set(b.id, monster)
+      this.monsterList.push(monster)
       // A room with a 0 HP monster is display only (the Haunted Hall): no monster stands in it, so its
       // Revenants can appear at once. Real rooms never have 0 HP.
       if (room.monster.max_hp <= 0) {
@@ -596,9 +601,14 @@ export class GameScene extends Phaser.Scene {
     this.movement = new MovementSystem(this, player, () => this.phase === 'exploring', obstacles)
     this.movement.setTouchVector(this.touchX, this.touchY)
 
+    const trackerPoint = { x: 0, y: 0 } // reused every frame; the tracker only reads it
     this.tracker = new RoomTracker(
       layout,
-      () => ({ x: player.x, y: player.y }),
+      () => {
+        trackerPoint.x = player.x
+        trackerPoint.y = player.y
+        return trackerPoint
+      },
       this.bridge,
       (id, first) => this.onRoomChange(id, first),
     )

@@ -2,7 +2,7 @@ import Phaser from 'phaser'
 import type { Monster } from '../entities/Monster'
 import type { Player } from '../entities/Player'
 import type { GameBridge, GamePhase } from '../events'
-import { isWithinRange, shouldEngage } from './interaction'
+import { isWithinRange, shouldEngage, type EngageInput } from './interaction'
 import { sfx } from '@/audio/sfx'
 import { CSS_COLORS } from '../colors'
 import { FONT_LABEL } from '../fonts'
@@ -17,6 +17,15 @@ export class InteractionSystem {
   private touchPressed = false
   private targetName: string | null = null
   private readonly getMonster: () => Monster | null
+  // Scratch objects reused every frame so update() allocates nothing.
+  private readonly playerPoint = { x: 0, y: 0 }
+  private readonly engageInput: EngageInput = {
+    phase: 'exploring',
+    inRange: false,
+    alive: false,
+    pressed: false,
+    armed: true,
+  }
 
   constructor(
     private readonly scene: Phaser.Scene,
@@ -85,11 +94,19 @@ export class InteractionSystem {
     }
     const monster = this.getMonster()
     const alive = !!monster && monster.alive
-    const inRange =
-      !!monster && isWithinRange({ x: this.player.x, y: this.player.y }, monster.position)
+    const pp = this.playerPoint
+    pp.x = this.player.x
+    pp.y = this.player.y
+    const inRange = !!monster && isWithinRange(pp, monster.position)
     this.targetName = alive && inRange && monster ? monster.name : null
     this.prompt.setVisible(alive && inRange)
-    if (monster && shouldEngage({ phase, inRange, alive, pressed, armed: this.armed })) {
+    const input = this.engageInput
+    input.phase = phase
+    input.inRange = inRange
+    input.alive = alive
+    input.pressed = pressed
+    input.armed = this.armed
+    if (monster && shouldEngage(input)) {
       this.armed = false
       sfx.play('growl')
       this.bridge?.emit({ type: 'encounter-started', monsterId: monster.id })

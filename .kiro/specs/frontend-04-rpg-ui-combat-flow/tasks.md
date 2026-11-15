@@ -284,23 +284,23 @@ Working rules for every task:
     - Run `npm run typecheck`, `npm run lint`, `npm test`, `npm run build`
     - Browser checklist: dust, fog, torches, particles; damage numbers; door and boss entrance; sounds on first key press; mute silences everything; enabling "reduce motion" in the OS removes movement effects
 
-- [ ] 7. Phase 7: Responsive layout, regression and polish
-  - [~] 7.1 Make the play screen responsive
+- [x] 7. Phase 7: Responsive layout, regression and polish
+  - [x] 7.1 Make the play screen responsive
     - `src/pages/PlayPage.tsx`, `src/index.css`: canvas scales with aspect ratio; HUD, panel and controls hint fit with no horizontal scroll at 1280x720, 1366x768 and 1920x1080; keyboard and mouse both complete the flow
     - _Requirements: 21.1, 21.2, 21.3_
-  - [~] 7.2 Review per-frame allocations
+  - [x] 7.2 Review per-frame allocations
     - Inspect `update()` paths in `src/game/` (`GameScene`, `MovementSystem`, `InteractionSystem`, `RoomTracker`, `AtmosphereSystem`); remove object creation per frame; document findings in the commit message
     - _Requirements: 21.4, 18.4_
-  - [~] 7.3 Accessibility pass
+  - [ ] 7.3 Accessibility pass
     - Add `aria-live` announcements for results and level changes, labels for icons and controls, verify focus order in the panel and overlays; extend component tests
     - _Requirements: 4.1, 9.5, 12.1, 16.2_
-  - [~] 7.4 Finalize `ASSETS_LICENSES.md`
+  - [x] 7.4 Finalize `ASSETS_LICENSES.md`
     - List every art set (monsters, player, decor, icons, characters) as original, audio as original synthesis, fonts with OFL links; add `src/design/licenses.test.ts` checking that every registered art set name appears in the file
     - _Requirements: 14.7, 10.5, 23.2, 23.3_
-  - [~] 7.5 Update `docs/handoff/B-to-A.md`
+  - [x] 7.5 Update `docs/handoff/B-to-A.md`
     - Add the `getProgress()` section (`GET /progress`, marked NEW and not yet implemented by Person A), note that `AnswerResult` is unchanged, and note the removed bridge events are frontend-internal
     - _Requirements: 20.4_
-  - [~] 7.6 Final checkpoint - full regression
+  - [x] 7.6 Final checkpoint - full regression
     - Ensure all tests pass, ask the user if questions arise.
     - Run `npm run typecheck`, `npm run lint`, `npm test` (all prior tests plus new ones), `npm run build`
     - Manual checklist at 1366x768, 1920x1080 and 1280x720: full demo run (5 rooms, boss, victory), a defeat run, retreat and re-engage, pause and exit, mute, reduced motion

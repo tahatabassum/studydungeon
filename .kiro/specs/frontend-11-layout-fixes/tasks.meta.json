@@ -74,6 +74,21 @@
         "executionId": "e9696e2f-55e4-43e7-b31d-1bd6015e6520",
         "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
         "timestamp": 1794428334331
+      },
+      {
+        "executionId": "c4042568-8e35-4ddd-9659-2dba7acf22f2",
+        "chatSessionId": "sess_9184062f-45b8-4669-8647-059b107836bf",
+        "timestamp": 1794742953577
+      },
+      {
+        "executionId": "c4042568-8e35-4ddd-9659-2dba7acf22f2",
+        "chatSessionId": "sess_9184062f-45b8-4669-8647-059b107836bf",
+        "timestamp": 1794742960023
+      },
+      {
+        "executionId": "c4042568-8e35-4ddd-9659-2dba7acf22f2",
+        "chatSessionId": "sess_9184062f-45b8-4669-8647-059b107836bf",
+        "timestamp": 1794744915542
       }
     ],
     "4.3 Quota chip, AI notice and file rules (RC16, RC17)": [
@@ -81,6 +96,16 @@
         "executionId": "e9696e2f-55e4-43e7-b31d-1bd6015e6520",
         "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
         "timestamp": 1794428334401
+      },
+      {
+        "executionId": "c4042568-8e35-4ddd-9659-2dba7acf22f2",
+        "chatSessionId": "sess_9184062f-45b8-4669-8647-059b107836bf",
+        "timestamp": 1794742953661
+      },
+      {
+        "executionId": "c4042568-8e35-4ddd-9659-2dba7acf22f2",
+        "chatSessionId": "sess_9184062f-45b8-4669-8647-059b107836bf",
+        "timestamp": 1794744919526
       }
     ],
     "4.4 Drop zone locked, active and disabled states (RC11, RC14)": [
@@ -88,6 +113,16 @@
         "executionId": "e9696e2f-55e4-43e7-b31d-1bd6015e6520",
         "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
         "timestamp": 1794428334545
+      },
+      {
+        "executionId": "c4042568-8e35-4ddd-9659-2dba7acf22f2",
+        "chatSessionId": "sess_9184062f-45b8-4669-8647-059b107836bf",
+        "timestamp": 1794742953727
+      },
+      {
+        "executionId": "c4042568-8e35-4ddd-9659-2dba7acf22f2",
+        "chatSessionId": "sess_9184062f-45b8-4669-8647-059b107836bf",
+        "timestamp": 1794744923364
       }
     ],
     "4.5 Upload states inside the grid (RC10, RC12)": [
@@ -95,6 +130,16 @@
         "executionId": "e9696e2f-55e4-43e7-b31d-1bd6015e6520",
         "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
         "timestamp": 1794428334663
+      },
+      {
+        "executionId": "c4042568-8e35-4ddd-9659-2dba7acf22f2",
+        "chatSessionId": "sess_9184062f-45b8-4669-8647-059b107836bf",
+        "timestamp": 1794742953806
+      },
+      {
+        "executionId": "c4042568-8e35-4ddd-9659-2dba7acf22f2",
+        "chatSessionId": "sess_9184062f-45b8-4669-8647-059b107836bf",
+        "timestamp": 1794744927202
       }
     ],
     "4.7 Verify the upload screen": [
@@ -102,6 +147,16 @@
         "executionId": "e9696e2f-55e4-43e7-b31d-1bd6015e6520",
         "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
         "timestamp": 1794428334832
+      },
+      {
+        "executionId": "c4042568-8e35-4ddd-9659-2dba7acf22f2",
+        "chatSessionId": "sess_9184062f-45b8-4669-8647-059b107836bf",
+        "timestamp": 1794742953886
+      },
+      {
+        "executionId": "c4042568-8e35-4ddd-9659-2dba7acf22f2",
+        "chatSessionId": "sess_9184062f-45b8-4669-8647-059b107836bf",
+        "timestamp": 1794744931245
       }
     ],
     "5. STOP: Upload screen checkpoint": [
@@ -109,6 +164,16 @@
         "executionId": "e9696e2f-55e4-43e7-b31d-1bd6015e6520",
         "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
         "timestamp": 1794428335012
+      },
+      {
+        "executionId": "c4042568-8e35-4ddd-9659-2dba7acf22f2",
+        "chatSessionId": "sess_9184062f-45b8-4669-8647-059b107836bf",
+        "timestamp": 1794742953953
+      },
+      {
+        "executionId": "c4042568-8e35-4ddd-9659-2dba7acf22f2",
+        "chatSessionId": "sess_9184062f-45b8-4669-8647-059b107836bf",
+        "timestamp": 1794744936329
       }
     ],
     "6.1 Header row, toolbar and caption (RC9, RC22)": [
@@ -133,6 +198,16 @@
         "executionId": "e9696e2f-55e4-43e7-b31d-1bd6015e6520",
         "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
         "timestamp": 1794428335350
+      },
+      {
+        "executionId": "c4042568-8e35-4ddd-9659-2dba7acf22f2",
+        "chatSessionId": "sess_9184062f-45b8-4669-8647-059b107836bf",
+        "timestamp": 1794742954020
+      },
+      {
+        "executionId": "c4042568-8e35-4ddd-9659-2dba7acf22f2",
+        "chatSessionId": "sess_9184062f-45b8-4669-8647-059b107836bf",
+        "timestamp": 1794744936479
       }
     ],
     "6.3 Your live rank panel and plurals (RC23)": [
@@ -140,6 +215,16 @@
         "executionId": "e9696e2f-55e4-43e7-b31d-1bd6015e6520",
         "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
         "timestamp": 1794428335592
+      },
+      {
+        "executionId": "c4042568-8e35-4ddd-9659-2dba7acf22f2",
+        "chatSessionId": "sess_9184062f-45b8-4669-8647-059b107836bf",
+        "timestamp": 1794742954094
+      },
+      {
+        "executionId": "c4042568-8e35-4ddd-9659-2dba7acf22f2",
+        "chatSessionId": "sess_9184062f-45b8-4669-8647-059b107836bf",
+        "timestamp": 1794744940486
       }
     ],
     "6.4 Loading, empty, error and legacy board (RC26, RC28)": [
@@ -147,6 +232,16 @@
         "executionId": "e9696e2f-55e4-43e7-b31d-1bd6015e6520",
         "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
         "timestamp": 1794428335728
+      },
+      {
+        "executionId": "c4042568-8e35-4ddd-9659-2dba7acf22f2",
+        "chatSessionId": "sess_9184062f-45b8-4669-8647-059b107836bf",
+        "timestamp": 1794742954162
+      },
+      {
+        "executionId": "c4042568-8e35-4ddd-9659-2dba7acf22f2",
+        "chatSessionId": "sess_9184062f-45b8-4669-8647-059b107836bf",
+        "timestamp": 1794744944456
       }
     ],
     "6.6 Verify the leaderboard screen": [
@@ -154,6 +249,16 @@
         "executionId": "e9696e2f-55e4-43e7-b31d-1bd6015e6520",
         "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
         "timestamp": 1794428335822
+      },
+      {
+        "executionId": "c4042568-8e35-4ddd-9659-2dba7acf22f2",
+        "chatSessionId": "sess_9184062f-45b8-4669-8647-059b107836bf",
+        "timestamp": 1794742954225
+      },
+      {
+        "executionId": "c4042568-8e35-4ddd-9659-2dba7acf22f2",
+        "chatSessionId": "sess_9184062f-45b8-4669-8647-059b107836bf",
+        "timestamp": 1794744948401
       }
     ],
     "7. STOP: Leaderboard screen checkpoint": [
@@ -161,6 +266,16 @@
         "executionId": "e9696e2f-55e4-43e7-b31d-1bd6015e6520",
         "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
         "timestamp": 1794428335944
+      },
+      {
+        "executionId": "c4042568-8e35-4ddd-9659-2dba7acf22f2",
+        "chatSessionId": "sess_9184062f-45b8-4669-8647-059b107836bf",
+        "timestamp": 1794742954290
+      },
+      {
+        "executionId": "c4042568-8e35-4ddd-9659-2dba7acf22f2",
+        "chatSessionId": "sess_9184062f-45b8-4669-8647-059b107836bf",
+        "timestamp": 1794744949143
       }
     ],
     "8.1 Measure and fix `/`": [
@@ -180,6 +295,16 @@
         "executionId": "e9696e2f-55e4-43e7-b31d-1bd6015e6520",
         "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
         "timestamp": 1794428336187
+      },
+      {
+        "executionId": "c4042568-8e35-4ddd-9659-2dba7acf22f2",
+        "chatSessionId": "sess_9184062f-45b8-4669-8647-059b107836bf",
+        "timestamp": 1794742954366
+      },
+      {
+        "executionId": "c4042568-8e35-4ddd-9659-2dba7acf22f2",
+        "chatSessionId": "sess_9184062f-45b8-4669-8647-059b107836bf",
+        "timestamp": 1794744949999
       }
     ],
     "9. STOP: Title screen checkpoint": [
@@ -187,6 +312,16 @@
         "executionId": "e9696e2f-55e4-43e7-b31d-1bd6015e6520",
         "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
         "timestamp": 1794428336351
+      },
+      {
+        "executionId": "c4042568-8e35-4ddd-9659-2dba7acf22f2",
+        "chatSessionId": "sess_9184062f-45b8-4669-8647-059b107836bf",
+        "timestamp": 1794742954430
+      },
+      {
+        "executionId": "c4042568-8e35-4ddd-9659-2dba7acf22f2",
+        "chatSessionId": "sess_9184062f-45b8-4669-8647-059b107836bf",
+        "timestamp": 1794744950532
       }
     ],
     "10.1 Measure and fix `/campaign/:id`": [
@@ -206,6 +341,16 @@
         "executionId": "e9696e2f-55e4-43e7-b31d-1bd6015e6520",
         "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
         "timestamp": 1794428336551
+      },
+      {
+        "executionId": "c4042568-8e35-4ddd-9659-2dba7acf22f2",
+        "chatSessionId": "sess_9184062f-45b8-4669-8647-059b107836bf",
+        "timestamp": 1794742954583
+      },
+      {
+        "executionId": "c4042568-8e35-4ddd-9659-2dba7acf22f2",
+        "chatSessionId": "sess_9184062f-45b8-4669-8647-059b107836bf",
+        "timestamp": 1794744951369
       }
     ],
     "11. STOP: Floor map checkpoint": [
@@ -213,6 +358,16 @@
         "executionId": "e9696e2f-55e4-43e7-b31d-1bd6015e6520",
         "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
         "timestamp": 1794428336641
+      },
+      {
+        "executionId": "c4042568-8e35-4ddd-9659-2dba7acf22f2",
+        "chatSessionId": "sess_9184062f-45b8-4669-8647-059b107836bf",
+        "timestamp": 1794742954645
+      },
+      {
+        "executionId": "c4042568-8e35-4ddd-9659-2dba7acf22f2",
+        "chatSessionId": "sess_9184062f-45b8-4669-8647-059b107836bf",
+        "timestamp": 1794744952158
       }
     ],
     "12.1 Measure and fix `/login` and `/register`": [
@@ -239,6 +394,16 @@
         "executionId": "e9696e2f-55e4-43e7-b31d-1bd6015e6520",
         "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
         "timestamp": 1794428337020
+      },
+      {
+        "executionId": "c4042568-8e35-4ddd-9659-2dba7acf22f2",
+        "chatSessionId": "sess_9184062f-45b8-4669-8647-059b107836bf",
+        "timestamp": 1794742954719
+      },
+      {
+        "executionId": "c4042568-8e35-4ddd-9659-2dba7acf22f2",
+        "chatSessionId": "sess_9184062f-45b8-4669-8647-059b107836bf",
+        "timestamp": 1794744952677
       }
     ],
     "14.1 Measure and fix `/choose`": [
@@ -274,6 +439,16 @@
         "executionId": "e9696e2f-55e4-43e7-b31d-1bd6015e6520",
         "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
         "timestamp": 1794428337641
+      },
+      {
+        "executionId": "c4042568-8e35-4ddd-9659-2dba7acf22f2",
+        "chatSessionId": "sess_9184062f-45b8-4669-8647-059b107836bf",
+        "timestamp": 1794742954805
+      },
+      {
+        "executionId": "c4042568-8e35-4ddd-9659-2dba7acf22f2",
+        "chatSessionId": "sess_9184062f-45b8-4669-8647-059b107836bf",
+        "timestamp": 1794744953339
       }
     ],
     "16.1 Run the Layout_Check for every Fit_Screen route at all Test_Sizes and the Dashboard for regressions": [
@@ -288,6 +463,76 @@
         "executionId": "e9696e2f-55e4-43e7-b31d-1bd6015e6520",
         "chatSessionId": "sess_c39c9dca-c0e4-4ba6-a34b-743db86afa99",
         "timestamp": 1794429856979
+      }
+    ],
+    "4. Upload screen (Part B)": [
+      {
+        "executionId": "c4042568-8e35-4ddd-9659-2dba7acf22f2",
+        "chatSessionId": "sess_9184062f-45b8-4669-8647-059b107836bf",
+        "timestamp": 1794744931340
+      }
+    ],
+    "6. Leaderboard screen (Part A)": [
+      {
+        "executionId": "c4042568-8e35-4ddd-9659-2dba7acf22f2",
+        "chatSessionId": "sess_9184062f-45b8-4669-8647-059b107836bf",
+        "timestamp": 1794744948486
+      }
+    ],
+    "8. Title screen audit and fix (RC29)": [
+      {
+        "executionId": "c4042568-8e35-4ddd-9659-2dba7acf22f2",
+        "chatSessionId": "sess_9184062f-45b8-4669-8647-059b107836bf",
+        "timestamp": 1794744950093
+      }
+    ],
+    "10. Floor map audit and fix (RC30, RC31, RC32, RC33)": [
+      {
+        "executionId": "c4042568-8e35-4ddd-9659-2dba7acf22f2",
+        "chatSessionId": "sess_9184062f-45b8-4669-8647-059b107836bf",
+        "timestamp": 1794744951450
+      }
+    ],
+    "3.3 Write component tests for `PageShell`": [
+      {
+        "executionId": "c4042568-8e35-4ddd-9659-2dba7acf22f2",
+        "chatSessionId": "sess_9184062f-45b8-4669-8647-059b107836bf",
+        "timestamp": 1794744965104
+      }
+    ],
+    "4.6 Write component tests for the upload layout": [
+      {
+        "executionId": "c4042568-8e35-4ddd-9659-2dba7acf22f2",
+        "chatSessionId": "sess_9184062f-45b8-4669-8647-059b107836bf",
+        "timestamp": 1794744965276
+      }
+    ],
+    "6.5 Write component tests for the leaderboard layout": [
+      {
+        "executionId": "c4042568-8e35-4ddd-9659-2dba7acf22f2",
+        "chatSessionId": "sess_9184062f-45b8-4669-8647-059b107836bf",
+        "timestamp": 1794744965740
+      }
+    ],
+    "12. Login and register audit and fix (RC34)": [
+      {
+        "executionId": "c4042568-8e35-4ddd-9659-2dba7acf22f2",
+        "chatSessionId": "sess_9184062f-45b8-4669-8647-059b107836bf",
+        "timestamp": 1794744966298
+      }
+    ],
+    "14. Choose, play-as-guest and settings audit and fix (RC5, RC35, RC36)": [
+      {
+        "executionId": "c4042568-8e35-4ddd-9659-2dba7acf22f2",
+        "chatSessionId": "sess_9184062f-45b8-4669-8647-059b107836bf",
+        "timestamp": 1794744967094
+      }
+    ],
+    "16. Final regression": [
+      {
+        "executionId": "c4042568-8e35-4ddd-9659-2dba7acf22f2",
+        "chatSessionId": "sess_9184062f-45b8-4669-8647-059b107836bf",
+        "timestamp": 1794744967615
       }
     ]
   }

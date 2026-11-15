@@ -17,10 +17,13 @@ import { fileURLToPath } from 'node:url'
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 
-const ALL_ROUTES = ['/', '/login', '/register', '/upload', '/leaderboard', '/choose', '/play-as-guest', '/settings', '/campaign/demo-dungeon']
+const ALL_ROUTES = ['/', '/login', '/register', '/upload', '/leaderboard', '/choose', '/play-as-guest', '/settings', '/campaign/demo-dungeon', '/play']
 const SESSION_ROUTES = new Set(['/choose', '/settings', '/campaign/demo-dungeon', '/dashboard'])
 const ALL_SIZES = ['1366x650', '1366x768', '1536x864', '1920x960', '1920x1080', '2560x1440', '360x740', '740x360']
 const PHONES = new Set(['360x740', '740x360'])
+/* Flag name for --routes; the page driven is the first floor of the mock demo campaign. */
+const ENCOUNTER_ROUTE = '/play'
+const ENCOUNTER_PATH = '/campaign/demo-dungeon'
 const SCROLLERS = '.sd-scroll, .sd-map__scroll, .sd-landing__main'
 const DECOR = '.sd-page__atmosphere, [class*="backdrop"], .sd-landing__sky, .sd-map__atmosphere, .sd-moon, .sd-fog, [aria-hidden="true"]'
 
@@ -177,9 +180,12 @@ const MEASURE = `(${function measure(cfg) {
   for (const moon of document.querySelectorAll('.sd-moon')) {
     if (!vis(moon)) continue
     const m = moon.getBoundingClientRect()
+    // The moon floats up to 28px (sd-moon-float, see landing.css): test the whole travelled area whenever the animation runs.
+    const floats = getComputedStyle(moon).animationName.includes('sd-moon-float')
+    const mTop = m.top - (floats ? 28 : 0)
     for (const el of hits) {
       const r = el.getBoundingClientRect()
-      if (r.left < m.right && r.right > m.left && r.top < m.bottom && r.bottom > m.top) out.push('moon-overlap ' + desc(el) + ' "' + (el.innerText || '').trim().slice(0, 20) + '"')
+      if (r.left < m.right && r.right > m.left && r.top < m.bottom && r.bottom > mTop) out.push('moon-overlap ' + desc(el) + ' "' + (el.innerText || '').trim().slice(0, 20) + '"')
     }
   }
   return [...new Set(out)]
@@ -222,7 +228,7 @@ async function main() {
 
     const results = [] // { route, size, problems }
     const isSession = (r) => SESSION_ROUTES.has(r) || /^\/(campaign|haunt|packs)\//.test(r)
-    const publicRoutes = routes.filter((r) => !isSession(r))
+    const publicRoutes = routes.filter((r) => !isSession(r) && r !== ENCOUNTER_ROUTE)
     const sessionRoutes = routes.filter(isSession)
 
     const settle = async (extra = 700) => {
@@ -373,8 +379,34 @@ async function main() {
       })),
     ]
     const LB_LABELS = [...LB_STATES.map(([n]) => n), 'guest-twenty', 'registered-twenty'].map((n) => `/leaderboard [${n}]`)
+    // Real key events through CDP so Phaser (which listens on window) sees them.
+    const KEYS = { up: { key: 'ArrowUp', code: 'ArrowUp', vk: 38 }, e: { key: 'e', code: 'KeyE', vk: 69 }, one: { key: '1', code: 'Digit1', vk: 49 } }
+    const keyDown = (k) => cdp.send('Input.dispatchKeyEvent', { type: 'rawKeyDown', key: k.key, code: k.code, windowsVirtualKeyCode: k.vk, nativeVirtualKeyCode: k.vk })
+    const keyUp = (k) => cdp.send('Input.dispatchKeyEvent', { type: 'keyUp', key: k.key, code: k.code, windowsVirtualKeyCode: k.vk, nativeVirtualKeyCode: k.vk })
+    const tap = async (k, ms = 80) => {
+      await keyDown(k)
+      await sleep(ms)
+      await keyUp(k)
+    }
+    const hasDialog = () => cdp.eval(`!!document.querySelector('[role="dialog"] [data-testid="encounter-live"]')`)
+    // Walks the hero up to the first monster and engages it. Returns true when the question panel is open.
+    const openQuestionPanel = async () => {
+      await keyDown(KEYS.up)
+      try {
+        const end = Date.now() + 30000
+        while (Date.now() < end) {
+          await tap(KEYS.e, 60)
+          await sleep(250)
+          if (await hasDialog()) return true
+        }
+      } finally {
+        await keyUp(KEYS.up)
+      }
+      return false
+    }
+    const ENCOUNTER_LABELS = ['/play [exploring]', '/play [question-panel]', '/play [question-result]']
     const measure = async (route, size, phone) => {
-      const problems = await cdp.eval(`${MEASURE}(${JSON.stringify({ phone, scrollers: phone ? SCROLLERS.replace(', .sd-landing__main', '') + ', .sd-overlay-body' : SCROLLERS, decor: DECOR })})`)
+      const problems = await cdp.eval(`${MEASURE}(${JSON.stringify({ phone, scrollers: phone ? SCROLLERS.replace(', .sd-landing__main', '') + ', .sd-overlay-body, .sd-speech__scroll' : SCROLLERS, decor: DECOR })})`)
       if (shotDir) {
         mkdirSync(shotDir, { recursive: true })
         const shot = await cdp.send('Page.captureScreenshot', { format: 'png' })
@@ -411,6 +443,29 @@ async function main() {
           await measure(route, size, phone)
         }
       }
+      if (routes.includes(ENCOUNTER_ROUTE)) {
+        const ok = await guestSession('')
+        if (!ok) {
+          for (const l of ENCOUNTER_LABELS) results.push({ route: l, size, problems: ['could not create a mock session'] })
+        } else {
+          // Start the way a player does: open the map and press Continue (floor ids are not stable literals).
+          await goto(ENCOUNTER_PATH)
+          await settle(1500)
+          const started = await cdp.eval(`(() => { const b = [...document.querySelectorAll('a, button')].find((x) => /^\\s*continue\\s*$/i.test(x.textContent)); if (b) b.click(); return !!b })()`)
+          if (started) await waitFor(() => cdp.eval(`location.pathname.includes('/play/')`), 'the play page', 15000).catch(() => {})
+          await settle(6000)
+          await measure('/play [exploring]', size, phone)
+          if (await openQuestionPanel()) {
+            await sleep(900)
+            await measure('/play [question-panel]', size, phone)
+            await tap(KEYS.one)
+            await sleep(1800)
+            await measure('/play [question-result]', size, phone)
+          } else {
+            for (const l of ENCOUNTER_LABELS.slice(1)) results.push({ route: l, size, problems: ['could not open the question panel'] })
+          }
+        }
+      }
       if (routes.includes('/upload')) {
         for (const sc of UPLOAD_SCENARIOS) {
           const ok = await sc.session()
@@ -438,7 +493,7 @@ async function main() {
 
     // Table: one row per route, one column per size.
     const pad = (s, n) => String(s).padEnd(n)
-    const rows = routes.flatMap((r) => (r === '/upload' ? [r, ...UPLOAD_LABELS] : r === '/leaderboard' ? [r, ...LB_LABELS] : [r]))
+    const rows = routes.flatMap((r) => (r === '/upload' ? [r, ...UPLOAD_LABELS] : r === '/leaderboard' ? [r, ...LB_LABELS] : r === ENCOUNTER_ROUTE ? ENCOUNTER_LABELS : [r]))
     const rw = Math.max(...rows.map((r) => r.length), 5) + 2
     console.log(pad('route', rw) + sizes.map((s) => pad(s, 10)).join(''))
     for (const route of rows) {

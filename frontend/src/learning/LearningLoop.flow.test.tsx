@@ -103,12 +103,16 @@ describe('learning loop flow', () => {
     expect(missed.correct_answer).toBeTruthy()
     expect(within(scroll).getByTestId('scroll-answer').textContent).toContain(missed.correct_answer!)
     expect(within(scroll).getByText(/From your notes: page/)).toBeTruthy()
-    // Focus moves to Retry; the live region announces the answer after mount.
+    // Focus moves to Retry; the live region inside the dialog announces the answer after mount.
     expect(document.activeElement).toBe(within(scroll).getByRole('button', { name: /Quick retry/ }))
     await vi.waitFor(() =>
-      expect(within(scroll).getByTestId('scroll-live').textContent).toContain(`The correct answer is ${missed.correct_answer}`),
+      expect(within(dialog).getByTestId('encounter-live').textContent).toContain(`The correct answer is ${missed.correct_answer}`),
     )
-    expect(within(scroll).getByTestId('scroll-live').getAttribute('aria-live')).toBe('polite')
+    expect(within(dialog).getByTestId('encounter-live').getAttribute('aria-live')).toBe('polite')
+    // The shell region stays silent while the dialog is open: only one polite region carries text.
+    expect(screen.getByTestId('shell-live').textContent).toBe('')
+    const speaking = [...document.querySelectorAll('[aria-live="polite"], [role="status"]')].filter((el) => (el.textContent ?? '').trim() !== '')
+    expect(speaking).toHaveLength(1)
     // The old read delay does not take the scroll away.
     advance(10_000)
     expect(promptOf(dialog)).toBe(first)

@@ -74,7 +74,7 @@ export function GuestBanner({ isGuest, handle, onCreateAccount, autoHideMs, onDo
       style={{ opacity: fading ? 0 : 1, transition: reduced ? 'none' : `opacity ${FADE_MS}ms ease-out` }}
       className="flex flex-wrap items-center justify-between gap-x-2 rounded-md border border-deep bg-surface-2/80 px-2 py-0.5 text-xs leading-tight text-ink-muted"
     >
-      <p role="status" className="min-w-0 truncate">
+      <p className="min-w-0 truncate">
         {handle ? `Playing as ${handle}. ` : 'Playing as guest. '}Progress is temporary.
       </p>
       <div className="flex items-center gap-1">

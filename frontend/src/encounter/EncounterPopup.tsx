@@ -61,6 +61,12 @@ export interface EncounterPopupProps {
   requeueRemaining?: number | null
   /** Quick retry from the Memory scroll: presents the same question again. Absent hides the button. */
   onQuickRetry?(): void
+  /**
+   * Text for the polite live region rendered INSIDE the dialog (a modal dialog can hide regions outside it
+   * from assistive technology). The parent passes it only while the dialog is open and then leaves the
+   * shell region empty, so exactly one polite region speaks at a time.
+   */
+  announcement?: string
 }
 
 function isWaiting(c: CombatState | null): boolean {
@@ -115,6 +121,7 @@ function EncounterBody({
   secondChance = false,
   requeueRemaining = null,
   onQuickRetry,
+  announcement = '',
 }: BodyProps) {
   const headingId = useId()
   const panelRef = useRef<HTMLDivElement>(null)
@@ -329,7 +336,7 @@ function EncounterBody({
         />
 
         {combat === 'submitting' && (
-          <p role="status" className="mt-2 text-sm text-deep">
+          <p className="mt-2 text-sm text-deep">
             Resolving your answer…
           </p>
         )}
@@ -351,7 +358,7 @@ function EncounterBody({
           <div className="mt-3 flex flex-wrap items-center gap-2">
             <div className="flex flex-wrap items-center gap-2">
               <p
-                role="status"
+                data-testid="result-banner"
                 className={`inline-flex items-center gap-2 rounded-md border-2 px-2 py-0.5 text-base font-bold ${shownResult.correct ? 'border-health bg-health/20 text-[color-mix(in_srgb,var(--color-health),var(--color-bg)_70%)]' : 'border-danger bg-danger/10 text-[color-mix(in_srgb,var(--color-danger),var(--color-bg)_45%)]'}`}
               >
                 {shownResult.correct ? (
@@ -424,6 +431,9 @@ function EncounterBody({
             onContinue={onNext}
           />
         )}
+        <div role="status" aria-live="polite" className="sr-only" data-testid="encounter-live">
+          {announcement}
+        </div>
       </SpeechPanel>
       </div>
     </div>

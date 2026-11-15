@@ -114,7 +114,7 @@ export function Hud({
           tone={lowHealth ? 'danger' : 'health'}
         />
         {lowHealth && (
-          <p role="status" className="mt-0.5 flex items-center gap-1 text-xs font-semibold text-[color-mix(in_srgb,var(--color-danger),var(--color-ink)_45%)]">
+          <p className="mt-0.5 flex items-center gap-1 text-xs font-semibold text-[color-mix(in_srgb,var(--color-danger),var(--color-ink)_45%)]">
             <AlertTriangle aria-hidden="true" className="size-3.5" />
             Low health
           </p>
@@ -159,7 +159,7 @@ export function Hud({
         )}
       </motion.div>
       <ComboMeter value={comboValue(combo, streak ?? 0)} />
-      {hauntedDue !== undefined && <HauntedCounter count={hauntedDue} compact={compact} />}
+      {hauntedDue !== undefined && <HauntedCounter count={hauntedDue} compact={compact} live={false} />}
     </div>
   )
 }

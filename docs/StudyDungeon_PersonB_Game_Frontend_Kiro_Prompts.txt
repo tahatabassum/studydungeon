@@ -1,0 +1,529 @@
+=====================================================================
+STUDYDUNGEON - PERSON B: GAME / FRONTEND - KIRO PROMPT PACK
+Kiroween 2026 | Frankenstein category
+=====================================================================
+
+WHO YOU ARE: Person B, the game + frontend owner.
+WHO THE OTHER PERSON IS: Person A, the AI + backend owner (has their own file).
+
+MASTER REFERENCE (both of you give this to Kiro for the whole project):
+  StudyDungeon_Complete_Build_Roadmap_and_Kiro_Prompts (the roadmap doc,
+  updated with the "Try the Demo" change).
+  Tip: Kiro reads Markdown/text better than .docx. Keep a text/Markdown
+  copy at docs/master-roadmap.md next to the .docx.
+
+This file contains ONLY the prompts for your side. Use them in order.
+Never paste all prompts at once. One prompt = one Kiro session/spec.
+
+---------------------------------------------------------------------
+1. WHAT YOU BUILD (the frontend/ folder, including the Phaser game)
+---------------------------------------------------------------------
+- React + TypeScript + Vite + Tailwind app and design system
+- Premium dark-fantasy / haunted-library Halloween look
+- Landing page with the one-click "Try the Demo" button
+- Login/register, dashboard, upload wizard, dungeon map, settings,
+  scorecard screens
+- Phaser 3 game inside one GameCanvas component: movement, rooms,
+  monsters, weapons, hit effects, HP bars, boss, victory/defeat
+- Animations, sound, assets (properly licensed), accessibility
+- Typed API client, mock-data adapter, offline demo fallback
+- Frontend tests, frontend deployment, demo-video capture
+
+---------------------------------------------------------------------
+2. WHAT KIRO MUST NOT DO (Person A does this - never let Kiro touch it)
+---------------------------------------------------------------------
+- Do NOT create or edit anything under backend/
+- Do NOT write FastAPI routes, database models, migrations, auth logic,
+  upload processing, OCR, or AI/Gemini/OpenRouter code
+- Do NOT put API keys or AI calls in the frontend
+- Do NOT calculate authoritative damage, HP, XP, score, streaks or
+  review dates in the game. Phaser animates what the backend returns.
+  (Only exception: the clearly labeled offline demo fallback.)
+- Do NOT edit Person A's specs/hooks (.kiro/specs/backend-*, .kiro/hooks/backend-*)
+- Do NOT change shared steering files (.kiro/steering/*) without both of
+  you agreeing. Propose changes in docs/handoff/B-to-A.md instead.
+- Do NOT invent endpoints or response fields. If the UI needs something
+  new, write a request in docs/handoff/B-to-A.md.
+
+---------------------------------------------------------------------
+3. REPO LAYOUT AND OWNERSHIP
+---------------------------------------------------------------------
+studydungeon/
+  .kiro/
+    steering/        shared (changes need both people)
+    specs/
+      backend-*/     Person A only
+      frontend-*/    Person B only
+    hooks/
+      backend-*.json Person A only
+      frontend-*.json Person B only
+  docs/
+    master-roadmap.md (+ the .docx)
+    handoff/
+      A-to-B.md      A writes notes/new endpoints for you here (read daily)
+      B-to-A.md      you write requests for A here
+      demo_dungeon.sample.json   A exports it; you copy it into frontend/
+  backend/           Person A only
+  frontend/          Person B only
+  README.md  LICENSE (MIT)  .gitignore  .env.example
+
+Rules:
+- NEVER put .kiro/ in .gitignore. NEVER commit .env, keys, user data.
+- Never prefix a secret with VITE_ (Vite exposes it to the browser).
+- Branches: feature/frontend-<name>. Small PRs. main must always run.
+- Pull main before each work session. Merge only when build/tests pass.
+- Your spec folders:
+    .kiro/specs/frontend-01-shell-design-system/
+    .kiro/specs/frontend-02-product-screens-demo/
+    .kiro/specs/frontend-03-phaser-core/
+    .kiro/specs/frontend-04-combat-animations/
+    .kiro/specs/frontend-05-integration-polish-deploy/
+  (each with requirements.md, design.md, tasks.md)
+
+---------------------------------------------------------------------
+4. SHARED CONTRACT REMINDERS (both people rely on these)
+---------------------------------------------------------------------
+- Backend is authoritative for correctness, damage, HP, XP, score,
+  streaks and review dates. Phaser animates results.
+- You send question_id + selected_answer (+ attempt_id for idempotency).
+  You never send "damage dealt".
+- Auth: username + password only; HttpOnly cookie session (use
+  fetch with credentials: "include"). No tokens in localStorage.
+- Demo: POST /demo/session (no auth) creates a temporary guest and
+  returns { user (is_guest=true), dungeon_id, expires_at }. After that you
+  use the normal /dungeons, /runs, /progress endpoints.
+- Guests can play the demo dungeon and see their scorecard. Guests
+  cannot upload or generate dungeons (hide/disable those with a friendly
+  "Create an account to upload your own notes" message).
+- The final request/response shapes live in
+  .kiro/steering/api-contract.md - that file is the source of truth.
+  Until the API exists, build against mock JSON fixtures that match it.
+- Design tokens (master doc section 9): Background #100D18, Panel #1D1728,
+  Parchment #F2E8D5, Purple #7546A8, Blood red #B83D4A, Amber #E9A23B,
+  Mint #68C9A5, Muted text #A79CB5.
+
+---------------------------------------------------------------------
+5. PASTE THIS PREAMBLE AT THE START OF EVERY KIRO SESSION
+---------------------------------------------------------------------
+"You are assisting Person B (game/frontend owner) on StudyDungeon
+(Kiroween 2026, Frankenstein). First read docs/master-roadmap.md and
+every file in .kiro/steering.
+
+SCOPE: You may create or edit ONLY: frontend/**, .kiro/specs/frontend-*/**,
+.kiro/hooks/frontend-*.json, docs/handoff/B-to-A.md, docs/kiro-log-frontend.md,
+docs/demo-video-plan.md, and frontend-related lines in .gitignore and
+.env.example.
+
+FORBIDDEN: Do not touch backend/**, database models, migrations, auth
+logic, upload processing, OCR or any AI provider code. Do not put AI calls
+or secrets in the frontend. Do not calculate authoritative damage, HP, XP,
+score or review dates in the game; animate the backend's response. If a
+task needs a backend change, STOP and write a request in
+docs/handoff/B-to-A.md instead.
+
+SHARED FILES: Do not change .kiro/steering/* on your own. Propose any
+contract change in docs/handoff/B-to-A.md and tell me to confirm it with
+Person A.
+
+WORKING STYLE: Plan first. Build in small steps. Run typecheck, lint and
+build after each milestone and report the real output. Never claim
+something works without running it. Game must be playable before it is
+polished."
+
+=====================================================================
+PROMPTS (use in order)
+=====================================================================
+
+---------------------------------------------------------------------
+PROMPT B1 - REVIEW SHARED SPEC + FRONTEND SPEC (no code)
+---------------------------------------------------------------------
+Do NOT run the shared "product + architecture" prompt - Person A runs it
+once and you pull the result (git pull). If A is not ready yet, wait or
+start with the design-tokens and mock fixtures only.
+
+Spec: .kiro/specs/frontend-01 .. frontend-05
+(Preamble, then:)
+
+Read every file in .kiro/steering, especially api-contract.md,
+game-design.md and team-ownership.md. Do not write app code yet.
+1. Summarize the frontend/game responsibilities and anything unclear or
+   missing in the contract. Put questions in docs/handoff/B-to-A.md.
+2. Create the five frontend spec folders listed above, each with
+   requirements.md, design.md and tasks.md.
+3. In design.md for frontend-03, plan the React <-> Phaser boundary:
+   one GameCanvas component, a typed event bridge, and which side owns
+   what (React = network requests, auth, HUD panels; Phaser = world,
+   movement, sprites, effects, audio).
+4. Define the minimal vertical slice: Try the Demo -> move in a room ->
+   meet a monster -> answer -> animated damage -> room clear.
+5. Stop after the specs for my review.
+
+---------------------------------------------------------------------
+PROMPT B2 - FRONTEND SCAFFOLD, DESIGN SYSTEM, HOOK, API CLIENT
+---------------------------------------------------------------------
+Spec: .kiro/specs/frontend-01-shell-design-system/
+(Preamble, then:)
+
+Create frontend/ with React + TypeScript (strict) + Vite + Tailwind.
+- Routing: landing, login, register, dashboard, upload, dungeon map,
+  play, scorecard, settings
+- Tailwind theme from the design tokens (CSS variables) plus a small set
+  of reusable components: Button, Card, Panel (parchment + dark), Modal,
+  ProgressBar, Badge, Toast, Spinner, EmptyState, ErrorState
+- Typography: one display font for titles and one readable body font
+  (self-hosted or from a free font host; check licenses)
+- Typed API client in src/api/ built from api-contract.md, using fetch with
+  credentials: "include" and the contract's error format
+- Mock-data adapter in src/api/mock/ with fixtures that match the contract,
+  switchable by an env flag (VITE_USE_MOCKS=true)
+- Env: VITE_API_BASE_URL only (never secrets)
+- A Kiro hook .kiro/hooks/frontend-lint-on-save.json that runs lint and
+  typecheck when frontend files are saved (check the current Kiro hooks
+  docs for the exact format)
+- Accessibility basics: focus rings, contrast, reduced-motion CSS hook
+Run typecheck, lint and build; report real results. Do not touch backend/.
+
+---------------------------------------------------------------------
+PROMPT B3 - PRODUCT SCREENS (INCLUDING "TRY THE DEMO")
+---------------------------------------------------------------------
+Spec: .kiro/specs/frontend-02-product-screens-demo/
+(Preamble, then:)
+
+Build the product screens with the premium dark-fantasy / haunted-library
+look. Use reusable components and clear loading, empty and error states.
+Use mocks until the real API is ready. Do not invent endpoints.
+
+- Landing page: atmospheric hero, a short explanation (3 steps), and TWO
+  clear buttons: a large "Try the Demo" (primary) and "Login". The demo
+  button needs no form and no sign-up.
+- Login/register: exactly two fields (username, password), clear errors
+- Dashboard: Continue Dungeon, Upload Notes, recent dungeons, level/XP,
+  review-due count. For guests: show the demo dungeon and a message
+  "Create an account to upload your own notes" instead of upload.
+- Upload wizard: drag/drop, accepted formats text exactly as in the
+  contract ("PDF, TXT, DOCX, PPTX, PNG, JPG/JPEG; legacy DOC/PPT must be
+  converted"), progress steps, relevance result with the reason when
+  rejected, detected topics
+- Dungeon map screen: connected topic rooms + boss room, room status
+- Scorecard: accuracy, score, XP, per-topic mastery bands (Weak <50,
+  Learning 50-79, Strong >=80), weak concepts with "From your notes: page
+  X" source references, replay button
+- Settings: sound toggle, reduced motion, logout, delete account/document
+- Responsive for 1366x768 and smaller laptops
+Run typecheck, lint, build after each screen.
+
+---------------------------------------------------------------------
+PROMPT B4 - "TRY THE DEMO" FLOW + OFFLINE FALLBACK
+---------------------------------------------------------------------
+Spec: .kiro/specs/frontend-02-product-screens-demo/ (demo flow tasks)
+(Preamble, then:)
+
+Implement the one-click demo flow.
+1. Clicking "Try the Demo" calls POST /demo/session, stores the returned
+   user/dungeon in app state (no tokens in localStorage), and navigates
+   straight to the play route for the demo dungeon. No intermediate forms.
+2. Show a "Waking up the dungeon..." loading state with spooky animation
+   while the free backend host may be cold-starting. Show tips while
+   waiting. Time out after about 8 seconds.
+3. Banner while playing as a guest: "Playing as guest. Progress is
+   temporary. Create an account to save." with a Create account button.
+4. Guests see the scorecard at the end, with a call to action to register.
+5. OFFLINE FALLBACK (only if the backend is unreachable or times out):
+   - Bundle the demo data: copy docs/handoff/demo_dungeon.sample.json into
+     frontend/src/demo/demoDungeon.json (A provides it; if it is missing,
+     ask in B-to-A.md and use a small placeholder for now)
+   - Implement a tiny deterministic rules module in src/demo/ that follows
+     game-design.md numbers exactly, used ONLY in this fallback
+   - Show a visible "Offline demo - progress is not saved" label
+   - The normal mode must never use this module
+6. Never expose secrets. Note: the bundled JSON includes correct answers
+   and is for the demo only.
+Tests: demo button happy path (mocked API), timeout -> offline fallback,
+guest banner shows, guest upload is hidden, normal mode never uses the
+offline rules module.
+
+---------------------------------------------------------------------
+PROMPT B5 - PHASER CORE: SCENES, MOVEMENT, ROOMS
+---------------------------------------------------------------------
+Spec: .kiro/specs/frontend-03-phaser-core/
+(Preamble, then:)
+
+Implement the playable game foundation with Phaser 3 (pin the exact
+version in package.json; verify any template matches Phaser 3, not 4).
+Do NOT turn it into a static quiz page.
+
+FIRST: write the scene plan and the typed React <-> Phaser event contract
+in src/game/events.ts (what React sends in, what Phaser emits out).
+THEN implement in this order:
+1. One GameCanvas React component that mounts/unmounts Phaser cleanly
+2. Boot/Preload scene with a loading bar
+3. GameScene: compact top-down dungeon, 4 topic rooms + 1 boss room,
+   walls with collision, doors/gates, camera follow, room labels from the
+   dungeon data
+4. Player: WASD/arrow movement, interact with E/Space near a monster
+5. Placeholder sprites ONLY (colored shapes are fine) until the loop works
+6. Pause, mute, restart, exit-with-confirmation
+7. Dungeon data comes in through the event contract (from the API or the
+   mock/demo data), never hard-coded
+Keep modules small (scenes, entities, systems, ui). No giant single file.
+React owns network requests; Phaser emits events and receives state.
+Run typecheck/lint/build and do a manual walkthrough note.
+
+---------------------------------------------------------------------
+PROMPT B6 - COMBAT, WEAPONS, ANIMATIONS, BOSS
+---------------------------------------------------------------------
+Spec: .kiro/specs/frontend-04-combat-animations/
+(Preamble, then:)
+
+Implement the combat presentation. The backend decides results; you
+animate them. Read the answer-response shape in api-contract.md.
+
+1. Monster encounter: intro animation, then open the question panel
+   (parchment style, MCQ and True/False) via the event contract
+2. When the player answers, React calls the API and passes the response to
+   Phaser. Correct -> weapon animation, projectile or slash, damage number
+   taken from the response, hit flash, knockback, monster HP bar animates.
+   Wrong -> monster attack animation, subtle screen shake, player HP bar
+   animates down. Never compute damage in the game.
+3. Weapon visuals: dagger slash, arcane projectile, crossbow arrow, hammer
+   impact, fire burst. Which weapon is equipped comes from the response/
+   progress data.
+4. After each answer show the source panel: "From your notes: page X"
+   with the evidence quote (from the response/source-preview endpoint)
+5. Streak feedback and critical-hit styling when the response says so
+6. Room clear: gate opens, reward animation, XP counter ticks up
+7. Boss room: boss encounter with mixed-topic questions, victory scene,
+   defeat scene with retry
+8. Smooth HP bar animations; no confusing simultaneous effects
+9. Reduced-motion setting disables shake/flash; sound is never required
+10. Works with mocks, the real API and the demo dungeon
+Test via mocks: correct, wrong, critical, room clear, boss, defeat.
+Make the full loop playable before adding polish.
+
+---------------------------------------------------------------------
+PROMPT B7 - ART, AUDIO AND VISUAL POLISH
+---------------------------------------------------------------------
+(Preamble, then:)
+
+Replace placeholders with ONE consistent, properly licensed asset pack
+(for example from Kenney or OpenGameArt; check every license).
+Scope: 1 player, 3-4 monsters, 1 boss, weapon effects, 1 dungeon tileset,
+a few UI icons.
+- Add an ASSETS_LICENSES.md listing each asset, source link, license and
+  required attribution; add attribution to the README and a Credits screen
+- Add spooky ambience and short sound effects (hit, miss, door, victory)
+  with a mute toggle; keep files small
+- Animated landing background (fog, candles or bats) that respects
+  reduced motion
+- Optimize assets (sprite sheets, compressed audio, no huge textures)
+- Verify no broken image/audio paths
+- Do not add new gameplay features
+Report bundle size and any missing licenses.
+
+---------------------------------------------------------------------
+PROMPT B8 - INTEGRATION WITH THE BACKEND
+---------------------------------------------------------------------
+Spec: .kiro/specs/frontend-05-integration-polish-deploy/
+(Preamble, then:)
+
+Read docs/handoff/A-to-B.md first. Switch from mocks to the real API.
+Do not refactor everything: inspect the current code and list integration
+gaps first.
+- Connect: demo session, auth, document upload + status polling, topics,
+  generate dungeon, load dungeon, start run, submit answer, room clear,
+  finish run, progress, reviews due
+- Handle loading, timeout, 401, 403, 404, 413, 415, 422, 429 and 5xx with
+  friendly messages (rate limit on the demo button should say "Too many
+  demo starts, try again soon")
+- Make sure Phaser never calculates authoritative values; it animates the
+  backend responses
+- Refresh mid-run: resume the run or show a clear recovery path
+- Test the journeys: (1) Try the Demo -> play 2 rooms -> scorecard; (2)
+  register -> login -> upload PDF -> relevance result -> dungeon -> play
+  -> scorecard -> logout -> login -> progress persists; (3) guest cannot
+  see upload
+- Run frontend typecheck, lint, tests and a production build
+- Anything you need from A goes in docs/handoff/B-to-A.md
+Report real failures and fix only verified root causes.
+
+---------------------------------------------------------------------
+PROMPT B9 - FINAL POLISH, DEPLOYMENT AND DEMO READINESS
+---------------------------------------------------------------------
+(Preamble, then:)
+
+Focused polish pass. Do not add major features.
+- Consistent style, typography, spacing and button hierarchy; readable
+  question panel
+- Animations smooth and not blocked by React re-renders
+- First-run control hint (WASD/arrows, E/Space)
+- Works at 1366x768 and a smaller laptop viewport; reduced-motion and mute
+- Loading, empty and error states on every screen
+- Source citation visible after each answer and on weak concepts
+- Run the whole demo as a new user in an incognito window: the first thing
+  a judge sees must be "Try the Demo" and it must lead into the game in
+  one click
+- Frontend deployment (static host): VITE_API_BASE_URL set in the host,
+  not committed; verify the production site talks to the production API
+  with cookies working
+- README frontend section: setup, scripts, env, controls, asset credits
+- Produce a prioritized bug list, fix P0/P1 only, leave stretch features
+Then write a demo-video checklist in docs/demo-video-plan.md: a 3-minute
+script (hook, Try the Demo in one click, a combat loop, upload your own
+notes, scorecard + spaced repetition, how Kiro was used) and a backup
+screen-recording plan in case the free backend is cold-starting.
+
+---------------------------------------------------------------------
+YOUR DAILY ROUTINE
+---------------------------------------------------------------------
+1. git pull main; read docs/handoff/A-to-B.md
+2. One Kiro session per task; preamble first
+3. Typecheck + lint + build pass -> PR -> merge
+4. Update docs/handoff/B-to-A.md (requests, what you now depend on)
+5. 10-minute sync with Person A
+6. Keep notes on how Kiro helped (specs, steering, hooks, MCP) for the
+   Devpost write-up - the rules ask about it.
+
+IF SCHEDULE SLIPS, CUT IN THIS ORDER: inventory/cosmetics, free-text
+answers, daily quests, complex procedural maps, extra weapon animations.
+NEVER cut: the one-click demo, the complete playable loop (move -> fight
+-> answer -> animated damage -> room clear), source citations on answers,
+the scorecard.
+
+
+=====================================================================
+WHAT TO SUBMIT (DEVPOST, KIROWEEN 2026) - AND WHO PREPARES WHAT
+=====================================================================
+The Rules tab is the authority: https://kiroween.devpost.com/rules
+Re-read it before submitting. Rules can change.
+
+REQUIRED ITEMS
+1. Category: Frankenstein, plus any bonus prizes you want (see below).
+2. URL to the public GitHub repo (GitHub only - NOT GitLab or Bitbucket):
+   - must contain all source code, assets and instructions needed to run it
+   - must be open source: an open source LICENSE file that shows in the
+     repo's About section on GitHub (how to add one:
+     https://docs.github.com/en/communities/setting-up-your-project-for-healthy-contributions/adding-a-license-to-a-repository )
+   - must contain the /.kiro directory at the repo root (specs, hooks,
+     steering). NEVER add /.kiro or its subfolders to .gitignore - that can
+     disqualify the submission.
+3. URL to the working app. If logins are needed, put credentials and
+   instructions in the Devpost form (judges only). Our demo needs none
+   because of the "Try the Demo" button.
+4. Text description explaining the features and functionality.
+5. Demo video:
+   - under 3 minutes (judges need not watch beyond it)
+   - shows the project working on the device it was built for (a laptop
+     browser)
+   - uploaded to YouTube and set to public
+   - no third-party trademarks and no copyrighted music or other material
+     without permission. This means: every sprite, song and sound effect
+     must be properly licensed (and credited), no brand logos, no
+     copyrighted songs. Check your video's audio before uploading.
+6. Write-up on how Kiro was used. Judges must understand how effectively
+   you used Kiro. Answer each of these honestly from REAL use:
+   - Kiro IDE, CLI, Web, Crew: how did they differ, if you tried several?
+   - Custom agents: did you create or use any? In which Kiro app? What impact?
+   - Agent hooks: which workflows did you automate and how did they help?
+   - Spec-driven development: how did you structure specs, and how did it
+     compare with vibe coding?
+   - Steering docs: how did you use them; what strategy mattered most?
+   - MCP: what did extending Kiro enable that was hard or impossible before?
+   - Property-based testing (PBT): did it catch issues unit tests missed?
+     For which requirements did you enable it?
+   - Kiro powers: which did you use? Any third-party tooling you would not
+     otherwise have used?
+   Insufficient use of Kiro can lead to disqualification, so use these
+   features for real and only claim what you actually did.
+
+BONUS PRIZES (decide together; each has its own form requirements)
+- Best Student Project (one per category): EVERY team member must be a
+  student. Provide LinkedIn profiles, student emails, year and degree, and
+  school name.
+- Social Blitz: a public post that STARTS with #KiroweenHackathon26,
+  posted during the submission period; paste the link in the form.
+- Blog Post: a public post about Kiro and your build on a third-party blog
+  platform, published during the submission period, saying it was written
+  for Kiroween 2026; paste the URL in the form.
+- Best Startup Project: only if you are founders of a startup; needs
+  LinkedIn and a startup website.
+- Ghost of Kiroween Past: only if you registered for Kiroween 2025.
+- Best Kiro Crew App: needs a separate public GitHub repo for a Kiro Crew app.
+- Best Demo: awarded from the Presentation score; nothing extra to submit.
+
+DATES
+- Submission period ends Dec 4, 2026, 2:00 PM Pacific = Dec 5, 3:00 AM PKT.
+  No extensions, no late submissions. Target: submit on Dec 3.
+- Save a draft submission on Devpost early; edit it until the deadline.
+- One Representative submits for the team (max 3 people per team).
+
+SHARED SUBMISSION FILES (created by Person A in prompt S1)
+- docs/SUBMISSION_CHECKLIST.md  (both tick items off)
+- docs/kiro-log-backend.md      (Person A writes here)
+- docs/kiro-log-frontend.md     (Person B writes here)
+- docs/KIRO_WRITEUP.md          (assembled from the two logs in week 4)
+
+
+=====================================================================
+SUBMISSION PROMPTS (PERSON B)
+=====================================================================
+Person A creates the shared submission files in their prompt S1
+(docs/SUBMISSION_CHECKLIST.md and the two Kiro logs). Pull them, then
+use the prompts below. Do not create or rewrite those shared files.
+
+---------------------------------------------------------------------
+PROMPT S2 - PLAN YOUR REAL KIRO FEATURE USE (frontend/game; run once, early)
+---------------------------------------------------------------------
+(Preamble, then:)
+
+The judges score how well and how deeply we use Kiro. Read the current
+Kiro documentation for hooks, steering, specs, custom agents, MCP,
+property-based testing and powers, and tell me which are available in my
+version. Then propose a SHORT, realistic plan (no padding) for using each
+one where it genuinely helps the frontend and game. Ideas to evaluate:
+- Hooks: lint/typecheck on save (already in B2); maybe one that runs
+  tests when game rules or API client files change
+- Custom agent: a UI/accessibility reviewer (contrast, reduced motion,
+  keyboard use) or an asset-license checker
+- MCP: one server that truly helps (for example a browser-testing or
+  design tool) - only if it adds value
+- Property-based testing: the offline-demo rules module (damage, HP,
+  streaks must match game-design.md for any input sequence)
+- Powers: any that fit React, TypeScript or testing
+For each item say: use or skip, why, and how I will measure the impact.
+Do not enable anything without my approval. Write the agreed plan to
+docs/kiro-log-frontend.md.
+
+---------------------------------------------------------------------
+PROMPT S3 - UPDATE THE KIRO LOG (run after each significant session)
+---------------------------------------------------------------------
+(Preamble, then:)
+
+Append to docs/kiro-log-frontend.md. Based only on what actually happened
+in this session, add dated entries under the right headings: which spec or
+steering file was used, what hooks fired, any custom agent or MCP server
+used, any property-based tests added and what they caught, what worked,
+and one lesson. Be specific and honest. Do not invent anything. Keep each
+entry to 1-3 sentences.
+
+---------------------------------------------------------------------
+PROMPT S4 - FRONTEND SUBMISSION READINESS (run in week 4)
+---------------------------------------------------------------------
+(Preamble, then:)
+
+Check the frontend side against docs/SUBMISSION_CHECKLIST.md and report
+pass/fail with evidence:
+- Every sprite, font, sound effect and song in frontend/ is in
+  ASSETS_LICENSES.md with source, license and required credit; list any
+  asset with an unclear license so we can replace it
+- No brand logos, trademarks or copyrighted music appear anywhere in the
+  app (the demo video will be recorded from it)
+- The demo video plan in docs/demo-video-plan.md fits under 3 minutes,
+  shows the app working in a laptop browser, and starts with the one-click
+  Try the Demo
+- The deployed frontend URL loads in an incognito window and "Try the
+  Demo" reaches the game in one click
+- README frontend section, controls and credits are complete
+- Everything needed to run the frontend is committed (no missing assets)
+Report gaps with the fix, and draft the frontend-related answers in my
+notes using only what is in docs/kiro-log-frontend.md. If a Kiro feature
+was not used, say so instead of inventing it. Do not touch backend/.

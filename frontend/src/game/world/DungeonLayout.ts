@@ -73,9 +73,12 @@ export function buildDungeonLayout(rooms: readonly RoomInput[]): LayoutResult {
 
 /** Id of the room containing the point (half-open intervals), or null. */
 export function roomAt(layout: DungeonLayout, p: Point): string | null {
-  for (const r of layout.rooms) {
-    const { x, y, w, h } = r.rect
-    if (p.x >= x && p.x < x + w && p.y >= y && p.y < y + h) return r.id
+  // Indexed loop and no destructuring: runs every frame via RoomTracker.update, so no iterator allocation.
+  const rooms = layout.rooms
+  for (let i = 0; i < rooms.length; i++) {
+    const r = rooms[i]!
+    const rect = r.rect
+    if (p.x >= rect.x && p.x < rect.x + rect.w && p.y >= rect.y && p.y < rect.y + rect.h) return r.id
   }
   return null
 }
