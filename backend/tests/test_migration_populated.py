@@ -21,7 +21,8 @@ def test_migration_chain_from_shared_base_with_pre_existing_user():
             pass
 
     try:
-        cfg = Config("alembic.ini")
+        ini_path = os.path.join(os.path.dirname(__file__), "..", "alembic.ini")
+        cfg = Config(os.path.abspath(ini_path))
         cfg.set_main_option("sqlalchemy.url", f"sqlite:///{test_db}")
 
         # 1. Upgrade to the base revision present on origin/main

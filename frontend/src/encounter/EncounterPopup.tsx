@@ -336,8 +336,9 @@ function EncounterBody({
         />
 
         {combat === 'submitting' && (
-          <p className="mt-2 text-sm text-deep">
-            Resolving your answer…
+          <p className="mt-2 text-sm font-semibold text-accent animate-pulse flex items-center gap-2">
+            <span className="inline-block size-2 rounded-full bg-accent animate-ping" />
+            Striking monster…
           </p>
         )}
         {error && (

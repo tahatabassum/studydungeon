@@ -35,6 +35,12 @@ class Settings(BaseSettings):
     GEMINI_MODEL: Optional[str] = "gemini-2.0-flash"
     OPENROUTER_API_KEY: Optional[str] = None
     OPENROUTER_ENABLED: bool = False
+    OPENROUTER_MODEL: str = "meta-llama/llama-3.3-70b-instruct:free"
+    OPENROUTER_FALLBACK_MODELS: List[str] = [
+        "meta-llama/llama-3.3-70b-instruct:free",
+        "google/gemini-2.0-flash-exp:free",
+        "mistralai/mistral-7b-instruct:free",
+    ]
 
     # Uploads & Quality Thresholds
     MAX_UPLOAD_MB: int = 15
@@ -60,6 +66,9 @@ class Settings(BaseSettings):
         if self.AI_PROVIDER == "gemini":
             if not self.GEMINI_MODEL or not str(self.GEMINI_MODEL).strip():
                 raise ValueError("GEMINI_MODEL is required when AI_PROVIDER='gemini'")
+        elif self.AI_PROVIDER == "openrouter":
+            if not self.OPENROUTER_API_KEY:
+                raise ValueError("OPENROUTER_API_KEY is required when AI_PROVIDER='openrouter'")
         return self
 
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")

@@ -5,31 +5,41 @@ import '../styles/haunted.css'
 
 type Fig = { kind: 'ghost' | 'vampire'; top: number; size: number; dur: number; delay: number; dir: 'l' | 'r' }
 const FIGURES: readonly Fig[] = [
-  { kind: 'ghost', top: 14, size: 70, dur: 46, delay: -8, dir: 'l' },
-  { kind: 'vampire', top: 58, size: 84, dur: 62, delay: -30, dir: 'r' },
-  { kind: 'ghost', top: 72, size: 56, dur: 54, delay: -40, dir: 'r' },
+  { kind: 'ghost', top: 12, size: 72, dur: 44, delay: -6, dir: 'l' },
+  { kind: 'vampire', top: 26, size: 68, dur: 58, delay: -18, dir: 'r' },
+  { kind: 'ghost', top: 44, size: 58, dur: 48, delay: -32, dir: 'l' },
+  { kind: 'vampire', top: 62, size: 84, dur: 62, delay: -24, dir: 'r' },
+  { kind: 'ghost', top: 76, size: 64, dur: 52, delay: -40, dir: 'l' },
+  { kind: 'ghost', top: 88, size: 52, dur: 46, delay: -14, dir: 'r' },
 ]
 
 type BatSpec = { dir: 'ltr' | 'rtl'; top: number; size: number; dur: number; delay: number }
 const BATS: readonly BatSpec[] = [
-  { dir: 'ltr', top: 8, size: 30, dur: 24, delay: -6 },
-  { dir: 'rtl', top: 30, size: 22, dur: 30, delay: -14 },
-  { dir: 'ltr', top: 48, size: 36, dur: 27, delay: -20 },
-  { dir: 'rtl', top: 84, size: 26, dur: 33, delay: -3 },
+  { dir: 'ltr', top: 7, size: 30, dur: 22, delay: -4 },
+  { dir: 'rtl', top: 19, size: 24, dur: 28, delay: -12 },
+  { dir: 'ltr', top: 34, size: 34, dur: 25, delay: -18 },
+  { dir: 'rtl', top: 50, size: 26, dur: 31, delay: -9 },
+  { dir: 'ltr', top: 66, size: 36, dur: 24, delay: -15 },
+  { dir: 'rtl', top: 78, size: 22, dur: 33, delay: -21 },
+  { dir: 'ltr', top: 89, size: 28, dur: 26, delay: -7 },
 ]
 
 /** Dangerous variant for the leaderboard: red eyes, swooping bats, lurking vampires, flickering ghosts. */
 type MenaceFig = { kind: 'ghost' | 'vampire'; mode: 'ghost' | 'lurk-l' | 'lurk-r'; top: number; size: number; dur: number; delay: number }
 const MENACE_FIGURES: readonly MenaceFig[] = [
-  { kind: 'ghost', mode: 'ghost', top: 18, size: 64, dur: 40, delay: -6 },
-  { kind: 'ghost', mode: 'ghost', top: 66, size: 52, dur: 52, delay: -28 },
-  { kind: 'vampire', mode: 'lurk-l', top: 40, size: 110, dur: 18, delay: -4 },
+  { kind: 'ghost', mode: 'ghost', top: 14, size: 68, dur: 38, delay: -4 },
+  { kind: 'ghost', mode: 'ghost', top: 32, size: 56, dur: 44, delay: -18 },
+  { kind: 'vampire', mode: 'lurk-l', top: 42, size: 110, dur: 18, delay: -4 },
   { kind: 'vampire', mode: 'lurk-r', top: 62, size: 96, dur: 22, delay: -12 },
+  { kind: 'ghost', mode: 'ghost', top: 74, size: 54, dur: 50, delay: -26 },
+  { kind: 'vampire', mode: 'lurk-l', top: 86, size: 90, dur: 20, delay: -8 },
 ]
 const MENACE_BATS: readonly (BatSpec & { swoop: 'l' | 'r' })[] = [
-  { dir: 'ltr', swoop: 'l', top: 12, size: 34, dur: 11, delay: -3 },
-  { dir: 'rtl', swoop: 'r', top: 40, size: 28, dur: 14, delay: -8 },
-  { dir: 'ltr', swoop: 'l', top: 70, size: 38, dur: 13, delay: -1 },
+  { dir: 'ltr', swoop: 'l', top: 10, size: 34, dur: 11, delay: -2 },
+  { dir: 'rtl', swoop: 'r', top: 28, size: 30, dur: 13, delay: -6 },
+  { dir: 'ltr', swoop: 'l', top: 48, size: 36, dur: 12, delay: -8 },
+  { dir: 'rtl', swoop: 'r', top: 68, size: 28, dur: 14, delay: -4 },
+  { dir: 'ltr', swoop: 'l', top: 84, size: 38, dur: 13, delay: -1 },
 ]
 
 function BatSvg() {

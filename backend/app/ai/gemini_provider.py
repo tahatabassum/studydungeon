@@ -77,6 +77,15 @@ class GeminiProvider:
         raw_text = data["candidates"][0]["content"]["parts"][0]["text"]
         return json.loads(raw_text)
 
+    def _get_openrouter_fallback(self):
+        if settings.OPENROUTER_API_KEY or settings.OPENROUTER_ENABLED:
+            try:
+                from app.ai.openrouter_provider import OpenRouterProvider
+                return OpenRouterProvider()
+            except Exception as e:
+                logger.warning("Failed to initialize OpenRouter fallback: %s", str(e))
+        return None
+
     async def classify_document(self, text_sample: str) -> DocumentCheck:
         system_instruction = (
             "You are a strict academic evaluator for a study game. "
@@ -90,8 +99,15 @@ class GeminiProvider:
         )
         safe_snippet = text_sample[:4000]
         prompt = f"Evaluate this document text:\n\n{safe_snippet}"
-        data = await self._call_gemini_json(system_instruction, prompt)
-        return DocumentCheck(**data)
+        try:
+            data = await self._call_gemini_json(system_instruction, prompt)
+            return DocumentCheck(**data)
+        except Exception as e:
+            logger.warning("Gemini classify_document failed: %s. Attempting OpenRouter fallback...", str(e))
+            fallback = self._get_openrouter_fallback()
+            if fallback:
+                return await fallback.classify_document(text_sample)
+            raise
 
     async def ocr_image(self, image_bytes: bytes, mime_type: str = "image/png") -> str:
         """
@@ -121,28 +137,49 @@ class GeminiProvider:
                 "temperature": 0.1,
             },
         }
-        data = await self._call_gemini_raw(payload)
-        parts = data["candidates"][0]["content"]["parts"]
-        return parts[0].get("text", "").strip()
+        try:
+            data = await self._call_gemini_raw(payload)
+            parts = data["candidates"][0]["content"]["parts"]
+            return parts[0].get("text", "").strip()
+        except Exception as e:
+            logger.warning("Gemini ocr_image failed: %s. Attempting local OCR fallback...", str(e))
+            fallback = self._get_openrouter_fallback()
+            if fallback:
+                return await fallback.ocr_image(image_bytes, mime_type)
+            raise
 
     async def build_topics_and_questions(
         self, chunks: List[ExtractedChunk]
     ) -> List[GeneratedTopicItem]:
         system_instruction = (
-            "You are an academic RPG dungeon builder. Cluster the provided chunks into 2 to 6 coherent topics. "
-            "For each topic, generate 5 to 8 multiple-choice or true/false questions. "
-            "IMPORTANT: Every question MUST cite an exact verbatim 'evidence_quote' from one of the source chunks. "
-            "Do NOT hallucinate or summarize in evidence_quote. "
+            "You are an elite university professor and RPG dungeon master. "
+            "Your task is to analyze the provided study notes and build a rigorous, educational quiz dungeon.\n"
+            "STRICT RULES FOR QUESTIONS:\n"
+            "1. NO META-REFERENCES: NEVER use phrases like 'According to your notes', 'According to the text', 'In this document', 'As mentioned in the slide', or 'What does the author state'. Phrase every question directly as an objective, authoritative subject question (e.g., 'What is the primary function of an ALU?', 'Which addressing mode calculates the effective address by adding an offset to the program counter?').\n"
+            "2. ACCURACY & DEPTH: Test deep concepts, formulas, calculations, definitions, and causal relationships directly from the material. Avoid superficial or trivial questions.\n"
+            "3. PLAUSIBLE DISTRACTORS: All 4 options must be realistic, distinct, domain-accurate alternatives of similar grammatical structure and length. NEVER use placeholder text such as 'Option A', 'Sample question', or giveaway distractors.\n"
+            "4. QUANTITY: Generate 5 to 8 distinct questions per topic so students never encounter duplicate questions in a room.\n"
+            "5. EVIDENCE QUOTE: For every question, include an exact verbatim 'evidence_quote' copied directly from the provided source text chunks.\n"
+            "6. Set 'correct_option' to the 0-based integer index of the correct answer in 'options'.\n"
+            "7. Provide a concise 'explanation' explaining why the correct answer is true based on the domain concepts.\n"
             "Output JSON array of topics: "
             "[{\"name\": str, \"description\": str, \"source_chunk_ids\": [int], "
             "\"questions\": [{\"prompt\": str, \"options\": [str], \"correct_option\": int, "
             "\"difficulty\": \"easy\"|\"medium\"|\"hard\", \"evidence_quote\": str, \"explanation\": str}]}]"
         )
         prompt_chunks = "\n---\n".join(
-            [f"Chunk {c.chunk_index} (Page {c.page_number}):\n{c.text}" for c in chunks[:15]]
+            [f"Chunk {c.chunk_index} (Page {c.page_number}):\n{c.text}" for c in chunks[:25]]
         )
-        data = await self._call_gemini_json(system_instruction, prompt_chunks)
-        items = []
-        for t in data:
-            items.append(GeneratedTopicItem(**t))
-        return items
+        try:
+            data = await self._call_gemini_json(system_instruction, prompt_chunks)
+            topic_list = data if isinstance(data, list) else data.get("topics", [])
+            items = []
+            for t in topic_list:
+                items.append(GeneratedTopicItem(**t))
+            return items
+        except Exception as e:
+            logger.warning("Gemini build_topics_and_questions failed: %s. Attempting OpenRouter fallback...", str(e))
+            fallback = self._get_openrouter_fallback()
+            if fallback:
+                return await fallback.build_topics_and_questions(chunks)
+            raise
