@@ -6,6 +6,8 @@ from pydantic import BaseModel
 
 class StartRunRequest(BaseModel):
     dungeon_id: str
+    floor_id: Optional[str] = None
+    mode: Optional[str] = None
 
 
 class AttemptRequest(BaseModel):
@@ -37,6 +39,11 @@ class AttemptResponse(BaseModel):
     points_reason: Optional[str] = None
     points_bonus: Optional[int] = None
     player_points: Optional[PlayerPointsView] = None
+    correct_answer: Optional[str] = None
+    combo: Optional[int] = None
+    requeue_after: Optional[int] = None
+    is_retry: Optional[bool] = None
+    retry_multiplier: Optional[float] = None
 
 
 class RunRoomState(BaseModel):
@@ -60,6 +67,9 @@ class RunDetailResponse(BaseModel):
     status: str  # active, completed, defeated
     started_at: datetime
     rooms: List[RunRoomState]
+    room_ids: Optional[List[str]] = None
+    floor_id: Optional[str] = None
+    mode: Optional[str] = None
 
 
 class ClearRoomResponse(BaseModel):
@@ -84,3 +94,6 @@ class RunSummaryResponse(BaseModel):
     points_earned: Optional[int] = None
     player_points: Optional[PlayerPointsView] = None
     pack_progress: Optional[dict] = None
+    floor_rank: Optional[str] = None
+    mastery_by_topic: Optional[List[dict]] = None
+    chest_rewards: Optional[List[dict]] = None

@@ -1,6 +1,8 @@
 import sys
 from logging.config import fileConfig
 from pathlib import Path
+import asyncio
+from sqlalchemy.ext.asyncio import async_engine_from_config
 from sqlalchemy import engine_from_config
 from sqlalchemy import pool
 from alembic import context
@@ -27,11 +29,13 @@ if config.config_file_name is not None:
 # for 'autogenerate' support
 target_metadata = Base.metadata
 
-# Convert async driver string to standard sync driver for Alembic migrations
+# Configure db url
 if not config.get_main_option("sqlalchemy.url") or config.get_main_option("sqlalchemy.url") == "driver://user:pass@localhost/dbname":
-    db_url = normalize_database_url(settings.DATABASE_URL, is_alembic_sync=True)
-    if db_url.startswith("postgresql://"):
-        db_url = db_url.replace("postgresql://", "postgresql+psycopg2://", 1)
+    raw_url = settings.DATABASE_URL
+    if "postgres" in raw_url:
+        db_url = normalize_database_url(raw_url, is_alembic_sync=False)
+    else:
+        db_url = normalize_database_url(raw_url, is_alembic_sync=True)
     config.set_main_option("sqlalchemy.url", db_url)
 
 
@@ -50,23 +54,52 @@ def run_migrations_offline() -> None:
         context.run_migrations()
 
 
-def run_migrations_online() -> None:
-    """Run migrations in 'online' mode."""
-    connectable = engine_from_config(
-        config.get_section(config.config_ini_section, {}),
-        prefix="sqlalchemy.",
-        poolclass=pool.NullPool,
+def do_run_migrations(connection) -> None:
+    context.configure(
+        connection=connection,
+        target_metadata=target_metadata,
+        render_as_batch=True,
     )
 
-    with connectable.connect() as connection:
-        context.configure(
-            connection=connection,
-            target_metadata=target_metadata,
-            render_as_batch=True,
+    with context.begin_transaction():
+        context.run_migrations()
+
+
+async def run_async_migrations() -> None:
+    configuration = config.get_section(config.config_ini_section, {})
+    connect_args = {}
+    db_target = config.get_main_option("sqlalchemy.url") or ""
+    if "postgres" in db_target:
+        connect_args["statement_cache_size"] = 0
+        connect_args["prepared_statement_cache_size"] = 0
+
+    connectable = async_engine_from_config(
+        configuration,
+        prefix="sqlalchemy.",
+        poolclass=pool.NullPool,
+        connect_args=connect_args,
+    )
+
+    async with connectable.connect() as connection:
+        await connection.run_sync(do_run_migrations)
+
+    await connectable.dispose()
+
+
+def run_migrations_online() -> None:
+    """Run migrations in 'online' mode."""
+    url = config.get_main_option("sqlalchemy.url") or ""
+    if "+asyncpg" in url or "+aiosqlite" in url:
+        asyncio.run(run_async_migrations())
+    else:
+        connectable = engine_from_config(
+            config.get_section(config.config_ini_section, {}),
+            prefix="sqlalchemy.",
+            poolclass=pool.NullPool,
         )
 
-        with context.begin_transaction():
-            context.run_migrations()
+        with connectable.connect() as connection:
+            do_run_migrations(connection)
 
 
 if context.is_offline_mode():

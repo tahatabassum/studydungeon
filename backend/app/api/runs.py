@@ -3,7 +3,7 @@ from datetime import datetime
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import selectinload
+from sqlalchemy.orm import joinedload, selectinload
 
 from app.core.database import get_db
 from app.core.deps import get_current_user
@@ -92,10 +92,104 @@ async def start_run(
                 detail={"code": "FORBIDDEN", "message": "You do not own this dungeon."},
             )
 
+    sorted_all_rooms = sorted(dungeon.rooms, key=lambda x: x.room_order)
+    total_all_rooms = len(sorted_all_rooms)
+    final_boss_room = sorted_all_rooms[-1] if sorted_all_rooms else None
+
+    # Handle floor scoping and modes
+    target_rooms = sorted_all_rooms
+    mode = req.mode or "full"
+    floor_id = req.floor_id
+
+    if floor_id or mode in ("floor", "replay_floor"):
+        # Distinct floor ids present in dungeon
+        distinct_floor_ids = []
+        for r in sorted_all_rooms:
+            if r.floor_id and r.floor_id not in distinct_floor_ids:
+                distinct_floor_ids.append(r.floor_id)
+
+        # Determine if floor_id targets final boss
+        is_final_boss_target = (
+            final_boss_room and (floor_id == final_boss_room.id or floor_id == "final_boss" or (not distinct_floor_ids and floor_id))
+        )
+
+        if is_final_boss_target:
+            # Check all preceding floors cleared
+            for fid in distinct_floor_ids:
+                cleared_f_res = await db.execute(
+                    select(GameRun).where(
+                        GameRun.user_id == user.id,
+                        GameRun.dungeon_id == dungeon.id,
+                        GameRun.floor_id == fid,
+                        GameRun.status == "completed",
+                    )
+                )
+                if not cleared_f_res.scalar_one_or_none():
+                    # Check if entire dungeon was cleared
+                    full_clear_res = await db.execute(
+                        select(GameRun).where(
+                            GameRun.user_id == user.id,
+                            GameRun.dungeon_id == dungeon.id,
+                            GameRun.status == "completed",
+                        )
+                    )
+                    if not full_clear_res.scalar_one_or_none():
+                        raise HTTPException(
+                            status_code=status.HTTP_403_FORBIDDEN,
+                            detail={"code": "FINAL_BOSS_LOCKED", "message": "Clear all dungeon floors before challenging the final boss."},
+                        )
+            target_rooms = [final_boss_room]
+        elif floor_id:
+            matching_floor_rooms = [r for r in sorted_all_rooms if r.floor_id == floor_id]
+            if matching_floor_rooms:
+                target_rooms = matching_floor_rooms
+                f_idx = distinct_floor_ids.index(floor_id) if floor_id in distinct_floor_ids else 0
+                if f_idx > 0:
+                    prev_f_id = distinct_floor_ids[f_idx - 1]
+                    cleared_prev_res = await db.execute(
+                        select(GameRun).where(
+                            GameRun.user_id == user.id,
+                            GameRun.dungeon_id == dungeon.id,
+                            GameRun.floor_id == prev_f_id,
+                            GameRun.status == "completed",
+                        )
+                    )
+                    if not cleared_prev_res.scalar_one_or_none():
+                        full_clear_res = await db.execute(
+                            select(GameRun).where(
+                                GameRun.user_id == user.id,
+                                GameRun.dungeon_id == dungeon.id,
+                                GameRun.status == "completed",
+                            )
+                        )
+                        if not full_clear_res.scalar_one_or_none():
+                            raise HTTPException(
+                                status_code=status.HTTP_403_FORBIDDEN,
+                                detail={"code": "FLOOR_LOCKED", "message": "Clear the previous floor's boss to unlock this floor."},
+                            )
+                if mode == "replay_floor":
+                    cleared_this_res = await db.execute(
+                        select(GameRun).where(
+                            GameRun.user_id == user.id,
+                            GameRun.dungeon_id == dungeon.id,
+                            GameRun.floor_id == floor_id,
+                            GameRun.status == "completed",
+                        )
+                    )
+                    if not cleared_this_res.scalar_one_or_none():
+                        raise HTTPException(
+                            status_code=status.HTTP_409_CONFLICT,
+                            detail={"code": "FLOOR_NOT_CLEARED", "message": "Cannot replay a floor that has not been cleared yet."},
+                        )
+            else:
+                target_rooms = sorted_all_rooms
+
     # Create run
     run = GameRun(
         user_id=user.id,
         dungeon_id=dungeon.id,
+        floor_id=floor_id,
+        mode=mode,
         current_hp=100,
         current_score=0,
         current_streak=0,
@@ -106,20 +200,20 @@ async def start_run(
     await db.commit()
     await db.refresh(run)
 
-    # Build initial rooms state
-    total_rooms = len(dungeon.rooms)
+    # Build initial rooms state for this run
+    total_target_rooms = len(target_rooms)
     room_states = [
         RunRoomState(
             room_id=r.id,
-            room_number=r.room_order + 1,
+            room_number=idx + 1,
             topic_name=r.topic.name if r.topic else "General",
             monster_name=r.monster_type,
             monster_max_hp=r.monster_hp,
             monster_current_hp=r.monster_hp,
             is_cleared=False,
-            is_boss=(r.room_order == total_rooms - 1),
+            is_boss=(idx == total_target_rooms - 1),
         )
-        for r in sorted(dungeon.rooms, key=lambda x: x.room_order)
+        for idx, r in enumerate(target_rooms)
     ]
 
     return RunDetailResponse(
@@ -132,6 +226,9 @@ async def start_run(
         status=run.status,
         started_at=run.started_at,
         rooms=room_states,
+        room_ids=[r.id for r in target_rooms],
+        floor_id=floor_id,
+        mode=mode if mode != "full" else None,
     )
 
 
@@ -157,9 +254,21 @@ async def get_run_status(
         )
 
     # Calculate room monster remaining HP
-    total_rooms = len(run.dungeon.rooms)
+    sorted_all_rooms = sorted(run.dungeon.rooms, key=lambda x: x.room_order)
+    final_boss_room = sorted_all_rooms[-1] if sorted_all_rooms else None
+    target_rooms = sorted_all_rooms
+
+    if run.floor_id:
+        if final_boss_room and (run.floor_id == final_boss_room.id or run.floor_id == "final_boss"):
+            target_rooms = [final_boss_room]
+        else:
+            matching = [r for r in sorted_all_rooms if r.floor_id == run.floor_id]
+            if matching:
+                target_rooms = matching
+
+    total_target_rooms = len(target_rooms)
     room_states = []
-    for r in sorted(run.dungeon.rooms, key=lambda x: x.room_order):
+    for idx, r in enumerate(target_rooms):
         # Sum damage dealt in this room
         dmg_dealt = sum(
             a.damage_dealt
@@ -172,13 +281,13 @@ async def get_run_status(
         room_states.append(
             RunRoomState(
                 room_id=r.id,
-                room_number=r.room_order + 1,
+                room_number=idx + 1,
                 topic_name=r.topic.name if r.topic else "General",
                 monster_name=r.monster_type,
                 monster_max_hp=r.monster_hp,
                 monster_current_hp=current_monster_hp,
                 is_cleared=is_cleared,
-                is_boss=(r.room_order == total_rooms - 1),
+                is_boss=(idx == total_target_rooms - 1),
             )
         )
 
@@ -192,27 +301,38 @@ async def get_run_status(
         status=run.status,
         started_at=run.started_at,
         rooms=room_states,
+        room_ids=[r.id for r in target_rooms],
+        floor_id=run.floor_id,
+        mode=run.mode if run.mode != "full" else None,
     )
 
 
-@runs_router.post("/{id}/attempts", response_model=AttemptResponse)
+_PROCESSED_ATTEMPTS: dict[str, AttemptResponse] = {}
+_QUESTION_CACHE: dict[str, Question] = {}
+_RUN_TOPIC_DAMAGE: dict[tuple[str, str], int] = {}
+
+
+@runs_router.post("/{id}/attempts", response_model=AttemptResponse, response_model_exclude_none=True)
 async def submit_attempt(
     id: str,
     req: AttemptRequest,
     user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    # 1. Fetch run with dungeon rooms. Each attempt needs its question loaded here: a lazy load
-    # under the async session fails with MissingGreenlet from the second answer on.
+    # Fast in-memory idempotency check (0ms)
+    if req.attempt_id and req.attempt_id in _PROCESSED_ATTEMPTS:
+        return _PROCESSED_ATTEMPTS[req.attempt_id]
+
+    # 1. Fetch run with dungeon, rooms, and content pack in 1 query
     run_res = await db.execute(
         select(GameRun)
         .options(
-            selectinload(GameRun.attempts).selectinload(Attempt.question),
-            selectinload(GameRun.dungeon).selectinload(Dungeon.rooms),
+            joinedload(GameRun.dungeon).joinedload(Dungeon.rooms),
+            joinedload(GameRun.dungeon).joinedload(Dungeon.pack),
         )
         .where(GameRun.id == id, GameRun.user_id == user.id)
     )
-    run = run_res.scalar_one_or_none()
+    run = run_res.unique().scalar_one_or_none()
     if not run:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -225,58 +345,101 @@ async def submit_attempt(
             detail={"code": "RUN_FINISHED", "message": "Cannot submit attempts on a finished or defeated run."},
         )
 
-    # 2. Idempotency Check: if attempt_id was already processed, return stored result
-    for a in run.attempts:
-        if a.id == req.attempt_id:
-            # Load question details if available
-            q_res = await db.execute(select(Question).where(Question.id == a.question_id))
-            cached_q = q_res.scalar_one_or_none()
-            remaining_hp = 0
-            if cached_q:
-                target_r = next((r for r in run.dungeon.rooms if r.topic_id == cached_q.topic_id), None)
-                if target_r:
-                    tot_dmg = sum(att.damage_dealt for att in run.attempts if att.question and att.question.topic_id == target_r.topic_id)
-                    remaining_hp = max(0, target_r.monster_hp - tot_dmg)
-
-            # Fetch existing point event for this attempt if any
-            from app.models.all_models import PlayerStats, PointEvent
-            pe_res = await db.execute(select(PointEvent).where(PointEvent.attempt_id == req.attempt_id).limit(1))
-            pe = pe_res.scalar_one_or_none()
-            ps_res = await db.execute(select(PlayerStats).where(PlayerStats.user_id == user.id))
-            ps = ps_res.scalar_one_or_none()
-            pp_dict = None
-            if ps:
-                pp_dict = {
-                    "preloaded": ps.points_preloaded,
-                    "own_notes": ps.points_own_notes,
-                    "overall": ps.points_overall,
-                }
-            return AttemptResponse(
-                attempt_id=a.id,
-                is_correct=a.is_correct,
-                damage_dealt=a.damage_dealt,
-                damage_taken=a.damage_taken,
-                is_critical=False,
-                current_hp=run.current_hp,
-                current_score=run.current_score,
-                current_streak=run.current_streak,
-                monster_hp_remaining=remaining_hp,
-                explanation=cached_q.explanation if cached_q else "Idempotent replay.",
-                evidence_quote=cached_q.evidence_quote if cached_q else None,
-                points_awarded=pe.points if pe else 0,
-                points_reason=pe.reason if pe else ("first_correct" if a.is_correct else "wrong"),
-                points_bonus=0,
-                player_points=pp_dict,
-            )
-
-    # 3. Fetch Question
-    q_res = await db.execute(select(Question).where(Question.id == req.question_id))
-    question = q_res.scalar_one_or_none()
-    if not question:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail={"code": "QUESTION_NOT_FOUND", "message": "Question does not exist."},
+    # 2. Database Idempotency Check fallback (only if not found in memory cache)
+    existing_attempt = None
+    if req.attempt_id:
+        existing_attempt_res = await db.execute(
+            select(Attempt).where(Attempt.id == req.attempt_id, Attempt.run_id == id).limit(1)
         )
+        existing_attempt = existing_attempt_res.scalar_one_or_none()
+
+    if existing_attempt:
+        cached_q_res = await db.execute(select(Question).where(Question.id == existing_attempt.question_id))
+        cached_q = cached_q_res.scalar_one_or_none()
+        remaining_hp = 0
+        cached_correct_answer = None
+        cached_combo = None
+        cached_requeue = None
+        if cached_q:
+            target_r = next((r for r in run.dungeon.rooms if r.topic_id == cached_q.topic_id), None)
+            if target_r:
+                dmg_res = await db.execute(
+                    select(func.coalesce(func.sum(Attempt.damage_dealt), 0))
+                    .join(Question, Attempt.question_id == Question.id)
+                    .where(Attempt.run_id == id, Question.topic_id == target_r.topic_id)
+                )
+                tot_dmg = dmg_res.scalar() or 0
+                remaining_hp = max(0, target_r.monster_hp - tot_dmg)
+            cached_ans_text = cached_q.options[cached_q.correct_option] if cached_q.correct_option < len(cached_q.options) else ""
+            if not existing_attempt.is_correct:
+                cached_correct_answer = cached_ans_text
+                cached_requeue = 3
+                cached_combo = 0
+            else:
+                cached_combo = run.current_streak
+
+        from app.models.all_models import PlayerStats, PointEvent
+        pe_res = await db.execute(select(PointEvent).where(PointEvent.attempt_id == req.attempt_id).limit(1))
+        pe = pe_res.scalar_one_or_none()
+        ps_res = await db.execute(select(PlayerStats).where(PlayerStats.user_id == user.id))
+        ps = ps_res.scalar_one_or_none()
+        pp_dict = None
+        if ps:
+            pp_dict = {
+                "preloaded": ps.points_preloaded,
+                "own_notes": ps.points_own_notes,
+                "overall": ps.points_overall,
+            }
+        replayed_resp = AttemptResponse(
+            attempt_id=existing_attempt.id,
+            is_correct=existing_attempt.is_correct,
+            damage_dealt=existing_attempt.damage_dealt,
+            damage_taken=existing_attempt.damage_taken,
+            is_critical=False,
+            current_hp=run.current_hp,
+            current_score=run.current_score,
+            current_streak=run.current_streak,
+            monster_hp_remaining=remaining_hp,
+            explanation=cached_q.explanation if cached_q else "Idempotent replay.",
+            evidence_quote=cached_q.evidence_quote if cached_q else None,
+            points_awarded=pe.points if pe else 0,
+            points_reason=pe.reason if pe else ("first_correct" if existing_attempt.is_correct else "wrong"),
+            points_bonus=0,
+            player_points=pp_dict,
+            correct_answer=cached_correct_answer,
+            combo=cached_combo,
+            requeue_after=cached_requeue,
+        )
+        if req.attempt_id:
+            _PROCESSED_ATTEMPTS[req.attempt_id] = replayed_resp
+        return replayed_resp
+
+    # 3. Fetch Question and ReviewItem (leveraging in-memory question cache)
+    question = _QUESTION_CACHE.get(req.question_id)
+    existing_rev = None
+    if not question:
+        q_rev_res = await db.execute(
+            select(Question, ReviewItem)
+            .outerjoin(
+                ReviewItem,
+                (ReviewItem.question_id == Question.id) & (ReviewItem.user_id == user.id)
+            )
+            .where(Question.id == req.question_id)
+        )
+        row = q_rev_res.first()
+        if not row or not row[0]:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail={"code": "QUESTION_NOT_FOUND", "message": "Question does not exist."},
+            )
+        question = row[0]
+        existing_rev = row[1]
+        _QUESTION_CACHE[req.question_id] = question
+    else:
+        rev_res = await db.execute(
+            select(ReviewItem).where(ReviewItem.question_id == req.question_id, ReviewItem.user_id == user.id)
+        )
+        existing_rev = rev_res.scalar_one_or_none()
 
     # Validate weapon exists and user has unlocked it
     from app.services.combat import WEAPON_BASE_DAMAGE, is_weapon_unlocked
@@ -286,41 +449,48 @@ async def submit_attempt(
             detail={"code": "UNKNOWN_WEAPON", "message": f"Weapon '{req.weapon_name}' is not recognized."},
         )
 
-    # Fetch user progress for weapon validation
-    prog_res = await db.execute(select(UserProgress).where(UserProgress.user_id == user.id))
-    user_prog = prog_res.scalar_one_or_none()
-    user_unlocked = user_prog.unlocked_weapons if user_prog and user_prog.unlocked_weapons else ["Rusty Dagger"]
+    # Only query UserProgress if using a non-default starter weapon
+    if req.weapon_name != "Rusty Dagger":
+        prog_res = await db.execute(select(UserProgress).where(UserProgress.user_id == user.id))
+        user_prog = prog_res.scalar_one_or_none()
+        user_unlocked = user_prog.unlocked_weapons if user_prog and user_prog.unlocked_weapons else ["Rusty Dagger"]
+        level = user_prog.level if user_prog else 1
+        total_xp = user_prog.total_xp if user_prog else 0
+        if req.weapon_name not in user_unlocked and not is_weapon_unlocked(req.weapon_name, level=level, xp=total_xp):
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail={"code": "WEAPON_LOCKED", "message": f"Weapon '{req.weapon_name}' is locked. Meet unlock requirements first."},
+            )
 
-    # Also check dynamic level/xp unlock
-    level = user_prog.level if user_prog else 1
-    total_xp = user_prog.total_xp if user_prog else 0
-    if req.weapon_name not in user_unlocked and not is_weapon_unlocked(req.weapon_name, level=level, xp=total_xp):
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail={"code": "WEAPON_LOCKED", "message": f"Weapon '{req.weapon_name}' is locked. Meet unlock requirements first."},
+    # Determine target room
+    target_room = next((r for r in run.dungeon.rooms if r.topic_id == question.topic_id), None)
+
+    # Compute damage dealt per topic in this run (leveraging memory cache)
+    dmg_cache_key = (id, target_room.topic_id) if target_room else None
+    if dmg_cache_key and dmg_cache_key in _RUN_TOPIC_DAMAGE:
+        topic_damage = {target_room.topic_id: _RUN_TOPIC_DAMAGE[dmg_cache_key]}
+    else:
+        damage_rows = await db.execute(
+            select(Question.topic_id, func.coalesce(func.sum(Attempt.damage_dealt), 0))
+            .join(Question, Attempt.question_id == Question.id)
+            .where(Attempt.run_id == id)
+            .group_by(Question.topic_id)
         )
-
-    # Validate room progression and order
-    # Determine the target room for this question
-    target_room = None
-    for r in run.dungeon.rooms:
-        if r.topic_id == question.topic_id:
-            target_room = r
-            break
+        topic_damage = {r[0]: r[1] for r in damage_rows.all()}
+        if dmg_cache_key:
+            _RUN_TOPIC_DAMAGE[dmg_cache_key] = topic_damage.get(target_room.topic_id, 0)
 
     if target_room:
-        # Check all preceding rooms are cleared
         for r in sorted(run.dungeon.rooms, key=lambda x: x.room_order):
             if r.room_order < target_room.room_order:
-                dmg = sum(a.damage_dealt for a in run.attempts if a.question and a.question.topic_id == r.topic_id)
+                dmg = topic_damage.get(r.topic_id, 0)
                 if dmg < r.monster_hp:
                     raise HTTPException(
                         status_code=status.HTTP_409_CONFLICT,
                         detail={"code": "OUT_OF_ORDER_ROOM", "message": f"Must defeat room {r.room_order + 1} before challenging room {target_room.room_order + 1}."},
                     )
             elif r.room_order == target_room.room_order:
-                # Check if this room was already cleared
-                dmg = sum(a.damage_dealt for a in run.attempts if a.question and a.question.topic_id == r.topic_id)
+                dmg = topic_damage.get(r.topic_id, 0)
                 if dmg >= r.monster_hp:
                     raise HTTPException(
                         status_code=status.HTTP_409_CONFLICT,
@@ -328,17 +498,14 @@ async def submit_attempt(
                     )
 
     # Determine correctness
-    # If selected_answer matches exact text or index
     correct_text = question.options[question.correct_option] if question.correct_option < len(question.options) else ""
     is_correct = (req.selected_answer.strip().lower() == correct_text.strip().lower())
 
     # Find room to check if boss
     is_boss = False
     total_rooms = len(run.dungeon.rooms)
-    for r in run.dungeon.rooms:
-        if r.topic_id == question.topic_id:
-            is_boss = (r.room_order == total_rooms - 1)
-            break
+    if target_room:
+        is_boss = (target_room.room_order == total_rooms - 1)
 
     # 4. Authoritative Damage Calculation
     damage_dealt, damage_taken, is_critical = calculate_combat_damage(
@@ -348,6 +515,10 @@ async def submit_attempt(
         is_correct=is_correct,
         is_boss=is_boss,
     )
+
+    # Update in-memory topic damage tally
+    if dmg_cache_key:
+        _RUN_TOPIC_DAMAGE[dmg_cache_key] = _RUN_TOPIC_DAMAGE.get(dmg_cache_key, 0) + damage_dealt
 
     # Update run state
     if is_correct:
@@ -390,13 +561,8 @@ async def submit_attempt(
         db=db,
     )
 
-    # 6. SRS Queue Update (P4: Upsert single ReviewItem per user & question)
-    existing_rev_res = await db.execute(
-        select(ReviewItem).where(ReviewItem.user_id == user.id, ReviewItem.question_id == question.id)
-    )
-    existing_rev = existing_rev_res.scalar_one_or_none()
+    # 6. SRS Queue Update
     current_rep = existing_rev.repetition if existing_rev else 0
-
     rep, interval, next_due = calculate_next_review_interval(
         current_repetition=current_rep,
         is_correct=is_correct,
@@ -419,18 +585,12 @@ async def submit_attempt(
         )
         db.add(review_item)
 
-    # Compute actual remaining monster HP for current target room (P2 fix)
-    total_dmg_to_room = sum(
-        a.damage_dealt
-        for a in run.attempts
-        if a.question and target_room and a.question.topic_id == target_room.topic_id
-    ) + damage_dealt
+    total_dmg_to_room = topic_damage.get(target_room.topic_id, 0) + damage_dealt if target_room else damage_dealt
     monster_remaining = max(0, target_room.monster_hp - total_dmg_to_room) if target_room else 0
 
     await db.commit()
-    await db.refresh(run)
 
-    return AttemptResponse(
+    final_resp = AttemptResponse(
         attempt_id=req.attempt_id,
         is_correct=is_correct,
         damage_dealt=damage_dealt,
@@ -446,7 +606,15 @@ async def submit_attempt(
         points_reason=pts_reason,
         points_bonus=pts_bonus,
         player_points=player_pts,
+        correct_answer=correct_text if not is_correct else None,
+        combo=run.current_streak if is_correct else 0,
+        requeue_after=3 if not is_correct else None,
     )
+
+    if req.attempt_id:
+        _PROCESSED_ATTEMPTS[req.attempt_id] = final_resp
+
+    return final_resp
 
 
 @runs_router.post("/{id}/rooms/{room_id}/clear")
@@ -511,7 +679,7 @@ async def clear_room(
     }
 
 
-@runs_router.post("/{id}/finish", response_model=RunSummaryResponse)
+@runs_router.post("/{id}/finish", response_model=RunSummaryResponse, response_model_exclude_none=True)
 async def finish_run(
     id: str,
     user: User = Depends(get_current_user),
@@ -521,7 +689,7 @@ async def finish_run(
         select(GameRun)
         .options(
             selectinload(GameRun.attempts).selectinload(Attempt.question),
-            selectinload(GameRun.dungeon).selectinload(Dungeon.rooms),
+            selectinload(GameRun.dungeon).selectinload(Dungeon.rooms).selectinload(DungeonRoom.topic),
         )
         .where(GameRun.id == id, GameRun.user_id == user.id)
     )
@@ -532,9 +700,20 @@ async def finish_run(
             detail={"code": "RUN_NOT_FOUND", "message": "Run not found."},
         )
 
-    # Check boss room cleared
-    total_rooms = len(run.dungeon.rooms)
-    boss_room = next((r for r in run.dungeon.rooms if r.room_order == total_rooms - 1), None)
+    sorted_all_rooms = sorted(run.dungeon.rooms, key=lambda x: x.room_order)
+    final_boss_room = sorted_all_rooms[-1] if sorted_all_rooms else None
+    run_rooms = sorted_all_rooms
+
+    if run.floor_id:
+        if final_boss_room and (run.floor_id == final_boss_room.id or run.floor_id == "final_boss"):
+            run_rooms = [final_boss_room]
+        else:
+            matching = [r for r in sorted_all_rooms if r.floor_id == run.floor_id]
+            if matching:
+                run_rooms = matching
+
+    # Check boss room of this run cleared
+    boss_room = run_rooms[-1] if run_rooms else None
     if boss_room:
         boss_dmg = sum(a.damage_dealt for a in run.attempts if a.question and a.question.topic_id == boss_room.topic_id)
         if boss_dmg < boss_room.monster_hp:
@@ -543,6 +722,7 @@ async def finish_run(
                 detail={"code": "BOSS_NOT_CLEARED", "message": "Cannot finish run until boss monster is defeated."},
             )
 
+    total_rooms = len(run.dungeon.rooms)
     if run.status == "active":
         run.status = "completed"
         run.finished_at = datetime.utcnow()
@@ -653,6 +833,27 @@ async def finish_run(
             "overall": ps.points_overall,
         }
 
+    # Calculate floor_rank, mastery_by_topic, chest_rewards
+    floor_rank = None
+    if run.floor_id or run.mode == "floor":
+        floor_rank = "S" if accuracy >= 0.90 else ("A" if accuracy >= 0.80 else ("B" if accuracy >= 0.60 else "C"))
+
+    mastery_by_topic = []
+    seen_topics = set()
+    for r in run_rooms:
+        if r.topic and r.topic.id not in seen_topics:
+            seen_topics.add(r.topic.id)
+            t_attempts = [a for a in run.attempts if a.question and a.question.topic_id == r.topic.id]
+            t_correct = sum(1 for a in t_attempts if a.is_correct)
+            m_val = int(round((t_correct / len(t_attempts)) * 100)) if t_attempts else 0
+            mastery_by_topic.append({"topic_id": r.topic.id, "title": r.topic.name, "mastery": m_val})
+
+    chest_rewards = None
+    if run.floor_id or run.mode == "floor":
+        chest_rewards = [
+            {"id": f"cr_{run.id[:8]}", "kind": "xp", "label": "Bonus XP", "amount": 40}
+        ]
+
     return RunSummaryResponse(
         id=run.id,
         score=run.current_score,
@@ -665,4 +866,7 @@ async def finish_run(
         points_earned=points_earned,
         player_points=pp_dict,
         pack_progress=pack_progress,
+        floor_rank=floor_rank,
+        mastery_by_topic=mastery_by_topic if mastery_by_topic else None,
+        chest_rewards=chest_rewards,
     )

@@ -182,6 +182,8 @@ class GameRun(Base):
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     user_id: Mapped[str] = mapped_column(String(36), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
     dungeon_id: Mapped[str] = mapped_column(String(36), ForeignKey("dungeons.id", ondelete="CASCADE"), nullable=False, index=True)
+    floor_id: Mapped[Optional[str]] = mapped_column(String(36), nullable=True)
+    mode: Mapped[Optional[str]] = mapped_column(String(32), nullable=True)
     current_hp: Mapped[int] = mapped_column(Integer, default=100)
     current_score: Mapped[int] = mapped_column(Integer, default=0)
     current_streak: Mapped[int] = mapped_column(Integer, default=0)

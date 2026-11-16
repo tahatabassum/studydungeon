@@ -13,6 +13,9 @@ def get_ai_provider() -> AIProvider:
 
     if settings.AI_PROVIDER == "gemini":
         _provider_instance = GeminiProvider()
+    elif settings.AI_PROVIDER == "openrouter":
+        from app.ai.openrouter_provider import OpenRouterProvider
+        _provider_instance = OpenRouterProvider()
     else:
         _provider_instance = MockAIProvider()
     return _provider_instance

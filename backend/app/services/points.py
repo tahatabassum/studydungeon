@@ -33,50 +33,59 @@ def get_current_week_start(now: Optional[datetime] = None) -> datetime:
 async def get_or_create_player_stats(
     user: User, db: AsyncSession
 ) -> Tuple[PlayerStats, PlayerWeekStats]:
-    """Retrieves or initializes PlayerStats and PlayerWeekStats for current week."""
-    # 1. Lifetime stats
-    ps_res = await db.execute(select(PlayerStats).where(PlayerStats.user_id == user.id))
-    ps = ps_res.scalar_one_or_none()
+    """Retrieves or initializes PlayerStats and PlayerWeekStats for current week in a single query."""
+    week_start = get_current_week_start()
+    week_pk = f"{user.id}:{week_start.strftime('%Y-%m-%d')}"
+
+    stmt = (
+        select(PlayerStats, PlayerWeekStats)
+        .outerjoin(PlayerWeekStats, PlayerWeekStats.id == week_pk)
+        .where(PlayerStats.user_id == user.id)
+    )
+    res = await db.execute(stmt)
+    row = res.first()
+    ps = row[0] if row else None
+    pws = row[1] if row else None
+
+    public_id = user.public_id or f"p_{user.id[:8]}"
+    now = datetime.utcnow()
+
     if not ps:
-        public_id = user.public_id or f"p_{user.id[:8]}"
         ps = PlayerStats(
             user_id=user.id,
             public_id=public_id,
             points_preloaded=0,
             points_own_notes=0,
             points_overall=0,
-            reached_at_preloaded=datetime.utcnow(),
-            reached_at_own_notes=datetime.utcnow(),
-            reached_at_overall=datetime.utcnow(),
+            reached_at_preloaded=now,
+            reached_at_own_notes=now,
+            reached_at_overall=now,
             rooms_cleared=0,
             is_ranked=not (user.is_test or user.is_system),
         )
         db.add(ps)
-        await db.flush()
 
-    # 2. Week stats
-    week_start = get_current_week_start()
-    week_pk = f"{user.id}:{week_start.strftime('%Y-%m-%d')}"
-    pws_res = await db.execute(select(PlayerWeekStats).where(PlayerWeekStats.id == week_pk))
-    pws = pws_res.scalar_one_or_none()
     if not pws:
-        public_id = user.public_id or f"p_{user.id[:8]}"
-        pws = PlayerWeekStats(
-            id=week_pk,
-            user_id=user.id,
-            week_start=week_start,
-            public_id=public_id,
-            points_preloaded=0,
-            points_own_notes=0,
-            points_overall=0,
-            reached_at_preloaded=datetime.utcnow(),
-            reached_at_own_notes=datetime.utcnow(),
-            reached_at_overall=datetime.utcnow(),
-            rooms_cleared=0,
-            is_ranked=not (user.is_test or user.is_system),
-        )
-        db.add(pws)
-        await db.flush()
+        if ps is None:
+            pws_res = await db.execute(select(PlayerWeekStats).where(PlayerWeekStats.id == week_pk))
+            pws = pws_res.scalar_one_or_none()
+
+        if not pws:
+            pws = PlayerWeekStats(
+                id=week_pk,
+                user_id=user.id,
+                week_start=week_start,
+                public_id=public_id,
+                points_preloaded=0,
+                points_own_notes=0,
+                points_overall=0,
+                reached_at_preloaded=now,
+                reached_at_own_notes=now,
+                reached_at_overall=now,
+                rooms_cleared=0,
+                is_ranked=not (user.is_test or user.is_system),
+            )
+            db.add(pws)
 
     return ps, pws
 
@@ -99,9 +108,10 @@ async def award_attempt_points(
     ps, pws = await get_or_create_player_stats(user, db)
 
     # Determine board
-    is_preloaded = dungeon.is_public_demo or (
-        await db.execute(select(ContentPack.id).where(ContentPack.dungeon_id == dungeon.id))
-    ).scalar_one_or_none() is not None
+    is_preloaded = dungeon.is_public_demo or getattr(dungeon, "pack", None) is not None
+    if not is_preloaded:
+        cp_res = await db.execute(select(ContentPack.id).where(ContentPack.dungeon_id == dungeon.id).limit(1))
+        is_preloaded = cp_res.scalar_one_or_none() is not None
     board = "preloaded" if is_preloaded else "own_notes"
 
     now = datetime.utcnow()
@@ -179,8 +189,7 @@ async def award_attempt_points(
     ps.reached_at_overall = now
     pws.reached_at_overall = now
 
-    await db.flush()
-
+    # Updates will commit with the attempt transaction in db.commit()
     return total_award, reason, points_bonus, {
         "preloaded": ps.points_preloaded,
         "own_notes": ps.points_own_notes,

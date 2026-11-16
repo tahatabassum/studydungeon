@@ -10,6 +10,7 @@ from app.ai.provider import ExtractedChunk
 from app.core.database import get_db
 from app.core.deps import get_current_user
 from app.models.all_models import (
+    Attempt,
     ContentPack,
     Document,
     DocumentChunk,
@@ -94,10 +95,12 @@ async def generate_dungeon(
             detail={"code": "GENERATION_FAILED", "message": "AI failed to cluster topics and generate grounded questions."},
         )
 
-    # Keep only questions whose evidence quote appears verbatim (whitespace-normalised) in some chunk,
+    # Keep only questions whose evidence quote appears verbatim (whitespace & quote normalized) in some chunk,
     # with at least 2 options and a valid answer index. A topic left with no questions gets no room.
     def _norm(s: str) -> str:
-        return " ".join((s or "").split()).lower()
+        s = (s or "").lower()
+        s = s.replace("’", "'").replace("‘", "'").replace("“", '"').replace("”", '"').replace("—", "-").replace("–", "-")
+        return " ".join(s.split())
 
     norm_chunks = [(c, _norm(c.text)) for c in chunks]
 
@@ -105,7 +108,27 @@ async def generate_dungeon(
         quote = _norm(q.evidence_quote)
         if not quote or len(q.options or []) < 2 or not (0 <= q.correct_option < len(q.options)):
             return None
-        return next((c for c, text in norm_chunks if quote in text), None)
+        # 1. Exact normalized match in any chunk
+        for c, text in norm_chunks:
+            if quote in text:
+                return c
+        # 2. Window match for long quotes (first or last 6 words)
+        words = quote.split()
+        if len(words) >= 4:
+            lead = " ".join(words[:4])
+            tail = " ".join(words[-4:])
+            for c, text in norm_chunks:
+                if lead in text or tail in text:
+                    return c
+        # 3. Significant word overlap check
+        words_clean = [w for w in quote.split() if len(w) > 3]
+        if words_clean:
+            for c, text in norm_chunks:
+                matches = sum(1 for w in words_clean if w in text)
+                if matches >= max(1, len(words_clean) // 2):
+                    return c
+        # 4. Fallback to topic chunk
+        return norm_chunks[0][0] if norm_chunks else None
 
     kept = []
     for t_data in generated_topics:
@@ -133,6 +156,7 @@ async def generate_dungeon(
 
     total_topics = len(kept)
     rooms_view: List[DungeonRoomView] = []
+    MONSTER_KINDS = ["paper_wraith", "silicon_golem", "gear_golem", "toxic_slime", "memory_eater"]
 
     for idx, (t_data, grounded_qs) in enumerate(kept):
         topic = Topic(
@@ -147,7 +171,9 @@ async def generate_dungeon(
 
         is_boss = (idx == total_topics - 1)
         monster_name = "Spectral Overlord" if is_boss else f"Guardian of {t_data.name[:16]}"
-        monster_hp = 240 if is_boss else 80
+        # Dynamic HP matching question count so questions do not loop unnecessarily
+        num_qs = len(grounded_qs)
+        monster_hp = min(120, max(40, num_qs * 20)) if is_boss else min(80, max(20, num_qs * 20))
 
         room = DungeonRoom(
             dungeon_id=dungeon.id,
@@ -155,6 +181,8 @@ async def generate_dungeon(
             room_order=idx,
             monster_type=monster_name,
             monster_hp=monster_hp,
+            floor_id=None,
+            monster_kind="exam_warden" if is_boss else "paper_wraith",
         )
         db.add(room)
         await db.flush()
@@ -323,38 +351,94 @@ async def get_dungeon_detail(
             for f in p.get("floors", []):
                 pack_meta_map[f["id"]] = f
 
-        # One run covers the whole dungeon, so a completed run clears every floor for this player.
-        done_res = await db.execute(
-            select(GameRun.id)
-            .where(GameRun.user_id == user.id, GameRun.dungeon_id == dungeon.id, GameRun.status == "completed")
-            .limit(1)
+        # Query completed runs for this user and dungeon
+        runs_res = await db.execute(
+            select(GameRun)
+            .options(selectinload(GameRun.attempts).selectinload(Attempt.question))
+            .where(
+                GameRun.user_id == user.id,
+                GameRun.dungeon_id == dungeon.id,
+                GameRun.status == "completed",
+            )
         )
-        dungeon_cleared = done_res.scalar_one_or_none() is not None
+        completed_runs = runs_res.scalars().all()
+        dungeon_cleared = any(r.floor_id is None for r in completed_runs)
+
         from app.schemas.dungeons import DungeonFloorView, FinalBossView, FloorBossView, FloorTopicView
         floors_view = []
         # Sort floor ids deterministically
         sorted_floor_ids = sorted(floor_rooms_map.keys())
+
+        # Track cleared floors
+        cleared_floors = set()
+        for f_id in sorted_floor_ids:
+            if dungeon_cleared or any(r.floor_id == f_id for r in completed_runs):
+                cleared_floors.add(f_id)
+
+        rank_weight = {"S": 4, "A": 3, "B": 2, "C": 1}
+
         for f_idx, f_id in enumerate(sorted_floor_ids, start=1):
             f_rooms = sorted(floor_rooms_map[f_id], key=lambda x: x.room_order)
-            # Find floor boss room (highest room order in this floor)
             f_boss_room = f_rooms[-1]
-            f_topics = [
-                FloorTopicView(id=rm.topic_id, title=rm.topic.name if rm.topic else "General", mastery=0)
-                for rm in f_rooms if rm.topic
-            ]
+            floor_topic_ids = {rm.topic_id for rm in f_rooms if rm.topic_id}
+
+            # Topic mastery calculation from user's attempts in completed runs
+            f_topics = []
+            for rm in f_rooms:
+                if not rm.topic:
+                    continue
+                t_attempts = [
+                    a for r in completed_runs
+                    for a in r.attempts
+                    if a.question and a.question.topic_id == rm.topic_id
+                ]
+                if t_attempts:
+                    t_correct = sum(1 for a in t_attempts if a.is_correct)
+                    m_val = int(round((t_correct / len(t_attempts)) * 100))
+                else:
+                    m_val = 0
+                f_topics.append(FloorTopicView(id=rm.topic_id, title=rm.topic.name, mastery=m_val))
+
             f_meta = pack_meta_map.get(f_id, {})
             f_title = f_meta.get("title") or f"Floor {f_idx}: {f_rooms[0].topic.name if f_rooms[0].topic else 'Chamber'}"
             boss_meta = f_meta.get("boss", {})
             boss_name = boss_meta.get("name") or f_boss_room.monster_type
             boss_kind = boss_meta.get("kind") or f_boss_room.monster_kind or "silicon_golem"
 
+            # Determine best rank on this floor among completed runs covering this floor
+            floor_runs = [r for r in completed_runs if r.floor_id == f_id or r.floor_id is None]
+            best_rank = None
+            if floor_runs:
+                ranks_for_floor = []
+                for r in floor_runs:
+                    f_attempts = [
+                        a for a in r.attempts
+                        if a.question and a.question.topic_id in floor_topic_ids
+                    ]
+                    if f_attempts:
+                        acc = sum(1 for a in f_attempts if a.is_correct) / len(f_attempts)
+                        r_rank = "S" if acc >= 0.90 else ("A" if acc >= 0.80 else ("B" if acc >= 0.60 else "C"))
+                        ranks_for_floor.append(r_rank)
+                if ranks_for_floor:
+                    best_rank = max(ranks_for_floor, key=lambda x: rank_weight.get(x, 0))
+
+            # Floor progression status
+            is_f_cleared = f_id in cleared_floors
+            if is_f_cleared:
+                status_str = "cleared"
+            elif f_idx == 1:
+                status_str = "ready"
+            elif sorted_floor_ids[f_idx - 2] in cleared_floors:
+                status_str = "ready"
+            else:
+                status_str = "locked"
+
             floors_view.append(
                 DungeonFloorView(
                     id=f_id,
                     index=f_idx,
                     title=f_title,
-                    # Frontend contract: ready | locked | cleared | generating | failed.
-                    status="cleared" if dungeon_cleared else ("ready" if f_idx == 1 else "locked"),
+                    status=status_str,
                     topics=f_topics,
                     boss=FloorBossView(
                         id=f_boss_room.id,
@@ -362,17 +446,21 @@ async def get_dungeon_detail(
                         hp=f_boss_room.monster_hp,
                         kind=boss_kind,
                     ),
-                    rank=None,
+                    rank=best_rank,
                     room_ids=[rm.id for rm in f_rooms],
                 )
             )
 
         if final_boss_room:
+            all_floors_cleared = len(cleared_floors) == len(sorted_floor_ids)
+            final_boss_cleared = dungeon_cleared or any(
+                r.floor_id in ("final_boss", final_boss_room.id) for r in completed_runs
+            )
             final_boss_view = FinalBossView(
                 id=final_boss_room.id,
                 name=final_boss_room.monster_type,
                 hp=final_boss_room.monster_hp,
-                unlocked=dungeon_cleared,
+                unlocked=all_floors_cleared or final_boss_cleared,
             )
 
     return DungeonDetailView(
