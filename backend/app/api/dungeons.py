@@ -125,10 +125,9 @@ async def generate_dungeon(
         if words_clean:
             for c, text in norm_chunks:
                 matches = sum(1 for w in words_clean if w in text)
-                if matches >= max(1, len(words_clean) // 2):
+                if matches >= max(2, int(len(words_clean) * 0.7)):
                     return c
-        # 4. Fallback to topic chunk
-        return norm_chunks[0][0] if norm_chunks else None
+        return None
 
     kept = []
     for t_data in generated_topics:
