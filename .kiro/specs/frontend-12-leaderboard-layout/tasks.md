@@ -31,12 +31,12 @@ Verify the already-implemented leaderboard redesign, fix any remaining layout de
     - Fix any failures and rerun until all pass
     - _Requirements: 4.1_
 
-- [ ] 3. Commit and push
+- [x] 3. Commit and push
   - [x] 3.1 Stage specific files
     - Stage by name: `frontend/src/board/LiveBoard.tsx`, `frontend/src/board/boardView.ts`, `frontend/src/styles/leaderboard.css`, `frontend/src/board/board.test.ts`, `frontend/src/board/LeaderboardLayout.test.tsx`, and `.kiro/specs/frontend-12-leaderboard-layout/`
     - Do not use `git add -A`; do not stage `backend/.env` or local.db files
     - _Requirements: 5.1, 5.3_
-  - [-] 3.2 Commit and push
+  - [x] 3.2 Commit and push
     - Commit with message "style(leaderboard): Top 3 card + full Standings table"
     - Push to origin `feature/frontend-live-players`
     - _Requirements: 5.2, 5.4_

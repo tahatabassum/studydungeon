@@ -121,11 +121,11 @@ Convert the design into incremental frontend-only changes: fix back-navigation a
   - Ensure all tests pass, ask the user if questions arise.
 
 - [ ] 9. Commit and push
-  - [-] 9.1 Stage and commit the changed frontend files and this spec folder
+  - [x] 9.1 Stage and commit the changed frontend files and this spec folder
     - Stage changed files by explicit name only (never `git add -A` or `git add .`; never stage `.env*` or `*.db` files): the edited files under `frontend/src/**`, `frontend/scripts/**` (if touched), and `.kiro/specs/frontend-13-polish-and-nav/**`.
     - Commit with message `feat(ui): polished dashboard + page refresh, fix back-nav after login`.
     - _Requirements: 1.1, 1.4, 2.1, 4.1, 5.1_
-  - [~] 9.2 Push the branch
+  - [-] 9.2 Push the branch
     - Push to `origin feature/frontend-live-players`.
     - _Requirements: 5.1, 5.2, 5.3_
 
