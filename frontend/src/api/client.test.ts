@@ -216,9 +216,9 @@ describe('createHttpClient', () => {
     expect(String(f.mock.calls[1][0])).toBe('/reviews/due')
   })
 
-  it('declares real-mode capabilities: no room Revenants, floors, modes or Daily Haunt', () => {
+  it('declares real-mode capabilities: modes and Daily Haunt on, no room Revenants, floors until a dungeon sends them', () => {
     const api = createHttpClient('', fakeFetch(json({})) as unknown as typeof fetch)
-    expect(api.capabilities).toMatchObject({ roomRevenants: false, floors: false, modes: false, dailyHaunt: false, leaderboard: false })
+    expect(api.capabilities).toMatchObject({ roomRevenants: false, floors: false, modes: true, dailyHaunt: true, leaderboard: false })
   })
 
   it('parses {detail:{code,message}} into ApiError.code and a friendly message', async () => {

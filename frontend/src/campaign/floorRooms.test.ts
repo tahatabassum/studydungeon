@@ -38,6 +38,14 @@ describe('floorDungeon', () => {
     expect(result.layout.rooms[1].isBoss).toBe(true)
   })
 
+  it('the Final_Boss is also found by its room id (how the real backend names it)', () => {
+    const view = served()
+    const bossRoom = view.rooms.find((r) => r.monster.id === view.final_boss!.id)!
+    const d = floorDungeon({ ...view, final_boss: { ...view.final_boss!, id: bossRoom.id } }, bossRoom.id)!
+    expect(d.rooms.map((r) => r.id)).toEqual([bossRoom.id])
+    expect(d.rooms[0].is_boss).toBe(true)
+  })
+
   it('the Final_Boss plays alone in a single boss room', () => {
     const view = served()
     const d = floorDungeon(view, view.final_boss!.id)!

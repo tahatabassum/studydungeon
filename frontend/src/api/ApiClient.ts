@@ -13,6 +13,7 @@ import type {
   DocumentStatus,
   DocumentTopic,
   DocumentUpload,
+  StoredDocument,
   DueReview,
   DueReviewsResponse,
   Dungeon,
@@ -85,6 +86,10 @@ export interface ApiClient {
   generateDungeon(documentId: string): Promise<Dungeon>
   /** `POST /documents/{id}/retry`: re-queues a failed or rejected document. */
   retryDocument(documentId: string): Promise<DocumentUpload>
+  /** `GET /documents`: the player's stored notes (My Notes). Optional: absent hides the panel. */
+  listDocuments?(): Promise<StoredDocument[]>
+  /** `DELETE /documents/{id}`: deletes a note and the dungeon summoned from it, freeing a stored slot. */
+  deleteDocument?(documentId: string): Promise<void>
   /** POST /guests/name-check (frontend-10, REAL). A hint only: POST /guests is the authority. */
   checkGuestName(displayName: string): Promise<NameCheckResult>
   /** POST /guests (frontend-10, REAL): creates a named Guest and sets the session cookie. */

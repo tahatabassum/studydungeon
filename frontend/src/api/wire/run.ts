@@ -25,6 +25,10 @@ export const wireRunSchema = z.object({
   status: z.string(),
   started_at: z.string().optional(),
   rooms: z.array(wireRunRoomSchema).min(1),
+  // The rooms this run plays (a floor, the Final_Boss or a practice pick) and its mode; absent on old backends.
+  room_ids: z.array(z.string()).nullish(),
+  floor_id: z.string().nullish(),
+  mode: z.enum(['floor', 'daily_haunt', 'weak_topics', 'exam', 'replay_floor']).nullish(),
 })
 
 export type WireRun = z.output<typeof wireRunSchema>
@@ -46,6 +50,8 @@ export function mapRun(w: WireRun): Run {
     current_room_id: room.room_id,
     score: w.current_score,
     streak: w.current_streak,
+    ...(w.room_ids && w.room_ids.length > 0 ? { room_ids: w.room_ids } : {}),
+    ...(w.mode ? { mode: w.mode } : {}),
   }
 }
 

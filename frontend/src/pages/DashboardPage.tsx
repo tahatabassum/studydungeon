@@ -10,6 +10,7 @@ import '../styles/haunted.css'
 import { ArmoryCard, BadgesCard, CardSkeleton, HauntCard, LevelCard, ProgressErrorCard, RecentRunsCard, SessionRunsList } from '../dashboard/ProgressCards'
 import { ContinueCard, DemoCard, GuestStatsCard, LinksCard, MasteryCard } from '../dashboard/CampaignCards'
 import { LeaderboardPreviewCard } from '../dashboard/BoardCards'
+import { MyNotesCard } from '../dashboard/MyNotesCard'
 import { ProgressPanel } from '../learning/ProgressPanel'
 import { useDashboardDungeon } from '../dashboard/useDashboardDungeon'
 import { DEMO_DUNGEON_ID } from '../leaderboard/constants'
@@ -135,6 +136,7 @@ export default function DashboardPage({ dailyHauntSlot }: DashboardPageProps = {
           {progress && <ProgressPanel progress={progress} />}
 
           {dungeonId && <MasteryCard dungeon={dungeon} />}
+          <MyNotesCard />
 
           {progress && <BadgesCard earned={progress.badges} className="sd-dash__wide" />}
           {progress && <ArmoryCard weapons={progress.weapons} level={progress.level} />}
@@ -153,6 +155,7 @@ export default function DashboardPage({ dailyHauntSlot }: DashboardPageProps = {
             {runs.length === 0 ? <p className="sd-card__muted">Runs you finish in this tab show up here.</p> : <SessionRunsList runs={runs} />}
           </section>
           {dungeonId && <MasteryCard dungeon={dungeon} />}
+          {user && <MyNotesCard />}
           <BadgesCard earned={[]} className="sd-dash__wide" />
         </div>
       )}

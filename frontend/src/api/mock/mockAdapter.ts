@@ -916,6 +916,14 @@ export function createMockAdapter(options: MockAdapterOptions = {}): ApiClient {
       await wait()
       return upload.retryDocument(id)
     },
+    listDocuments: async () => {
+      await wait()
+      return upload.listDocs()
+    },
+    deleteDocument: async (id) => {
+      await wait()
+      await upload.removeDoc(id)
+    },
 
     async retryFloor(floorId) {
       await wait()

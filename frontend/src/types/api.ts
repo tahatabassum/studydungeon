@@ -328,6 +328,16 @@ export interface GenerationStatus {
 /** Real document pipeline (frontend-08 C29): `GET /documents/{id}/status` values. */
 export type DocumentStatusValue = 'processing' | 'accepted' | 'rejected' | 'failed'
 
+/** `GET /documents`: one of the player's stored notes, for My Notes. */
+export interface StoredDocument {
+  id: string
+  title: string
+  status: DocumentStatusValue
+  created_at: string
+  /** The dungeon summoned from it, or null. */
+  dungeon_id: string | null
+}
+
 /** `POST /documents` (202): the document was accepted for processing. */
 export interface DocumentUpload {
   id: string

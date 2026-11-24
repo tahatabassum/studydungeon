@@ -432,6 +432,11 @@ export const boardResponseSchema: z.ZodType<BoardResponse> = z.object({
     .nullable(),
 })
 /** One entry per existing endpoint; the HTTP client and the fixture test both use this table. */
+/** My Notes: `GET /documents`. */
+export const storedDocumentsSchema = z.array(
+  z.object({ id: z.string().min(1), title: z.string(), status: documentStatusValue, created_at: z.string(), dungeon_id: z.string().nullable() }),
+)
+
 export const ENDPOINT_SCHEMAS = {
   startDemoSession: { endpoint: 'POST /demo/session', schema: demoSessionSchema },
   register: { endpoint: 'POST /auth/register', schema: userSchema },
@@ -460,4 +465,6 @@ export const ENDPOINT_SCHEMAS = {
   getDocumentTopics: { endpoint: 'GET /documents/{id}/topics', schema: documentTopicsSchema },
   generateDungeon: { endpoint: 'POST /documents/{id}/generate-dungeon', schema: dungeonSchema },
   retryDocument: { endpoint: 'POST /documents/{id}/retry', schema: documentUploadSchema },
+  listDocuments: { endpoint: 'GET /documents', schema: storedDocumentsSchema },
+  deleteDocument: { endpoint: 'DELETE /documents/{id}', schema: z.undefined() },
 } as const
