@@ -117,9 +117,10 @@ async def process_document_background(
             await db.commit()
 
         except Exception as e:
-            logger.error("Document background processing error: %s", str(e), exc_info=True)
+            # Details stay in the server log; the player gets a plain sentence (never a URL or a provider error).
+            logger.error("Document background processing error: %s", type(e).__name__, exc_info=True)
             doc.status = "failed"
-            doc.rejection_reason = f"Extraction error: {str(e)}"
+            doc.rejection_reason = _friendly_failure(e)
             await db.commit()
 
     if session is not None:
@@ -127,6 +128,29 @@ async def process_document_background(
     else:
         async with async_session_maker() as db:
             await _worker(db)
+
+
+def _friendly_failure(exc: Exception) -> str:
+    """What a player reads when processing fails. The document stays retryable ("Check again")."""
+    import httpx
+
+    if isinstance(exc, (httpx.HTTPError, RuntimeError, TimeoutError)):
+        return (
+            "The spirits that read your notes are busy right now. Press Check again in a minute, "
+            "or play the preloaded dungeons meanwhile."
+        )
+    return "This file could not be read. Try saving it again, or upload it as a PDF."
+
+
+def _limits(user: User) -> tuple[int, int]:
+    """(daily, stored) upload limits for this player; 0 means unlimited."""
+    if user.is_guest:
+        return settings.UPLOAD_GUEST_DAILY_LIMIT, settings.UPLOAD_GUEST_STORED_LIMIT
+    return settings.UPLOAD_PLAYER_DAILY_LIMIT, settings.UPLOAD_PLAYER_STORED_LIMIT
+
+
+def _reached(count: int, limit: int) -> bool:
+    return limit > 0 and count >= limit
 
 
 def _today_start(now: datetime) -> datetime:
@@ -163,8 +187,7 @@ async def get_upload_quota(
 
     # User limits
     is_guest = user.is_guest
-    daily_limit = 1 if is_guest else 3
-    stored_limit = 2 if is_guest else 5
+    daily_limit, stored_limit = _limits(user)
 
     # Count stored documents
     stored_res = await db.execute(select(func.count(Document.id)).where(Document.user_id == user.id))
@@ -184,14 +207,14 @@ async def get_upload_quota(
     can_upload = True
     reason = None
 
-    global_open = await _global_uploads_today(db, now) < settings.UPLOAD_GLOBAL_DAILY_LIMIT
-    if await _ip_uploads_today(db, get_client_ip(request), now) >= settings.UPLOAD_IP_DAILY_LIMIT:
+    global_open = not _reached(await _global_uploads_today(db, now), settings.UPLOAD_GLOBAL_DAILY_LIMIT)
+    if _reached(await _ip_uploads_today(db, get_client_ip(request), now), settings.UPLOAD_IP_DAILY_LIMIT):
         can_upload = False
         reason = "ip_daily_limit"
-    elif used_today >= daily_limit:
+    elif _reached(used_today, daily_limit):
         can_upload = False
         reason = "player_daily_limit"
-    elif stored_count >= stored_limit:
+    elif _reached(stored_count, stored_limit):
         can_upload = False
         reason = "stored_limit"
     elif not global_open:
@@ -208,6 +231,7 @@ async def get_upload_quota(
             stored=stored_count,
             stored_limit=stored_limit,
             resets_at=resets_at_str,
+            unlimited=daily_limit <= 0 and stored_limit <= 0,
         ),
         global_=QuotaGlobalView(available=global_open),
         ranking=QuotaRankingView(min_chars=3000, min_topics=2),
@@ -238,7 +262,7 @@ async def upload_document(
 
     # 0b. Per-IP daily limit (before any other work; counts accepted uploads from this address)
     client_ip = get_client_ip(request)
-    if await _ip_uploads_today(db, client_ip, now) >= settings.UPLOAD_IP_DAILY_LIMIT:
+    if _reached(await _ip_uploads_today(db, client_ip, now), settings.UPLOAD_IP_DAILY_LIMIT):
         raise HTTPException(
             status_code=status.HTTP_429_TOO_MANY_REQUESTS,
             detail={"code": "UPLOAD_LIMIT_IP", "message": "Too many uploads from this network today. Try again tomorrow."},
@@ -246,15 +270,13 @@ async def upload_document(
         )
 
     # 1. Enforce Quota: Stored documents limit
-    is_guest = user.is_guest
-    stored_limit = 2 if is_guest else 5
-    daily_limit = 1 if is_guest else 3
+    daily_limit, stored_limit = _limits(user)
 
     count_res = await db.execute(
         select(func.count(Document.id)).where(Document.user_id == user.id)
     )
     current_docs = count_res.scalar() or 0
-    if current_docs >= stored_limit:
+    if _reached(current_docs, stored_limit):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail={
@@ -272,7 +294,7 @@ async def upload_document(
         )
     )
     used_today = used_res.scalar() or 0
-    if used_today >= daily_limit:
+    if _reached(used_today, daily_limit):
         raise HTTPException(
             status_code=status.HTTP_429_TOO_MANY_REQUESTS,
             detail={"code": "UPLOAD_LIMIT_PLAYER", "message": f"Daily upload limit of {daily_limit} reached for this account. Try again tomorrow."},
@@ -280,7 +302,7 @@ async def upload_document(
         )
 
     # 2b. Global daily cap: protects the shared AI quota
-    if await _global_uploads_today(db, now) >= settings.UPLOAD_GLOBAL_DAILY_LIMIT:
+    if _reached(await _global_uploads_today(db, now), settings.UPLOAD_GLOBAL_DAILY_LIMIT):
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             detail={"code": "UPLOADS_PAUSED_TODAY", "message": "Uploads are paused for today. Play the preloaded dungeons instead.", "offer_packs": True},

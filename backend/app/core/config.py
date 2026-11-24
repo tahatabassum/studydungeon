@@ -35,11 +35,11 @@ class Settings(BaseSettings):
     GEMINI_MODEL: Optional[str] = "gemini-2.0-flash"
     OPENROUTER_API_KEY: Optional[str] = None
     OPENROUTER_ENABLED: bool = False
-    OPENROUTER_MODEL: str = "meta-llama/llama-3.3-70b-instruct:free"
+    # Free models come and go on OpenRouter: these are tried first, then the live free list (openrouter_provider.py).
+    OPENROUTER_MODEL: str = "google/gemma-4-31b-it:free"
     OPENROUTER_FALLBACK_MODELS: List[str] = [
-        "meta-llama/llama-3.3-70b-instruct:free",
-        "google/gemini-2.0-flash-exp:free",
-        "mistralai/mistral-7b-instruct:free",
+        "google/gemma-4-26b-a4b-it:free",
+        "nvidia/nemotron-3.5-super-vl:free",
     ]
 
     # Uploads & Quality Thresholds
@@ -60,9 +60,16 @@ class Settings(BaseSettings):
     OWN_NOTES_DAILY_POINTS_CAP: int = 2000
     RANKING_MIN_CHARS: int = 3000
     PRACTICE_POINTS_MULTIPLIER: float = 0.5
-    # Accepted uploads per client IP per UTC day, and for the whole service (protects the AI quota).
-    UPLOAD_IP_DAILY_LIMIT: int = 3
-    UPLOAD_GLOBAL_DAILY_LIMIT: int = 40
+    # Upload count limits. 0 = unlimited (the default: anyone may upload as many notes as they need).
+    # Set any of these in the environment to bring a limit back, e.g. to protect a small AI quota.
+    UPLOAD_GUEST_DAILY_LIMIT: int = 0
+    UPLOAD_PLAYER_DAILY_LIMIT: int = 0
+    UPLOAD_GUEST_STORED_LIMIT: int = 0
+    UPLOAD_PLAYER_STORED_LIMIT: int = 0
+    UPLOAD_IP_DAILY_LIMIT: int = 0
+    UPLOAD_GLOBAL_DAILY_LIMIT: int = 0
+    # How long the leaderboard table snapshot is kept before it is recomputed (the player's own rank is always live).
+    LEADERBOARD_SNAPSHOT_SECONDS: int = 60
 
     @model_validator(mode="after")
     def validate_ai_provider_model(self) -> "Settings":

@@ -363,6 +363,7 @@ export const uploadQuotaSchema: z.ZodType<UploadQuota> = z.object({
     stored: z.number().int().nonnegative(),
     stored_limit: z.number().int().nonnegative(),
     resets_at: z.string().optional(),
+    unlimited: z.boolean().optional(),
   }),
   global: z.object({ available: z.boolean() }).optional(),
   ranking: z.object({ min_chars: z.number(), min_topics: z.number() }).optional(),

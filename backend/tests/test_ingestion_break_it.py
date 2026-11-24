@@ -66,7 +66,9 @@ async def test_break_ingestion_prompt_injection(async_client: AsyncClient, db_se
 
 
 @pytest.mark.asyncio
-async def test_break_ingestion_quota_exceeded(async_client: AsyncClient, db_session: AsyncSession):
+async def test_break_ingestion_quota_exceeded(async_client: AsyncClient, db_session: AsyncSession, monkeypatch):
+    # Uploads are unlimited by default; this checks the stored limit when an operator turns it on.
+    monkeypatch.setattr(settings, "UPLOAD_PLAYER_STORED_LIMIT", 5)
     """User cannot upload more than 5 documents."""
     user = User(username="quota_user", is_guest=False, password_hash="hash")
     db_session.add(user)

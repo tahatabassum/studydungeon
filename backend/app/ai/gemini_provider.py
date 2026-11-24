@@ -22,10 +22,11 @@ class GeminiProvider:
             raise ValueError("GEMINI_API_KEY must be configured when AI_PROVIDER is 'gemini'")
         self.api_key = settings.GEMINI_API_KEY
         self.model = settings.GEMINI_MODEL
-        self.base_url = f"https://generativelanguage.googleapis.com/v1beta/models/{self.model}:generateContent?key={self.api_key}"
+        # The key goes in a header, never in the URL: URLs end up in logs and in error messages.
+        self.base_url = f"https://generativelanguage.googleapis.com/v1beta/models/{self.model}:generateContent"
 
     async def _call_gemini_raw(self, payload: dict) -> dict:
-        headers = {"Content-Type": "application/json"}
+        headers = {"Content-Type": "application/json", "x-goog-api-key": self.api_key}
         # Topic and question generation for a full document can take well over 25 s.
         timeout = httpx.Timeout(90.0, connect=10.0)
         async with httpx.AsyncClient(timeout=timeout) as client:

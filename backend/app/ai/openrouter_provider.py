@@ -9,6 +9,37 @@ from app.core.config import settings
 
 logger = logging.getLogger("studydungeon.ai.openrouter")
 
+# At most this many models per request (each can take up to the request timeout).
+MAX_MODELS_PER_CALL = 6
+# The public model list is cached for an hour: the free tier changes, but not by the minute.
+_FREE_MODELS_CACHE: dict = {"models": [], "expires_at": 0.0}
+
+
+async def _live_free_models(client: httpx.AsyncClient) -> List[str]:
+    """Free OpenRouter models that accept JSON output, largest context first. Empty on any error."""
+    import time
+
+    now = time.time()
+    if _FREE_MODELS_CACHE["expires_at"] > now:
+        return list(_FREE_MODELS_CACHE["models"])
+    models: List[str] = []
+    try:
+        res = await client.get("https://openrouter.ai/api/v1/models", timeout=15.0)
+        res.raise_for_status()
+        rows = res.json().get("data", [])
+        free = [
+            r for r in rows
+            if str(r.get("id", "")).endswith(":free")
+            and str((r.get("pricing") or {}).get("prompt")) == "0"
+            and str((r.get("pricing") or {}).get("completion")) == "0"
+            and "response_format" in (r.get("supported_parameters") or [])
+        ]
+        free.sort(key=lambda r: r.get("context_length") or 0, reverse=True)
+        models = [r["id"] for r in free]
+    except Exception as e:
+        logger.warning("Could not read the OpenRouter model list: %s", type(e).__name__)
+    _FREE_MODELS_CACHE.update(models=models, expires_at=now + (3600 if models else 300))
+    return models
 
 class OpenRouterProvider:
     """
@@ -44,49 +75,44 @@ class OpenRouterProvider:
             "Content-Type": "application/json",
         }
 
-        # Build payload with primary model and fallback models array
-        models_to_try = [self.primary_model]
-        for m in self.fallback_models:
-            if m not in models_to_try:
-                models_to_try.append(m)
-
-        payload = {
-            "models": models_to_try,
-            "messages": [
-                {"role": "system", "content": system_instruction},
-                {"role": "user", "content": user_prompt},
-            ],
-            "response_format": {"type": "json_object"},
-            "temperature": 0.2,
-        }
-
+        messages = [
+            {"role": "system", "content": system_instruction},
+            {"role": "user", "content": user_prompt},
+        ]
         timeout = httpx.Timeout(90.0, connect=10.0)
+        tried: List[str] = []
         async with httpx.AsyncClient(timeout=timeout) as client:
-            for attempt in range(1, 4):
+            # One model at a time: OpenRouter answers 404 for a model that is no longer free instead of falling
+            # back, and its free list changes often. Configured models first, then the live free list.
+            for model in await self._candidate_models(client):
+                tried.append(model)
+                payload = {"model": model, "messages": messages, "response_format": {"type": "json_object"}, "temperature": 0.2}
                 try:
-                    logger.info("Calling OpenRouter API attempt=%d with models=%s", attempt, models_to_try)
+                    logger.info("Calling OpenRouter model=%s", model)
                     response = await client.post(self.api_url, headers=headers, json=payload)
-                    if response.status_code == 429:
-                        logger.warning("OpenRouter rate limit 429 on attempt %d", attempt)
-                        if attempt == 3:
-                            raise RuntimeError("OpenRouter API rate limit exceeded.")
+                    if response.status_code in (400, 402, 404, 429, 502, 503):
+                        logger.warning("OpenRouter model %s unavailable (%d), trying the next one", model, response.status_code)
                         continue
                     response.raise_for_status()
-                    data = response.json()
-                    choices = data.get("choices", [])
+                    choices = response.json().get("choices", [])
                     if not choices:
-                        raise ValueError("No choices returned from OpenRouter.")
-                    content_str = choices[0]["message"]["content"]
-                    return self._clean_json(content_str)
-                except httpx.HTTPStatusError as e:
-                    logger.error("OpenRouter HTTP error %d on attempt %d: %s", e.response.status_code, attempt, e.response.text[:200])
-                    if attempt == 3:
-                        raise
-                except Exception as e:
-                    logger.error("OpenRouter error on attempt %d: %s %s", attempt, type(e).__name__, str(e))
-                    if attempt == 3:
-                        raise
-        raise RuntimeError("Failed to communicate with OpenRouter API after 3 attempts.")
+                        logger.warning("OpenRouter model %s returned no choices", model)
+                        continue
+                    return self._clean_json(choices[0]["message"]["content"])
+                except (httpx.HTTPError, ValueError, KeyError) as e:
+                    # ValueError covers a reply that is not valid JSON: another model may do better.
+                    logger.warning("OpenRouter model %s failed: %s", model, type(e).__name__)
+                    continue
+        raise RuntimeError(f"No OpenRouter model could answer (tried {len(tried)}).")
+
+    async def _candidate_models(self, client: httpx.AsyncClient) -> List[str]:
+        configured = [m for m in [self.primary_model, *self.fallback_models] if m]
+        live = await _live_free_models(client)
+        ordered: List[str] = []
+        for m in [*configured, *live]:
+            if m not in ordered:
+                ordered.append(m)
+        return ordered[:MAX_MODELS_PER_CALL]
 
     async def classify_document(self, text_sample: str) -> DocumentCheck:
         system_instruction = (

@@ -20,7 +20,8 @@ import { useLeaderboard } from '../leaderboard/useLeaderboard'
 import { buildBoardView } from '../leaderboard/view'
 import { displayHandle } from '../identity/handle'
 import { useSession } from '../state/SessionContext'
-import { useLeaderboardSupport } from '../state/useLeaderboardSupport'
+import { useLeaderboardSupport, useLeaderboardView } from '../state/useLeaderboardSupport'
+import { LiveTopFiveCard } from '../dashboard/LiveTopFiveCard'
 import { useProgress } from '../state/useProgress'
 import { useStartDemo } from '../state/useStartDemo'
 
@@ -61,9 +62,14 @@ export default function DashboardPage({ dailyHauntSlot }: DashboardPageProps = {
   const view = useMemo(() => (board.data ? buildBoardView(board.data, { limit: 5, run: myRun }) : null), [board.data, myRun])
   const myRank = view?.meRow?.rank ?? null
 
-  const preview = (
-    <LeaderboardPreviewCard support={support} status={board.status} error={board.error} view={view} onRetry={board.refresh} />
-  )
+  // The real board (GET /leaderboard) when the backend has it; the old preview for the mock's legacy board.
+  const boardView = useLeaderboardView()
+  const preview =
+    boardView === 'live' ? (
+      <LiveTopFiveCard />
+    ) : (
+      <LeaderboardPreviewCard support={boardView === 'unknown' ? 'unknown' : support} status={board.status} error={board.error} view={view} onRetry={board.refresh} />
+    )
   const toRegister = () => navigate('/register')
   const toUpgrade = () => navigate('/register?upgrade=1')
 

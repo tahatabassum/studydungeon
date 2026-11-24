@@ -376,6 +376,8 @@ export interface UploadQuota {
     stored: number
     stored_limit: number
     resets_at?: string
+    /** No daily or stored limit (limit_today and stored_limit are then 0). */
+    unlimited?: boolean
   }
   global?: { available: boolean }
   ranking?: { min_chars: number; min_topics: number }

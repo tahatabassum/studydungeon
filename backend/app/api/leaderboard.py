@@ -6,6 +6,7 @@ from fastapi import APIRouter, Depends, Query, Response
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.config import settings
 from app.core.database import get_db
 from app.core.deps import get_current_user_optional
 from app.models.all_models import (
@@ -131,7 +132,7 @@ async def get_leaderboard(
             )
 
         updated_at = now
-        next_refresh_at = now + timedelta(hours=1)
+        next_refresh_at = now + timedelta(seconds=max(10, settings.LEADERBOARD_SNAPSHOT_SECONDS))
         _LEADERBOARD_SNAPSHOT_CACHE[cache_key] = (entries, updated_at, next_refresh_at, total_ranked)
     else:
         entries, updated_at, next_refresh_at, total_ranked = _LEADERBOARD_SNAPSHOT_CACHE[cache_key]
