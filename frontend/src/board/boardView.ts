@@ -5,6 +5,8 @@ export interface LiveBoardView {
   podium: BoardEntry[]
   /** The remaining entries, in the order received. */
   rows: BoardEntry[]
+  /** Every entry (the Standings list), in the order received. */
+  all: BoardEntry[]
   empty: boolean
 }
 
@@ -13,5 +15,5 @@ export interface LiveBoardView {
  * re-ranks, filters or computes a number.
  */
 export function buildLiveBoardView(res: Pick<BoardResponse, 'entries'>): LiveBoardView {
-  return { podium: res.entries.slice(0, 3), rows: res.entries.slice(3), empty: res.entries.length === 0 }
+  return { podium: res.entries.slice(0, 3), rows: res.entries.slice(3), all: [...res.entries], empty: res.entries.length === 0 }
 }

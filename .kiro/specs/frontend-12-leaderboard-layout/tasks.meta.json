@@ -1,0 +1,150 @@
+{
+  "pbtResults": {},
+  "executionHistory": {
+    "1.1 Kill leftover headless browsers": [
+      {
+        "executionId": "cf1d9ac2-bd7f-4e9f-b8b9-5b8ce34e4e6b",
+        "chatSessionId": "sess_9184062f-45b8-4669-8647-059b107836bf",
+        "timestamp": 1795534569168
+      },
+      {
+        "executionId": "cf1d9ac2-bd7f-4e9f-b8b9-5b8ce34e4e6b",
+        "chatSessionId": "sess_9184062f-45b8-4669-8647-059b107836bf",
+        "timestamp": 1795534583631
+      },
+      {
+        "executionId": "cf1d9ac2-bd7f-4e9f-b8b9-5b8ce34e4e6b",
+        "chatSessionId": "sess_9184062f-45b8-4669-8647-059b107836bf",
+        "timestamp": 1795534616806
+      }
+    ],
+    "1.2 Run the layout check": [
+      {
+        "executionId": "cf1d9ac2-bd7f-4e9f-b8b9-5b8ce34e4e6b",
+        "chatSessionId": "sess_9184062f-45b8-4669-8647-059b107836bf",
+        "timestamp": 1795534569305
+      },
+      {
+        "executionId": "cf1d9ac2-bd7f-4e9f-b8b9-5b8ce34e4e6b",
+        "chatSessionId": "sess_9184062f-45b8-4669-8647-059b107836bf",
+        "timestamp": 1795534617057
+      },
+      {
+        "executionId": "cf1d9ac2-bd7f-4e9f-b8b9-5b8ce34e4e6b",
+        "chatSessionId": "sess_9184062f-45b8-4669-8647-059b107836bf",
+        "timestamp": 1795534734331
+      }
+    ],
+    "1.3 Review screenshots": [
+      {
+        "executionId": "cf1d9ac2-bd7f-4e9f-b8b9-5b8ce34e4e6b",
+        "chatSessionId": "sess_9184062f-45b8-4669-8647-059b107836bf",
+        "timestamp": 1795534569411
+      },
+      {
+        "executionId": "cf1d9ac2-bd7f-4e9f-b8b9-5b8ce34e4e6b",
+        "chatSessionId": "sess_9184062f-45b8-4669-8647-059b107836bf",
+        "timestamp": 1795534734663
+      },
+      {
+        "executionId": "cf1d9ac2-bd7f-4e9f-b8b9-5b8ce34e4e6b",
+        "chatSessionId": "sess_9184062f-45b8-4669-8647-059b107836bf",
+        "timestamp": 1795535499352
+      }
+    ],
+    "1.4 Fix defects and rerun": [
+      {
+        "executionId": "cf1d9ac2-bd7f-4e9f-b8b9-5b8ce34e4e6b",
+        "chatSessionId": "sess_9184062f-45b8-4669-8647-059b107836bf",
+        "timestamp": 1795534569535
+      },
+      {
+        "executionId": "cf1d9ac2-bd7f-4e9f-b8b9-5b8ce34e4e6b",
+        "chatSessionId": "sess_9184062f-45b8-4669-8647-059b107836bf",
+        "timestamp": 1795535498913
+      },
+      {
+        "executionId": "cf1d9ac2-bd7f-4e9f-b8b9-5b8ce34e4e6b",
+        "chatSessionId": "sess_9184062f-45b8-4669-8647-059b107836bf",
+        "timestamp": 1795536116614
+      }
+    ],
+    "2.1 Clear environment overrides": [
+      {
+        "executionId": "cf1d9ac2-bd7f-4e9f-b8b9-5b8ce34e4e6b",
+        "chatSessionId": "sess_9184062f-45b8-4669-8647-059b107836bf",
+        "timestamp": 1795534569653
+      },
+      {
+        "executionId": "cf1d9ac2-bd7f-4e9f-b8b9-5b8ce34e4e6b",
+        "chatSessionId": "sess_9184062f-45b8-4669-8647-059b107836bf",
+        "timestamp": 1795536125101
+      },
+      {
+        "executionId": "cf1d9ac2-bd7f-4e9f-b8b9-5b8ce34e4e6b",
+        "chatSessionId": "sess_9184062f-45b8-4669-8647-059b107836bf",
+        "timestamp": 1795536189027
+      }
+    ],
+    "2.2 Run typecheck, lint and tests": [
+      {
+        "executionId": "cf1d9ac2-bd7f-4e9f-b8b9-5b8ce34e4e6b",
+        "chatSessionId": "sess_9184062f-45b8-4669-8647-059b107836bf",
+        "timestamp": 1795534569739
+      },
+      {
+        "executionId": "cf1d9ac2-bd7f-4e9f-b8b9-5b8ce34e4e6b",
+        "chatSessionId": "sess_9184062f-45b8-4669-8647-059b107836bf",
+        "timestamp": 1795536192472
+      },
+      {
+        "executionId": "cf1d9ac2-bd7f-4e9f-b8b9-5b8ce34e4e6b",
+        "chatSessionId": "sess_9184062f-45b8-4669-8647-059b107836bf",
+        "timestamp": 1795536627490
+      }
+    ],
+    "3.1 Stage specific files": [
+      {
+        "executionId": "cf1d9ac2-bd7f-4e9f-b8b9-5b8ce34e4e6b",
+        "chatSessionId": "sess_9184062f-45b8-4669-8647-059b107836bf",
+        "timestamp": 1795534569831
+      },
+      {
+        "executionId": "cf1d9ac2-bd7f-4e9f-b8b9-5b8ce34e4e6b",
+        "chatSessionId": "sess_9184062f-45b8-4669-8647-059b107836bf",
+        "timestamp": 1795536630536
+      },
+      {
+        "executionId": "cf1d9ac2-bd7f-4e9f-b8b9-5b8ce34e4e6b",
+        "chatSessionId": "sess_9184062f-45b8-4669-8647-059b107836bf",
+        "timestamp": 1795536686466
+      }
+    ],
+    "3.2 Commit and push": [
+      {
+        "executionId": "cf1d9ac2-bd7f-4e9f-b8b9-5b8ce34e4e6b",
+        "chatSessionId": "sess_9184062f-45b8-4669-8647-059b107836bf",
+        "timestamp": 1795534569940
+      },
+      {
+        "executionId": "cf1d9ac2-bd7f-4e9f-b8b9-5b8ce34e4e6b",
+        "chatSessionId": "sess_9184062f-45b8-4669-8647-059b107836bf",
+        "timestamp": 1795536683747
+      }
+    ],
+    "1. Verify and fix the leaderboard layout": [
+      {
+        "executionId": "cf1d9ac2-bd7f-4e9f-b8b9-5b8ce34e4e6b",
+        "chatSessionId": "sess_9184062f-45b8-4669-8647-059b107836bf",
+        "timestamp": 1795536116928
+      }
+    ],
+    "2. Run the full frontend checks": [
+      {
+        "executionId": "cf1d9ac2-bd7f-4e9f-b8b9-5b8ce34e4e6b",
+        "chatSessionId": "sess_9184062f-45b8-4669-8647-059b107836bf",
+        "timestamp": 1795536627714
+      }
+    ]
+  }
+}

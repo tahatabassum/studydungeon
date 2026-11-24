@@ -36,6 +36,6 @@ describe('pollScheduler', () => {
 
 describe('boardView', () => {
   it('is empty without entries', () => {
-    expect(buildLiveBoardView({ entries: [] })).toEqual({ podium: [], rows: [], empty: true })
+    expect(buildLiveBoardView({ entries: [] })).toEqual({ podium: [], rows: [], all: [], empty: true })
   })
 })
