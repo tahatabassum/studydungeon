@@ -50,9 +50,10 @@ async def test_board_never_exposes_login_names(async_client: AsyncClient, db_ses
     body = json.dumps(res.json())
     assert "secret_login" not in body
     data = res.json()
-    assert data["entries"][0]["handle"] == "p_top0001"
-    assert data["me"]["handle"] == "p_me00001"
-    assert data["me"]["next_above"]["handle"] == "p_top0001"
+    # Unnamed (older) accounts get a readable Player#abcd handle built from the public id, never the login name.
+    assert data["entries"][0]["handle"] == "Player#0001"
+    assert data["me"]["handle"] == "Player#0001"
+    assert data["me"]["next_above"]["handle"] == "Player#0001"
 
 @pytest.mark.asyncio
 async def test_the_table_refreshes_after_the_snapshot_interval(async_client: AsyncClient, db_session: AsyncSession, monkeypatch):

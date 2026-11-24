@@ -3,7 +3,7 @@ from datetime import datetime, timedelta
 from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
-from sqlalchemy import delete, select
+from sqlalchemy import delete, exists, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import settings
@@ -23,7 +23,7 @@ from app.core.security import (
     verify_password,
     verify_session_token,
 )
-from app.models.all_models import ContentPack, Dungeon, RateLimitRecord, User, UserProgress
+from app.models.all_models import ContentPack, Dungeon, PlayerStats, RateLimitRecord, User, UserProgress
 from app.schemas.auth import (
     CreateGuestRequest,
     CreateGuestResponse,
@@ -40,6 +40,33 @@ from app.schemas.auth import (
 auth_router = APIRouter(prefix="/auth", tags=["Authentication"])
 demo_router = APIRouter(prefix="/demo", tags=["Demo"])
 guests_router = APIRouter(prefix="/guests", tags=["Guests"])
+
+
+_GUEST_ADJECTIVES = ["Pale", "Hollow", "Restless", "Silent", "Ashen", "Gloomy", "Wandering", "Midnight", "Misty", "Eerie"]
+_GUEST_NOUNS = ["Moth", "Raven", "Wraith", "Lantern", "Bat", "Owl", "Specter", "Candle", "Crow", "Shade"]
+
+
+async def _named_guest_identity(db: AsyncSession) -> dict:
+    """A spooky display name with a unique tag for a guest who did not pick one (e.g. "Pale Moth#4821")."""
+    for _ in range(10):
+        name = f"{secrets.choice(_GUEST_ADJECTIVES)} {secrets.choice(_GUEST_NOUNS)}"
+        if validate_display_name(name)[0]:
+            break
+    norm = normalize_display_name_for_moderation(name)
+    tag = generate_guest_tag()
+    for _ in range(20):
+        taken = await db.execute(select(User.id).where(User.display_name_norm == norm, User.tag == tag))
+        if not taken.scalar_one_or_none():
+            break
+        tag = generate_guest_tag()
+    else:
+        tag = str(secrets.randbelow(90000) + 10000)
+    return {"display_name": name, "display_name_norm": norm, "tag": tag, "public_id": generate_public_id()}
+
+
+def _never_played():
+    """Guests may be purged only when they never answered a question (no points record): players stay on the board."""
+    return ~exists().where(PlayerStats.user_id == User.id)
 
 
 @auth_router.post("/register", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
@@ -385,7 +412,7 @@ async def create_guest(
 
     # Lazy purge of guests inactive for >30 days
     thirty_days_ago = now - timedelta(days=settings.GUEST_SESSION_DAYS)
-    await db.execute(delete(User).where(User.is_guest == True, User.last_active_at < thirty_days_ago))
+    await db.execute(delete(User).where(User.is_guest == True, User.last_active_at < thirty_days_ago, _never_played()))
     await db.execute(delete(RateLimitRecord).where(RateLimitRecord.timestamp < now - timedelta(hours=1)))
 
     await db.commit()
@@ -432,7 +459,7 @@ async def create_demo_session(request: Request, response: Response, db: AsyncSes
 
     # 2. Lazy purge of expired guests & stale rate limit records
     now = datetime.utcnow()
-    await db.execute(delete(User).where(User.is_guest == True, User.expires_at < now))
+    await db.execute(delete(User).where(User.is_guest == True, User.expires_at < now, _never_played()))
     await db.execute(delete(RateLimitRecord).where(RateLimitRecord.timestamp < now - timedelta(hours=1)))
 
     # 3. Create Guest User
@@ -440,11 +467,15 @@ async def create_demo_session(request: Request, response: Response, db: AsyncSes
     guest_username = f"guest_{random_suffix}"
     expires_at = now + timedelta(hours=settings.DEMO_GUEST_TTL_HOURS)
 
+    # Every guest has a name and tag, so a demo player shows up on the leaderboard as a person, not an id.
+    identity = await _named_guest_identity(db)
     guest_user = User(
         username=guest_username,
         password_hash=None,
         is_guest=True,
         expires_at=expires_at,
+        last_active_at=now,
+        **identity,
     )
     db.add(guest_user)
     await db.flush()
@@ -483,7 +514,11 @@ async def create_demo_session(request: Request, response: Response, db: AsyncSes
     return DemoSessionResponse(
         user=UserResponse(
             id=guest_user.id,
+            public_id=guest_user.public_id,
             username=guest_user.username,
+            display_name=guest_user.display_name,
+            tag=guest_user.tag,
+            handle=f"{guest_user.display_name}#{guest_user.tag}",
             is_guest=True,
             created_at=guest_user.created_at,
             expires_at=guest_user.expires_at,
