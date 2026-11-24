@@ -19,7 +19,9 @@ async def test_upload_quota_is_served_at_the_contract_path(async_client: AsyncCl
     assert res.status_code == 200, res.text
     body = res.json()
     assert body["player"]["is_guest"] is True
-    assert body["player"]["limit_today"] == 1
+    # Default: no count limits.
+    assert body["player"]["unlimited"] is True
+    assert body["player"]["limit_today"] == 0 and body["player"]["stored_limit"] == 0
     assert body["can_upload"] is True and body.get("reason") is None
     assert body["global"] == {"available": True}
     assert "global_" not in body
@@ -100,3 +102,27 @@ async def test_my_notes_lists_and_deletes_own_documents_with_their_dungeon(async
     assert (await async_client.get(f"/dungeons/{dungeon_id}")).status_code == 404
     quota = (await async_client.get("/uploads/quota")).json()
     assert quota["player"]["stored"] == 0
+
+@pytest.mark.asyncio
+async def test_uploads_are_unlimited_by_default_and_limits_come_back_from_settings(async_client: AsyncClient, db_session: AsyncSession, monkeypatch):
+    import io
+
+    notes = b"Cells are the basic unit of life. Mitochondria produce ATP through respiration. " * 20
+    guest = User(username="many_uploads_guest", is_guest=True, password_hash=None)
+    db_session.add(guest)
+    await db_session.commit()
+    await db_session.refresh(guest)
+    async_client.cookies.set(settings.SESSION_COOKIE_NAME, create_session_token(guest.id, session_version=guest.session_version, is_guest=True))
+
+    async def upload():
+        return await async_client.post("/documents", files={"file": ("n.txt", io.BytesIO(notes), "text/plain")}, data={"accept_ai_notice": "true"})
+
+    # A guest uploads six notes in one day from one network: nothing stops them.
+    for _ in range(6):
+        assert (await upload()).status_code == 202
+    assert (await async_client.get("/uploads/quota")).json()["can_upload"] is True
+
+    # An operator can bring the daily limit back with one setting.
+    monkeypatch.setattr(settings, "UPLOAD_GUEST_DAILY_LIMIT", 1)
+    res = await upload()
+    assert res.status_code == 429 and res.json()["detail"]["code"] == "UPLOAD_LIMIT_PLAYER"

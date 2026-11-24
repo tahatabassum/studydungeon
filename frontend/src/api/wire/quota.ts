@@ -12,6 +12,7 @@ export const wireUploadQuotaSchema = z.object({
     stored: z.number().int().nonnegative(),
     stored_limit: z.number().int().nonnegative(),
     resets_at: z.string().optional(),
+    unlimited: z.boolean().optional(),
   }),
   global: z.object({ available: z.boolean() }).optional(),
   ranking: z.object({ min_chars: z.number().int().nonnegative(), min_topics: z.number().int().nonnegative() }).optional(),
@@ -28,6 +29,7 @@ export function mapUploadQuota(w: z.output<typeof wireUploadQuotaSchema>): Uploa
       stored: w.player.stored,
       stored_limit: w.player.stored_limit,
       ...(w.player.resets_at !== undefined ? { resets_at: w.player.resets_at } : {}),
+      ...(w.player.unlimited ? { unlimited: true } : {}),
     },
   }
   if (w.global) out.global = { available: w.global.available }

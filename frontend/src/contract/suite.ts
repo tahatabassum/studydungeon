@@ -581,7 +581,12 @@ export function defineContractSuite(opts: ContractSuiteOptions): void {
         await expect(c.uploadDocument(textFile('virus.exe'), NOTICE)).rejects.toMatchObject({ status: 415, code: 'UNSUPPORTED_FILE_TYPE' })
       })
 
-      it('repeated uploads stop at a quota: 400 QUOTA_EXCEEDED (stored) or 429 UPLOAD_LIMIT_PLAYER (daily)', async () => {
+      it('repeated uploads stop at a quota (400 QUOTA_EXCEEDED or 429 UPLOAD_LIMIT_PLAYER), or never when uploads are unlimited', async () => {
+        const quota = await api.getUploadQuota().catch(() => null)
+        if (quota?.player.unlimited) {
+          for (let i = 0; i < 6; i += 1) expectSchema('uploadDocument', await api.uploadDocument(textFile(`extra ${i}.txt`), NOTICE))
+          return
+        }
         let last: unknown = null
         for (let i = 0; i < 6 && last === null; i += 1) {
           try {

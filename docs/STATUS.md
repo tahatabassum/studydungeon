@@ -7,7 +7,7 @@ Last updated: 2026-11-24. Branch `feature/frontend-live-players`.
 Feature complete for the hackathon build. Everything below runs end to end against the real backend (mock AI, local database).
 
 - **Play:** demo dungeon and 3 preloaded packs as floor campaigns (floors unlock in order, then the Final Boss), floor ranks S to C, a chest with real bonus XP, pack unlocks after the Final Boss.
-- **Own notes:** upload (PDF, DOCX, PPTX, TXT, images) with AI notice and quotas, then summon a dungeon. Generated dungeons get floors of 2 rooms plus a Final Boss, like the packs. My Notes on the dashboard lists notes, links to their dungeon and deletes them (freeing a slot).
+- **Own notes:** upload (PDF, DOCX, PPTX, TXT, images) with the AI notice, as many as you like (no count limits by default; see Upload limits), then summon a dungeon. Generated dungeons get floors of 2 rooms plus a Final Boss, like the packs. My Notes on the dashboard lists notes, links to their dungeon and deletes them (freeing a slot).
 - **Learning loop:** Memory Scroll with the correct answer after a miss, questions return 3 later, spaced repetition, Daily Haunt (review run of due memories with a daily streak), Weak Topics (2 worst topics) and Exam (every topic) practice modes.
 - **Competition:** points ledger, real leaderboard (preloaded, own notes, overall; all time and weekly), player counter, levels with XP to next level.
 - **Accounts:** guest names with tags, register and login, upgrade a guest, delete account.
@@ -23,6 +23,10 @@ Feature complete for the hackathon build. Everything below runs end to end again
    - Vercel: root `frontend/`, env `VITE_USE_MOCKS=false`, `VITE_API_BASE=/api` (the rewrite keeps cookies first-party).
    - After deploy: open `/api/health` on the Vercel URL, play the demo, register, upload a short PDF.
 3. **Submission:** fill the `[FILL IN]` parts of `docs/KIRO_WRITEUP.md` (your own Kiro experience), record the video with `docs/DEMO_VIDEO_SCRIPT.md`, submit before December 4.
+
+## Upload limits
+
+Uploads are unlimited by default: no daily, stored, per-network or global count. File checks stay (15 MB, 30 PDF pages, 30 slides, 60,000 DOCX characters, at least 500 characters of text). To bring a count limit back, set one of these on the backend (0 = unlimited): `UPLOAD_GUEST_DAILY_LIMIT`, `UPLOAD_PLAYER_DAILY_LIMIT`, `UPLOAD_GUEST_STORED_LIMIT`, `UPLOAD_PLAYER_STORED_LIMIT`, `UPLOAD_IP_DAILY_LIMIT`, `UPLOAD_GLOBAL_DAILY_LIMIT`. Every upload calls Gemini, so on the free tier watch the AI quota; when Gemini is out, the OpenRouter fallback uses whichever free models exist that day.
 
 ## Known issues
 

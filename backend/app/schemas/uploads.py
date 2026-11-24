@@ -10,6 +10,8 @@ class QuotaPlayerView(BaseModel):
     stored: int
     stored_limit: int
     resets_at: Optional[str] = None
+    # True when no daily or stored limit applies (limit_today and stored_limit are then 0).
+    unlimited: bool = False
 
 
 class QuotaGlobalView(BaseModel):

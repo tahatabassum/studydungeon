@@ -807,3 +807,10 @@ The user asked Person B to finish everything that was left without waiting, so P
 **Frontend in the same change:** sends `floor_id` and `mode`, turns on modes and Daily Haunt, reads `room_ids`/`mode`/`xp_to_next`/the streak, finds the Final Boss by its room id (it looked for the monster id, so the Final Boss never started against the real backend), friendly messages for the new codes, My Notes panel, dev proxy only for `/api/*` (it was swallowing the `/leaderboard` and `/packs` pages), live contract suite opt-in with `VITE_CONTRACT_LIVE=true`.
 
 **Steering (needs both of us, not applied):** besides the guest-upload wording proposed on 2026-11-17, `api-contract.md` should list the modes above, the new error codes and the `GET /progress` fields.
+
+---
+
+## Update 2026-11-24 (later): upload count limits off by default, AI fallback fixed
+
+- At the user's request uploads are unlimited by default. Every count limit is now a setting where 0 means unlimited, all defaulting to 0: `UPLOAD_GUEST_DAILY_LIMIT`, `UPLOAD_PLAYER_DAILY_LIMIT`, `UPLOAD_GUEST_STORED_LIMIT`, `UPLOAD_PLAYER_STORED_LIMIT`, `UPLOAD_IP_DAILY_LIMIT`, `UPLOAD_GLOBAL_DAILY_LIMIT`. `GET /uploads/quota` adds `player.unlimited` (true when no daily or stored limit applies; the limits are then 0). File-size and page limits are unchanged.
+- OpenRouter: the configured free models were all gone (404) and the first 404 failed the request. Models are now tried one by one, then the live free list from `/api/v1/models`. Gemini's key moved from the URL to the `x-goog-api-key` header (it was leaking into logs and into `rejection_reason`). Failed documents show a plain sentence instead of the provider error.

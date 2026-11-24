@@ -22,9 +22,20 @@ export function plural(n: number, one: string, many: string): string {
 /** Pure view of the quota. Property 16: a blocked quota never offers an upload. */
 export function quotaView(quota: UploadQuota): QuotaView {
   const { player } = quota
+  // No count limits: only the server's other checks (network, service, AI) can block an upload.
+  if (player.unlimited && quota.can_upload) {
+    return {
+      allowed: true,
+      remaining: Number.POSITIVE_INFINITY,
+      reason: null,
+      line: 'Unlimited uploads. Summon as many dungeons as you need.',
+      offerPacks: false,
+      offerAccount: false,
+    }
+  }
   const remaining = Math.max(0, player.limit_today - player.used_today)
-  const dailyFull = remaining === 0
-  const storedFull = player.stored >= player.stored_limit
+  const dailyFull = !player.unlimited && remaining === 0
+  const storedFull = !player.unlimited && player.stored >= player.stored_limit
   const globalDown = quota.global?.available === false
 
   let reason: QuotaReason | null = null

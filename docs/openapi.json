@@ -2547,6 +2547,11 @@
               }
             ],
             "title": "Resets At"
+          },
+          "unlimited": {
+            "type": "boolean",
+            "title": "Unlimited",
+            "default": false
           }
         },
         "type": "object",
