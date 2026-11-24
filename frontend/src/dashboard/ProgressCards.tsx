@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react'
 import { AlertTriangle, History, Shield, Swords, Ghost } from 'lucide-react'
 import { BadgeGrid } from '../badges/BadgeGrid'
+import { EmptyState } from '../components/EmptyState'
 import { HauntedCounter } from '../components/HauntedCounter'
 import { ProgressBar } from '../components/ProgressBar'
 import type { FinishedRun } from '../leaderboard/sessionRuns'
@@ -105,7 +106,16 @@ export function HauntCard({ count, dailyHauntSlot }: { count: number; dailyHaunt
         Haunted memories
       </h2>
       <HauntedCounter count={count} />
-      <p className="sd-card__muted">Questions you missed come back as ghosts. Lay them to rest to keep them in mind.</p>
+      {count === 0 ? (
+        <EmptyState
+          icon={Ghost}
+          title="No ghosts haunting you"
+          message="Questions you missed come back as ghosts. Lay them to rest to keep them in mind."
+          testId="haunt-empty"
+        />
+      ) : (
+        <p className="sd-card__muted">Questions you missed come back as ghosts. Lay them to rest to keep them in mind.</p>
+      )}
       {dailyHauntSlot && (
         <div data-testid="daily-haunt-slot" className="sd-dash__slot">
           {dailyHauntSlot}

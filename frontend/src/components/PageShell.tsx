@@ -11,7 +11,7 @@ export interface PageShellProps {
   title: string
   subtitle?: ReactNode
   /** Back link in the top bar. */
-  back?: { to: string; label: string }
+  back?: { to: string; label: string } | { onClick: () => void; label: string; disabled?: boolean }
   /** Top bar actions (links or buttons), right-aligned. */
   actions?: ReactNode
   /** Accessible name of the actions nav (default Page links). */
@@ -55,7 +55,12 @@ export function PageShell({ title, subtitle, back, actions, children, actionsLab
       <div className={`sd-page__inner ${wide ? 'sd-page__inner--wide' : ''}`.trim()}>
         <header className="sd-page__header">
           <div className="sd-page__topbar">
-            {back ? (
+            {back && 'onClick' in back ? (
+              <button type="button" className="sd-page__back" onClick={back.onClick} disabled={back.disabled}>
+                <ArrowLeft aria-hidden="true" size={16} />
+                {back.label}
+              </button>
+            ) : back ? (
               <Link to={back.to} className="sd-page__back">
                 <ArrowLeft aria-hidden="true" size={16} />
                 {back.label}

@@ -1,6 +1,6 @@
 import type { CSSProperties } from 'react'
-import { Link } from 'react-router-dom'
 import { AlertTriangle, Trophy } from 'lucide-react'
+import { EmptyState } from '../components/EmptyState'
 import { Avatar, avatarKind } from '../leaderboard/Avatar'
 import { BadgeIcons } from '../badges/BadgeGrid'
 import type { BoardEntry, BoardKind, BoardResponse, LeaderboardPeriod } from '../types/api'
@@ -11,11 +11,13 @@ import { useBoard } from './useBoard'
 import { useNow } from './useNow'
 import { YouPanel } from './YouPanelView'
 import { boardHint } from './BoardTabs'
+import { plural } from '../upload/quotaView'
 import type { BadgeId } from '../types/api'
 
 export const TIE_BREAK_NOTE = 'Ties go to whoever reached the total first.'
 
-const STAGE_ORDER = [1, 0, 2] as const
+/** Stage order by how many players there are: 2nd, 1st, 3rd (centred, no empty places). */
+const STAGE_ORDER: Record<number, readonly number[]> = { 1: [0], 2: [1, 0], 3: [1, 0, 2] }
 
 function nameOf(e: BoardEntry): string {
   return e.display_name ?? e.handle
@@ -43,17 +45,17 @@ export function BoardSkeleton() {
 function LivePodium({ entries, mePublicId }: { entries: BoardEntry[]; mePublicId: string | undefined }) {
   if (entries.length === 0) return null
   return (
-    <ol className="sd-podium" aria-label="Top three" data-testid="podium">
-      {STAGE_ORDER.map((i) => {
+    <ol className="sd-podium" aria-label="Top three" data-testid="podium" data-count={Math.min(3, entries.length)}>
+      {(STAGE_ORDER[Math.min(3, entries.length)] ?? []).map((i) => {
         const e = entries[i]
-        if (!e) return <li key={i} aria-hidden="true" className="sd-podium__slot sd-podium__slot--empty" />
+        if (!e) return null
         const isMe = e.public_id === mePublicId
         const label = rivalLabelOf(e)
         return (
           <li key={e.public_id} className="sd-podium__slot" data-place={e.rank} data-me={isMe ? 'true' : undefined}>
             <span className="sr-only">{`Rank ${e.rank}`}</span>
             <span className="sd-podium__crown" aria-hidden="true" />
-            <Avatar kind={avatarKind({ id: e.public_id }, isMe)} size={i === 0 ? 44 : 38} className="sd-podium__avatar" />
+            <Avatar kind={avatarKind({ id: e.public_id }, isMe)} size={i === 0 ? 64 : 52} className="sd-podium__avatar" />
             <span className="sd-podium__name">
               <span className="sd-lb__nametext" title={nameOf(e)}>
                 {nameOf(e)}
@@ -73,10 +75,23 @@ function LivePodium({ entries, mePublicId }: { entries: BoardEntry[]; mePublicId
   )
 }
 
+function HeadRow({ hasBadges, second }: { hasBadges: boolean; second?: boolean }) {
+  return (
+    <tr className={second ? 'sd-lb__headrow sd-lb__headrow--b' : 'sd-lb__headrow'} aria-hidden={second ? 'true' : undefined}>
+      <th scope="col">Rank</th>
+      <th scope="col">Player</th>
+      <th scope="col" className="sd-lb__c-level">Level</th>
+      <th scope="col">Points</th>
+      <th scope="col" className="sd-lb__c-rooms">Rooms</th>
+      {hasBadges && <th scope="col" className="sd-lb__c-badges">Badges</th>}
+    </tr>
+  )
+}
+
 function LiveRow({ e, isMe }: { e: BoardEntry; isMe: boolean }) {
   const label = rivalLabelOf(e)
   return (
-    <tr className="sd-lb__row" data-me={isMe ? 'true' : undefined} data-rival={label ? 'true' : undefined} aria-current={isMe ? 'true' : undefined}>
+    <tr className="sd-lb__row" data-place={e.rank <= 3 ? e.rank : undefined} data-me={isMe ? 'true' : undefined} data-rival={label ? 'true' : undefined} aria-current={isMe ? 'true' : undefined}>
       <td className="sd-lb__rank">
         <span className="sr-only">Rank </span>
         {e.rank}
@@ -92,16 +107,18 @@ function LiveRow({ e, isMe }: { e: BoardEntry; isMe: boolean }) {
               {isMe && <span className="sd-lb__tag">You</span>}
             </span>
             {label && <span className="sd-lb__rival">{label}</span>}
-            <span className="sd-lb__sub">{`Level ${e.level}`}</span>
+            <span className="sd-lb__sub sd-lb__sub--compact">{`Level ${e.level}`}</span>
           </span>
         </div>
       </th>
-      <td className="sd-lb__num sd-lb__col-level">{e.level}</td>
+      <td className="sd-lb__num sd-lb__c-level">{e.level}</td>
       <td className="sd-lb__num sd-lb__score">{e.points.toLocaleString('en-US')}</td>
-      <td className="sd-lb__num sd-lb__col-acc">{e.rooms_cleared}</td>
-      <td className="sd-lb__col-badges">
-        <BadgeIcons ids={(e.badge_ids ?? []) as BadgeId[]} />
-      </td>
+      <td className="sd-lb__num sd-lb__c-rooms">{e.rooms_cleared}</td>
+      {(e.badge_ids?.length ?? 0) > 0 && (
+        <td className="sd-lb__col-badges">
+          <BadgeIcons ids={(e.badge_ids ?? []) as BadgeId[]} />
+        </td>
+      )}
     </tr>
   )
 }
@@ -174,7 +191,11 @@ export function LiveBoard({ board, period, isGuest }: LiveBoardProps) {
       )}
       <div className="sd-lb__grid">
         <div className="sd-lb__left">
-          <LivePodium entries={view.podium} mePublicId={mePublicId} />
+          {!view.empty && (
+            <section className="sd-card sd-lb__podiumcard" aria-label="Top 3">
+              <LivePodium entries={view.podium} mePublicId={mePublicId} />
+            </section>
+          )}
           <YouPanel
             me={data.me}
             isGuest={isGuest}
@@ -186,43 +207,44 @@ export function LiveBoard({ board, period, isGuest }: LiveBoardProps) {
         <div className="sd-lb__right">
           {view.empty ? (
             <section className="sd-card sd-lb__notice">
-              <div className="sd-lb__notice-icon" aria-hidden="true">
-                <Trophy size={30} />
-              </div>
-              <h2 className="sd-lb__notice-title">Be the first to enter</h2>
-              <p className="sd-card__muted" data-testid="lb-empty">
-                No one has points on this board yet.
-              </p>
-              <Link to="/choose" className="sd-cta">
-                Play
-              </Link>
+              <EmptyState
+                icon={Trophy}
+                title="Be the first to enter"
+                message="No one has points on this board yet."
+                action={{ label: 'Play', to: '/choose' }}
+                testId="lb-empty"
+              />
             </section>
-          ) : view.rows.length === 0 ? (
-            <p className="sd-card__muted sd-lb__rows-empty" data-testid="lb-rows-empty">
-              No one else has points on this board yet.
-            </p>
           ) : (
-            (
+            <section className="sd-card sd-lb__standings" aria-labelledby="lb-standings-title" data-testid="lb-standings">
+              <header className="sd-lb__standings-head">
+                <h2 id="lb-standings-title" className="sd-lb__standings-title">
+                  Standings
+                </h2>
+                <span className="sd-lb__standings-count" data-testid="lb-count">
+                  {plural(data.total_ranked_players ?? view.all.length, 'player', 'players')} ranked
+                </span>
+              </header>
               <div className="sd-lb__rowsbox">
-                <table className="sd-lb__table" aria-label="Rankings" data-many={view.rows.length > 8 ? 'true' : undefined} style={rowsVars(view.rows.length)}>
-                  <thead className="sr-only">
-                    <tr>
-                      <th scope="col">Rank</th>
-                      <th scope="col">Player</th>
-                      <th scope="col">Level</th>
-                      <th scope="col">Points</th>
-                      <th scope="col">Rooms</th>
-                      <th scope="col">Badges</th>
-                    </tr>
+                <table
+                  className="sd-lb__table"
+                  aria-label="Rankings"
+                  data-many={view.all.length > 10 ? 'true' : undefined}
+                  data-badges={view.all.some((e) => (e.badge_ids?.length ?? 0) > 0) ? 'true' : undefined}
+                  style={rowsVars(view.all.length)}
+                >
+                  <thead className="sd-lb__thead">
+                    <HeadRow hasBadges={view.all.some((e) => (e.badge_ids?.length ?? 0) > 0)} />
+                    {view.all.length > 10 && <HeadRow hasBadges={false} second />}
                   </thead>
                   <tbody>
-                    {view.rows.map((e) => (
+                    {view.all.map((e) => (
                       <LiveRow key={e.public_id} e={e} isMe={e.public_id === mePublicId} />
                     ))}
                   </tbody>
                 </table>
               </div>
-            )
+            </section>
           )}
           {!view.empty && (
             <p className="sd-lb__foot" data-testid="lb-foot">

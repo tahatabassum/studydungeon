@@ -821,3 +821,11 @@ The user asked Person B to finish everything that was left without waiting, so P
 
 - `POST /runs/{id}/rooms/{room_id}/clear` answered **500 on every successful clear** since the Day 4 points commit: `award_room_clear_points` read `room.is_boss`, which `DungeonRoom` does not have. The clear endpoint now passes `is_boss` (the run's last room). No test cleared a room through the API before; `tests/test_room_clear_e2e.py` now plays a pack floor room by room and a generated dungeon's room.
 - The per-room damage cache in `submit_attempt` (`_RUN_TOPIC_DAMAGE`) forgot earlier rooms' damage, so the next room's attempts were refused with `OUT_OF_ORDER_ROOM`. Removed; damage is read with one grouped query.
+
+---
+
+## Update 2026-11-24 (later): everyone who played is on the leaderboard
+
+- At the user's request the board lists every player who has answered at least one question (has a `player_stats` row), 0 points included, ranked by points then who reached the total first. A player who never played still gets `me.rank: null` with `reason: no_points_yet`. (V2 D excluded 0-point players; this replaces that rule.)
+- `POST /demo/session` guests now get a generated name, tag and public id (for example `Pale Moth#4821`), so every guest is a named player. Players without a name (older accounts) show as `Guest#abcd` / `Player#abcd`, never the login name.
+- The lazy guest purges (demo session and `POST /guests`) only delete guests who never played, so guest scores stay on the board.

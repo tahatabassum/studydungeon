@@ -36,10 +36,12 @@ _STATS_PLAYERS_CACHE = {"data": None, "expires_at": 0.0}
 
 
 def _public_handle(u: User, public_id: str) -> str:
-    """Name#Tag, else the opaque public id. Never the login name (leaderboard rule: no usernames)."""
+    """Name#Tag; an older account without a name gets Guest#abcd / Player#abcd. Never the login name."""
     if u.display_name and u.tag:
         return f"{u.display_name}#{u.tag}"
-    return public_id
+    if u.display_name:
+        return u.display_name
+    return f"{'Guest' if u.is_guest else 'Player'}#{public_id[-4:]}"
 
 
 @leaderboard_router.get(
@@ -76,7 +78,6 @@ async def get_leaderboard(
                 .outerjoin(UserProgress, User.id == UserProgress.user_id)
                 .where(
                     PlayerStats.is_ranked == True,
-                    pts_col > 0,
                     User.is_active == True,
                 )
                 .order_by(pts_col.desc(), reached_col.asc(), PlayerStats.public_id.asc())
@@ -84,7 +85,6 @@ async def get_leaderboard(
             )
             count_stmt = select(func.count()).select_from(PlayerStats).where(
                 PlayerStats.is_ranked == True,
-                pts_col > 0,
             )
         else:
             pts_col = getattr(PlayerWeekStats, f"points_{board}")
@@ -96,7 +96,6 @@ async def get_leaderboard(
                 .where(
                     PlayerWeekStats.is_ranked == True,
                     PlayerWeekStats.week_start == week_start,
-                    pts_col > 0,
                     User.is_active == True,
                 )
                 .order_by(pts_col.desc(), reached_col.asc(), PlayerWeekStats.public_id.asc())
@@ -105,7 +104,6 @@ async def get_leaderboard(
             count_stmt = select(func.count()).select_from(PlayerWeekStats).where(
                 PlayerWeekStats.is_ranked == True,
                 PlayerWeekStats.week_start == week_start,
-                pts_col > 0,
             )
 
         res = await db.execute(stmt)
@@ -158,7 +156,9 @@ async def get_leaderboard(
         my_public_id = user.public_id or f"p_{user.id[:8]}"
         my_handle = _public_handle(user, my_public_id)
 
-        if my_points == 0:
+        # Everyone who has played (has a points record) is ranked, 0 points included; only a player who never
+        # answered a question has no rank yet.
+        if p_stat is None:
             top20_cutoff = entries[-1].points if len(entries) >= 20 else 0
             needed = (top20_cutoff - my_points + 1) if len(entries) >= 20 else 1
             me_view = BoardMeView(
@@ -177,7 +177,7 @@ async def get_leaderboard(
             pts_c = getattr(tbl, f"points_{board}")
             rch_c = getattr(tbl, f"reached_at_{board}")
 
-            base_filter = [tbl.is_ranked == True, pts_c > 0]
+            base_filter = [tbl.is_ranked == True]
             if period == "week":
                 base_filter.append(tbl.week_start == week_start)
 

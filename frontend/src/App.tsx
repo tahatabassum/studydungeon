@@ -22,11 +22,24 @@ import PacksPage from './packs/PacksPage';
 import PackUnlockedPage from './packs/PackUnlockedPage';
 import AllPacksCompletePage from './packs/AllPacksCompletePage';
 import { useSession } from './state/SessionContext';
+import RouteSkeleton from './components/RouteSkeleton';
 import { useTouchMode } from './touch/useTouchMode';
 
 function RequireSession({ children }: { children: ReactNode }) {
   const { user } = useSession();
   return user ? <>{children}</> : <Navigate to="/" replace />;
+}
+
+/**
+ * Entry routes (/, /login, /register) are for visitors only: a signed-in user is sent to the dashboard
+ * (replace), so Back after login never lands on the title screen. llowGuest keeps /register open to a guest,
+ * who uses it to upgrade to a real account.
+ */
+export function RequireVisitor({ children, allowGuest = false }: { children: ReactNode; allowGuest?: boolean }) {
+  const { user, restoring } = useSession();
+  if (restoring) return <RouteSkeleton />;
+  if (user && !(allowGuest && user.is_guest)) return <Navigate to="/dashboard" replace />;
+  return <>{children}</>;
 }
 
 export default function App() {
@@ -43,7 +56,7 @@ export default function App() {
 function AppRoutes() {
   return (
     <Routes>
-      <Route path="/" element={<LandingPage />} />
+      <Route path="/" element={<RequireVisitor><LandingPage /></RequireVisitor>} />
       <Route path="/play-as-guest" element={<NameScreen />} />
       <Route
         path="/choose"
@@ -53,8 +66,8 @@ function AppRoutes() {
           </RequireSession>
         }
       />
-      <Route path="/login" element={<LoginPage />} />
-      <Route path="/register" element={<RegisterPage />} />
+      <Route path="/login" element={<RequireVisitor><LoginPage /></RequireVisitor>} />
+      <Route path="/register" element={<RequireVisitor allowGuest><RegisterPage /></RequireVisitor>} />
       {/* Readable by guests: both screens work without a session. */}
       <Route path="/leaderboard" element={<LeaderboardPage />} />
       <Route path="/dashboard" element={<DashboardPage dailyHauntSlot={<DashboardHaunt />} />} />

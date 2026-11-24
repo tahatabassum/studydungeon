@@ -1,6 +1,7 @@
 import { useEffect, useState, type CSSProperties } from 'react';
 import { useReducedMotion } from 'framer-motion';
 import '../styles/landing.css';
+import '../styles/landing-auth.css';
 import { Link, useNavigate } from 'react-router-dom';
 import { BookOpen, Flame, Ghost, Play, Skull, Sword } from 'lucide-react';
 import { Button } from '../components/Button';

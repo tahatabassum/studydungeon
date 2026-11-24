@@ -2,6 +2,7 @@ import { useMemo, type ReactNode } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { LogOut, Trophy } from 'lucide-react'
 import { useLogout } from '../state/useLogout'
+import { useLeaveSession } from '../state/useLeaveSession'
 import { WakingUp } from './WakingUp'
 import '../styles/dashboard.css'
 import { PageShell } from '../components/PageShell'
@@ -21,6 +22,7 @@ import { buildBoardView } from '../leaderboard/view'
 import { displayHandle } from '../identity/handle'
 import { useSession } from '../state/SessionContext'
 import { useLeaderboardSupport, useLeaderboardView } from '../state/useLeaderboardSupport'
+import { Hero } from '../dashboard/Hero'
 import { LiveTopFiveCard } from '../dashboard/LiveTopFiveCard'
 import { useProgress } from '../state/useProgress'
 import { useStartDemo } from '../state/useStartDemo'
@@ -74,6 +76,7 @@ export default function DashboardPage({ dailyHauntSlot }: DashboardPageProps = {
   const toUpgrade = () => navigate('/register?upgrade=1')
 
   const { loggingOut, logOut } = useLogout()
+  const { leaving, leave } = useLeaveSession()
 
   return (
     <PageShell
@@ -83,7 +86,7 @@ export default function DashboardPage({ dailyHauntSlot }: DashboardPageProps = {
       decor={<HauntedBackdrop />}
       title="Dashboard"
       subtitle={isGuest ? (user ? `Playing as ${displayHandle(user)}` : 'Playing as a guest') : `Welcome back, ${displayHandle(user)}`}
-      back={{ to: '/', label: 'Title screen' }}
+      back={{ onClick: () => void leave(), label: 'Leave session', disabled: leaving }}
       actions={
         <>
           {dungeonId && (
@@ -114,6 +117,18 @@ export default function DashboardPage({ dailyHauntSlot }: DashboardPageProps = {
           onRetry={() => void demo.retry()}
         />
       )}
+      <Hero
+        isGuest={isGuest}
+        displayName={user ? displayHandle(user) : 'Guest'}
+        progress={progress}
+        progressStatus={progressState.status}
+        dungeonId={dungeonId}
+        dungeon={dungeon}
+        dailyHauntSlot={dailyHauntSlot}
+        onPlayDemo={() => void demo.start()}
+        demoPending={demo.pending}
+        onCreateAccount={isGuest && user ? toUpgrade : toRegister}
+      />
       {!isGuest ? (
         <div className="sd-dash" data-view="player">
           {progressState.status === 'error' && <ProgressErrorCard error={progressState.error} onRetry={progressState.retry} />}
@@ -139,13 +154,12 @@ export default function DashboardPage({ dailyHauntSlot }: DashboardPageProps = {
             )}
             {progress && <HauntCard count={progress.due_review_count ?? 0} />}
           </div>
-          {progress && <ProgressPanel progress={progress} />}
-
-          {dungeonId && <MasteryCard dungeon={dungeon} />}
           <MyNotesCard />
-
-          {progress && <BadgesCard earned={progress.badges} className="sd-dash__wide" />}
           {progress && <ArmoryCard weapons={progress.weapons} level={progress.level} />}
+
+          {progress && <ProgressPanel progress={progress} />}
+          {dungeonId && <MasteryCard dungeon={dungeon} />}
+          {progress && <BadgesCard earned={progress.badges} className="sd-dash__wide" />}
           <LinksCard />
         </div>
       ) : (
@@ -153,15 +167,15 @@ export default function DashboardPage({ dailyHauntSlot }: DashboardPageProps = {
           <DemoCard onPlayDemo={() => void demo.start()} pending={demo.pending} error={demo.error} dailyHauntSlot={dailyHauntSlot} />
           <GuestStatsCard runs={runs} best={best} rank={myRank} onCreateAccount={toRegister} onUpgrade={user ? toUpgrade : undefined} />
           {preview}
-          {progress && <ProgressPanel progress={progress} />}
           <section className="sd-card" aria-labelledby="dash-guest-runs">
             <h2 id="dash-guest-runs" className="sd-card__h">
               Recent runs
             </h2>
             {runs.length === 0 ? <p className="sd-card__muted">Runs you finish in this tab show up here.</p> : <SessionRunsList runs={runs} />}
           </section>
-          {dungeonId && <MasteryCard dungeon={dungeon} />}
           {user && <MyNotesCard />}
+          {progress && <ProgressPanel progress={progress} />}
+          {dungeonId && <MasteryCard dungeon={dungeon} />}
           <BadgesCard earned={[]} className="sd-dash__wide" />
         </div>
       )}

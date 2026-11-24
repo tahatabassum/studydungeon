@@ -1,8 +1,9 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { BookOpen, Trash2 } from 'lucide-react'
+import { BookOpen, FileQuestion, Trash2 } from 'lucide-react'
 import { describeError, getApi } from '../api'
 import { ConfirmDialog } from '../components/ConfirmDialog'
+import { EmptyState } from '../components/EmptyState'
 import type { StoredDocument } from '../types/api'
 
 const STATUS_LABEL: Record<StoredDocument['status'], string> = {
@@ -85,9 +86,16 @@ export function MyNotesCard() {
         </div>
       )}
       {load.state === 'ready' && load.docs.length === 0 && (
-        <p className="sd-card__muted" data-testid="my-notes-empty">
-          No notes yet. <Link to="/upload">Upload your notes</Link> to summon your own dungeon.
-        </p>
+        <EmptyState
+          icon={FileQuestion}
+          title="No notes yet"
+          message={
+            <>
+              <Link to="/upload">Upload your notes</Link> to summon your own dungeon.
+            </>
+          }
+          testId="my-notes-empty"
+        />
       )}
       {load.state === 'ready' && load.docs.length > 0 && (
         <ul className="sd-notes__list">

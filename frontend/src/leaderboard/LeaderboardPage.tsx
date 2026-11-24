@@ -1,7 +1,8 @@
 import { useMemo, type KeyboardEvent, type ReactNode } from 'react'
-import { Link, useNavigate, useSearchParams } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { AlertTriangle, Hourglass, Trophy, UserPlus } from 'lucide-react'
 import '../styles/leaderboard.css'
+import { EmptyState } from '../components/EmptyState'
 import { PageShell } from '../components/PageShell'
 import { HauntedBackdrop } from '../components/HauntedBackdrop'
 import { displayHandle } from '../identity/handle'
@@ -154,14 +155,15 @@ function LegacyLeaderboard() {
           )}
 
           {support === 'yes' && board.status === 'ready' && view && total === 0 && !view.meRow && (
-            <Notice icon={<Trophy size={30} />} title={isDemo ? 'No one is on the board yet' : 'No runs yet'}>
-              <p className="sd-card__muted" data-testid="lb-empty">
-                {isDemo ? 'Finish a run to be the first.' : 'Finish a run in this dungeon to see your best scores here.'}
-              </p>
-              <Link to="/dashboard" className="sd-cta">
-                Start a run
-              </Link>
-            </Notice>
+            <section className="sd-card sd-lb__notice">
+              <EmptyState
+                icon={Trophy}
+                title={isDemo ? 'No one is on the board yet' : 'No runs yet'}
+                message={isDemo ? 'Finish a run to be the first.' : 'Finish a run in this dungeon to see your best scores here.'}
+                action={{ label: 'Start a run', to: '/dashboard' }}
+                testId="lb-empty"
+              />
+            </section>
           )}
 
           {support === 'yes' && board.status === 'ready' && view && (total > 0 || view.meRow) && (

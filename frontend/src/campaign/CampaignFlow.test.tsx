@@ -75,7 +75,7 @@ async function openMap() {
       </SessionProvider>
     </MemoryRouter>,
   )
-  await user.click(screen.getByRole('button', { name: /try the demo/i }))
+  await user.click(await screen.findByRole('button', { name: /try the demo/i }))
   await user.click(await screen.findByRole('button', { name: 'Accept and continue' }))
   await screen.findByRole('button', { name: /Play preloaded dungeons/ })
   act(() => nav.go('/campaign/demo-dungeon'))

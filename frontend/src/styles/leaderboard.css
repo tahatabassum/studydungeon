@@ -70,7 +70,7 @@
   grid-template-columns: repeat(3, minmax(0, 1fr));
   align-items: end;
   gap: 0.5rem;
-  max-width: 28rem;
+  max-width: 32rem;
   width: 100%;
   margin: 0 auto;
   padding: 0;
@@ -171,13 +171,13 @@
 }
 
 /* ---------- Table: compact rows ---------- */
-.sd-lb__rowsbox { min-width: 0; min-height: 0; flex: 1 1 auto; container: lbrows / size; }
+.sd-lb__rowsbox { min-width: 0; min-height: 0; flex: 1 1 auto; container: lbrows / inline-size; }
 .sd-lb__table {
   display: block;
   width: 100%;
   font-size: var(--sd-text-sm);
 }
-.sd-lb__table thead:not(.sr-only) {
+.sd-lb__table thead:not(.sr-only):not(.sd-lb__thead) {
   position: absolute;
   width: 1px;
   height: 1px;
@@ -238,15 +238,6 @@
 /* Two columns when the rows box is too short for one column of up to 17 rows (ranks 4-12, then 13-20). */
 @media (min-width: 1100px) and (pointer: fine) {
   .sd-lb__rowsbox { overflow: visible; }
-}
-@container lbrows (max-height: 50rem) {
-  .sd-lb__table[data-many] tbody {
-    grid-auto-flow: column;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    grid-template-rows: repeat(var(--lb-half, 9), minmax(2.25rem, 2.75rem));
-  }
-  .sd-lb__table[data-many] .sd-lb__col-badges { display: none; }
-  .sd-lb__table[data-many] .sd-lb__rival { display: none; }
 }
 @container lbrows (max-width: 30rem) {
   .sd-lb__col-badges { display: none; }
@@ -358,4 +349,106 @@
 }/* Menace backdrop sits behind the board; a faint blood tint on the sky only. */
 .sd-lb-menace .sd-page__vignette {
   background: radial-gradient(ellipse at 50% 45%, transparent 40%, rgb(40 0 6 / 0.7) 100%);
+}
+
+/* ---------- Live board layout: Top 3 card left, Standings card right (2026-11-24) ---------- */
+.sd-lb__podiumcard { padding: clamp(0.75rem, 2vh, 1.25rem) 0.75rem 1.1rem; overflow: visible; }
+.sd-podium[data-count='1'] { grid-template-columns: minmax(0, 11rem); justify-content: center; }
+.sd-podium[data-count='2'] { grid-template-columns: repeat(2, minmax(0, 9rem)); justify-content: center; }
+.sd-lb__standings { gap: 0.6rem; padding: clamp(0.6rem, 1.6vh, 1rem) clamp(0.75rem, 1.6vw, 1.1rem); min-height: 0; }
+.sd-lb__standings-head { display: flex; align-items: baseline; justify-content: space-between; gap: 0.75rem; }
+.sd-lb__standings-title { margin: 0; font-family: var(--font-display); font-size: clamp(1.25rem, 3vh, 1.6rem); font-weight: 400; color: var(--color-gold); }
+.sd-lb__standings-count { font-size: var(--sd-text-xs); color: var(--color-ink-muted); white-space: nowrap; }
+/* Five columns on the live board: rank, player, level, points, rooms. */
+.sd-lb__standings .sd-lb__row,
+.sd-lb__standings .sd-lb__headrow { grid-template-columns: 2.75rem minmax(0, 1fr) 4.5rem 6.5rem 4.5rem; }
+/* The live board shows its column headings (the older rule hides thead for screen readers only). */
+.sd-lb__standings .sd-lb__thead { display: block; position: static; width: auto; height: auto; overflow: visible; clip: auto; white-space: normal; }
+.sd-lb__standings .sd-lb__headrow { display: grid; padding-bottom: 0.15rem; }
+.sd-lb__standings .sd-lb__headrow > th {
+  padding: 0 0.5rem;
+  font-family: var(--font-label);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  text-align: right;
+  color: var(--color-ink-muted);
+}
+.sd-lb__standings .sd-lb__headrow > th:nth-child(1) { text-align: center; }
+.sd-lb__standings .sd-lb__headrow > th:nth-child(2) { text-align: left; }
+.sd-lb__standings .sd-lb__sub--compact { display: none; }
+.sd-lb__row[data-place='1'] .sd-lb__rank { color: var(--color-gold); }
+.sd-lb__row[data-place='2'] .sd-lb__rank { color: var(--color-bone); }
+.sd-lb__row[data-place='3'] .sd-lb__rank { color: var(--color-ember); }
+.sd-lb__row[data-place='1'] > * { border-color: color-mix(in srgb, var(--color-gold) 55%, var(--color-deep)); }
+.sd-lb__c-level, .sd-lb__c-rooms { color: var(--color-ink-muted); }
+@media (max-width: 1099px), (pointer: coarse) {
+  .sd-lb__standings .sd-lb__row,
+  .sd-lb__standings .sd-lb__headrow { grid-template-columns: 2.25rem minmax(0, 1fr) 5.5rem; }
+  .sd-lb__standings .sd-lb__c-level,
+  .sd-lb__standings .sd-lb__c-rooms { display: none; }
+  .sd-lb__standings .sd-lb__sub--compact { display: block; }
+}
+/* ---------- Layout fixes (task 1.4) ---------- */
+/* The page grows with the Standings card instead of squeezing it. */
+.sd-lb__panel > .sd-lb__grid { flex: 0 0 auto; min-height: auto; }
+.sd-lb__right { min-height: auto; }
+.sd-lb__standings, .sd-lb__standings .sd-lb__rowsbox { flex: none; }
+.sd-lb__standings .sd-lb__headrow--b { display: none; }
+.sd-lb__standings .sd-lb__c-badges { display: none; }
+.sd-lb__standings .sd-lb__table[data-badges] .sd-lb__c-badges { display: block; }
+.sd-lb__standings .sd-lb__table[data-badges] .sd-lb__row,
+.sd-lb__standings .sd-lb__table[data-badges] .sd-lb__headrow { grid-template-columns: 2.75rem minmax(0, 1fr) 4.5rem 6.5rem 4.5rem 8rem; }
+.sd-lb__standings .sd-lb__col-badges { display: flex; }
+.sd-lb__standings .sd-lb__table:not([data-badges]) .sd-lb__col-badges { display: none; }
+.sd-lb__standings .sd-lb__foot { margin-top: 0.25rem; }
+/* Podium: bigger, stages inside the card. */
+.sd-podium { gap: 0.75rem; }
+.sd-podium__name { font-size: var(--sd-text-base, 1rem); }
+.sd-podium__score { font-size: 1.5rem; }
+.sd-podium__pedestal { border-bottom: 2px solid var(--color-deep); border-radius: 0.5rem; font-size: 1.75rem; padding-top: 0.5rem; }
+.sd-podium__slot[data-place='1'] .sd-podium__pedestal { height: 4.75rem; }
+.sd-podium__slot[data-place='2'] .sd-podium__pedestal { height: 3.6rem; }
+.sd-podium__slot[data-place='3'] .sd-podium__pedestal { height: 2.8rem; }
+.sd-podium__slot[data-place='1'] .sd-podium__pedestal { border-bottom-color: var(--color-gold); }
+/* Many entries: two columns only when the box is wide enough; headings repeat per column. */
+@container lbrows (min-width: 46rem) {
+  .sd-lb__standings .sd-lb__table[data-many] tbody {
+    grid-auto-flow: column;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-rows: repeat(var(--lb-half, 9), minmax(2.25rem, 2.75rem));
+  }
+  .sd-lb__standings .sd-lb__table[data-many] .sd-lb__thead { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 0.25rem; }
+  .sd-lb__standings .sd-lb__table[data-many] .sd-lb__headrow--b { display: grid; }
+  .sd-lb__standings .sd-lb__table[data-many] .sd-lb__row,
+  .sd-lb__standings .sd-lb__table[data-many] .sd-lb__headrow { grid-template-columns: 2.75rem minmax(0, 1fr) 2.75rem 4.25rem 3.25rem; }
+  .sd-lb__standings .sd-lb__table[data-many] .sd-lb__headrow > th { padding-inline: 0.25rem; letter-spacing: 0.02em; }
+  .sd-lb__standings .sd-lb__table[data-many] .sd-lb__col-badges,
+  .sd-lb__standings .sd-lb__table[data-many] .sd-lb__c-badges,
+  .sd-lb__standings .sd-lb__table[data-many] .sd-lb__rival { display: none; }
+}
+@media (max-width: 1099px), (pointer: coarse) {
+  .sd-lb__standings .sd-lb__table .sd-lb__row,
+  .sd-lb__standings .sd-lb__table .sd-lb__headrow,
+  .sd-lb__standings .sd-lb__table[data-badges] .sd-lb__row,
+  .sd-lb__standings .sd-lb__table[data-badges] .sd-lb__headrow { grid-template-columns: 2.75rem minmax(0, 1fr) 5.5rem; }
+  .sd-lb__standings .sd-lb__table[data-badges] .sd-lb__c-badges,
+  .sd-lb__standings .sd-lb__table[data-badges] .sd-lb__col-badges { display: none; }
+  .sd-lb__grid .sd-lb__left { display: contents; }
+  .sd-lb__grid .sd-lb__right { order: 1; }
+  .sd-lb__grid .sd-lb__you { order: 2; }
+  .sd-lb-menace .sd-page__actions { margin-block: 0.6rem; }
+}
+.sd-podium__name .sd-lb__nametext { white-space: normal; overflow-wrap: anywhere; text-align: center; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+@media (max-width: 399px) {
+  .sd-podium { gap: 0.35rem; }
+  .sd-podium__name { font-size: 0.8rem; align-items: flex-start; flex-wrap: wrap; }
+  .sd-podium__name .sd-lb__nametext {
+    white-space: normal; overflow-wrap: anywhere; text-align: center;
+    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+  }
+  .sd-podium__score { font-size: 1.15rem; }
+  .sd-podium .sd-lb__rival { display: none; }
+  .sd-podium__pedestal { font-size: 1.3rem; }
 }

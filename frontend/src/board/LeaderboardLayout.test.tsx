@@ -117,15 +117,19 @@ describe('leaderboard layout', () => {
     expect(screen.queryByRole('alert')).toBeNull()
     if (n === 0) expect(screen.getByText('Be the first to enter')).toBeTruthy()
     else expect(screen.getByTestId('podium')).toBeTruthy()
-    if (n === 1 || n === 3) expect(screen.getByTestId('lb-rows-empty')).toBeTruthy()
+    // Every ranked player is in the Standings, the top 3 included, with the ranked count.
+    if (n > 0) {
+      expect(screen.getByTestId('lb-standings').querySelectorAll('tbody tr')).toHaveLength(n)
+      expect(screen.getByTestId('lb-count').textContent).toBe(`${n} ${n === 1 ? 'player' : 'players'} ranked`)
+    }
   })
 
-  it('splits ranks 4 to 20 into two columns of up to 9 when there are many rows', async () => {
+  it('splits the 20 standings into two columns of 10 when there are many rows', async () => {
     await show(board(20))
     const table = screen.getByRole('table', { name: 'Rankings' })
     expect(table.getAttribute('data-many')).toBe('true')
-    expect(table.style.getPropertyValue('--lb-half')).toBe('9')
-    expect(table.querySelectorAll('tbody tr')).toHaveLength(17)
+    expect(table.style.getPropertyValue('--lb-half')).toBe('10')
+    expect(table.querySelectorAll('tbody tr')).toHaveLength(20)
     cleanup()
     await show(board(8))
     expect(screen.getByRole('table', { name: 'Rankings' }).getAttribute('data-many')).toBeNull()

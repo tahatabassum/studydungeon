@@ -2,6 +2,7 @@ import { useId, useRef, useState, type FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { Eye, EyeOff, LogIn, UserPlus } from 'lucide-react'
 import '../styles/auth.css'
+import '../styles/landing-auth.css'
 import { getApi } from '../api'
 import { useSession } from '../state/SessionContext'
 import { StoneFrame } from '../components/StoneFrame'
@@ -114,7 +115,7 @@ export function AuthForm({ mode, upgrade = false }: { mode: AuthMode; upgrade?: 
             ? await api.upgradeGuest(credentials)
             : await api.register(credentials)
       setUser(user)
-      navigate('/dashboard')
+      navigate('/dashboard', { replace: true })
     } catch (err) {
       if (upgrading && (await upgradeSwitchedOff(err))) {
         setFellBack(true)

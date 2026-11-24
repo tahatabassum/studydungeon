@@ -10,6 +10,7 @@ import { useReducedMotion } from '../state/useReducedMotion'
 import { HauntedBackdrop } from '../components/HauntedBackdrop'
 import '../styles/live.css'
 import '../styles/haunted.css'
+import '../styles/settings-polish.css'
 
 /** `/settings` (RequireSession): who you are, how sound and motion work, log out, and delete the account. */
 export default function SettingsPage() {
@@ -53,7 +54,7 @@ export default function SettingsPage() {
         </section>
         </div>
 
-        <div className="sd-dash__actions">
+        <div className="sd-dash__actions sd-settings__actions">
           {registered && (
             <Button variant="secondary" onClick={() => void logOut()} disabled={loggingOut} data-testid="settings-logout">
               <LogOut aria-hidden="true" size={16} />
