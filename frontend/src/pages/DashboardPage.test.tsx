@@ -148,6 +148,8 @@ describe('DashboardPage, signed-in player', () => {
     h.api = {
       ...adapter,
       getLeaderboard: vi.fn().mockResolvedValue({ ...base, entries: [...base.entries, mine], me: { rank: 2, is_provisional: false, entry: mine } }),
+      // The old dungeon board (the live board has its own card and tests).
+      capabilities: { ...adapter.capabilities, liveBoard: false },
     }
     renderDash()
     const board = await screen.findByTestId('board-preview')
@@ -211,7 +213,7 @@ describe('DashboardPage, signed-in player', () => {
   it('shows a coming-soon leaderboard card when the backend has none', async () => {
     const adapter = createMockAdapter({ player: true })
     const get = vi.fn()
-    h.api = { ...adapter, getLeaderboard: get, capabilities: { roomRevenants: false, floors: true, modes: true, dailyHaunt: true, leaderboard: false } }
+    h.api = { ...adapter, getLeaderboard: get, capabilities: { roomRevenants: false, floors: true, modes: true, dailyHaunt: true, leaderboard: false, liveBoard: false } }
     renderDash()
     const card = await screen.findByTestId('board-preview')
     expect(card.textContent).toContain('coming soon')

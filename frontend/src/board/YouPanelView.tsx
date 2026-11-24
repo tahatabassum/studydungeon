@@ -14,13 +14,23 @@ export interface YouPanelProps {
   nowMs?: number
 }
 
+/** "every minute", "hourly", "every 5 minutes": the table's refresh interval as the server reports it. */
+export function refreshEvery(updatedAt: string | undefined, nextRefreshMs: number | null | undefined): string {
+  const updated = updatedAt ? Date.parse(updatedAt) : Number.NaN
+  if (nextRefreshMs == null || Number.isNaN(updated)) return 'regularly'
+  const minutes = Math.max(1, Math.round((nextRefreshMs - updated) / 60_000))
+  if (minutes === 1) return 'every minute'
+  if (minutes === 60) return 'hourly'
+  return minutes % 60 === 0 ? `every ${minutes / 60} hours` : `every ${minutes} minutes`
+}
+
 function Refresh({ updatedAt, nextRefreshMs, nowMs }: Pick<YouPanelProps, 'updatedAt' | 'nextRefreshMs' | 'nowMs'>) {
   if (updatedAt === undefined) return null
   const updated = new Date(updatedAt)
   const time = Number.isNaN(updated.getTime()) ? '' : updated.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', hourCycle: 'h23' })
   return (
     <p className="sd-lb__you-refresh" data-testid="lb-refresh">
-      {time ? `Table updated at ${time}, refreshes hourly.` : 'The table refreshes hourly.'}
+      {time ? `Table updated at ${time}, refreshes ${refreshEvery(updatedAt, nextRefreshMs)}.` : `The table refreshes ${refreshEvery(updatedAt, nextRefreshMs)}.`}
       {nextRefreshMs != null && nowMs !== undefined && <span data-testid="lb-countdown">{` Next refresh in ${formatCountdown(nextRefreshMs, nowMs)}.`}</span>}
     </p>
   )
@@ -32,7 +42,7 @@ export function YouPanel({ me, isGuest, updatedAt, nextRefreshMs, nowMs }: YouPa
   const head = (
     <>
       <h2 className="sd-lb__you-title">Your live rank</h2>
-      <p className="sd-lb__you-live">Updates instantly. The table refreshes hourly.</p>
+      <p className="sd-lb__you-live">{`Updates instantly. The table refreshes ${refreshEvery(updatedAt, nextRefreshMs)}.`}</p>
     </>
   )
   if (!v) {

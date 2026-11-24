@@ -68,6 +68,8 @@ class Settings(BaseSettings):
     UPLOAD_PLAYER_STORED_LIMIT: int = 0
     UPLOAD_IP_DAILY_LIMIT: int = 0
     UPLOAD_GLOBAL_DAILY_LIMIT: int = 0
+    # How long the leaderboard table snapshot is kept before it is recomputed (the player's own rank is always live).
+    LEADERBOARD_SNAPSHOT_SECONDS: int = 60
 
     @model_validator(mode="after")
     def validate_ai_provider_model(self) -> "Settings":

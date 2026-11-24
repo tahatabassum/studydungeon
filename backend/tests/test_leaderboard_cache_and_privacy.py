@@ -53,3 +53,23 @@ async def test_board_never_exposes_login_names(async_client: AsyncClient, db_ses
     assert data["entries"][0]["handle"] == "p_top0001"
     assert data["me"]["handle"] == "p_me00001"
     assert data["me"]["next_above"]["handle"] == "p_top0001"
+
+@pytest.mark.asyncio
+async def test_the_table_refreshes_after_the_snapshot_interval(async_client: AsyncClient, db_session: AsyncSession, monkeypatch):
+    from datetime import datetime
+
+    from app.core.config import settings as app_settings
+
+    monkeypatch.setattr(app_settings, "LEADERBOARD_SNAPSHOT_SECONDS", 60)
+    first = (await async_client.get("/leaderboard?board=overall&period=all")).json()
+    assert first["entries"] == []
+    gap = datetime.fromisoformat(first["next_refresh_at"].rstrip("Z")) - datetime.fromisoformat(first["updated_at"].rstrip("Z"))
+    assert gap.total_seconds() == 60
+
+    # A player scores; within the interval the table is the cached one, after it the player shows up.
+    await _ranked_player(db_session, "late_scorer", "p_late0001", 400, "Owl", "7710")
+    assert (await async_client.get("/leaderboard?board=overall&period=all")).json()["entries"] == []
+    for key, (entries, updated, _next, total) in list(leaderboard_module._LEADERBOARD_SNAPSHOT_CACHE.items()):
+        leaderboard_module._LEADERBOARD_SNAPSHOT_CACHE[key] = (entries, updated, updated, total)  # interval elapsed
+    after = (await async_client.get("/leaderboard?board=overall&period=all")).json()
+    assert [e["handle"] for e in after["entries"]] == ["Owl#7710"]
