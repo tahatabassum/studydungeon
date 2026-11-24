@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react'
+import { startTransition, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { getApi } from '@/api'
 import { useSession } from '@/state/SessionContext'
@@ -17,8 +17,12 @@ export function OpenLegacyPlay() {
     void getApi()
       .then((api) => api.startDemoSession())
       .then((session) => {
-        setSession(session)
-        navigate('/play')
+        // One transition: the session and the route change commit together, so the `/` entry guard
+        // never sees a user while still on `/` (it would redirect to /dashboard).
+        startTransition(() => {
+          setSession(session)
+          navigate('/play')
+        })
       })
   }, [navigate, setSession])
   return null

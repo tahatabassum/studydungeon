@@ -1,0 +1,36 @@
+/* Shared EmptyState: centered, muted ghost icon on a soft panel with a dashed gold border. */
+.sd-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--sd-space-2, 0.5rem);
+  padding: var(--sd-space-5, 1.5rem) var(--sd-space-4, 1rem);
+  text-align: center;
+  border: 1px dashed color-mix(in srgb, var(--color-gold) 35%, transparent);
+  border-radius: 0.6rem;
+  background: color-mix(in srgb, var(--color-bg) 55%, transparent);
+}
+.sd-empty__icon {
+  display: inline-flex;
+  color: var(--color-ink-muted);
+  opacity: 0.75;
+}
+.sd-empty__title {
+  margin: 0;
+  font-family: var(--font-label);
+  font-weight: 700;
+  color: var(--color-bone, var(--color-ink));
+}
+.sd-empty__text {
+  margin: 0;
+  max-width: 32rem;
+  font-size: var(--sd-text-sm, 0.875rem);
+  color: var(--color-ink-muted);
+}
+.sd-empty__text a { color: var(--color-gold); }
+.sd-empty .sd-ghost-btn { margin-top: var(--sd-space-1, 0.25rem); }
+[data-reduced='true'] .sd-empty,
+[data-reduced='true'] .sd-empty * { transition: none; animation: none; }
+@media (prefers-reduced-motion: reduce) {
+  .sd-empty, .sd-empty * { transition: none; animation: none; }
+}

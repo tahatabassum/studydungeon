@@ -1,0 +1,34 @@
+/* Scorecard polish: a more rewarding hero and mastery chips. Visual only; loaded after scorecard.css. */
+.sd-score__hero {
+  border-color: color-mix(in srgb, var(--color-gold) 45%, transparent);
+  box-shadow: 0 0 18px color-mix(in srgb, var(--color-gold) 22%, transparent);
+}
+.sd-score__num {
+  color: var(--color-gold);
+  text-shadow: 0 0 12px color-mix(in srgb, var(--color-gold) 45%, transparent);
+}
+.sd-score__xp {
+  color: var(--color-gold);
+}
+.sd-score__block {
+  border: 1px solid color-mix(in srgb, var(--color-gold) 18%, transparent);
+  border-radius: 0.6rem;
+}
+.sd-score__h {
+  padding-bottom: 0.25rem;
+  border-bottom: 1px solid color-mix(in srgb, var(--color-gold) 20%, transparent);
+}
+.sd-score__h--dark {
+  border-bottom-color: color-mix(in srgb, var(--color-deep) 25%, transparent);
+}
+
+/* Mastery band chips: colour plus text (never colour alone). */
+.sd-score__band {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.1rem 0.55rem;
+  border-radius: 999px;
+  border: 1px solid currentColor;
+  background: color-mix(in srgb, currentColor 12%, transparent);
+  font-weight: 700;
+}

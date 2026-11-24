@@ -18,7 +18,7 @@ export function useLogout(): { loggingOut: boolean; logOut: () => Promise<void> 
       // The cookie may already be gone; leaving is still right.
     } finally {
       clearSession()
-      navigate('/')
+      navigate('/', { replace: true })
     }
   }, [loggingOut, clearSession, navigate])
   return { loggingOut, logOut }

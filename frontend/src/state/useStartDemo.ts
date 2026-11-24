@@ -54,7 +54,7 @@ export function useStartDemo(): UseStartDemo {
   const open = useCallback(
     (res: DemoSessionResponse) => {
       setSession(res)
-      navigate(`/campaign/${encodeURIComponent(res.dungeon_id)}`)
+      navigate(`/campaign/${encodeURIComponent(res.dungeon_id)}`, { replace: true })
     },
     [navigate, setSession],
   )

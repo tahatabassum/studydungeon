@@ -36,8 +36,11 @@ export function renderApp(): void {
 /** Landing -> Try the Demo -> Name_Screen -> Accept and continue -> preloaded card on /choose. */
 export async function enterDemoAsGuest(user: ReturnType<typeof userEvent.setup>): Promise<void> {
   renderApp()
-  await user.click(screen.getByRole('button', { name: /try the demo/i }))
-  // A player who already has a session (a second render on the same adapter) goes straight to /choose.
+  // A player who already has a session (a second render on the same adapter) is sent from the landing to
+  // the dashboard by the entry guard, so go to /choose directly.
+  const entry = await screen.findByRole('button', { name: /try the demo|leave session/i })
+  if (/try the demo/i.test(entry.textContent ?? '')) await user.click(entry)
+  else act(() => nav.go('/choose'))
   const first = await screen.findByRole('button', { name: /Accept and continue|Play preloaded dungeons/ })
   if (/Accept and continue/.test(first.textContent ?? '')) await user.click(first)
   await screen.findByRole('button', { name: /Play preloaded dungeons/ })

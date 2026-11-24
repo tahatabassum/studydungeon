@@ -1,6 +1,6 @@
 import type { CSSProperties } from 'react'
-import { Link } from 'react-router-dom'
 import { AlertTriangle, Trophy } from 'lucide-react'
+import { EmptyState } from '../components/EmptyState'
 import { Avatar, avatarKind } from '../leaderboard/Avatar'
 import { BadgeIcons } from '../badges/BadgeGrid'
 import type { BoardEntry, BoardKind, BoardResponse, LeaderboardPeriod } from '../types/api'
@@ -207,16 +207,13 @@ export function LiveBoard({ board, period, isGuest }: LiveBoardProps) {
         <div className="sd-lb__right">
           {view.empty ? (
             <section className="sd-card sd-lb__notice">
-              <div className="sd-lb__notice-icon" aria-hidden="true">
-                <Trophy size={30} />
-              </div>
-              <h2 className="sd-lb__notice-title">Be the first to enter</h2>
-              <p className="sd-card__muted" data-testid="lb-empty">
-                No one has points on this board yet.
-              </p>
-              <Link to="/choose" className="sd-cta">
-                Play
-              </Link>
+              <EmptyState
+                icon={Trophy}
+                title="Be the first to enter"
+                message="No one has points on this board yet."
+                action={{ label: 'Play', to: '/choose' }}
+                testId="lb-empty"
+              />
             </section>
           ) : (
             <section className="sd-card sd-lb__standings" aria-labelledby="lb-standings-title" data-testid="lb-standings">

@@ -1,8 +1,10 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { UserPlus } from 'lucide-react'
+import { UserPlus, WifiOff } from 'lucide-react'
 import { getApi } from '../api'
 import { capabilityOf } from '../api/ApiClient'
+import { EmptyState } from '../components/EmptyState'
+import '../styles/upload-polish.css'
 import { HauntedBackdrop } from '../components/HauntedBackdrop'
 import { PageShell } from '../components/PageShell'
 import { useSession } from '../state/SessionContext'
@@ -113,7 +115,12 @@ export default function UploadPage({ pollMs }: UploadPageProps = {}) {
         </section>
       ) : access === 'offline' ? (
         <section className="sd-card" data-testid="upload-unavailable">
-          <p className="sd-card__text">Uploading notes needs a connection to the server. It is not available in the offline demo.</p>
+          <EmptyState
+            icon={WifiOff}
+            title="Uploads unavailable"
+            message="Uploading notes needs a connection to the server. It is not available in the offline demo."
+            action={{ label: 'Back to dashboard', to: '/dashboard' }}
+          />
         </section>
       ) : (
         <UploadWizard

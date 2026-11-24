@@ -11,6 +11,7 @@ import { FloorMap } from './FloorMap'
 import { rejectionMessage } from './rejection'
 import { campaignView } from './floorRooms'
 import { useGenerationStatus } from './useGenerationStatus'
+import '../styles/campaign-polish.css'
 
 const NO_FLOORS: Floor[] = []
 
@@ -114,7 +115,7 @@ export default function CampaignPage() {
 
   if (loadError) {
     return (
-      <main className="flex min-h-screen flex-col items-center justify-center gap-4 bg-bg text-ink">
+      <main className="sd-campaign-state flex min-h-screen flex-col items-center justify-center gap-4 bg-bg text-ink">
         <p role="alert">{loadError}</p>
         <div className="flex gap-4">
           <button type="button" className="sd-control rounded-lg border-2 border-magic px-4 py-2" onClick={load}>
@@ -130,7 +131,7 @@ export default function CampaignPage() {
 
   if (!dungeon || !view) {
     return (
-      <main className="flex min-h-screen items-center justify-center gap-3 bg-bg text-ink">
+      <main className="sd-campaign-state flex min-h-screen items-center justify-center gap-3 bg-bg text-ink">
         <Spinner label="Opening the map..." />
         <span aria-hidden="true">Opening the map...</span>
       </main>

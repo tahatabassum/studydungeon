@@ -1,0 +1,58 @@
+/* Settings polish: shared spacing/type scale, gold-tinted cards, a clear danger zone. Visual only; loaded after haunted.css. */
+.sd-haunted .sd-settings {
+  gap: var(--sd-space-4);
+}
+.sd-haunted .sd-settings__cards {
+  gap: var(--sd-space-4);
+}
+.sd-settings .sd-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sd-space-2);
+  padding: var(--sd-space-4) var(--sd-space-5);
+  border: 1px solid color-mix(in srgb, var(--color-gold) 28%, transparent);
+  border-radius: 0.75rem;
+  box-shadow: var(--sd-elev-2);
+  font-size: var(--sd-text-md);
+}
+.sd-settings .sd-card p {
+  margin: 0;
+}
+.sd-settings .sd-card__h {
+  margin: 0;
+  padding-bottom: var(--sd-space-2);
+  font-size: var(--sd-text-lg);
+  color: var(--color-gold);
+  border-bottom: 1px solid color-mix(in srgb, var(--color-gold) 22%, transparent);
+}
+.sd-settings .sd-card__muted,
+.sd-settings .sd-live__note {
+  font-size: var(--sd-text-sm);
+}
+
+/* Actions row doubles as the danger zone: a quiet divider and a red-tinted delete button. */
+.sd-haunted .sd-settings .sd-settings__actions {
+  width: 100%;
+  gap: var(--sd-space-3);
+  padding-top: var(--sd-space-4);
+  border-top: 1px solid color-mix(in srgb, var(--color-danger) 30%, transparent);
+}
+.sd-settings [data-testid='settings-delete'] {
+  border-color: color-mix(in srgb, var(--color-danger) 65%, transparent);
+  color: color-mix(in srgb, var(--color-danger) 55%, var(--color-ink));
+  transition: box-shadow var(--sd-dur-2, 200ms) ease, border-color var(--sd-dur-2, 200ms) ease;
+}
+.sd-settings [data-testid='settings-delete']:hover:not(:disabled) {
+  border-color: var(--color-danger);
+  box-shadow: 0 0 12px color-mix(in srgb, var(--color-danger) 35%, transparent);
+}
+
+[data-reduced='true'] .sd-settings [data-testid='settings-delete'],
+html[data-reduced='true'] .sd-settings [data-testid='settings-delete'] {
+  transition: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .sd-settings [data-testid='settings-delete'] {
+    transition: none;
+  }
+}

@@ -10,8 +10,11 @@
   text-align: left;
 }
 .sd-dash > * { min-width: 0; }
-@media (min-width: 768px) {
+@media (min-width: 640px) {
   .sd-dash { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.25rem; }
+}
+@media (min-width: 1100px) {
+  .sd-dash { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 }
 .sd-dash__wide { grid-column: 1 / -1; }
 /* Stacked cards (Recent runs + Haunted memories) share one grid cell and split its height. */
@@ -188,4 +191,199 @@
 @media (max-width: 640px) {
   .sd-notes__item { grid-template-columns: minmax(0, 1fr) auto; }
   .sd-notes__actions { grid-column: 1 / -1; }
+}
+
+/* ---------- Card primitives (scoped so the Leaderboard and Upload cards keep their layout) ---------- */
+.sd-dash .sd-card,
+.sd-hero .sd-card {
+  padding: var(--sd-space-4) var(--sd-space-5);
+  gap: var(--sd-space-3);
+  border-color: color-mix(in srgb, var(--color-gold) 22%, var(--color-deep));
+  box-shadow:
+    var(--sd-elev-2),
+    inset 0 1px 0 color-mix(in srgb, var(--color-bone) 8%, transparent),
+    inset 0 0 0 1px color-mix(in srgb, var(--color-pumpkin) 14%, transparent);
+  transition:
+    border-color var(--sd-dur-base) ease,
+    box-shadow var(--sd-dur-base) ease,
+    transform var(--sd-dur-fast) ease;
+}
+.sd-dash .sd-card:hover,
+.sd-dash .sd-card:focus-within {
+  border-color: color-mix(in srgb, var(--color-gold) 55%, transparent);
+  box-shadow:
+    var(--sd-elev-3),
+    0 0 16px color-mix(in srgb, var(--color-gold) 30%, transparent),
+    inset 0 0 0 1px color-mix(in srgb, var(--color-pumpkin) 22%, transparent);
+}
+/* Card header: label font, thin gold hairline underneath. */
+.sd-dash .sd-card__h {
+  padding-bottom: var(--sd-space-2);
+  border-bottom: 1px solid color-mix(in srgb, var(--color-gold) 25%, transparent);
+}
+[data-reduced='true'] .sd-dash .sd-card,
+[data-reduced='true'] .sd-hero,
+[data-reduced='true'] .sd-hero *,
+[data-reduced='true'] .sd-hero *::before,
+[data-reduced='true'] .sd-hero::before,
+[data-reduced='true'] .sd-hero::after {
+  transition: none !important;
+  animation: none !important;
+}
+@media (prefers-reduced-motion: reduce) {
+  .sd-dash .sd-card,
+  .sd-hero,
+  .sd-hero *,
+  .sd-hero::before,
+  .sd-hero::after {
+    transition: none !important;
+    animation: none !important;
+  }
+}
+
+/* ---------- Hero ---------- */
+.sd-hero {
+  position: relative;
+  isolation: isolate;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sd-space-4);
+  width: 100%;
+  min-width: 0;
+  margin-bottom: var(--sd-space-5);
+  padding: var(--sd-space-6) var(--sd-space-5);
+  overflow: hidden;
+  text-align: left;
+  border: 1px solid color-mix(in srgb, var(--color-gold) 40%, var(--color-deep));
+  border-radius: 0.8rem;
+  background:
+    radial-gradient(ellipse 70% 120% at 85% 0%, color-mix(in srgb, var(--color-witch) 38%, transparent), transparent 70%),
+    radial-gradient(ellipse 60% 100% at 5% 100%, color-mix(in srgb, var(--color-pumpkin) 16%, transparent), transparent 70%),
+    linear-gradient(180deg, var(--color-panel), var(--color-bg));
+  box-shadow: var(--sd-elev-3), inset 0 0 0 1px color-mix(in srgb, var(--color-gold) 12%, transparent);
+}
+/* Fog band along the bottom. */
+.sd-hero::before {
+  content: '';
+  position: absolute;
+  inset: auto 0 0 0;
+  height: 55%;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse 50% 70% at 20% 100%, color-mix(in srgb, var(--color-bone) 14%, transparent), transparent 70%),
+    radial-gradient(ellipse 45% 60% at 70% 100%, color-mix(in srgb, var(--color-ghost) 12%, transparent), transparent 70%);
+  animation: sd-hero-fog 18s ease-in-out infinite alternate;
+}
+/* Vignette. */
+.sd-hero::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background: radial-gradient(ellipse at center, transparent 55%, color-mix(in srgb, var(--color-bg) 85%, transparent) 100%);
+}
+@keyframes sd-hero-fog {
+  from { transform: translateX(-3%); }
+  to { transform: translateX(3%); }
+}
+.sd-hero__eyebrow {
+  margin: 0;
+  font-family: var(--font-label);
+  font-size: var(--sd-text-sm);
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--color-ink-muted);
+}
+.sd-hero__title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: clamp(2.25rem, 6vw, 3.5rem);
+  line-height: 1.05;
+  color: var(--color-gold);
+  text-shadow: 0 0 18px color-mix(in srgb, var(--color-pumpkin) 50%, transparent);
+  overflow-wrap: anywhere;
+}
+.sd-hero__sub {
+  margin: 0;
+  max-width: 40rem;
+  font-size: var(--sd-text-md);
+  color: var(--color-ink);
+}
+.sd-hero__level {
+  display: flex;
+  align-items: center;
+  gap: var(--sd-space-4);
+  max-width: 32rem;
+}
+.sd-hero__badge {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 3.5rem;
+  height: 3.5rem;
+  padding: 0 var(--sd-space-2);
+  border-radius: 50%;
+  border: 2px solid var(--color-gold);
+  background: radial-gradient(circle at 35% 30%, var(--color-deep), var(--color-bg) 80%);
+  font-family: var(--font-display);
+  font-size: var(--sd-text-xl);
+  line-height: 1;
+  color: var(--color-gold);
+  box-shadow: 0 0 14px color-mix(in srgb, var(--color-gold) 40%, transparent);
+}
+/* XP bar: ProgressBar wrapper plus numeric caption. */
+.sd-hero__xp { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: var(--sd-space-1); }
+.sd-hero__xp [role='progressbar'] {
+  border: 1px solid color-mix(in srgb, var(--color-gold) 45%, var(--color-deep));
+  border-radius: 999px;
+  box-shadow: inset 0 1px 3px rgb(0 0 0 / 0.6);
+}
+.sd-hero__xp-text {
+  font-family: var(--font-label);
+  font-size: var(--sd-text-sm);
+  font-variant-numeric: tabular-nums;
+  color: var(--color-ink-muted);
+}
+.sd-hero__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sd-space-3);
+}
+.sd-hero__cta {
+  min-height: 3.25rem;
+  padding: var(--sd-space-3) var(--sd-space-5);
+  font-size: var(--sd-text-lg);
+  letter-spacing: 0.04em;
+}
+.sd-hero__cta:focus-visible { outline: 3px solid var(--color-accent); outline-offset: 3px; }
+.sd-hero__art { position: absolute; inset: 0; z-index: -1; pointer-events: none; }
+
+/* ---------- Rune divider ---------- */
+.sd-rune-divider {
+  display: flex;
+  align-items: center;
+  gap: var(--sd-space-3);
+  width: 100%;
+  margin: var(--sd-space-2) 0;
+  color: var(--color-gold);
+  line-height: 1;
+}
+.sd-rune-divider::before,
+.sd-rune-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--color-gold) 70%, transparent), transparent);
+}
+.sd-rune-divider > svg { flex: none; width: 1.25rem; height: 1.25rem; opacity: 0.9; }
+
+@media (max-width: 639px) {
+  .sd-hero { padding: var(--sd-space-5) var(--sd-space-4); }
+  .sd-hero__cta { width: 100%; }
 }

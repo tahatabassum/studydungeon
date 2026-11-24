@@ -287,7 +287,20 @@ describe('DashboardPage, guest', () => {
   it('Create account goes to the sign-in page', async () => {
     const user = userEvent.setup()
     renderDash({ session: null })
-    await user.click(await screen.findByRole('button', { name: /Create account/ }))
+    await user.click(within(await screen.findByTestId('guest-stats')).getByRole('button', { name: /Create account/ }))
     expect(screen.getByTestId('where').textContent).toBe('/register')
+  })
+})
+
+describe('DashboardPage, Leave session', () => {
+  it('ends a guest session, clears it and returns to / in place of the dashboard', async () => {
+    const api = h.api as ApiClient
+    const logout = vi.spyOn(api, 'logout')
+    renderDash({ session: 'guest' })
+    const leave = await screen.findByRole('button', { name: 'Leave session' })
+    expect(screen.queryByRole('link', { name: 'Title screen' })).toBeNull()
+    await userEvent.click(leave)
+    await vi.waitFor(() => expect(screen.getByTestId('where').textContent).toBe('/'))
+    expect(logout).toHaveBeenCalledTimes(1)
   })
 })

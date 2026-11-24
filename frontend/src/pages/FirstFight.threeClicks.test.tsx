@@ -97,7 +97,7 @@ async function reachRunningFloor(user: ReturnType<typeof userEvent.setup>) {
       </SessionProvider>
     </MemoryRouter>,
   )
-  await user.click(screen.getByRole('button', { name: /try the demo/i }))
+  await user.click(await screen.findByRole('button', { name: /try the demo/i }))
   await user.click(await screen.findByRole('button', { name: 'Accept and continue' }))
   await user.click(await screen.findByRole('button', { name: /Play preloaded dungeons/ }))
   await vi.waitFor(() => expect(sent().some((e) => e.type === 'load-dungeon')).toBe(true))

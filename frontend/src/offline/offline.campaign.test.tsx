@@ -56,7 +56,7 @@ describe('Offline demo on the campaign map', () => {
         </SessionProvider>
       </MemoryRouter>,
     )
-    await user.click(screen.getByRole('button', { name: /try the demo/i }))
+    await user.click(await screen.findByRole('button', { name: /try the demo/i }))
     await user.click(await screen.findByRole('button', { name: 'Accept and continue' }))
     expect(screen.queryByRole('button', { name: 'Play offline demo' })).toBeNull()
     await act(async () => {

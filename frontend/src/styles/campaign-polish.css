@@ -1,0 +1,59 @@
+/* Campaign page polish: card depth, gold accents and glow on floor nodes. Purely CSS. */
+.sd-map__header {
+  padding-block: var(--sd-space-4, 16px);
+  gap: var(--sd-space-3, 12px);
+  border-bottom: 1px solid color-mix(in srgb, var(--color-gold, #d9a441) 28%, transparent);
+}
+
+.sd-map__title {
+  text-shadow: 0 0 12px color-mix(in srgb, var(--color-gold, #d9a441) 35%, transparent);
+}
+
+.sd-map__toolbar {
+  margin-block: var(--sd-space-2, 8px);
+  gap: var(--sd-space-3, 12px);
+}
+
+.sd-map__alert,
+.sd-map__empty {
+  box-shadow: var(--sd-elev-1, 0 2px 8px rgb(0 0 0 / 0.45));
+}
+
+.sd-fnode {
+  transition:
+    box-shadow var(--sd-dur-2, 200ms) ease,
+    border-color var(--sd-dur-2, 200ms) ease;
+}
+
+.sd-fnode:hover,
+.sd-fnode:focus-within {
+  box-shadow:
+    var(--sd-elev-2, 0 4px 16px rgb(0 0 0 / 0.5)),
+    0 0 12px color-mix(in srgb, var(--color-gold, #d9a441) 45%, transparent);
+}
+
+.sd-campaign-state {
+  padding: var(--sd-space-6, 24px);
+}
+
+.sd-campaign-state__panel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--sd-space-4, 16px);
+  padding: var(--sd-space-6, 24px);
+  border: 1px solid color-mix(in srgb, var(--color-gold, #d9a441) 35%, transparent);
+  border-radius: 12px;
+  background: var(--color-panel, #1a1226);
+  box-shadow: var(--sd-elev-1, 0 2px 8px rgb(0 0 0 / 0.45));
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sd-fnode {
+    transition: none;
+  }
+}
+
+[data-reduced='true'] .sd-fnode {
+  transition: none;
+}

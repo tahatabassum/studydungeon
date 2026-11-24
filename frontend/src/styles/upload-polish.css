@@ -1,0 +1,53 @@
+/* Upload page polish: card depth, gold accents, drop zone hover and drag glow.
+   Only colors, shadows and transitions; no size or spacing changes, so the fit layout is untouched. */
+
+.sd-upload .sd-card,
+.sd-upload .sd-up__rules,
+.sd-upload .sd-up__steps {
+  border-color: color-mix(in srgb, var(--color-gold) 20%, var(--color-deep));
+  box-shadow:
+    var(--sd-elev-1, 0 2px 6px rgb(0 0 0 / 0.35)),
+    inset 0 1px 0 color-mix(in srgb, var(--color-bone) 7%, transparent);
+}
+
+.sd-upload .sd-up__drop {
+  border-color: color-mix(in srgb, var(--color-gold) 55%, var(--color-magic));
+  box-shadow:
+    var(--sd-elev-2, 0 4px 12px rgb(0 0 0 / 0.4)),
+    inset 0 0 0 1px color-mix(in srgb, var(--color-pumpkin) 12%, transparent);
+  transition:
+    border-color var(--sd-dur-base, 200ms) ease,
+    background-color var(--sd-dur-base, 200ms) ease,
+    box-shadow var(--sd-dur-base, 200ms) ease;
+}
+.sd-upload .sd-up__drop:hover:not([data-disabled='true']),
+.sd-upload .sd-up__drop:focus-within:not([data-disabled='true']) {
+  border-color: var(--color-gold);
+  box-shadow:
+    var(--sd-elev-2, 0 4px 12px rgb(0 0 0 / 0.4)),
+    0 0 14px color-mix(in srgb, var(--color-gold) 30%, transparent);
+}
+.sd-upload .sd-up__drop[data-over='true'] {
+  border-color: var(--color-gold);
+  box-shadow:
+    var(--sd-elev-3, 0 8px 24px rgb(0 0 0 / 0.5)),
+    0 0 24px color-mix(in srgb, var(--color-gold) 50%, transparent),
+    inset 0 0 18px color-mix(in srgb, var(--color-pumpkin) 22%, transparent);
+}
+
+.sd-upload .sd-up__result {
+  box-shadow:
+    var(--sd-elev-3, 0 8px 24px rgb(0 0 0 / 0.5)),
+    0 0 18px color-mix(in srgb, var(--color-gold) 30%, transparent);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sd-upload .sd-up__drop { transition: none; }
+}
+[data-reduced='true'] .sd-upload .sd-up__drop,
+.sd-upload [data-reduced='true'] .sd-up__drop {
+  transition: none;
+}
+
+/* Topics step: start at the top of the card instead of floating in the middle of a tall empty panel. */
+.sd-upload .sd-up__panel[data-testid='upload-topics'] { justify-content: flex-start; }
