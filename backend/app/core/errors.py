@@ -25,10 +25,12 @@ async def http_exception_handler(request: Request, exc: StarletteHTTPException):
     detail = exc.detail
     if isinstance(detail, str):
         detail = {"code": f"HTTP_{exc.status_code}", "message": detail}
+    # Keep the exception's own headers (Retry-After on 429/503, WWW-Authenticate, ...) next to the CORS ones.
+    headers = {**(getattr(exc, "headers", None) or {}), **_cors_headers_for_request(request)}
     return JSONResponse(
         status_code=exc.status_code,
         content={"detail": detail},
-        headers=_cors_headers_for_request(request),
+        headers=headers,
     )
 
 

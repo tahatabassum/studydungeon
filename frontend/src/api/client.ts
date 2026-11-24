@@ -22,6 +22,7 @@ import {
   mapPacks,
   mapPlayerStats,
   mapUploadQuota,
+  mapStoredDocuments,
   mapMe,
   mapNameCheck,
   mapProgress,
@@ -33,12 +34,15 @@ import {
 
 type EndpointKey = keyof typeof WIRE_ENDPOINTS
 
-/** Real mode capabilities: no room Revenants, floors, modes or Daily Haunt yet (D26). */
+/**
+ * Real mode capabilities (D26). The backend runs floor, practice and Daily Haunt modes; floors turn on when a
+ * dungeon sends them. Room Revenants stay off (attempts on a cleared room are rejected, C19).
+ */
 export const HTTP_CAPABILITIES: ApiCapabilities = Object.freeze({
   roomRevenants: false,
   floors: false,
-  modes: false,
-  dailyHaunt: false,
+  modes: true,
+  dailyHaunt: true,
   leaderboard: false,
   guestIdentity: true,
   accountUpgrade: true,
@@ -229,9 +233,16 @@ export function createHttpClient(baseUrl: string, fetchImpl: typeof fetch = fetc
     getDungeon: (id) => loadDungeon(id),
 
     startRun: async (request_) => {
-      // D18: floor_id and mode are not sent until the backend supports them.
-      const dungeonId = typeof request_ === 'string' ? request_ : request_.dungeon_id
-      const wire = await request('startRun', 'POST', '/runs', { dungeon_id: dungeonId })
+      // A plain id is the classic whole-dungeon run; a request also names the floor and the mode.
+      const body =
+        typeof request_ === 'string'
+          ? { dungeon_id: request_ }
+          : {
+              dungeon_id: request_.dungeon_id,
+              ...(request_.floor_id ? { floor_id: request_.floor_id } : {}),
+              ...(request_.mode ? { mode: request_.mode } : {}),
+            }
+      const wire = await request('startRun', 'POST', '/runs', body)
       rememberRun(wire)
       return mapRun(wire)
     },
@@ -290,8 +301,16 @@ export function createHttpClient(baseUrl: string, fetchImpl: typeof fetch = fetc
     // The backend list is global (no dungeon filter): room_id is resolved against the loaded dungeon.
     getDueReviews: (async (dungeonId?: string) => {
       const items = await dueList()
-      // Thin adapter: with a dungeon id the old bare-array shape, without one the new shape.
-      return dungeonId === undefined ? mapDueSummary(items) : items
+      // Thin adapter: with a dungeon id the old bare-array shape, without one the new shape. The streak and the
+      // next due time come from GET /progress (the due list itself stays a bare array).
+      if (dungeonId !== undefined) return items
+      const summary = mapDueSummary(items)
+      try {
+        const p = await request('getProgress', 'GET', '/progress')
+        return { ...summary, daily_streak: p.daily_streak ?? 0, next_due_at: p.next_due_at ?? null }
+      } catch {
+        return summary
+      }
     }) as ApiClient['getDueReviews'],
 
     // Today's backend has no per-floor status: report the floors of the dungeon as mapped.
@@ -302,6 +321,12 @@ export function createHttpClient(baseUrl: string, fetchImpl: typeof fetch = fetc
 
     retryFloor: async () => {
       throw new ApiError(501, 'Retrying a floor is not supported yet.', 'UNSUPPORTED')
+    },
+
+    listDocuments: async () => mapStoredDocuments(await request('listDocuments', 'GET', '/documents')),
+
+    deleteDocument: async (id) => {
+      await request('deleteDocument', 'DELETE', `/documents/${enc(id)}`)
     },
 
     // Documents (C29): the real upload pipeline.

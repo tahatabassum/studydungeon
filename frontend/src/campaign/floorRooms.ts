@@ -44,7 +44,8 @@ export function floorDungeon(dungeon: Dungeon, floorId: string): Dungeon | null 
   if (floor) {
     ids = floor.room_ids
   } else if (view.final_boss && view.final_boss.id === floorId) {
-    ids = view.rooms.filter((r) => r.monster.id === floorId).map((r) => r.id)
+    // The real backend names the Final_Boss by its room id, the mock by its monster id.
+    ids = view.rooms.filter((r) => r.monster.id === floorId || r.id === floorId).map((r) => r.id)
   } else {
     return null
   }

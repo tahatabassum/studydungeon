@@ -9,6 +9,7 @@ from app.core.database import get_db
 from app.core.deps import get_current_user_optional
 from app.models.all_models import ContentPack, Dungeon, GameRun, PointEvent, User
 from app.schemas.packs import PackItem, PacksResponse
+from app.services.progression import DungeonProgress, floor_ids_in_order, load_progress
 
 packs_router = APIRouter(tags=["packs"])
 
@@ -26,20 +27,8 @@ async def list_packs(
     )
     packs = res.scalars().all()
 
-    # Determine user cleared runs/dungeons if authenticated
-    cleared_dungeon_ids = set()
-    in_progress_dungeon_ids = set()
-
-    if user:
-        runs_res = await db.execute(
-            select(GameRun).where(GameRun.user_id == user.id)
-        )
-        user_runs = runs_res.scalars().all()
-        for r in user_runs:
-            if r.status == "completed":
-                cleared_dungeon_ids.add(r.dungeon_id)
-            elif r.status == "active":
-                in_progress_dungeon_ids.add(r.dungeon_id)
+    # A pack is completed when its final boss is defeated; cleared floors and active runs make it in progress.
+    progress = await load_progress(db, user.id, [p.dungeon_id for p in packs if p.dungeon_id]) if user else {}
 
     pack_items = []
     unlocked = True  # Pack 1 is always unlocked
@@ -47,8 +36,11 @@ async def list_packs(
     all_completed = True if packs else False
 
     for idx, pack in enumerate(packs):
-        is_completed = pack.dungeon_id in cleared_dungeon_ids
-        is_active = pack.dungeon_id in in_progress_dungeon_ids
+        prog = progress.get(pack.dungeon_id) or DungeonProgress()
+        floor_ids = floor_ids_in_order(pack.dungeon.rooms) if pack.dungeon else []
+        is_completed = prog.final_boss_cleared
+        real_floors_cleared = prog.floors_cleared(floor_ids)
+        is_active = prog.has_active_run or real_floors_cleared > 0
 
         if not is_completed:
             all_completed = False
@@ -60,7 +52,7 @@ async def list_packs(
                 fb_cleared = True
             elif is_active:
                 p_status = "in_progress"
-                floors_cleared = 1 if pack.floors_total > 1 else 0
+                floors_cleared = min(real_floors_cleared, pack.floors_total)
                 fb_cleared = False
             else:
                 p_status = "available"

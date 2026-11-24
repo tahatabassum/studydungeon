@@ -27,7 +27,7 @@ import {
   wireUserSchema,
 } from './auth'
 import { wireBoardSchema } from './board'
-import { wireDocumentStatusSchema, wireDocumentTopicsSchema, wireDocumentUploadSchema } from './documents'
+import { wireDeleteDocumentSchema, wireDocumentStatusSchema, wireDocumentTopicsSchema, wireDocumentUploadSchema, wireStoredDocumentsSchema } from './documents'
 import { wireDungeonSchema } from './dungeon'
 import { wirePacksSchema } from './packs'
 import { wireProgressSchema } from './progress'
@@ -65,4 +65,6 @@ export const WIRE_ENDPOINTS = {
   getDocumentTopics: { endpoint: 'GET /documents/{id}/topics', schema: wireDocumentTopicsSchema },
   generateDungeon: { endpoint: 'POST /documents/{id}/generate-dungeon', schema: wireDungeonSchema },
   retryDocument: { endpoint: 'POST /documents/{id}/retry', schema: wireDocumentUploadSchema },
+  listDocuments: { endpoint: 'GET /documents', schema: wireStoredDocumentsSchema },
+  deleteDocument: { endpoint: 'DELETE /documents/{id}', schema: wireDeleteDocumentSchema },
 } as const

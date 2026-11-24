@@ -773,3 +773,37 @@ New tests: `tests/test_leaderboard_cache_and_privacy.py` (both fail on the Day 4
 + (`accept_ai_notice=true`, else 422 `AI_NOTICE_NOT_ACCEPTED`), and may read topics, summon and retry
 + their own documents. Listing and deleting documents stay registered-only.
 ```
+
+---
+
+## Update 2026-11-24: remaining work finished (backend changes for Person A to review)
+
+The user asked Person B to finish everything that was left without waiting, so Person B changed `backend/` again. Every change has a test; `pytest` 125 passed, ruff clean. Please review in the PR.
+
+**Bugs found and fixed:**
+
+1. **Floor 2 could not be played.** The attempt order check walked every room of the dungeon, so on a Floor 2 run Floor 1's rooms (0 damage in that run) refused every answer with 409 `OUT_OF_ORDER_ROOM`. Order is now checked inside the run's own rooms.
+2. **Private-question leak.** `POST /runs/{id}/attempts` accepted any question id, including another player's private question, and returned its correct answer, explanation and evidence quote. The question must now belong to the run (or, in a Daily Haunt, be the player's own review question); anything else is 404 `QUESTION_NOT_FOUND`.
+3. **Attempt cache shared across players.** `_PROCESSED_ATTEMPTS` was keyed by `attempt_id` only. Now `(user, run, attempt_id)`; an `attempt_id` already used elsewhere is 409 `ATTEMPT_ID_CONFLICT` (it was a 500 on the primary key).
+4. **A floor clear completed the whole pack.** Finishing Floor 1 marked the pack completed, unlocked the next pack and paid pack points. Pack completion now needs the Final Boss. `GET /packs` reports the real `floors_cleared`.
+5. **Practice and review runs would have cleared every floor** (any completed run without `floor_id` counted as a full clear). One rule now decides what a run clears: `app/services/progression.py`.
+6. **The chest's "Bonus XP 40" was never added.** It is now added to the run's XP at its first finish.
+7. **Floor bosses** now count as the boss of a floor run (boss damage, 100 XP clear).
+8. **Stale question cache** after a pack re-seed (fixed ids, new topic ids) is reloaded instead of matching the wrong room.
+9. **`Retry-After` was dropped** from every 429 and 503 (the error handler rebuilt the response without the exception headers).
+10. **Floor order** came from sorting floor ids as text (`f10` before `f2`); now room order.
+11. **Generated dungeons had no floors**, so the campaign map, ranks and the Final Boss only worked for packs. They now get floors of 2 rooms (the second is the floor boss) plus a Final Boss, with varied monster kinds. A legacy floor id (`floor-legacy`) on a dungeon without floors plays every room.
+12. **Deleting a note left an empty dungeon** on the dashboard. The note's dungeon is deleted with it.
+
+**New (shapes are additive; nothing existing changed type):**
+
+- `POST /runs` modes: `daily_haunt` (409 `NOTHING_DUE` with `next_due_at` when nothing is due; the run reviews the player's own due questions, one display-only `hall-1` room; finishing it updates `daily_streak`), `weak_topics` (the 2 worst topics), `exam` (every topic). Unknown mode: 422 `INVALID_MODE`. `room_ids` and `mode` are in the run response. Practice and review runs never clear floors or unlock packs.
+- Migration `a7c3d9e1f204`: `game_runs.room_ids` (JSON, nullable), `user_progress.daily_streak` (default 0), `user_progress.last_haunt_on`.
+- `GET /progress` adds `xp_to_next`, `daily_streak`, `due_review_count`, `next_due_at`. `GET /reviews/due` stays a bare array.
+- Uploads: per-IP daily limit (`UPLOAD_IP_DAILY_LIMIT`, default 3, 429 `UPLOAD_LIMIT_IP`) and global daily cap (`UPLOAD_GLOBAL_DAILY_LIMIT`, default 40, 503 `UPLOADS_PAUSED_TODAY` with `offer_packs`), both reflected in `GET /uploads/quota` (`reason`, `global.available`). Rejected and failed uploads do not use the daily quota (this answers the open question).
+- `GET /documents` and `DELETE /documents/{id}` accept guests (own documents only; guests can store 2 and must be able to free a slot). The list adds `dungeon_id`.
+- Guests may start runs on their own dungeons (still 403 `FORBIDDEN` on anyone else's).
+
+**Frontend in the same change:** sends `floor_id` and `mode`, turns on modes and Daily Haunt, reads `room_ids`/`mode`/`xp_to_next`/the streak, finds the Final Boss by its room id (it looked for the monster id, so the Final Boss never started against the real backend), friendly messages for the new codes, My Notes panel, dev proxy only for `/api/*` (it was swallowing the `/leaderboard` and `/packs` pages), live contract suite opt-in with `VITE_CONTRACT_LIVE=true`.
+
+**Steering (needs both of us, not applied):** besides the guest-upload wording proposed on 2026-11-17, `api-contract.md` should list the modes above, the new error codes and the `GET /progress` fields.

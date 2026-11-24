@@ -8,6 +8,11 @@ export const wireProgressSchema = z.object({
   level: z.number().int().min(1),
   total_xp: z.number().int().nonnegative(),
   unlocked_weapons: z.array(z.string()),
+  // Added with the Daily Haunt (absent on old backends).
+  xp_to_next: z.number().int().nonnegative().optional(),
+  daily_streak: z.number().int().nonnegative().optional(),
+  due_review_count: z.number().int().nonnegative().optional(),
+  next_due_at: z.string().nullish(),
 })
 
 export type WireProgress = z.output<typeof wireProgressSchema>
@@ -25,7 +30,7 @@ export function unlockedWeaponIds(w: WireProgress): WeaponId[] {
 }
 
 /**
- * xp_to_next is not sent (the HUD shows total XP). The Armory list marks a weapon unlocked by
+ * xp_to_next is passed on when the backend sends it (the HUD falls back to total XP). The Armory list marks a weapon unlocked by
  * giving it unlock_level 1 and a locked one level + 1, with the real rule as its requirement text.
  */
 export function mapProgress(w: WireProgress): ProgressInfo {
@@ -33,6 +38,8 @@ export function mapProgress(w: WireProgress): ProgressInfo {
   return {
     level: w.level,
     total_xp: w.total_xp,
+    ...(w.xp_to_next !== undefined ? { xp_to_next: w.xp_to_next } : {}),
+    ...(w.due_review_count !== undefined ? { due_review_count: w.due_review_count } : {}),
     unlocked_weapons: unlocked,
     weapons: WEAPONS.map((x) => ({
       id: x.id,

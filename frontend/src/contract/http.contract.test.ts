@@ -11,12 +11,13 @@ import { defineContractSuite } from './suite'
  * Runs the shared suite against the REAL backend when VITE_API_BASE (or VITE_API_BASE_URL) is set and
  * VITE_USE_MOCKS is not 'true'. The suite asserts DOMAIN shapes: the client has already mapped the wire.
  * Example (backend on http://localhost:8000):
- *   $env:VITE_API_BASE='http://localhost:8000'; $env:VITE_USE_MOCKS='false'; npm.cmd run test:contract
+ *   $env:VITE_CONTRACT_LIVE='true'; $env:VITE_API_BASE='http://localhost:8000'; $env:VITE_USE_MOCKS='false'; npm.cmd run test:contract
  * Add $env:VITE_CONTRACT_UPLOADS='true' to also run the document and upload cases. Only do that against a
  * backend started with AI_PROVIDER=mock: those cases upload files and would spend a real AI quota otherwise.
  */
 const flags = readFlags()
-const enabled = flags.apiBaseUrl !== '' && !flags.useMocks
+// Opt-in: a dev .env.local that points the app at a backend must not turn the live suite on for every `npm test`.
+const enabled = import.meta.env.VITE_CONTRACT_LIVE === 'true' && flags.apiBaseUrl !== '' && !flags.useMocks
 const uploads = import.meta.env.VITE_CONTRACT_UPLOADS === 'true'
 
 if (enabled) {
@@ -28,7 +29,7 @@ if (enabled) {
     uploads,
   })
 } else {
-  describe.skip('contract: Http_Client (skipped: set VITE_API_BASE and VITE_USE_MOCKS=false to run)', () => {
+  describe.skip('contract: Http_Client (skipped: set VITE_CONTRACT_LIVE=true, VITE_API_BASE and VITE_USE_MOCKS=false to run)', () => {
     it('is skipped without a real backend', () => {
       expect(enabled).toBe(true)
     })

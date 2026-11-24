@@ -1,71 +1,73 @@
 # StudyDungeon: status
 
-Last updated: 2026-11-17. Branch `feature/frontend-live-players`.
+Last updated: 2026-11-24. Branch `feature/frontend-live-players`.
 
 ## Current state
 
-- **Frontend (Person B):** all required tasks in frontend-04, 06, 07, 08, 10 and 11 are done. Playable against the mock and against the real backend.
-- **Backend (Person A):** specs backend-01 to 06 are done, backend-08 (packs, floors, unlocks) is merged, and the Day 4 work (points ledger, real leaderboard, player counter, upload quota, file limits) is merged and integration-checked (see docs/handoff/B-to-A.md, 2026-11-17). backend-07 (identity) shows 0 of 6 tasks ticked, but its endpoints (`/guests`, `/guests/name-check`, `/auth/upgrade`, `DELETE /auth/me`) are live, so its checklist is probably stale. backend-08 has no `tasks.md`.
-- **Last verified numbers:** backend `pytest` 112 passed, ruff clean. Frontend typecheck, lint and build clean; `npm test` 1510 passed and 27 skipped; `test:contract` 46 passed and 1 skipped; live contract suite against a local backend 38 passed, 0 failed, 2 skipped; `layout:check` 240/240 (30 route states at 8 window sizes).
+Feature complete for the hackathon build. Everything below runs end to end against the real backend (mock AI, local database).
 
-## Next steps
+- **Play:** demo dungeon and 3 preloaded packs as floor campaigns (floors unlock in order, then the Final Boss), floor ranks S to C, a chest with real bonus XP, pack unlocks after the Final Boss.
+- **Own notes:** upload (PDF, DOCX, PPTX, TXT, images) with AI notice and quotas, then summon a dungeon. Generated dungeons get floors of 2 rooms plus a Final Boss, like the packs. My Notes on the dashboard lists notes, links to their dungeon and deletes them (freeing a slot).
+- **Learning loop:** Memory Scroll with the correct answer after a miss, questions return 3 later, spaced repetition, Daily Haunt (review run of due memories with a daily streak), Weak Topics (2 worst topics) and Exam (every topic) practice modes.
+- **Competition:** points ledger, real leaderboard (preloaded, own notes, overall; all time and weekly), player counter, levels with XP to next level.
+- **Accounts:** guest names with tags, register and login, upgrade a guest, delete account.
 
-1. Person A: review the backend fixes in `docs/handoff/B-to-A.md` (2026-11-17). Still to build: run modes and Daily Haunt, floor retry, learning-loop extras, the per-IP and global upload limits.
-2. Person A: decide whether rejected or failed uploads use the daily quota (open question in `docs/handoff/B-to-A.md`).
-3. Both owners: agree the steering change proposed in `B-to-A.md` (guests may upload, summon and retry their own documents).
-4. Person B: when `POST /runs` accepts `floor_id` and `mode`, switch them on in `frontend/src/api/client.ts` and turn on the `modes` and `dailyHaunt` capabilities.
-5. Optional frontend tests still open: frontend-00 (5.3, 6.7, 8.5), frontend-03 (8.6), frontend-08 (11.10), frontend-10 (9.3 to 9.5, 11.5 to 11.7).
+**Last verified numbers:** backend `pytest` 125 passed, ruff clean, Alembic upgrade, step-down and upgrade clean. Frontend typecheck, lint, build clean; `npm test` 1517 passed, 27 skipped; `test:contract` (mock) 46 passed, 1 skipped; live contract suite against the backend 38 passed, 0 failed, 2 skipped (they need the mock answer key); `layout:check` 67/68 on the changed screens (see Known issues).
+
+## Next steps (in order)
+
+1. **Test locally** (see "Run it locally").
+2. **Deploy** (see `docs/DEPLOY_CHECKLIST.md`):
+   - Render: create the web service from `backend/render.yaml` (Docker). Set `DATABASE_URL` (Supabase pooler URL), `SECRET_KEY`, `GEMINI_API_KEY`, `GEMINI_MODEL`, `AI_PROVIDER=gemini`, `FRONTEND_ORIGIN` (the Vercel URL), `COOKIE_SECURE=true`. Migrations run on start (`alembic upgrade head` in the Dockerfile).
+   - Confirm the Render URL. If it is not `https://studydungeon-api.onrender.com`, change the destination in `frontend/vercel.json`.
+   - Vercel: root `frontend/`, env `VITE_USE_MOCKS=false`, `VITE_API_BASE=/api` (the rewrite keeps cookies first-party).
+   - After deploy: open `/api/health` on the Vercel URL, play the demo, register, upload a short PDF.
+3. **Submission:** fill the `[FILL IN]` parts of `docs/KIRO_WRITEUP.md` (your own Kiro experience), record the video with `docs/DEMO_VIDEO_SCRIPT.md`, submit before December 4.
 
 ## Known issues
 
-- **Per-IP and global upload limits are not enforced** (429 `UPLOAD_LIMIT_IP`, 503 `UPLOADS_PAUSED_TODAY`). The player daily and stored limits are.
-- **Deployed URLs not verified.** `studydungeon-api.onrender.com` and `studydungeon.vercel.app` both answered 404 on 2026-11-17 (`x-render-routing: no-server`). The real Render URL needs confirming; `frontend/vercel.json` points at the first one.
-- **Live region not tested with a real screen reader.** The result announcements (inside the question dialog while it is open, otherwise the shell region) are only checked in jsdom. Test with NVDA, JAWS or VoiceOver.
-- **Manual browser checks still open** at 1366x768, 1920x1080 and 1280x720: full demo run to victory, defeat run, retreat and re-engage, pause and exit, mute, reduced motion.
-- `backend/.env` points at a Supabase database. Do not run the backend tests or seeds against it; use a temporary SQLite `DATABASE_URL` with `AI_PROVIDER=mock`.
+- **Not tested with a real screen reader.** The result announcements (inside the question dialog while it is open) are checked in jsdom only.
+- **Real AI and Supabase not exercised by the tests.** All runs used the mock AI and SQLite. Watch the first upload and the first migration on the deployed service.
+- **Dashboard moon (cosmetic):** at 1366x650 the decorative moon floats behind the edge of the guest "Create an account" button (it renders behind the card, so the button stays readable and clickable). The layout check flags it.
+- **Manual browser checks** still worth doing once: a full run to victory, a defeat, retreat and re-engage, pause and exit, mute, reduced motion, phone portrait.
+- Optional property tests from earlier specs are still open (frontend-00, 03, 08, 10).
 
-## How to run things
+## Run it locally
 
-Frontend commands run in `frontend/` (PowerShell: use `npm.cmd` if `npm` is blocked by the execution policy).
-
-| What | Command |
-| --- | --- |
-| Dev server (mock mode) | `npm run dev` (with `VITE_USE_MOCKS=true` in `.env.local`) |
-| Typecheck | `npm run typecheck` |
-| Lint | `npm run lint` |
-| Unit and component tests | `npm test` |
-| Production build | `npm run build` |
-| Layout check, all routes and sizes | `npm run layout:check` (takes about 20 minutes) |
-| Layout check, some routes or sizes | `npm run layout:check -- --routes /play,/upload --sizes 1366x768,360x740` |
-| Layout check with screenshots | add `--screenshots <dir>` |
-
-The layout check starts its own Vite server in mock mode and drives a local Chrome or Edge over the DevTools protocol. Set `LAYOUT_BROWSER` to the browser path if none is found, or `LAYOUT_URL` to use a server that is already running. `--routes /play` opens the floor map, presses Continue, walks to the first monster and measures the question panel.
-
-### Contract suite
-
-`npm run test:contract` always runs the mock suite (46 tests). The same suite runs against a real backend when these are set; one case is skipped without a backend. Add `VITE_CONTRACT_UPLOADS='true'` to run the document and upload cases too (only against a backend started with `AI_PROVIDER=mock`). Use a fresh database for each full run: the suite creates guests and uploads, and the per-IP and per-player limits are real.
+Backend (from `backend/`, PowerShell). Use a local SQLite file so the Supabase database in `.env` is never touched:
 
 ```powershell
-# 1. Start a disposable backend from backend/ (its own database, mock AI):
-$env:DATABASE_URL = 'sqlite+aiosqlite:///./contract.db'
+$env:DATABASE_URL = 'sqlite+aiosqlite:///./local.db'
 $env:AI_PROVIDER = 'mock'; $env:GEMINI_MODEL = 'mock'; $env:GEMINI_API_KEY = ''
 .\.venv\Scripts\python.exe -m alembic upgrade head
 .\.venv\Scripts\python.exe -m uvicorn app.main:app --port 8000
+```
 
-# 2. In frontend/ (second terminal):
-$env:VITE_API_BASE = 'http://localhost:8000'; $env:VITE_USE_MOCKS = 'false'
+Use `AI_PROVIDER=gemini` with your key and model to try real question generation.
+
+Frontend (from `frontend/`): `npm run dev`. `.env.local` decides the mode: `VITE_USE_MOCKS=true` for the built-in mock, or `VITE_USE_MOCKS=false` with `VITE_API_BASE=http://localhost:8000` (or `VITE_API_BASE=/api`, which goes through the dev proxy like production).
+
+| What | Command |
+| --- | --- |
+| Backend tests | `.\.venv\Scripts\python.exe -m pytest` (from `backend/`) |
+| Backend lint | `.\.venv\Scripts\python.exe -m ruff check .` |
+| Frontend typecheck, lint, tests, build | `npm run typecheck`, `npm run lint`, `npm test`, `npm run build` |
+| Layout check | `npm run layout:check` (all screens and sizes, about 20 minutes) or `-- --routes /play,/upload --sizes 1366x768,360x740` |
+
+### Contract suite against a real backend
+
+Start a disposable backend as above (add `$env:UPLOAD_IP_DAILY_LIMIT='1000'`, because the suite uploads many files from one address), then in `frontend/`:
+
+```powershell
+$env:VITE_CONTRACT_LIVE = 'true'; $env:VITE_API_BASE = 'http://localhost:8000'; $env:VITE_USE_MOCKS = 'false'
+$env:VITE_CONTRACT_UPLOADS = 'true'   # only with AI_PROVIDER=mock
 npm run test:contract
 ```
 
-The identity cases create and delete accounts, so only use a disposable backend. Never point it at the Supabase database in `backend/.env`.
-
-### Backend tests
-
-From `backend/`: `.\.venv\Scripts\python.exe -m pytest` (uses SQLite; `pytest.ini` sets `asyncio_mode = auto`). Lint with `ruff check .`.
+The live suite is opt-in (`VITE_CONTRACT_LIVE`), so a `.env.local` pointing at a backend never makes `npm test` fail. Use a fresh database for each full run.
 
 ## Where things are
 
-- Specs: `.kiro/specs/<name>/` (`requirements.md`, `design.md`, `tasks.md`).
-- Logs: `docs/kiro-log-frontend.md`, `docs/kiro-log-backend.md`.
-- Handoff between the two owners: `docs/handoff/` (`A-to-B.md`, `B-to-A.md`, `BACKEND_REMAINING_WORK.md`, `PERSON_A_BACKEND_TASKS.md`, `BACKEND_REQUIREMENTS_V2.md`).
-- Shared contract: `.kiro/steering/` (changes need both owners' agreement).
+- Specs: `.kiro/specs/<name>/`. Logs: `docs/kiro-log-frontend.md`, `docs/kiro-log-backend.md`.
+- Handoff between the two owners: `docs/handoff/` (`B-to-A.md` has every backend change Person B made, with reasons).
+- Shared contract: `.kiro/steering/` (changes need both owners; a proposed update is in `B-to-A.md`).

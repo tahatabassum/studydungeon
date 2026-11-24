@@ -10,20 +10,14 @@ export default defineConfig({
   },
   server: {
     port: 5173,
+    // Same as production (vercel.json): only /api/* goes to the backend, without the /api prefix. Page routes
+    // such as /leaderboard and /packs stay with the app. Use VITE_API_BASE=/api for same-origin cookies in dev.
     proxy: {
-      '/auth': 'http://127.0.0.1:8000',
-      '/demo': 'http://127.0.0.1:8000',
-      '/guests': 'http://127.0.0.1:8000',
-      '/documents': 'http://127.0.0.1:8000',
-      '/dungeons': 'http://127.0.0.1:8000',
-      '/runs': 'http://127.0.0.1:8000',
-      '/health': 'http://127.0.0.1:8000',
-      '/leaderboard': 'http://127.0.0.1:8000',
-      '/packs': 'http://127.0.0.1:8000',
-      '/progress': 'http://127.0.0.1:8000',
-      '/stats': 'http://127.0.0.1:8000',
-      '/uploads': 'http://127.0.0.1:8000',
-      '/reviews': 'http://127.0.0.1:8000',
+      '/api': {
+        target: process.env.VITE_DEV_BACKEND ?? 'http://127.0.0.1:8000',
+        changeOrigin: true,
+        rewrite: (path: string) => path.replace(/^\/api/, ''),
+      },
     },
   },
   build: {

@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import type { DocumentStatus, DocumentTopic, DocumentUpload } from '../../types/api'
+import type { DocumentStatus, DocumentTopic, DocumentUpload, StoredDocument } from '../../types/api'
 
 /** Document endpoints (frontend-08 C29). Statuses: processing, accepted, rejected, failed. */
 export const wireDocumentStatusValue = z.enum(['processing', 'accepted', 'rejected', 'failed'])
@@ -61,3 +61,21 @@ export function mapDocumentTopics(w: z.output<typeof wireDocumentTopicsSchema>):
     .sort((a, b) => a.order_index - b.order_index)
     .map((t) => ({ id: t.id, name: t.name, description: t.description ?? '', order_index: t.order_index }))
 }
+
+/** `GET /documents`: the player's stored notes, newest first (My Notes). */
+export const wireStoredDocumentsSchema = z.array(
+  z.object({
+    id: z.string().min(1),
+    title: z.string(),
+    status: wireDocumentStatusValue,
+    created_at: z.string(),
+    dungeon_id: z.string().nullish(),
+  }),
+)
+
+export function mapStoredDocuments(w: z.output<typeof wireStoredDocumentsSchema>): StoredDocument[] {
+  return w.map((d) => ({ id: d.id, title: d.title, status: d.status, created_at: d.created_at, dungeon_id: d.dungeon_id ?? null }))
+}
+
+/** `DELETE /documents/{id}`. */
+export const wireDeleteDocumentSchema = z.object({ success: z.boolean().optional(), message: z.string().optional() })

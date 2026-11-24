@@ -184,6 +184,8 @@ class GameRun(Base):
     dungeon_id: Mapped[str] = mapped_column(String(36), ForeignKey("dungeons.id", ondelete="CASCADE"), nullable=False, index=True)
     floor_id: Mapped[Optional[str]] = mapped_column(String(36), nullable=True)
     mode: Mapped[Optional[str]] = mapped_column(String(32), nullable=True)
+    # Rooms picked for a weak_topics or exam run (null: the floor or the whole dungeon decides).
+    room_ids: Mapped[Optional[list]] = mapped_column(JSON, nullable=True)
     current_hp: Mapped[int] = mapped_column(Integer, default=100)
     current_score: Mapped[int] = mapped_column(Integer, default=0)
     current_streak: Mapped[int] = mapped_column(Integer, default=0)
@@ -241,6 +243,9 @@ class UserProgress(Base):
     level: Mapped[int] = mapped_column(Integer, default=1)
     coins: Mapped[int] = mapped_column(Integer, default=0)
     unlocked_weapons: Mapped[list] = mapped_column(JSON, default=lambda: ["Rusty Dagger"])
+    # Daily Haunt: consecutive UTC days with a finished Daily Haunt, and the last such day.
+    daily_streak: Mapped[int] = mapped_column(Integer, default=0, server_default="0", nullable=False)
+    last_haunt_on: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
     user: Mapped["User"] = relationship("User", back_populates="progress")

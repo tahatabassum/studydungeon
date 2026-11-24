@@ -1,14 +1,15 @@
 from datetime import datetime
-from typing import List
+from typing import List, Optional
 
 from fastapi import APIRouter, Depends
 from pydantic import BaseModel
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
 from app.core.deps import get_current_user
 from app.models.all_models import Question, ReviewItem, User, UserProgress
+from app.services.progression import visible_daily_streak, xp_to_next_level
 
 progress_router = APIRouter(tags=["progress"])
 
@@ -18,6 +19,13 @@ class ProgressResponse(BaseModel):
     level: int
     total_xp: int
     unlocked_weapons: List[str]
+    # XP still needed for the next level (curve: total XP of 100 x level reaches level + 1).
+    xp_to_next: int = 100
+    # Consecutive UTC days with a finished Daily Haunt (0 once a day is missed).
+    daily_streak: int = 0
+    # Reviews due now, and when the next one becomes due (null when none is scheduled).
+    due_review_count: int = 0
+    next_due_at: Optional[datetime] = None
 
 
 class ScorecardResponse(BaseModel):
@@ -44,18 +52,24 @@ async def get_user_progress(
 ):
     res = await db.execute(select(UserProgress).where(UserProgress.user_id == user.id))
     prog = res.scalar_one_or_none()
-    if not prog:
-        return ProgressResponse(
-            user_id=user.id,
-            level=1,
-            total_xp=0,
-            unlocked_weapons=["Rusty Dagger"],
-        )
+    now = datetime.utcnow()
+    due_count = (
+        await db.execute(select(func.count(ReviewItem.id)).where(ReviewItem.user_id == user.id, ReviewItem.due_at <= now))
+    ).scalar_one()
+    next_due = (
+        await db.execute(select(func.min(ReviewItem.due_at)).where(ReviewItem.user_id == user.id, ReviewItem.due_at > now))
+    ).scalar_one()
+    level = prog.level if prog else 1
+    total_xp = prog.total_xp if prog else 0
     return ProgressResponse(
         user_id=user.id,
-        level=prog.level,
-        total_xp=prog.total_xp,
-        unlocked_weapons=prog.unlocked_weapons or ["Rusty Dagger"],
+        level=level,
+        total_xp=total_xp,
+        unlocked_weapons=(prog.unlocked_weapons if prog else None) or ["Rusty Dagger"],
+        xp_to_next=xp_to_next_level(level, total_xp),
+        daily_streak=visible_daily_streak(prog.daily_streak or 0, prog.last_haunt_on, now) if prog else 0,
+        due_review_count=due_count,
+        next_due_at=next_due,
     )
 
 

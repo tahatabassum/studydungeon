@@ -6,6 +6,7 @@ import type {
   DocumentStatusValue,
   DocumentTopic,
   DocumentUpload,
+  StoredDocument,
   FinalBoss,
   Floor,
   FloorRank,
@@ -122,6 +123,10 @@ export interface MockUpload {
   getDocumentTopics(id: string): Promise<DocumentTopic[]>
   generateDungeon(id: string): Promise<Dungeon>
   retryDocument(id: string): Promise<DocumentUpload>
+  /** My Notes: stored documents, newest first. */
+  listDocs(): Promise<StoredDocument[]>
+  /** My Notes: deletes a document and the dungeon summoned from it. */
+  removeDoc(id: string): Promise<void>
   /**
    * The generated dungeon with its floors as of now, or undefined when `id` is not one of ours.
    * `play` overlays what was cleared so far (a cleared floor, its rank and its topic mastery).
@@ -371,6 +376,26 @@ export function createMockUpload(options: MockUploadOptions): MockUpload {
       dungeons.set(g.id, g)
       doc.dungeonId = g.id
       return view(g)
+    },
+
+    async listDocs() {
+      await requireRegistered()
+      return [...docs.values()]
+        .sort((a, b) => b.startedAt - a.startedAt)
+        .map((d) => ({
+          id: d.id,
+          title: titleOf(d.name),
+          status: statusOf(d),
+          created_at: new Date(d.startedAt).toISOString(),
+          dungeon_id: d.dungeonId,
+        }))
+    },
+
+    async removeDoc(id) {
+      await requireRegistered()
+      const doc = find(id)
+      if (doc.dungeonId) dungeons.delete(doc.dungeonId)
+      docs.delete(id)
     },
 
     async retryDocument(id) {

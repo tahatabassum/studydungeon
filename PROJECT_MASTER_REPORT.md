@@ -1,3 +1,5 @@
+> **Current status (2026-11-24): see `docs/STATUS.md`.** Parts of this report were written before the Daily Haunt, practice modes, floors for own notes, My Notes and the 2026-11-24 fixes; where they differ, STATUS.md is right.
+
 # StudyDungeon — Master Project Analysis, Current Status & Roadmap
 
 **Project Name**: StudyDungeon  

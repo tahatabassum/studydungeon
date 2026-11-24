@@ -19,8 +19,8 @@ describe('Http_Client identity calls (frontend-10 task 3.2)', () => {
     expect(HTTP_CAPABILITIES).toMatchObject({
       roomRevenants: false,
       floors: false,
-      modes: false,
-      dailyHaunt: false,
+      modes: true,
+      dailyHaunt: true,
       leaderboard: false,
       guestIdentity: true,
       accountUpgrade: true,
