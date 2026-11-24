@@ -22,7 +22,8 @@ from app.core.config import settings
 from app.core.database import async_session_maker, get_db
 from app.core.deps import get_current_user, require_registered_user
 from app.core.file_limits import FileLimitExceededError
-from app.models.all_models import Document, DocumentChunk, User
+from app.core.rate_limit import get_client_ip
+from app.models.all_models import Document, DocumentChunk, RateLimitRecord, User
 from app.schemas.documents import DocumentResponse, DocumentStatusResponse
 from app.schemas.uploads import (
     QuotaGlobalView,
@@ -128,8 +129,31 @@ async def process_document_background(
             await _worker(db)
 
 
+def _today_start(now: datetime) -> datetime:
+    return datetime(now.year, now.month, now.day)
+
+
+async def _ip_uploads_today(db: AsyncSession, ip: str, now: datetime) -> int:
+    res = await db.execute(
+        select(func.count(RateLimitRecord.id)).where(
+            RateLimitRecord.key == f"upload_ip:{ip}", RateLimitRecord.timestamp >= _today_start(now)
+        )
+    )
+    return res.scalar() or 0
+
+
+async def _global_uploads_today(db: AsyncSession, now: datetime) -> int:
+    res = await db.execute(
+        select(func.count(Document.id)).where(
+            Document.created_at >= _today_start(now), Document.status.in_(["accepted", "processing"])
+        )
+    )
+    return res.scalar() or 0
+
+
 @uploads_router.get("/uploads/quota", response_model=UploadQuotaResponse, response_model_exclude_none=True)
 async def get_upload_quota(
+    request: Request,
     user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
@@ -160,12 +184,19 @@ async def get_upload_quota(
     can_upload = True
     reason = None
 
-    if stored_count >= stored_limit:
+    global_open = await _global_uploads_today(db, now) < settings.UPLOAD_GLOBAL_DAILY_LIMIT
+    if await _ip_uploads_today(db, get_client_ip(request), now) >= settings.UPLOAD_IP_DAILY_LIMIT:
         can_upload = False
-        reason = "stored_limit"
+        reason = "ip_daily_limit"
     elif used_today >= daily_limit:
         can_upload = False
         reason = "player_daily_limit"
+    elif stored_count >= stored_limit:
+        can_upload = False
+        reason = "stored_limit"
+    elif not global_open:
+        can_upload = False
+        reason = "global_daily_limit"
 
     return UploadQuotaResponse(
         can_upload=can_upload,
@@ -178,7 +209,7 @@ async def get_upload_quota(
             stored_limit=stored_limit,
             resets_at=resets_at_str,
         ),
-        global_=QuotaGlobalView(available=True),
+        global_=QuotaGlobalView(available=global_open),
         ranking=QuotaRankingView(min_chars=3000, min_topics=2),
     )
 
@@ -204,6 +235,15 @@ async def upload_document(
     today_start = datetime(now.year, now.month, now.day)
     midnight_utc = today_start + timedelta(days=1)
     retry_after_secs = max(1, int((midnight_utc - now).total_seconds()))
+
+    # 0b. Per-IP daily limit (before any other work; counts accepted uploads from this address)
+    client_ip = get_client_ip(request)
+    if await _ip_uploads_today(db, client_ip, now) >= settings.UPLOAD_IP_DAILY_LIMIT:
+        raise HTTPException(
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+            detail={"code": "UPLOAD_LIMIT_IP", "message": "Too many uploads from this network today. Try again tomorrow."},
+            headers={"Retry-After": str(retry_after_secs)},
+        )
 
     # 1. Enforce Quota: Stored documents limit
     is_guest = user.is_guest
@@ -236,6 +276,14 @@ async def upload_document(
         raise HTTPException(
             status_code=status.HTTP_429_TOO_MANY_REQUESTS,
             detail={"code": "UPLOAD_LIMIT_PLAYER", "message": f"Daily upload limit of {daily_limit} reached for this account. Try again tomorrow."},
+            headers={"Retry-After": str(retry_after_secs)},
+        )
+
+    # 2b. Global daily cap: protects the shared AI quota
+    if await _global_uploads_today(db, now) >= settings.UPLOAD_GLOBAL_DAILY_LIMIT:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail={"code": "UPLOADS_PAUSED_TODAY", "message": "Uploads are paused for today. Play the preloaded dungeons instead.", "offer_packs": True},
             headers={"Retry-After": str(retry_after_secs)},
         )
 
@@ -286,6 +334,8 @@ async def upload_document(
         status="processing",
     )
     db.add(doc)
+    # Counts toward this IP's daily uploads (only accepted uploads are recorded).
+    db.add(RateLimitRecord(key=f"upload_ip:{client_ip}", timestamp=now))
     await db.commit()
     await db.refresh(doc)
 

@@ -1,4 +1,3 @@
-import base64
 import json
 import logging
 from typing import List
@@ -108,9 +107,10 @@ class OpenRouterProvider:
     async def ocr_image(self, image_bytes: bytes, mime_type: str = "image/png") -> str:
         """Fallback OCR using Tesseract when multimodal vision is unavailable via OpenRouter."""
         try:
+            import io
+
             import pytesseract
             from PIL import Image
-            import io
             image = Image.open(io.BytesIO(image_bytes))
             return pytesseract.image_to_string(image).strip()
         except Exception as e:

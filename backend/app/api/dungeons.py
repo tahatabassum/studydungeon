@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import and_, or_, select
@@ -22,8 +22,20 @@ from app.models.all_models import (
     User,
 )
 from app.schemas.dungeons import DungeonDetailView, DungeonRoomView, DungeonSummary, QuestionGameplayView
+from app.services.progression import counts_for_progress, floor_ids_in_order, is_full_run, progress_from_runs
 
 dungeons_router = APIRouter(tags=["dungeons"])
+
+
+def _floor_plan(dungeon_id: str, total_topics: int) -> List[Optional[str]]:
+    """Floor id for each topic room: pairs of rooms per floor, the last room (Final_Boss) on no floor."""
+    if total_topics <= 1:
+        return [None] * total_topics
+    plan: List[Optional[str]] = []
+    for idx in range(total_topics - 1):
+        plan.append(f"{dungeon_id[:8]}-f{idx // 2 + 1}")
+    plan.append(None)
+    return plan
 
 
 @dungeons_router.get("/documents/{id}/topics")
@@ -148,7 +160,10 @@ async def generate_dungeon(
 
     total_topics = len(kept)
     rooms_view: List[DungeonRoomView] = []
-    MONSTER_KINDS = ["paper_wraith", "silicon_golem", "gear_golem", "toxic_slime", "memory_eater"]
+    MONSTER_KINDS = ["paper_wraith", "toxic_slime", "gear_golem", "memory_eater"]
+    # Floors like the packs: 2 topic rooms per floor (the second holds the floor boss), the last topic is the
+    # Final_Boss outside every floor. One topic: a single boss room, no floors.
+    floor_of = _floor_plan(dungeon.id, total_topics)
 
     for idx, (t_data, grounded_qs) in enumerate(kept):
         topic = Topic(
@@ -162,10 +177,22 @@ async def generate_dungeon(
         await db.flush()
 
         is_boss = (idx == total_topics - 1)
-        monster_name = "Spectral Overlord" if is_boss else f"Guardian of {t_data.name[:16]}"
+        floor_id = floor_of[idx]
+        is_floor_boss = (not is_boss) and floor_id is not None and (idx + 1 >= total_topics - 1 or floor_of[idx + 1] != floor_id)
+        if is_boss:
+            monster_name = "Spectral Overlord"
+        elif is_floor_boss:
+            monster_name = f"Warden of {t_data.name[:16]}"
+        else:
+            monster_name = f"Guardian of {t_data.name[:16]}"
         # Dynamic HP matching question count so questions do not loop unnecessarily
         num_qs = len(grounded_qs)
-        monster_hp = min(120, max(40, num_qs * 20)) if is_boss else min(80, max(20, num_qs * 20))
+        if is_boss:
+            monster_hp = min(120, max(40, num_qs * 20))
+        elif is_floor_boss:
+            monster_hp = min(100, max(30, num_qs * 20))
+        else:
+            monster_hp = min(80, max(20, num_qs * 20))
 
         room = DungeonRoom(
             dungeon_id=dungeon.id,
@@ -173,8 +200,8 @@ async def generate_dungeon(
             room_order=idx,
             monster_type=monster_name,
             monster_hp=monster_hp,
-            floor_id=None,
-            monster_kind="exam_warden" if is_boss else "paper_wraith",
+            floor_id=floor_id,
+            monster_kind="exam_warden" if is_boss else MONSTER_KINDS[idx % len(MONSTER_KINDS)],
         )
         db.add(room)
         await db.flush()
@@ -218,15 +245,8 @@ async def generate_dungeon(
         )
 
     await db.commit()
-    await db.refresh(dungeon)
-
-    return DungeonDetailView(
-        id=dungeon.id,
-        title=dungeon.title,
-        is_public_demo=dungeon.is_public_demo,
-        created_at=dungeon.created_at,
-        rooms=rooms_view,
-    )
+    # Same shape as GET /dungeons/{id}, floors and Final_Boss included.
+    return await get_dungeon_detail(id=dungeon.id, user=user, db=db)
 
 
 @dungeons_router.get("/dungeons", response_model=List[DungeonSummary])
@@ -354,18 +374,16 @@ async def get_dungeon_detail(
             )
         )
         completed_runs = runs_res.scalars().all()
-        dungeon_cleared = any(r.floor_id is None for r in completed_runs)
+        prog = progress_from_runs(completed_runs, dungeon.rooms)
+        dungeon_cleared = prog.final_boss_cleared
+        # Practice and review runs never count for floors, ranks or mastery on the map.
+        completed_runs = [r for r in completed_runs if counts_for_progress(r)]
 
         from app.schemas.dungeons import DungeonFloorView, FinalBossView, FloorBossView, FloorTopicView
         floors_view = []
-        # Sort floor ids deterministically
-        sorted_floor_ids = sorted(floor_rooms_map.keys())
-
-        # Track cleared floors
-        cleared_floors = set()
-        for f_id in sorted_floor_ids:
-            if dungeon_cleared or any(r.floor_id == f_id for r in completed_runs):
-                cleared_floors.add(f_id)
+        # Floors in room order (not alphabetical), cleared by a floor run or a full clear
+        sorted_floor_ids = floor_ids_in_order(dungeon.rooms)
+        cleared_floors = set(prog.cleared_floor_ids)
 
         rank_weight = {"S": 4, "A": 3, "B": 2, "C": 1}
 
@@ -398,7 +416,7 @@ async def get_dungeon_detail(
             boss_kind = boss_meta.get("kind") or f_boss_room.monster_kind or "silicon_golem"
 
             # Determine best rank on this floor among completed runs covering this floor
-            floor_runs = [r for r in completed_runs if r.floor_id == f_id or r.floor_id is None]
+            floor_runs = [r for r in completed_runs if r.floor_id == f_id or is_full_run(r, dungeon.rooms)]
             best_rank = None
             if floor_runs:
                 ranks_for_floor = []
@@ -445,9 +463,7 @@ async def get_dungeon_detail(
 
         if final_boss_room:
             all_floors_cleared = len(cleared_floors) == len(sorted_floor_ids)
-            final_boss_cleared = dungeon_cleared or any(
-                r.floor_id in ("final_boss", final_boss_room.id) for r in completed_runs
-            )
+            final_boss_cleared = dungeon_cleared
             final_boss_view = FinalBossView(
                 id=final_boss_room.id,
                 name=final_boss_room.monster_type,

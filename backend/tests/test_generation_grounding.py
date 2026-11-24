@@ -60,8 +60,15 @@ async def test_generation_keeps_quotes_from_any_chunk_and_never_sends_null_floor
     rooms = resp.json()["rooms"]
     assert [r["topic_name"] for r in rooms] == ["Addressing", "Storage"]
     assert [len(r["questions"]) for r in rooms] == [1, 1]
-    assert all("floor_id" not in r for r in rooms)
+    # Never a null floor_id: floor rooms carry their floor, the Final_Boss room has none at all.
+    assert all(r.get("floor_id", "absent") is not None for r in rooms)
+    assert isinstance(rooms[0]["floor_id"], str)
+    assert "floor_id" not in rooms[-1]
     assert rooms[-1]["is_boss"] is True
+    body = resp.json()
+    assert [f["room_ids"] for f in body["floors"]] == [[rooms[0]["id"]]]
+    assert body["floors"][0]["status"] == "ready"
+    assert body["final_boss"] == {**body["final_boss"], "id": rooms[-1]["id"], "unlocked": False}
     total = (await db_session.execute(select(func.count(Question.id)))).scalar_one()
     assert total == 2
 

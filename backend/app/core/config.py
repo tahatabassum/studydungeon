@@ -60,6 +60,9 @@ class Settings(BaseSettings):
     OWN_NOTES_DAILY_POINTS_CAP: int = 2000
     RANKING_MIN_CHARS: int = 3000
     PRACTICE_POINTS_MULTIPLIER: float = 0.5
+    # Accepted uploads per client IP per UTC day, and for the whole service (protects the AI quota).
+    UPLOAD_IP_DAILY_LIMIT: int = 3
+    UPLOAD_GLOBAL_DAILY_LIMIT: int = 40
 
     @model_validator(mode="after")
     def validate_ai_provider_model(self) -> "Settings":

@@ -35,10 +35,17 @@ async def test_guest_can_only_play_public_demo_dungeon(async_client: AsyncClient
     token = create_session_token(guest.id, session_version=guest.session_version, is_guest=True)
     async_client.cookies.set(settings.SESSION_COOKIE_NAME, token)
 
-    # Attempt private dungeon -> 403
+    # Someone else's private dungeon -> 403
     p_resp = await async_client.post("/runs", json={"dungeon_id": priv_dungeon.id})
     assert p_resp.status_code == 403
-    assert p_resp.json()["detail"]["code"] == "GUEST_FORBIDDEN"
+    assert p_resp.json()["detail"]["code"] == "FORBIDDEN"
+
+    # The guest's own dungeon (from their own upload) -> 201
+    own = Dungeon(user_id=guest.id, title="My notes", is_public_demo=False)
+    db_session.add(own)
+    await db_session.commit()
+    await db_session.refresh(own)
+    assert (await async_client.post("/runs", json={"dungeon_id": own.id})).status_code == 201
 
     # Play public demo dungeon -> 201 Created
     demo_resp = await async_client.post("/runs", json={"dungeon_id": demo_dungeon.id})
