@@ -35,11 +35,11 @@ class Settings(BaseSettings):
     GEMINI_MODEL: Optional[str] = "gemini-2.0-flash"
     OPENROUTER_API_KEY: Optional[str] = None
     OPENROUTER_ENABLED: bool = False
-    OPENROUTER_MODEL: str = "meta-llama/llama-3.3-70b-instruct:free"
+    # Free models come and go on OpenRouter: these are tried first, then the live free list (openrouter_provider.py).
+    OPENROUTER_MODEL: str = "google/gemma-4-31b-it:free"
     OPENROUTER_FALLBACK_MODELS: List[str] = [
-        "meta-llama/llama-3.3-70b-instruct:free",
-        "google/gemini-2.0-flash-exp:free",
-        "mistralai/mistral-7b-instruct:free",
+        "google/gemma-4-26b-a4b-it:free",
+        "nvidia/nemotron-3.5-super-vl:free",
     ]
 
     # Uploads & Quality Thresholds

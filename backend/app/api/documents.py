@@ -117,9 +117,10 @@ async def process_document_background(
             await db.commit()
 
         except Exception as e:
-            logger.error("Document background processing error: %s", str(e), exc_info=True)
+            # Details stay in the server log; the player gets a plain sentence (never a URL or a provider error).
+            logger.error("Document background processing error: %s", type(e).__name__, exc_info=True)
             doc.status = "failed"
-            doc.rejection_reason = f"Extraction error: {str(e)}"
+            doc.rejection_reason = _friendly_failure(e)
             await db.commit()
 
     if session is not None:
@@ -127,6 +128,18 @@ async def process_document_background(
     else:
         async with async_session_maker() as db:
             await _worker(db)
+
+
+def _friendly_failure(exc: Exception) -> str:
+    """What a player reads when processing fails. The document stays retryable ("Check again")."""
+    import httpx
+
+    if isinstance(exc, (httpx.HTTPError, RuntimeError, TimeoutError)):
+        return (
+            "The spirits that read your notes are busy right now. Press Check again in a minute, "
+            "or play the preloaded dungeons meanwhile."
+        )
+    return "This file could not be read. Try saving it again, or upload it as a PDF."
 
 
 def _today_start(now: datetime) -> datetime:
