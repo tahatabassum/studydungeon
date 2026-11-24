@@ -1675,6 +1675,17 @@
             "type": "string",
             "format": "date-time",
             "title": "Created At"
+          },
+          "dungeon_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Dungeon Id"
           }
         },
         "type": "object",
@@ -2424,6 +2435,33 @@
             },
             "type": "array",
             "title": "Unlocked Weapons"
+          },
+          "xp_to_next": {
+            "type": "integer",
+            "title": "Xp To Next",
+            "default": 100
+          },
+          "daily_streak": {
+            "type": "integer",
+            "title": "Daily Streak",
+            "default": 0
+          },
+          "due_review_count": {
+            "type": "integer",
+            "title": "Due Review Count",
+            "default": 0
+          },
+          "next_due_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Due At"
           }
         },
         "type": "object",

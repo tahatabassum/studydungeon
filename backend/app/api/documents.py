@@ -20,10 +20,10 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.ai.factory import get_ai_provider
 from app.core.config import settings
 from app.core.database import async_session_maker, get_db
-from app.core.deps import get_current_user, require_registered_user
+from app.core.deps import get_current_user
 from app.core.file_limits import FileLimitExceededError
 from app.core.rate_limit import get_client_ip
-from app.models.all_models import Document, DocumentChunk, RateLimitRecord, User
+from app.models.all_models import Document, DocumentChunk, Dungeon, RateLimitRecord, User
 from app.schemas.documents import DocumentResponse, DocumentStatusResponse
 from app.schemas.uploads import (
     QuotaGlobalView,
@@ -347,13 +347,22 @@ async def upload_document(
 
 @documents_router.get("", response_model=List[DocumentResponse])
 async def list_documents(
-    user: User = Depends(require_registered_user),
+    # Guests too: they store up to 2 documents and must be able to free a slot.
+    user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
     res = await db.execute(
         select(Document).where(Document.user_id == user.id).order_by(Document.created_at.desc())
     )
-    return res.scalars().all()
+    docs = res.scalars().all()
+    dungeon_rows = await db.execute(
+        select(Dungeon.document_id, Dungeon.id).where(Dungeon.user_id == user.id, Dungeon.document_id.in_([d.id for d in docs]))
+    ) if docs else None
+    dungeon_of = dict(dungeon_rows.all()) if dungeon_rows is not None else {}
+    return [
+        DocumentResponse.model_validate({**{c: getattr(d, c) for c in DocumentResponse.model_fields if c != "dungeon_id"}, "dungeon_id": dungeon_of.get(d.id)})
+        for d in docs
+    ]
 
 
 @documents_router.get("/{id}/status", response_model=DocumentStatusResponse)
@@ -460,7 +469,7 @@ async def get_source_preview(
 @documents_router.delete("/{id}")
 async def delete_document(
     id: str,
-    user: User = Depends(require_registered_user),
+    user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
     res = await db.execute(select(Document).where(Document.id == id, Document.user_id == user.id))
@@ -471,6 +480,10 @@ async def delete_document(
             detail={"code": "DOCUMENT_NOT_FOUND", "message": "Document not found or does not belong to user."},
         )
 
+    # Its dungeon goes too: without the document's topics it would be an empty shell on the dashboard.
+    owned = await db.execute(select(Dungeon).where(Dungeon.document_id == doc.id, Dungeon.user_id == user.id))
+    for dungeon in owned.scalars().all():
+        await db.delete(dungeon)
     await db.delete(doc)
     await db.commit()
-    return {"success": True, "message": "Document and all associated chunks deleted."}
+    return {"success": True, "message": "Document, its dungeon and all associated chunks deleted."}

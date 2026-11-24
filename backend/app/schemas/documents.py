@@ -14,6 +14,8 @@ class DocumentResponse(BaseModel):
     readability_score: Optional[float] = None
     rejection_reason: Optional[str] = None
     created_at: datetime
+    # The dungeon summoned from this document, if any (My Notes links to it).
+    dungeon_id: Optional[str] = None
 
 
 class DocumentStatusResponse(BaseModel):
