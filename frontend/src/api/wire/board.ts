@@ -12,19 +12,20 @@ export const wireBoardEntrySchema = z.object({
   rank: z.number().int().min(1),
   public_id: z.string().min(1),
   handle: z.string(),
-  display_name: z.string().optional(),
-  tag: z.string().optional(),
+  // Optional fields may come as null (the backend serialises None): null counts as absent.
+  display_name: z.string().nullish(),
+  tag: z.string().nullish(),
   is_guest: z.boolean(),
   level: z.number().int().nonnegative(),
   points: z.number().int().nonnegative(),
   rooms_cleared: z.number().int().nonnegative(),
-  badge_ids: z.array(z.string()).optional(),
+  badge_ids: z.array(z.string()).nullish(),
 })
 
 export const wireBoardMeSchema = z.object({
   live: z.boolean(),
-  public_id: z.string().optional(),
-  handle: z.string().optional(),
+  public_id: z.string().nullish(),
+  handle: z.string().nullish(),
   rank: z.number().int().min(1).nullable(),
   points: z.number().int().nonnegative(),
   next_above: z
@@ -40,7 +41,8 @@ export const wireBoardMeSchema = z.object({
     cutoff_points: z.number().int().nonnegative(),
     points_needed: z.number().int().nonnegative(),
   }),
-  reason: z.string().optional(),
+  // null for a player with points (reason is only sent for 'no_points_yet').
+  reason: z.string().nullish(),
 })
 
 export const wireBoardSchema = z.object({
@@ -64,9 +66,9 @@ function mapEntry(e: z.output<typeof wireBoardEntrySchema>): BoardEntry {
     points: e.points,
     rooms_cleared: e.rooms_cleared,
   }
-  if (e.display_name !== undefined) out.display_name = e.display_name
-  if (e.tag !== undefined) out.tag = e.tag
-  if (e.badge_ids !== undefined) out.badge_ids = [...e.badge_ids]
+  if (e.display_name != null) out.display_name = e.display_name
+  if (e.tag != null) out.tag = e.tag
+  if (e.badge_ids != null) out.badge_ids = [...e.badge_ids]
   return out
 }
 
@@ -78,9 +80,9 @@ function mapMe(m: z.output<typeof wireBoardMeSchema>): BoardMe {
     next_above: m.next_above ? { ...m.next_above } : null,
     top20: { ...m.top20 },
   }
-  if (m.public_id !== undefined) out.public_id = m.public_id
-  if (m.handle !== undefined) out.handle = m.handle
-  if (m.reason !== undefined) out.reason = m.reason
+  if (m.public_id != null) out.public_id = m.public_id
+  if (m.handle != null) out.handle = m.handle
+  if (m.reason != null) out.reason = m.reason
   return out
 }
 
