@@ -286,7 +286,6 @@ async def get_run_status(
 # Keyed by (user id, run id, attempt id): an attempt id is client-made, so it must never be shared across players.
 _PROCESSED_ATTEMPTS: dict[tuple[str, str, str], AttemptResponse] = {}
 _QUESTION_CACHE: dict[str, Question] = {}
-_RUN_TOPIC_DAMAGE: dict[tuple[str, str], int] = {}
 
 
 @runs_router.post("/{id}/attempts", response_model=AttemptResponse, response_model_exclude_none=True)
@@ -470,20 +469,15 @@ async def submit_attempt(
                 detail={"code": "QUESTION_NOT_FOUND", "message": "Question does not exist."},
             )
 
-    # Compute damage dealt per topic in this run (leveraging memory cache)
-    dmg_cache_key = (id, target_room.topic_id) if target_room else None
-    if dmg_cache_key and dmg_cache_key in _RUN_TOPIC_DAMAGE:
-        topic_damage = {target_room.topic_id: _RUN_TOPIC_DAMAGE[dmg_cache_key]}
-    else:
-        damage_rows = await db.execute(
-            select(Question.topic_id, func.coalesce(func.sum(Attempt.damage_dealt), 0))
-            .join(Question, Attempt.question_id == Question.id)
-            .where(Attempt.run_id == id)
-            .group_by(Question.topic_id)
-        )
-        topic_damage = {r[0]: r[1] for r in damage_rows.all()}
-        if dmg_cache_key:
-            _RUN_TOPIC_DAMAGE[dmg_cache_key] = topic_damage.get(target_room.topic_id, 0)
+    # Damage dealt per topic in this run, from the database every time (one grouped query). A per-room cache here
+    # forgot the earlier rooms' damage, so the order check below refused the next room after a clear.
+    damage_rows = await db.execute(
+        select(Question.topic_id, func.coalesce(func.sum(Attempt.damage_dealt), 0))
+        .join(Question, Attempt.question_id == Question.id)
+        .where(Attempt.run_id == id)
+        .group_by(Question.topic_id)
+    )
+    topic_damage = {r[0]: r[1] for r in damage_rows.all()}
 
     if target_room:
         # Order is checked inside the run's own rooms (a Floor 2 run does not replay Floor 1).
@@ -519,9 +513,6 @@ async def submit_attempt(
         is_boss=is_boss,
     )
 
-    # Update in-memory topic damage tally
-    if dmg_cache_key:
-        _RUN_TOPIC_DAMAGE[dmg_cache_key] = _RUN_TOPIC_DAMAGE.get(dmg_cache_key, 0) + damage_dealt
 
     # Update run state
     if is_correct:
@@ -668,6 +659,7 @@ async def clear_room(
         dungeon=run.dungeon,
         room=room,
         db=db,
+        is_boss=is_boss,
     )
 
     await db.commit()

@@ -814,3 +814,10 @@ The user asked Person B to finish everything that was left without waiting, so P
 
 - At the user's request uploads are unlimited by default. Every count limit is now a setting where 0 means unlimited, all defaulting to 0: `UPLOAD_GUEST_DAILY_LIMIT`, `UPLOAD_PLAYER_DAILY_LIMIT`, `UPLOAD_GUEST_STORED_LIMIT`, `UPLOAD_PLAYER_STORED_LIMIT`, `UPLOAD_IP_DAILY_LIMIT`, `UPLOAD_GLOBAL_DAILY_LIMIT`. `GET /uploads/quota` adds `player.unlimited` (true when no daily or stored limit applies; the limits are then 0). File-size and page limits are unchanged.
 - OpenRouter: the configured free models were all gone (404) and the first 404 failed the request. Models are now tried one by one, then the live free list from `/api/v1/models`. Gemini's key moved from the URL to the `x-goog-api-key` header (it was leaking into logs and into `rejection_reason`). Failed documents show a plain sentence instead of the provider error.
+
+---
+
+## Update 2026-11-24 (later): room clears crashed
+
+- `POST /runs/{id}/rooms/{room_id}/clear` answered **500 on every successful clear** since the Day 4 points commit: `award_room_clear_points` read `room.is_boss`, which `DungeonRoom` does not have. The clear endpoint now passes `is_boss` (the run's last room). No test cleared a room through the API before; `tests/test_room_clear_e2e.py` now plays a pack floor room by room and a generated dungeon's room.
+- The per-room damage cache in `submit_attempt` (`_RUN_TOPIC_DAMAGE`) forgot earlier rooms' damage, so the next room's attempts were refused with `OUT_OF_ORDER_ROOM`. Removed; damage is read with one grouped query.

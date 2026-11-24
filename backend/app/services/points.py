@@ -203,6 +203,7 @@ async def award_room_clear_points(
     dungeon: Dungeon,
     room: DungeonRoom,
     db: AsyncSession,
+    is_boss: bool = False,
 ) -> Tuple[int, str]:
     """
     Awards room clear points (50 for normal, 200 for floor/final boss) once per week.
@@ -218,7 +219,8 @@ async def award_room_clear_points(
     now = datetime.utcnow()
     week_start = get_current_week_start(now)
 
-    is_boss = room.is_boss or (room.floor_id is None and "boss" in (room.monster_kind or "").lower())
+    # DungeonRoom has no is_boss column (reading it crashed every room clear): the caller says whether this room
+    # is the run's boss (a floor boss or the Final_Boss).
     reason = "boss_clear" if is_boss else "room_clear"
     target_points = 200 if is_boss else 50
 
