@@ -114,18 +114,11 @@ async def generate_dungeon(
                 return c
         # 2. Window match for long quotes (first or last 6 words)
         words = quote.split()
-        if len(words) >= 4:
-            lead = " ".join(words[:4])
-            tail = " ".join(words[-4:])
+        if len(words) >= 6:
+            lead = " ".join(words[:6])
+            tail = " ".join(words[-6:])
             for c, text in norm_chunks:
                 if lead in text or tail in text:
-                    return c
-        # 3. Significant word overlap check
-        words_clean = [w for w in quote.split() if len(w) > 3]
-        if words_clean:
-            for c, text in norm_chunks:
-                matches = sum(1 for w in words_clean if w in text)
-                if matches >= max(2, int(len(words_clean) * 0.7)):
                     return c
         return None
 
