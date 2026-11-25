@@ -97,24 +97,24 @@ export function RecentRunsCard({ runs }: { runs: NonNullable<ProgressInfo['recen
   )
 }
 
-/** Haunted memories due, plus the slot frontend-08 Phase 3 fills with the Daily Haunt button. */
+/** Memories (the review queue): missed questions due, plus the slot frontend-08 Phase 3 fills with the Daily Haunt button. */
 export function HauntCard({ count, dailyHauntSlot }: { count: number; dailyHauntSlot?: ReactNode }) {
   return (
     <section className="sd-card" aria-labelledby="dash-haunt-title" data-testid="haunt-card">
       <h2 id="dash-haunt-title" className="sd-card__h">
         <Ghost aria-hidden="true" size={18} />
-        Haunted memories
+        Memories
       </h2>
       <HauntedCounter count={count} />
       {count === 0 ? (
         <EmptyState
           icon={Ghost}
-          title="No ghosts haunting you"
-          message="Questions you missed come back as ghosts. Lay them to rest to keep them in mind."
+          title="No memories due"
+          message="Questions you miss are saved to Memories. Rest them in the Daily Haunt to keep them in mind."
           testId="haunt-empty"
         />
       ) : (
-        <p className="sd-card__muted">Questions you missed come back as ghosts. Lay them to rest to keep them in mind.</p>
+        <p className="sd-card__muted">Questions you miss are saved to Memories. Rest them in the Daily Haunt to keep them in mind.</p>
       )}
       {dailyHauntSlot && (
         <div data-testid="daily-haunt-slot" className="sd-dash__slot">

@@ -3,6 +3,9 @@ from typing import List, Optional
 from pydantic import model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
+DEFAULT_SECRET_KEY = "studydungeon-default-insecure-secret-key-change-in-prod"
+MIN_SECRET_KEY_LENGTH = 32
+
 
 class Settings(BaseSettings):
     PROJECT_NAME: str = "StudyDungeon Backend API"
@@ -14,7 +17,7 @@ class Settings(BaseSettings):
 
     # Security & Proxies
     DEBUG: bool = False
-    SECRET_KEY: str = "studydungeon-default-insecure-secret-key-change-in-prod"
+    SECRET_KEY: str = DEFAULT_SECRET_KEY
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 1440
     SESSION_COOKIE_NAME: str = "studydungeon_session"
     COOKIE_SECURE: bool = False
@@ -79,6 +82,24 @@ class Settings(BaseSettings):
         elif self.AI_PROVIDER == "openrouter":
             if not self.OPENROUTER_API_KEY:
                 raise ValueError("OPENROUTER_API_KEY is required when AI_PROVIDER='openrouter'")
+        return self
+
+    @model_validator(mode="after")
+    def validate_production_security(self) -> "Settings":
+        """Fail fast on an unsafe production setup.
+
+        Production is detected by COOKIE_SECURE=true (Render/HTTPS). DEBUG defaults to false, so keying
+        off DEBUG alone would reject every local run that keeps the built-in dev key.
+        """
+        if "*" in self.CORS_ORIGINS or self.FRONTEND_ORIGIN.strip() == "*":
+            raise ValueError("CORS origins must not contain a wildcard while credentials are allowed")
+        if self.COOKIE_SECURE:
+            if self.SECRET_KEY == DEFAULT_SECRET_KEY:
+                raise ValueError("SECRET_KEY must be changed from the built-in default when COOKIE_SECURE is true")
+            if len(self.SECRET_KEY) < MIN_SECRET_KEY_LENGTH:
+                raise ValueError(
+                    f"SECRET_KEY must be at least {MIN_SECRET_KEY_LENGTH} characters when COOKIE_SECURE is true"
+                )
         return self
 
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")

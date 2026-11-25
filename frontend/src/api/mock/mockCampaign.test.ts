@@ -74,12 +74,14 @@ describe('mock campaign: floors (D13)', () => {
     expect((await api.getGenerationStatus(DUNGEON)).floors.map((f) => f.status)).toEqual(['cleared', 'ready'])
   })
 
-  it('a missed question returns once as a second chance with half damage and a requeue hint', async () => {
+  it('a missed question is not requeued, goes to the due list, and a later answer still counts as a retry', async () => {
     const api = createMockAdapter()
     const run = await api.startRun({ dungeon_id: DUNGEON, floor_id: 'floor-1', mode: 'floor' })
     const wrong = await api.submitAttempt(run.id, { question_id: 'q1', selected_answer: 'nope', attempt_id: id() })
     expect(wrong.correct).toBe(false)
-    expect(wrong.requeue_after).toBeGreaterThanOrEqual(0)
+    expect(wrong.requeue_after).toBeUndefined()
+    const due = await api.getDueReviews(DUNGEON)
+    expect(due.map((r) => r.question.id)).toContain('q1')
     expect(wrong.is_retry).toBe(false)
     expect(wrong.correct_answer).toBe(answerKey.q1.correct)
     const retry = await api.submitAttempt(run.id, { question_id: 'q1', selected_answer: answerKey.q1.correct, attempt_id: id() })

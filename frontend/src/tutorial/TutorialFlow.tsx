@@ -206,7 +206,7 @@ export function TutorialFlow({ onDone, includeIntro }: TutorialFlowProps) {
         )}
 
         {stage === 3 && (
-          <MemoryScroll result={TUTORIAL_SCROLL_RESULT} reduced={reduced} onContinue={() => go(3, 4)} returnsIn={null} />
+          <MemoryScroll result={TUTORIAL_SCROLL_RESULT} reduced={reduced} onContinue={() => go(3, 4)} />
         )}
 
         {stage === 4 && (

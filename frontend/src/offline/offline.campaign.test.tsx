@@ -115,13 +115,13 @@ describe('Offline floors from demo_dungeon.sample.json (D13)', () => {
     await expect(api.submitAttempt(run.id, { question_id: 'off-net-1', selected_answer: correct('off-net-1'), attempt_id: 'x' })).rejects.toMatchObject({ status: 409 })
   })
 
-  it('a wrong answer reveals the right one and asks for the question again (requeue)', async () => {
+  it('a wrong answer reveals the right one and is not requeued', async () => {
     const api = createOfflineAdapter({ now: () => 0 })
     const d = await api.getDungeon((await api.startDemoSession()).dungeon_id)
     const run = await api.startRun({ dungeon_id: d.id, floor_id: 'floor-1', mode: 'floor' })
     const bad = await api.submitAttempt(run.id, { question_id: 'off-cpu-1', selected_answer: 'Control Unit', attempt_id: 'w1' })
     expect(bad).toMatchObject({ correct: false, damage_dealt: 0, correct_answer: 'Arithmetic Logic Unit (ALU)' })
-    expect(bad.requeue_after).not.toBeNull()
+    expect(bad.requeue_after).toBeUndefined()
     const retry = await api.submitAttempt(run.id, { question_id: 'off-cpu-1', selected_answer: correct('off-cpu-1'), attempt_id: 'w2' })
     expect(retry).toMatchObject({ correct: true, is_retry: true, retry_multiplier: 0.5, damage_dealt: 10 })
   })

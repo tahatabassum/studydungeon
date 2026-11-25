@@ -45,6 +45,8 @@ documents_router = APIRouter(prefix="/documents", tags=["documents"])
 # No prefix: the contract path is GET /uploads/quota (under documents_router it was /documents/uploads/quota, a 404).
 uploads_router = APIRouter(tags=["uploads"])
 
+_READ_BLOCK_BYTES = 1024 * 1024
+
 
 async def process_document_background(
     doc_id: str,
@@ -310,13 +312,20 @@ async def upload_document(
         )
 
     # 3. Read bytes and check size
-    file_bytes = await file.read()
+    # Read in chunks and stop as soon as the limit is crossed, so an oversized upload is never held in memory whole.
     max_bytes = settings.MAX_UPLOAD_MB * 1024 * 1024
-    if len(file_bytes) > max_bytes:
-        raise HTTPException(
-            status_code=status.HTTP_413_CONTENT_TOO_LARGE,
-            detail={"code": "FILE_TOO_LARGE", "message": f"File exceeds maximum allowed size of {settings.MAX_UPLOAD_MB}MB."},
-        )
+    buffer = bytearray()
+    while True:
+        block = await file.read(_READ_BLOCK_BYTES)
+        if not block:
+            break
+        buffer.extend(block)
+        if len(buffer) > max_bytes:
+            raise HTTPException(
+                status_code=status.HTTP_413_CONTENT_TOO_LARGE,
+                detail={"code": "FILE_TOO_LARGE", "message": f"File exceeds maximum allowed size of {settings.MAX_UPLOAD_MB}MB."},
+            )
+    file_bytes = bytes(buffer)
 
     # 4. Validate header & signature
     try:
@@ -347,11 +356,14 @@ async def upload_document(
 
     # 6. Create document in processing state
     doc_id = str(uuid.uuid4())
+    # The client filename is only a label (never a storage path). Clamp it so PostgreSQL's String(255) never fails;
+    # the dungeon title appends " Dungeon" to it.
+    safe_name = (file.filename or "").replace("\\", "/").split("/")[-1][:240]
     doc = Document(
         id=doc_id,
         user_id=user.id,
-        title=file.filename or "Untitled Document",
-        original_filename=file.filename or "uploaded_file",
+        title=safe_name or "Untitled Document",
+        original_filename=safe_name or "uploaded_file",
         file_type=file_type,
         status="processing",
     )

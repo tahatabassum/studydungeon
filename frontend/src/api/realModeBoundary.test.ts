@@ -63,7 +63,7 @@ describe('real mode loads no mock module', () => {
   })
 
   it('retry effects are worded from the response and never computed in the UI', () => {
-    const display = ['/src/learning/retryRules.ts', '/src/learning/MemoryScroll.tsx', '/src/encounter/EncounterPopup.tsx', '/src/state/pendingRequeue.ts']
+    const display = ['/src/learning/retryRules.ts', '/src/learning/MemoryScroll.tsx', '/src/encounter/EncounterPopup.tsx']
     for (const f of display) {
       const text = strip(sources[f])
       expect(text, f).not.toMatch(/RETRY_MULTIPLIER|REQUEUE_GAP|MAX_RETURNS/)

@@ -1,48 +1,4 @@
-/* Learning loop: the Memory scroll, the requeue whisper, the Progress panel and the streak calendar. CSS only. */
-
-/* Requeue whisper: a ghostly line on parchment. The glow breathes; the text colour never changes. */
-.sd-whisper {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 0.25rem 0.5rem;
-  margin: 0.5rem 0 0;
-  padding: 0.25rem 0.625rem;
-  border: 1px solid color-mix(in srgb, var(--color-deep) 55%, transparent);
-  border-radius: 999px;
-  background: color-mix(in srgb, var(--color-ghost) 28%, transparent);
-  color: var(--color-bg);
-  font-size: var(--sd-text-sm);
-  font-style: italic;
-  animation: sd-whisper-glow 2.6s ease-in-out infinite;
-}
-.sd-whisper__icon {
-  flex: none;
-  color: var(--color-deep);
-}
-.sd-whisper__main {
-  font-weight: 700;
-  letter-spacing: 0.02em;
-}
-.sd-whisper__detail {
-  font-style: normal;
-}
-
-/* Second-chance tag next to the monster's name. */
-.sd-second-chance {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.25rem;
-  margin-left: 0.5rem;
-  padding: 0 0.5rem;
-  border: 1px solid var(--color-deep);
-  border-radius: 999px;
-  background: color-mix(in srgb, var(--color-deep) 14%, transparent);
-  color: var(--color-deep);
-  font-family: var(--font-body);
-  font-size: var(--sd-text-sm);
-  font-weight: 700;
-}
+/* Learning loop: the Memory scroll, the Progress panel and the streak calendar. CSS only. */
 
 /* Memory scroll: aged paper between two wooden rods, unrolled top to bottom. */
 .sd-scroll {
@@ -100,8 +56,9 @@
   border-left: 3px solid var(--color-deep);
   font-style: italic;
 }
-.sd-scroll__whisper {
-  margin-top: 0.5rem;
+.sd-scroll__saved {
+  margin: 0.5rem 0 0;
+  font-weight: 600;
 }
 .sd-scroll__actions {
   display: flex;
@@ -111,8 +68,7 @@
 }
 
 .sd-scroll[data-reduced='true'],
-[data-reduced='true'] .sd-scroll,
-[data-reduced='true'] .sd-whisper {
+[data-reduced='true'] .sd-scroll {
   animation: none !important;
 }
 
@@ -120,11 +76,6 @@
   from { clip-path: inset(0 0 100% 0); }
   to { clip-path: inset(0 0 0 0); }
 }
-@keyframes sd-whisper-glow {
-  0%, 100% { box-shadow: 0 0 0 transparent; }
-  50% { box-shadow: 0 0 12px color-mix(in srgb, var(--color-ghost) 70%, transparent); }
-}
-
 /* Progress panel (Dashboard card). */
 .sd-progress {
   display: grid;

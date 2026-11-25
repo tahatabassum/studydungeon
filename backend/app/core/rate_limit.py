@@ -1,3 +1,4 @@
+import ipaddress
 import logging
 from datetime import datetime, timedelta
 
@@ -16,19 +17,29 @@ def get_client_ip(request: Request) -> str:
     Extracts the client IP from the right side of the X-Forwarded-For header,
     counting TRUSTED_PROXY_COUNT hops back.
     Prevents leftmost client-controlled IP spoofing.
+
+    When the header has fewer entries than TRUSTED_PROXY_COUNT (a request that skipped some proxies), the
+    leftmost entry is NOT used because the client controls it. The rightmost entry, appended by the proxy
+    closest to this server, is used instead. An entry that is not an IP address falls back to the socket peer.
     """
+    socket_ip = request.client.host if request.client else "127.0.0.1"
     forwarded = request.headers.get("x-forwarded-for") or request.headers.get("X-Forwarded-For")
     if forwarded:
         parts = [p.strip() for p in forwarded.split(",") if p.strip()]
-        proxy_count = getattr(settings, "TRUSTED_PROXY_COUNT", 1)
+        if not parts:
+            return socket_ip
+        proxy_count = max(1, int(getattr(settings, "TRUSTED_PROXY_COUNT", 1)))
         if getattr(settings, "DEBUG", False):
             # Safe hop count logging without printing client IP or raw addresses
             logger.debug("Proxy hop check: total_hops=%d, configured_trusted_hops=%d", len(parts), proxy_count)
-        if len(parts) >= proxy_count:
-            # Entry that many hops from the RIGHT
-            return parts[-proxy_count]
-        return parts[0]
-    return request.client.host if request.client else "127.0.0.1"
+        # Entry that many hops from the RIGHT; fewer entries than hops: the rightmost one.
+        candidate = parts[-proxy_count] if len(parts) >= proxy_count else parts[-1]
+        try:
+            ipaddress.ip_address(candidate)
+        except ValueError:
+            return socket_ip
+        return candidate
+    return socket_ip
 
 
 async def check_rate_limit(

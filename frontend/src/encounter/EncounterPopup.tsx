@@ -5,7 +5,6 @@ import type { Pose } from '@/art/portraits/types'
 import { hashString } from '@/art/room/rng'
 import { SourceLine } from '@/components/SourceLine'
 import { MemoryScroll } from '@/learning/MemoryScroll'
-import { RequeueNotice } from '@/learning/RequeueNotice'
 import { retryNote } from '@/learning/retryRules'
 import { canAnswer, type CombatState } from '@/state/combatMachine'
 import { useReducedMotion } from '@/state/useReducedMotion'
@@ -55,12 +54,6 @@ export interface EncounterPopupProps {
    * answer shows "Memory laid to rest" instead of damage. Pass `monsterKind="revenant"` for its portrait.
    */
   isRevenant?: boolean
-  /** The question on screen is a second chance (it returned, or Quick retry was used). */
-  secondChance?: boolean
-  /** Further questions until a missed question returns; null or absent when nothing is waiting. */
-  requeueRemaining?: number | null
-  /** Quick retry from the Memory scroll: presents the same question again. Absent hides the button. */
-  onQuickRetry?(): void
   /**
    * Text for the polite live region rendered INSIDE the dialog (a modal dialog can hide regions outside it
    * from assistive technology). The parent passes it only while the dialog is open and then leaves the
@@ -118,9 +111,6 @@ function EncounterBody({
   onRetreat,
   keysEnabled,
   isRevenant = false,
-  secondChance = false,
-  requeueRemaining = null,
-  onQuickRetry,
   announcement = '',
 }: BodyProps) {
   const headingId = useId()
@@ -131,7 +121,7 @@ function EncounterBody({
   // Keyed by question id so a stale selection never leaks into the next question.
   const [selection, setSelection] = useState<{ qid: string; opt: string } | null>(null)
   const selected = selection && selection.qid === question.id ? selection.opt : null
-  // The same question can be asked again (Quick retry): the earlier pick must not carry over.
+  // A new question can follow a result: the earlier pick must not carry over.
   const [prevCombat, setPrevCombat] = useState(combat)
   if (combat !== prevCombat) {
     setPrevCombat(combat)
@@ -291,21 +281,8 @@ function EncounterBody({
         {isRevenant || monsterName ? (
           <p className="sd-speech__name">
             {isRevenant ? 'A haunted memory' : `${monsterName} blocks your way`}
-            {secondChance && (
-              <span className="sd-second-chance" data-testid="second-chance-tag">
-                Second chance
-              </span>
-            )}
           </p>
-        ) : (
-          secondChance && (
-            <p className="sd-speech__name">
-              <span className="sd-second-chance" data-testid="second-chance-tag">
-                Second chance
-              </span>
-            </p>
-          )
-        )}
+        ) : null}
         {speakerLine !== null ? (
           <p className="sd-speech__line">{speakerLine}</p>
         ) : (
@@ -323,8 +300,6 @@ function EncounterBody({
             onDone={() => setTypedId(question.id)}
           />
         </h2>
-
-        {requeueRemaining !== null && !shownResult && !closing && <RequeueNotice remaining={requeueRemaining} />}
 
         <AnswerGrid
           options={options}
@@ -427,8 +402,6 @@ function EncounterBody({
           <MemoryScroll
             result={shownResult}
             reduced={reduced}
-            returnsIn={requeueRemaining}
-            onRetry={combat === 'next' ? onQuickRetry : undefined}
             onContinue={onNext}
           />
         )}

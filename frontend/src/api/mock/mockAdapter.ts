@@ -47,7 +47,7 @@ import { buildMockLeaderboard, runRankOnDemoBoard, type StoredRun } from './mock
 import { createReviewStore } from './mockReviews'
 import { buildStreakCalendar, notesConqueredPercent } from './mockProgress'
 import { authoredPool } from './pool'
-import { buildQueue, onAnswer, type RequeueState } from '../../learning/requeue'
+import { buildQueue, type RequeueState } from '../../learning/requeue'
 
 /** Retry rule (D21, PROPOSED): a second chance deals half damage and half XP. */
 const RETRY_MULTIPLIER = 0.5
@@ -578,15 +578,12 @@ export function createMockAdapter(options: MockAdapterOptions = {}): ApiClient {
         is_critical: critical,
       }
       if (scoped && !haunt) {
-        const outcome = onAnswer(scoped.queue, req.question_id, isCorrect)
-        scoped.queue = outcome.state
         if (isRetry) scoped.retries += 1
         if (!scoped.asked.has(req.question_id)) {
           scoped.asked.add(req.question_id)
           if (isCorrect) scoped.firstTryCorrect.add(req.question_id)
         }
         if (!isCorrect) scoped.wrongBefore.add(req.question_id)
-        full.requeue_after = outcome.requeueAfter
         full.is_retry = isRetry
         if (isRetry) full.retry_multiplier = RETRY_MULTIPLIER
         full.combo = next.streak
@@ -876,7 +873,7 @@ export function createMockAdapter(options: MockAdapterOptions = {}): ApiClient {
       await wait()
       // Thin adapter: with a dungeon id the old bare array (HUD counter, room Revenants); without one the new shape.
       if (dungeonId === undefined) return buildDueSummary(hauntInputs())
-      // A generated dungeon has no seeded reviews: misses there come back through the requeue, not as ghosts.
+      // A generated dungeon has no seeded reviews: misses there are not re-asked in the run and do not appear as ghosts.
       if (dungeonId !== demoDungeon.id) {
         ctxFor(dungeonId)
         return []

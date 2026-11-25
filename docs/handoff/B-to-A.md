@@ -829,3 +829,17 @@ The user asked Person B to finish everything that was left without waiting, so P
 - At the user's request the board lists every player who has answered at least one question (has a `player_stats` row), 0 points included, ranked by points then who reached the total first. A player who never played still gets `me.rank: null` with `reason: no_points_yet`. (V2 D excluded 0-point players; this replaces that rule.)
 - `POST /demo/session` guests now get a generated name, tag and public id (for example `Pale Moth#4821`), so every guest is a named player. Players without a name (older accounts) show as `Guest#abcd` / `Player#abcd`, never the login name.
 - The lazy guest purges (demo session and `POST /guests`) only delete guests who never played, so guest scores stay on the board.
+
+---
+## Proposal 2026-11-25: steering diff for the Vercel rewrite destination (not applied)
+`.kiro/steering/architecture.md` section 4.1 shows the rewrite destination as `https://studydungeon-api.onrender.com/api/:path*`. Backend routes have no `/api` prefix (`/auth/login`, `/health`, `/runs`), so that destination returns 404. The deployed `frontend/vercel.json` strips the prefix. Proposed change, to be committed only after both of us agree:
+
+```diff
+ {
+   "source": "/api/:path*",
+-  "destination": "https://studydungeon-api.onrender.com/api/:path*"
++  "destination": "https://studydungeon-api.onrender.com/:path*"
+ }
+```
+
+Related outdated steering text (same proposal): section 7 of the architecture says guests receive `403` on `POST /documents` and `POST /documents/{id}/generate-dungeon`. Guests can now upload with `accept_ai_notice`, within quotas (limits of 0 mean unlimited). Details and the deploy steps are in `docs/DEPLOY_CHECKLIST.md`.

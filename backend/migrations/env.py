@@ -13,7 +13,7 @@ if str(BACKEND_DIR) not in sys.path:
     sys.path.insert(0, str(BACKEND_DIR))
 
 from app.core.config import settings
-from app.core.db_url import normalize_database_url
+from app.core.db_url import get_ssl_connect_arg, normalize_database_url
 from app.models.all_models import Base
 
 # this is the Alembic Config object, which provides
@@ -72,6 +72,9 @@ async def run_async_migrations() -> None:
     if "postgres" in db_target:
         connect_args["statement_cache_size"] = 0
         connect_args["prepared_statement_cache_size"] = 0
+        ssl_arg = get_ssl_connect_arg(settings.DATABASE_URL)
+        if ssl_arg is not None:
+            connect_args["ssl"] = ssl_arg
 
     connectable = async_engine_from_config(
         configuration,
@@ -106,3 +109,4 @@ if context.is_offline_mode():
     run_migrations_offline()
 else:
     run_migrations_online()
+

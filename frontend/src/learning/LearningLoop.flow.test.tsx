@@ -1,7 +1,7 @@
 /**
  * The learning loop with the Mock_Adapter (Phaser mocked at the GameCanvas/bridge boundary): a missed question
- * opens the Memory scroll, whispers that it returns, comes back after the gap the mock reported as a
- * "Second chance" and shows the retry rule exactly as received. Quick retry asks the same question at once.
+ * opens the Memory scroll with the saved-to-Memories line and is not asked again in the same run; there is no
+ * Quick retry.
  * **Validates: Requirements 9.1, 9.2, 9.3, 9.4, 9.6, 14.4, 14.5**
  */
 import { useEffect } from 'react'
@@ -93,7 +93,7 @@ describe('learning loop flow', () => {
     vi.useRealTimers()
   })
 
-  it('a miss opens the Memory scroll with Retry focused and a polite announcement, and it waits for the player', async () => {
+  it('a miss opens the Memory scroll with Continue focused, the saved line and a polite announcement, and it waits for the player', async () => {
     const dialog = await openFloorEncounter()
     const first = promptOf(dialog)
     await answer(dialog, false)
@@ -101,10 +101,13 @@ describe('learning loop flow', () => {
     const scroll = await within(dialog).findByTestId('memory-scroll')
     const missed = results()[0]
     expect(missed.correct_answer).toBeTruthy()
+    expect(missed.requeue_after).toBeUndefined()
     expect(within(scroll).getByTestId('scroll-answer').textContent).toContain(missed.correct_answer!)
     expect(within(scroll).getByText(/From your notes: page/)).toBeTruthy()
-    // Focus moves to Retry; the live region inside the dialog announces the answer after mount.
-    expect(document.activeElement).toBe(within(scroll).getByRole('button', { name: /Quick retry/ }))
+    expect(within(scroll).getByTestId('scroll-saved').textContent).toBe('Saved to Memories. You will meet it again in the Daily Haunt.')
+    // Focus moves to Continue; there is no retry control.
+    expect(within(scroll).queryByRole('button', { name: /retry/i })).toBeNull()
+    expect(document.activeElement).toBe(within(scroll).getByRole('button', { name: 'Continue' }))
     await vi.waitFor(() =>
       expect(within(dialog).getByTestId('encounter-live').textContent).toContain(`The correct answer is ${missed.correct_answer}`),
     )
@@ -119,59 +122,47 @@ describe('learning loop flow', () => {
     expect(within(dialog).getByTestId('memory-scroll')).toBeTruthy()
   })
 
-  it('whispers that the question returns, then asks it again as a Second chance after the Backend gap', async () => {
+  it('never asks a missed question again in the same run, and shows no returning whisper or Second chance tag', async () => {
     const dialog = await openFloorEncounter()
     const first = promptOf(dialog)
     await answer(dialog, false)
-    const gap = results()[0].requeue_after
-    expect(gap).toBe(3)
-    expect(within(dialog).getByTestId('requeue-notice').textContent).toContain('The question returns...')
-
     await user.click(within(dialog).getByRole('button', { name: 'Continue' }))
-    // Three further questions, answered correctly, then the missed one is back.
-    for (let i = 0; i < gap!; i += 1) {
-      await vi.waitFor(() => expect(promptOf(dialog)).not.toBe(first))
+
+    const asked = [first]
+    for (let i = 0; i < 5; i += 1) {
+      try {
+        await vi.waitFor(() => expect(promptOf(dialog)).not.toBe(asked[asked.length - 1]))
+      } catch {
+        break // the monster fell or only the missed question was left: nothing else was asked
+      }
+      const now = promptOf(dialog)
+      asked.push(now)
+      expect(now).not.toBe(first)
       expect(within(dialog).queryByTestId('second-chance-tag')).toBeNull()
-      expect(within(dialog).getByTestId('requeue-notice').textContent).toContain(i === gap! - 1 ? 'next one' : 'more')
+      expect(within(dialog).queryByTestId('requeue-notice')).toBeNull()
       await answer(dialog, true)
       advance(1200)
     }
-    await vi.waitFor(() => expect(promptOf(dialog)).toBe(first))
-    expect(within(dialog).getByTestId('second-chance-tag').textContent).toBe('Second chance')
-    expect(within(dialog).queryByTestId('requeue-notice')).toBeNull()
-
-    // The retry rule is worded from the response: Retry: half damage (retry_multiplier 0.5).
-    await answer(dialog, true)
-    const retry = results()[results().length - 1]
-    expect(retry).toMatchObject({ is_retry: true, retry_multiplier: 0.5 })
-    expect(within(dialog).getByTestId('retry-note').textContent).toBe('Retry: half damage')
-    expect(within(dialog).getByText(`You dealt ${retry.damage_dealt} damage`)).toBeTruthy()
+    expect(asked.length).toBeGreaterThan(1)
+    expect(asked.slice(1)).not.toContain(first)
+    expect(results().slice(1).every((r) => r.is_retry !== true)).toBe(true)
   })
 
-  it('Quick retry asks the same question again right away, and the keyboard reaches both buttons', async () => {
+  it('offers no Quick retry: Continue is the only scroll button and moves on to another question', async () => {
     const dialog = await openFloorEncounter()
     const first = promptOf(dialog)
     await answer(dialog, false)
     const scroll = await within(dialog).findByTestId('memory-scroll')
-    const retryBtn = within(scroll).getByRole('button', { name: /Quick retry/ })
-    const continueBtn = within(scroll).getByRole('button', { name: 'Continue' })
-    expect(document.activeElement).toBe(retryBtn)
-    await user.tab()
-    expect(document.activeElement).toBe(continueBtn)
-    await user.tab({ shift: true })
-    expect(document.activeElement).toBe(retryBtn)
+    expect(within(scroll).getAllByRole('button')).toHaveLength(1)
+    expect(screen.queryByRole('button', { name: /Quick retry/ })).toBeNull()
+    expect(document.activeElement).toBe(within(scroll).getByRole('button', { name: 'Continue' }))
 
     await user.keyboard('{Enter}')
     await vi.waitFor(() => expect(within(dialog).queryByTestId('memory-scroll')).toBeNull())
-    expect(promptOf(dialog)).toBe(first)
-    expect(within(dialog).getByTestId('second-chance-tag')).toBeTruthy()
-    // The earlier pick is cleared and the options are answerable again.
+    await vi.waitFor(() => expect(promptOf(dialog)).not.toBe(first))
+    expect(within(dialog).queryByTestId('second-chance-tag')).toBeNull()
     for (const b of within(dialog).getAllByRole('button').filter((b) => b.className.includes('sd-answer'))) {
       expect((b as HTMLButtonElement).disabled).toBe(false)
     }
-    await answer(dialog, true)
-    expect(results()[1]).toMatchObject({ correct: true, is_retry: true })
-    // It was retried now, so it does not return later.
-    expect(within(dialog).queryByTestId('requeue-notice')).toBeNull()
   })
 })

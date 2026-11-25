@@ -1,4 +1,4 @@
-__pycache__
+__pycache__/
 *.pyc
 *.pyo
 *.pyd
@@ -7,13 +7,20 @@ env/
 venv/
 .venv/
 .pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.hypothesis/
 .coverage
 htmlcov/
+.env
+.env.*
+!.env.example
 *.db
 *.sqlite
 *.sqlite3
 temp_uploads/
+tests/
 .git
 .gitignore
 .dockerignore
-
+Dockerfile

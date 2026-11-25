@@ -1,29 +1,35 @@
-from typing import AsyncGenerator
+from typing import Any, AsyncGenerator
 
 from sqlalchemy import event
 from sqlalchemy.engine import Engine
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
 from app.core.config import settings
-from app.core.db_url import normalize_database_url
+from app.core.db_url import get_ssl_connect_arg, normalize_database_url
 from app.models.all_models import Base
 
 normalized_url = normalize_database_url(settings.DATABASE_URL, is_alembic_sync=False)
 
 # Engine configuration
-engine_kwargs = {"echo": False, "future": True}
-if "postgresql" in normalized_url:
-    # Supabase / PgBouncer transaction pooler requires statement_cache_size=0
-    engine_kwargs["connect_args"] = {
+engine_kwargs: dict[str, Any] = {"echo": False, "future": True}
+if normalized_url.startswith("postgresql"):
+    # Neon / PgBouncer poolers require statement caching to be disabled.
+    connect_args: dict[str, Any] = {
         "statement_cache_size": 0,
         "prepared_statement_cache_size": 0,
     }
+    ssl_arg = get_ssl_connect_arg(settings.DATABASE_URL)
+    if ssl_arg is not None:
+        connect_args["ssl"] = ssl_arg
+    engine_kwargs.update(
+        connect_args=connect_args,
+        pool_pre_ping=True,  # Neon suspends idle computes; drop dead connections
+        pool_size=5,
+        max_overflow=5,
+        pool_recycle=300,
+    )
 
-engine = create_async_engine(
-    normalized_url,
-    **engine_kwargs
-)
-
+engine = create_async_engine(normalized_url, **engine_kwargs)
 
 # Enforce SQLite foreign key constraints
 @event.listens_for(Engine, "connect")
@@ -52,3 +58,4 @@ async def get_db() -> AsyncGenerator[AsyncSession, None]:
             yield session
         finally:
             await session.close()
+

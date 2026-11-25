@@ -1,7 +1,7 @@
 /**
- * Example tests for the learning loop: Memory scroll with and without `correct_answer`, the requeue whisper,
- * band labels, retry wording from the response, Progress panel blocks hidden when absent, the pending-return
- * bookkeeping and the scroll's place in the encounter layout.
+ * Example tests for the learning loop: Memory scroll with and without `correct_answer` (saved-to-Memories line,
+ * no retry control), band labels, retry wording from the response, Progress panel blocks hidden when absent,
+ * the run reducer keeping no re-ask bookkeeping and the scroll's place in the encounter layout.
  * **Validates: Requirements 9.1, 9.2, 9.3, 9.4, 9.6, 10.1, 10.2, 10.3, 10.4, 14.4, 14.5**
  */
 import { cleanup, render, screen, within } from '@testing-library/react'
@@ -9,19 +9,18 @@ import userEvent from '@testing-library/user-event'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { intersects, stageLayout } from '@/encounter/stageLayout'
 import { initialRunState, runReducer, type RunState } from '@/state/runReducer'
-import { addPending, duePending, nextReturnIn, tickPending } from '@/state/pendingRequeue'
 import type { AnswerResult, ProgressInfo } from '@/types/api'
 import { MASTERY_BAND_LABEL, masteryBand } from './mastery'
 import { MasteryBar } from './MasteryBar'
-import { MemoryScroll, scrollAnnouncement } from './MemoryScroll'
+import { MemoryScroll, SAVED_FOR_REVIEW_OFFLINE, SAVED_TO_MEMORIES, scrollAnnouncement } from './MemoryScroll'
 import { hasLearningProgress, ProgressPanel } from './ProgressPanel'
-import { RequeueNotice } from './RequeueNotice'
 import { retryEffectLabel, retryNote } from './retryRules'
 import { layoutWeeks } from './StreakCalendar'
 
 const rm = vi.hoisted(() => ({ reduced: false }))
 vi.mock('@/state/useReducedMotion', () => ({ useReducedMotion: () => rm.reduced }))
 
+import { setApiOverride } from '@/api'
 import { EncounterPopup, type EncounterPopupProps } from '@/encounter/EncounterPopup'
 
 const wrong = (over: Partial<AnswerResult> = {}): AnswerResult => ({
@@ -39,18 +38,20 @@ const wrong = (over: Partial<AnswerResult> = {}): AnswerResult => ({
 
 afterEach(() => {
   cleanup()
+  setApiOverride(null)
   rm.reduced = false
 })
 
 describe('MemoryScroll', () => {
-  it('shows the answer, explanation, quote and page, with Retry focused', () => {
-    const onRetry = vi.fn()
-    render(<MemoryScroll result={wrong({ correct_answer: 'ALU' })} reduced={false} onRetry={onRetry} onContinue={vi.fn()} />)
+  it('shows the answer, explanation, quote and page, with Continue focused and the saved line', () => {
+    render(<MemoryScroll result={wrong({ correct_answer: 'ALU' })} reduced={false} onContinue={vi.fn()} />)
     expect(screen.getByTestId('scroll-answer').textContent).toContain('ALU')
     expect(screen.getByText('From your notes: page 7')).toBeTruthy()
     expect(screen.getByText('The ALU does arithmetic.')).toBeTruthy()
     expect(screen.getByTestId('scroll-quote').textContent).toContain('The ALU performs arithmetic and logic.')
-    expect(document.activeElement).toBe(screen.getByRole('button', { name: /Quick retry/ }))
+    expect(screen.getByTestId('scroll-saved').textContent).toBe(SAVED_TO_MEMORIES)
+    expect(screen.queryByRole('button', { name: /retry/i })).toBeNull()
+    expect(document.activeElement).toBe(screen.getByRole('button', { name: 'Continue' }))
   })
 
   it('leaves the answer line out when correct_answer is absent, and falls back to the quote without a page', () => {
@@ -58,8 +59,6 @@ describe('MemoryScroll', () => {
     expect(screen.queryByTestId('scroll-answer')).toBeNull()
     expect(screen.queryByTestId('scroll-quote')).toBeNull()
     expect(screen.getByText(/From your notes: "The ALU performs arithmetic and logic\."/)).toBeTruthy()
-    // No retry is offered here, so focus lands on Continue.
-    expect(screen.queryByRole('button', { name: /Quick retry/ })).toBeNull()
     expect(document.activeElement).toBe(screen.getByRole('button', { name: 'Continue' }))
   })
 
@@ -69,48 +68,29 @@ describe('MemoryScroll', () => {
     expect(screen.getByRole('button', { name: 'Continue' })).toBeTruthy()
   })
 
+  it('says the question is saved for review, not Memories, in the offline demo', () => {
+    setApiOverride({} as never)
+    render(<MemoryScroll result={wrong()} reduced={false} onContinue={vi.fn()} />)
+    expect(screen.getByTestId('scroll-saved').textContent).toBe(SAVED_FOR_REVIEW_OFFLINE)
+    expect(SAVED_FOR_REVIEW_OFFLINE).toBe('Saved for review. Sign in online to keep it in Memories.')
+  })
+
   it('announces politely, built only from the response', () => {
     expect(scrollAnnouncement({ correct_answer: 'ALU', explanation: 'Because.' })).toBe('Memory scroll. The correct answer is ALU. Because.')
     expect(scrollAnnouncement({})).toBe('Memory scroll.')
   })
 
-  it('calls the handlers from the keyboard', async () => {
+  it('calls Continue from the keyboard, the only button', async () => {
     const user = userEvent.setup()
-    const onRetry = vi.fn()
     const onContinue = vi.fn()
-    render(<MemoryScroll result={wrong()} reduced={false} onRetry={onRetry} onContinue={onContinue} />)
+    render(<MemoryScroll result={wrong()} reduced={false} onContinue={onContinue} />)
+    expect(screen.getAllByRole('button')).toHaveLength(1)
     await user.keyboard('{Enter}')
-    expect(onRetry).toHaveBeenCalledTimes(1)
-    await user.tab()
-    await user.keyboard(' ')
     expect(onContinue).toHaveBeenCalledTimes(1)
   })
 })
 
-describe('RequeueNotice', () => {
-  it('whispers the question returns and counts the further questions', () => {
-    const { rerender } = render(<RequeueNotice remaining={3} />)
-    expect(screen.getByTestId('requeue-notice').textContent).toContain('The question returns...')
-    expect(screen.getByTestId('requeue-notice').textContent).toContain('After 3 more questions.')
-    rerender(<RequeueNotice remaining={1} />)
-    expect(screen.getByTestId('requeue-notice').textContent).toContain('After 1 more question.')
-    rerender(<RequeueNotice remaining={0} />)
-    expect(screen.getByTestId('requeue-notice').textContent).toContain('It is the next one.')
-  })
-})
-
-describe('pending returns and the run reducer', () => {
-  it('counts the Backend gap down and names the question that is due', () => {
-    let list = addPending([], 'q1', 2)
-    expect(nextReturnIn(list)).toBe(2)
-    expect(duePending(list)).toBeUndefined()
-    list = tickPending(list)
-    list = tickPending(list)
-    expect(duePending(list)?.questionId).toBe('q1')
-    expect(tickPending(list, 'q1')).toEqual([])
-    expect(nextReturnIn([])).toBeNull()
-  })
-
+describe('the run reducer keeps no re-ask bookkeeping', () => {
   const encounter = (): RunState => {
     let s = runReducer(initialRunState, {
       type: 'run-started',
@@ -125,24 +105,13 @@ describe('pending returns and the run reducer', () => {
     return runReducer(s, { type: 'answer-submitted' })
   }
 
-  it('tracks requeue_after from a wrong answer only, never computing a gap', () => {
+  it('ignores a requeue_after on the wire: the wrong answer only costs HP and the state has no pending list', () => {
     const missed = runReducer(encounter(), { type: 'result-received', result: wrong({ requeue_after: 3 }), questionId: 'q1' })
-    expect(missed.pendingRequeue).toEqual([{ questionId: 'q1', remaining: 3 }])
-    const none = runReducer(encounter(), { type: 'result-received', result: wrong({ requeue_after: null }), questionId: 'q1' })
-    expect(none.pendingRequeue).toEqual([])
-    const absent = runReducer(encounter(), { type: 'result-received', result: wrong(), questionId: 'q1' })
-    expect(absent.pendingRequeue).toEqual([])
-  })
-
-  it('drops pending returns when the room monster dies or the player moves to another room', () => {
-    const missed = runReducer(encounter(), { type: 'result-received', result: wrong({ requeue_after: 3 }), questionId: 'q1' })
-    expect(runReducer(missed, { type: 'requeue-presented' }).pendingRequeue[0].remaining).toBe(2)
-    expect(runReducer(missed, { type: 'requeue-cancel', questionId: 'q1' }).pendingRequeue).toEqual([])
-    const dead = { ...missed, roomHp: { ...missed.roomHp, a: 0 } }
-    expect(runReducer(dead, { type: 'room-cleared', roomId: 'a', xpDelta: 0 }).pendingRequeue).toEqual([])
+    expect(missed).not.toHaveProperty('pendingRequeue')
+    expect(missed.playerHp).toBe(90)
+    expect(missed.combat).toBe('result')
   })
 })
-
 describe('retry wording', () => {
   it('words the multiplier it receives and nothing else', () => {
     expect(retryEffectLabel(0.5)).toBe('half damage')
@@ -240,14 +209,15 @@ describe('Memory scroll in the encounter layout', () => {
   })
 
   it('sits inside the panel scroller, which keeps clear of the portrait, and replaces the Next button', () => {
-    render(<EncounterPopup {...props({ onQuickRetry: vi.fn() })} />)
+    render(<EncounterPopup {...props()} />)
     const scroll = screen.getByTestId('memory-scroll')
     expect(scroll.closest('.sd-speech__scroll')).not.toBeNull()
     expect(screen.queryByRole('button', { name: 'Next' })).toBeNull()
-    expect(document.activeElement).toBe(screen.getByRole('button', { name: /Quick retry/ }))
+    expect(screen.queryByRole('button', { name: /Quick retry/ })).toBeNull()
+    expect(document.activeElement).toBe(screen.getByRole('button', { name: 'Continue' }))
   })
 
-  it('offers no retry when the player has fallen, and none for a correct answer', () => {
+  it('shows the scroll when the player has fallen, and none for a correct answer', () => {
     const { rerender } = render(<EncounterPopup {...props({ combat: 'player_defeated' })} />)
     expect(screen.getByTestId('memory-scroll')).toBeTruthy()
     expect(screen.queryByRole('button', { name: /Quick retry/ })).toBeNull()
@@ -256,12 +226,11 @@ describe('Memory scroll in the encounter layout', () => {
     expect(screen.getByRole('button', { name: 'Next' })).toBeTruthy()
   })
 
-  it('tags a second chance and shows the whisper while a missed question is waiting', () => {
-    render(<EncounterPopup {...props({ combat: 'question', result: null, secondChance: true, requeueRemaining: 2 })} />)
-    expect(screen.getByTestId('second-chance-tag').textContent).toBe('Second chance')
-    expect(screen.getByTestId('requeue-notice').textContent).toContain('After 2 more questions.')
+  it('shows no Second chance tag and no returning whisper on a fresh question', () => {
+    render(<EncounterPopup {...props({ combat: 'question', result: null })} />)
+    expect(screen.queryByTestId('second-chance-tag')).toBeNull()
+    expect(screen.queryByTestId('requeue-notice')).toBeNull()
   })
-
   // Portrait beside the panel: the content box never meets the portrait box (existing stageLayout math).
   it.each([
     [1024, 635],

@@ -7,7 +7,7 @@ import { buildFloors, type FloorDef } from '../learning/floors'
 import { progressFromXp } from '../learning/level'
 import { createMasteryStore } from '../learning/masteryStore'
 import { RANK_VALUE } from '../learning/rank'
-import { buildQueue, onAnswer, type RequeueState } from '../learning/requeue'
+import { buildQueue, type RequeueState } from '../learning/requeue'
 import type {
   AnswerResult,
   Dungeon,
@@ -293,15 +293,12 @@ export function createAdapter(options: OfflineOptions): ApiClient {
         is_critical: critical,
       }
       if (scoped) {
-        const outcome = onAnswer(scoped.queue, req.question_id, isCorrect)
-        scoped.queue = outcome.state
         if (isRetry) scoped.retries += 1
         if (!scoped.asked.has(req.question_id)) {
           scoped.asked.add(req.question_id)
           if (isCorrect) scoped.firstTryCorrect.add(req.question_id)
         }
         if (!isCorrect) scoped.wrongBefore.add(req.question_id)
-        full.requeue_after = outcome.requeueAfter
         full.is_retry = isRetry
         if (isRetry) full.retry_multiplier = RETRY_MULTIPLIER
         full.combo = next.streak

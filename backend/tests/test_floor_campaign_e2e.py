@@ -70,7 +70,7 @@ async def test_floor_campaign_locking_and_progression(async_client: AsyncClient,
     assert f1_run["mode"] == "floor"
     assert len(f1_run["rooms"]) == len(f1["room_ids"])
 
-    # 5. Test attempt submission: wrong answer returns requeue_after and correct_answer, never leaks on correct
+    # 5. Test attempt submission: wrong answer returns correct_answer (no requeue_after), never leaks on correct
     f1_room_id = f1["room_ids"][0]
     f1_room_data = next(r for r in d_data["rooms"] if r["id"] == f1_room_id)
     q_id = f1_room_data["questions"][0]["id"]
@@ -89,7 +89,7 @@ async def test_floor_campaign_locking_and_progression(async_client: AsyncClient,
     assert wrong_att.status_code == 200, wrong_att.text
     w_data = wrong_att.json()
     assert w_data["is_correct"] is False
-    assert w_data["requeue_after"] == 3
+    assert w_data.get("requeue_after") is None
     assert "correct_answer" in w_data
     assert w_data["correct_answer"] in q_opts
 
