@@ -29,7 +29,7 @@ Four sequential steps: remove obsolete docs, verify hackathon requirements, writ
     - _Requirements: 2.2, 2.3_
 
 - [x] 3. Write the submission documents from real evidence
-  - [x] 3.1 Rewrite README.md
+  - [-] 3.1 Rewrite README.md
     - Include all sections listed in Requirement 3.3 with `[FILL IN: ...]` placeholders for links and names
     - _Requirements: 3.1, 3.2, 3.3_
   - [x] 3.2 Rewrite docs/KIRO_WRITEUP.md
@@ -51,7 +51,7 @@ Four sequential steps: remove obsolete docs, verify hackathon requirements, writ
   - [x] 4.2 Confirm nothing sensitive is staged
     - Run `git status --short` and unstage any .env or .db file
     - _Requirements: 4.2_
-  - [-] 4.3 Commit and push
+  - [x] 4.3 Commit and push
     - Commit message `docs: submission README, Kiro write-up, cleanup old reports`, then `git push origin feature/frontend-live-players`
     - Final report notes: repo must be public, About shows MIT license, PR merged to default branch
     - _Requirements: 4.3, 4.4_

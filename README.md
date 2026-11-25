@@ -1,3 +1,5 @@
+![StudyDungeon banner](docs/assets/banner.png)
+
 # StudyDungeon
 
 Upload your study notes and play them as a haunted dungeon crawl. Topics become rooms, key concepts become monsters, and correct answers are your weapon.
@@ -137,8 +139,8 @@ Property-based tests found real bugs, for example a preloaded-dungeon pick that 
 
 ## Team
 
-- M Taha Tabassum
-- [FILL IN: teammate names and roles]
+- M Taha Tabassum: Person B, frontend and game (React, Phaser, UI, Vercel)
+- Muhammad Abdullah: Person A, AI and backend (FastAPI, ingestion, Gemini, database, Render)
 
 ## License
 
