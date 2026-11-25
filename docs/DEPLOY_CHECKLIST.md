@@ -1,10 +1,10 @@
 # StudyDungeon Deployment & Operational Checklist
 
-This file records the pre-deployment audit and gives the steps to deploy StudyDungeon on Neon (database), Render (backend) and Vercel (frontend). It contains environment variable names only, never values.
+This file records the pre-deployment audit and gives the steps to deploy StudyDungeon on Supabase (database), Render (backend) and Vercel (frontend). It contains environment variable names only, never values.
 
 ## 1. Hosting Architecture Overview
 - **Backend API**: Render, Docker Web Service, defined by `render.yaml` at the repository root.
-- **Database**: Neon serverless PostgreSQL.
+- **Database**: Supabase PostgreSQL (Session pooler).
 - **Frontend and proxy**: Vercel serves the React/Phaser app from `frontend/` and rewrites `/api/*` to Render.
 - The backend routes have **no `/api` prefix** (for example `/auth/login`, `/health`). Vercel removes `/api` when it forwards the request.
 
@@ -30,7 +30,7 @@ This file records the pre-deployment audit and gives the steps to deploy StudyDu
 ## 3. What Was Fixed
 
 - **Settings**: new startup check. When `COOKIE_SECURE=true`, the app refuses to start if `SECRET_KEY` is the built-in default or shorter than 32 characters. A `*` in `CORS_ORIGINS` or `FRONTEND_ORIGIN` is always rejected. (Tests: `backend/tests/test_settings_production.py`.)
-- **Database**: `sslmode` used to be dropped, so asyncpg connected without SSL and Neon would refuse. It now sets the asyncpg `ssl` argument, in the engine and in Alembic. The engine uses `pool_pre_ping`, `pool_size=5`, `max_overflow=5` and `pool_recycle=300`.
+- **Database**: `sslmode` used to be dropped, so asyncpg connected without SSL and Supabase would refuse. It now sets the asyncpg `ssl` argument, in the engine and in Alembic. The engine uses `pool_pre_ping`, `pool_size=5`, `max_overflow=5` and `pool_recycle=300`.
 - **Migration** `8ad0f2de05c1`: the new `session_version` NOT NULL column now has `server_default='1'`, so it works on a table that already has rows.
 - **Docker**: the start command is `alembic upgrade head && exec uvicorn ... --proxy-headers --forwarded-allow-ips "*"` on `${PORT}`. The broken seed step was removed (seeding already runs when the app starts). `.dockerignore` now excludes `.env`, `.env.*`, `*.db`, `.venv`, caches and `tests/`.
 - **render.yaml**: moved from `backend/` to the repository root, with `dockerfilePath: ./backend/Dockerfile` and `dockerContext: ./backend`. It lists every required variable name.
@@ -42,7 +42,7 @@ This file records the pre-deployment audit and gives the steps to deploy StudyDu
 
 ## 4. What Remains (known risks and decisions)
 
-1. **Not tested on real PostgreSQL.** The Docker daemon was off during the audit, so the migrations were reviewed as generated SQL and run only on SQLite. **The first deploy is the real test.** Watch the Render logs for the `alembic upgrade head` output.
+1. **Not tested on real PostgreSQL.** The Docker daemon was off during the audit, so the migrations were reviewed as generated SQL and run only on SQLite. **The first deploy, against Supabase, is the real PostgreSQL test.** Watch the Render logs for the `alembic upgrade head` output.
 2. **Docker image not built locally** for the same reason. Optional check before you push: start Docker Desktop, then run `docker build -t sd-api backend` from the repository root.
 3. **`TRUSTED_PROXY_COUNT=2` is an estimate.** The chain is Vercel, then Render. After deploy, confirm that two demo sessions from different networks get different rate-limit keys. Use `3` if Render adds another hop. The config default is `1`, so always set it on Render (`render.yaml` already does).
 4. **Pillow 12.3.0** has advisories whose fixes exist only in 13.0.0 (a major upgrade). Accepted for now: Pillow decodes only PNG/JPG uploads that passed the extension, magic-byte and size checks. Follow-up: test Pillow 13 with the OCR tests, then bump the pin.
@@ -50,7 +50,7 @@ This file records the pre-deployment audit and gives the steps to deploy StudyDu
 6. **In-memory caches**: `_PROCESSED_ATTEMPTS` and `_QUESTION_CACHE` grow without a limit and reset on restart. Attempt idempotency is also stored in the database, so a restart does not double-count. On a long-running free instance, memory grows slowly.
 7. **Upload body size**: Starlette may spool a large multipart body before the route runs, so `MAX_UPLOAD_MB` is not a hard network cap. A proxy-level limit would be needed for that.
 8. **Cold start**: Render free spins down after 15 minutes. The first request takes about 30 to 50 seconds. The frontend offers the offline demo after 8 seconds.
-9. **Neon free auto-suspend**: the first query after idle is slow. `pool_pre_ping` recovers dropped connections.
+9. **Supabase free projects pause after about 1 week of inactivity.** Resume the project from the Supabase dashboard before the demo or judging. `pool_pre_ping` recovers dropped connections.
 10. **Guests can upload.** At the owner's request, guests may upload with `accept_ai_notice`, within quotas. All count limits default to `0` (unlimited): `UPLOAD_GUEST_DAILY_LIMIT`, `UPLOAD_PLAYER_DAILY_LIMIT`, `UPLOAD_GUEST_STORED_LIMIT`, `UPLOAD_PLAYER_STORED_LIMIT`, `UPLOAD_IP_DAILY_LIMIT`, `UPLOAD_GLOBAL_DAILY_LIMIT`. Older text that says guests get `403` on uploads (steering architecture, `docs/kiro-log-backend.md`, `docs/FINAL_REPORT.md`) is outdated. Set limits above 0 before a public launch if you want to control AI cost.
 11. **Steering is outdated** in two places (vercel destination, guest uploads). A proposed diff is in `docs/handoff/B-to-A.md`. Steering files were not edited.
 
@@ -63,21 +63,31 @@ Generate a secret first (run locally, paste the output into Render, never commit
 python -c "import secrets; print(secrets.token_urlsafe(48))"
 ```
 
-### A. Neon database
-1. Log in to the [Neon Console](https://console.neon.tech) and create a project (for example `studydungeon-prod`), in a region close to Render's `oregon`.
-2. Copy the **pooled** connection string. It looks like `postgresql://USER:PASSWORD@HOST/DBNAME?sslmode=require`.
-3. Paste it into Render as `DATABASE_URL`. The backend converts it to the asyncpg form and handles `sslmode` itself. Do not edit it by hand.
+### A. Supabase database
+1. In Supabase, open the project, then **Connect**, and pick the **Session pooler** connection string (IPv4, port **5432**).
+   - Do NOT use the Direct connection: it is IPv6 only and Render free cannot reach it.
+   - Do NOT use the Transaction pooler on port 6543: it breaks asyncpg prepared statements ("prepared statement already exists").
+2. Replace `[YOUR-PASSWORD]` with the database password. URL-encode special characters in it (`@` becomes `%40`, and so on).
+3. Append `?sslmode=require`. The backend turns `sslmode` into the asyncpg ssl argument; without it SSL is off.
+4. Final format (`postgresql://` and `postgresql+asyncpg://` both work; the backend normalizes):
+   `postgresql://postgres.<project-ref>:<password>@aws-0-<region>.pooler.supabase.com:5432/postgres?sslmode=require`
+5. Set it as `DATABASE_URL` on Render (secret). Tables are created on first start because the Docker CMD runs `alembic upgrade head`.
+6. The Supabase `anon` and `service_role` API keys are NOT used by the backend. Never put the `service_role` key in the frontend or in a `VITE_` variable.
+7. Supabase free projects pause after about 1 week of inactivity. Resume the project from the dashboard before the demo or judging.
+
+### Gemini key
+AI Studio keys start with `AIza` (create one at aistudio.google.com/apikey). Keys of another format may not work with the generativelanguage endpoint.
 
 ### B. Render backend
 1. In the [Render Dashboard](https://dashboard.render.com) choose **New +** then **Blueprint** and select the repository. Render reads `render.yaml` at the repository root.
    (Manual alternative: **New +** then **Web Service**, runtime **Docker**, Dockerfile path `./backend/Dockerfile`, Docker context `./backend`, health check path `/health`, plan Free.)
 2. Set the variables that `render.yaml` marks as secrets (names only):
    - `DATABASE_URL`
-   - `SECRET_KEY` (the generated value, at least 32 characters)
+   - `SECRET_KEY` (random, at least 32 characters: `python -c "import secrets; print(secrets.token_urlsafe(48))"`)
    - `GEMINI_API_KEY`
    - `OPENROUTER_API_KEY` (leave empty if you do not use OpenRouter)
-   - `FRONTEND_ORIGIN` (set later in step C; use a placeholder for the first deploy)
-3. These are set by `render.yaml` and can stay as they are: `COOKIE_SECURE=true`, `AI_PROVIDER`, `GEMINI_MODEL`, `OPENROUTER_ENABLED`, `TRUSTED_PROXY_COUNT`, `MAX_UPLOAD_MB`, `DEMO_RATE_LIMIT_PER_HOUR`, `DEMO_GUEST_TTL_HOURS`.
+   - `FRONTEND_ORIGIN` = the Vercel URL (set later in step C; use a placeholder for the first deploy)
+3. Also make sure `COOKIE_SECURE=true` and `TRUSTED_PROXY_COUNT=2`. These are set by `render.yaml` and can stay as they are: `COOKIE_SECURE=true`, `AI_PROVIDER`, `GEMINI_MODEL`, `OPENROUTER_ENABLED`, `TRUSTED_PROXY_COUNT`, `MAX_UPLOAD_MB`, `DEMO_RATE_LIMIT_PER_HOUR`, `DEMO_GUEST_TTL_HOURS`.
 4. Optional names: `CORS_ORIGINS` (JSON list, for Vercel preview URLs, no wildcard), the `UPLOAD_*_LIMIT` settings from section 4, and `DEBUG` (keep off).
 5. Deploy. In the logs look for Alembic running migrations without errors, then uvicorn starting. If Alembic fails, this is the first real PostgreSQL run: read the error before changing anything.
 6. Open `https://studydungeon-api.onrender.com/health` (your service URL). It should return HTTP 200.

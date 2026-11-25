@@ -114,11 +114,11 @@ Environment notes: Windows PowerShell, single-line commands. `>` writes UTF-16, 
     - _Requirements: 1.3, 1.4, 12.2_
 
 - [ ] 6. Commit and push
-  - [-] 6.1 Commit the combat change
+  - [x] 6.1 Commit the combat change
     - Stage the Part A files by explicit path (never `git add -A`, never `.env*` or `*.db`) and commit with a message starting `fix(combat): send missed questions to Memories instead of re-asking`.
     - _Requirements: 12.3_
 
-  - [ ] 6.2 Commit the audit fixes and push
+  - [-] 6.2 Commit the audit fixes and push
     - Stage the Part B files and `docs/DEPLOY_CHECKLIST.md` by explicit path and commit with `chore: pre-deploy audit fixes` (or one combined commit with the message `fix(combat): send missed questions to Memories instead of re-asking; chore: pre-deploy audit fixes`); run `git push origin feature/frontend-live-players`.
     - _Requirements: 12.3_
 

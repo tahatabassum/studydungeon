@@ -843,3 +843,6 @@ The user asked Person B to finish everything that was left without waiting, so P
 ```
 
 Related outdated steering text (same proposal): section 7 of the architecture says guests receive `403` on `POST /documents` and `POST /documents/{id}/generate-dungeon`. Guests can now upload with `accept_ai_notice`, within quotas (limits of 0 mean unlimited). Details and the deploy steps are in `docs/DEPLOY_CHECKLIST.md`.
+
+### Proposed steering change (database host)
+`.kiro/steering/architecture.md` still names Neon (diagram, "Connection pooling optimization for Neon serverless", free-tier topology). Proposal: "Neon / Supabase → Supabase" (session pooler, port 5432). Steering is not edited until both owners agree.
