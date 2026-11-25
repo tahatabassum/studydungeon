@@ -351,7 +351,7 @@
 
 /* Compact_Mode (same breakpoint as the shared fit shell): one column, the page scrolls.
    Order: quota, notice, drop zone, file rules, stepper strip. */
-@media (max-width: 1099px), (pointer: coarse) {
+@media (max-width: 899px), (pointer: coarse) {
   .sd-up { display: flex; flex-direction: column; height: auto; }
   .sd-up__grid,
   .sd-up__aside { display: contents; }

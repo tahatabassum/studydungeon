@@ -44,7 +44,7 @@ export function UploadWizard({ noticeAccepted = false, blocked = false, blockedR
   })
 
   return (
-    <div className="sd-up" data-phase={phase} data-reduced={reduced ? 'true' : undefined} data-testid="upload-wizard">
+    <div className="sd-up" data-phase={phase} data-reduced={reduced ? 'true' : undefined} data-testid="upload-wizard"><span className="sd-up__embers" aria-hidden="true"><i /><i /><i /><i /><i /><i /></span>
       <StepList states={stepStates(phase)} />
       <div className="sd-up__grid">
         <aside className="sd-up__aside" aria-label="Allowance and rules">

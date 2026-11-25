@@ -12,7 +12,8 @@ const STATE_TEXT: Record<StepState, string> = {
 /** The five wizard steps in one slim row. State is icon plus (screen reader) text, never colour alone. */
 export function StepList({ states }: { states: readonly StepState[] }) {
   const progress = states.filter((s) => s === 'done').length + (states.includes('active') ? 0.5 : 0)
-  const style = { '--sd-up-progress': `${(progress / STEP_LABELS.length) * 100}%` } as CSSProperties
+  const ratio = progress / STEP_LABELS.length
+  const style = { '--sd-up-progress': `${ratio * 100}%`, '--sd-up-ratio': ratio } as CSSProperties
   return (
     <ol className="sd-up__steps" aria-label="Upload steps" data-testid="upload-steps" style={style}>
       {STEP_LABELS.map((label, i) => {
