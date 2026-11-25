@@ -35,7 +35,7 @@ Convert the design into incremental frontend-only changes: fix back-navigation a
     - Dashboard "Leave session" action clears session and returns to `/` for both guest and signed-in views (extend `src/pages/DashboardPage.test.tsx`).
     - _Requirements: 1.1, 1.2, 1.3, 1.7, 1.8, 1.10_
 
-- [~] 2. Checkpoint — back-navigation fix
+- [x] 2. Checkpoint — back-navigation fix
   - Ensure all tests pass, ask the user if questions arise.
 
 - [x] 3. Redesign the Dashboard
@@ -77,7 +77,7 @@ Convert the design into incremental frontend-only changes: fix back-navigation a
     - Adjust assertions only where the Hero or `EmptyState` changes intentionally alter markup; keep all previously-asserted test ids, headings and texts that are unaffected.
     - _Requirements: 2.9_
 
-- [~] 4. Checkpoint — Dashboard redesign
+- [x] 4. Checkpoint — Dashboard redesign
   - Ensure all tests pass, ask the user if questions arise.
 
 - [x] 5. Refresh the other pages
@@ -102,7 +102,7 @@ Convert the design into incremental frontend-only changes: fix back-navigation a
     - Review and, where needed, adjust `LandingPage.test.tsx`, `AuthPages.test.tsx`, `Upload.test.tsx`, `UploadLayout.test.tsx`, `CampaignFlow.test.tsx`, `Scorecard.test.tsx`, `LeaderboardPage.test.tsx`, `SettingsPage.test.tsx` so they keep passing against the refreshed markup.
     - _Requirements: 4.3_
 
-- [~] 6. Checkpoint — page refresh
+- [x] 6. Checkpoint — page refresh
   - Ensure all tests pass, ask the user if questions arise.
 
 - [x] 7. Verify layout, type safety, lint and full test suite
@@ -117,15 +117,15 @@ Convert the design into incremental frontend-only changes: fix back-navigation a
     - Run `npm run typecheck`, `npm run lint`, and `npm test -- --run`; fix any failure introduced by this change set before proceeding.
     - _Requirements: 5.2, 5.3, 5.4_
 
-- [~] 8. Checkpoint — full verification
+- [x] 8. Checkpoint — full verification
   - Ensure all tests pass, ask the user if questions arise.
 
-- [ ] 9. Commit and push
+- [x] 9. Commit and push
   - [x] 9.1 Stage and commit the changed frontend files and this spec folder
     - Stage changed files by explicit name only (never `git add -A` or `git add .`; never stage `.env*` or `*.db` files): the edited files under `frontend/src/**`, `frontend/scripts/**` (if touched), and `.kiro/specs/frontend-13-polish-and-nav/**`.
     - Commit with message `feat(ui): polished dashboard + page refresh, fix back-nav after login`.
     - _Requirements: 1.1, 1.4, 2.1, 4.1, 5.1_
-  - [-] 9.2 Push the branch
+  - [x] 9.2 Push the branch
     - Push to `origin feature/frontend-live-players`.
     - _Requirements: 5.1, 5.2, 5.3_
 

@@ -27,6 +27,19 @@ def test_normalize_postgres_url_for_alembic_sync():
     assert "sslmode" not in normalized
 
 
+def test_ssl_connect_arg_from_sslmode_and_channel_binding():
+    from app.core.db_url import get_ssl_connect_arg
+
+    neon = "postgresql://u:p@ep-x.neon.tech/db?sslmode=require&channel_binding=require"
+    assert get_ssl_connect_arg(neon) == "require"
+    normalized = normalize_database_url(neon)
+    assert normalized == "postgresql+asyncpg://u:p@ep-x.neon.tech/db"
+    assert get_ssl_connect_arg("postgres://u:p@h/db?sslmode=verify-full") == "verify-full"
+    assert get_ssl_connect_arg("postgres://u:p@h/db?sslmode=disable") == "disable"
+    assert get_ssl_connect_arg("postgres://u:p@localhost/db") is None
+    assert get_ssl_connect_arg("sqlite+aiosqlite:///./x.db") is None
+
+
 def test_normalize_sqlite_url():
     """
     Preserves sqlite URLs, stripping +aiosqlite only for alembic sync.

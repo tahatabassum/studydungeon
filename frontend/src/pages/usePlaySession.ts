@@ -10,8 +10,7 @@ import { entrySide } from '@/encounter/entrySide'
 import { remainingDue, spawnsForRoom } from '@/encounter/revenants'
 import { createGameBridge } from '@/game/events'
 import { canAnswer, canRetreat, readDelayMs } from '@/state/combatMachine'
-import { duePending, nextReturnIn, type PendingRequeue } from '@/state/pendingRequeue'
-import { pickQuestionId } from '@/state/questionSelector'
+import { selectNextQuestion } from '@/state/questionSelector'
 import { comboTier, comboValue } from '@/learning/combo'
 import { initialRunState, runReducer } from '@/state/runReducer'
 import { useReducedMotion } from '@/state/useReducedMotion'
@@ -104,26 +103,31 @@ async function startPlay(
   return { run, dungeon: dungeon ?? whole, hall: null, finalRoomId, full: whole }
 }
 
+/** Shown when a monster has nothing left to ask but questions the player missed in this run. */
+export const NO_FRESH_QUESTIONS = 'No fresh questions left here. Your missed questions are waiting in Memories.'
+
 /**
- * Picks the question to present for a room monster. A missed question whose return is due comes back first
- * (`returned` names it); otherwise the monster's rotation continues and its counter advances. The gap that
- * made the question due is the Backend's `requeue_after`; nothing here computes one.
+ * Picks the question to present for a room monster with the Question_Selector. A question missed in this run
+ * is never asked again (it waits in Memories). Each room is one topic, so the topic pool is the room's own
+ * question list. `none` means only missed questions remain; `empty` means the monster has no questions at all.
  */
 function chooseQuestion(
   dungeon: Dungeon,
   monsterRoom: Room,
-  pending: readonly PendingRequeue[],
-  counts: Map<string, number>,
-): { q: Question | undefined; returned?: string } {
-  const due = duePending(pending)
-  const back = due ? dungeon.questions.find((x) => x.id === due.questionId) : undefined
-  if (due && back) return { q: back, returned: due.questionId }
-  const monsterId = monsterRoom.monster.id
-  const count = counts.get(monsterId) ?? 0
-  const qid = pickQuestionId(monsterRoom.monster.question_ids, count)
-  const q = qid ? dungeon.questions.find((x) => x.id === qid) : undefined
-  if (q) counts.set(monsterId, count + 1)
-  return { q }
+  answered: ReadonlySet<string>,
+  missed: ReadonlySet<string>,
+  correct: ReadonlySet<string>,
+  skipped: readonly string[] = [],
+  recentlyAsked: readonly string[] = [],
+): { q: Question } | { none: true } | { empty: true } {
+  const ids = monsterRoom.monster.question_ids.filter((id) => dungeon.questions.some((x) => x.id === id))
+  if (ids.length === 0) return { empty: true }
+  // A question left by a retreat goes to the back of the rotation, so the next encounter asks another one.
+  const known = [...ids.filter((id) => !skipped.includes(id)), ...skipped.filter((id) => ids.includes(id))]
+  const pick = selectNextQuestion({ monsterPool: known, topicPool: known, answered, missed, correct, recentlyAsked })
+  if (pick.kind === 'none') return { none: true }
+  const q = dungeon.questions.find((x) => x.id === pick.id)
+  return q ? { q } : { empty: true }
 }
 
 /** Longest the Scorecard waits for the boss death sequence (about 0.4 s to the blow plus 0.9 s), and the reduced fade. */
@@ -200,8 +204,8 @@ export function usePlaySession(scope?: PlayScope) {
   const [hauntOutcome, setHauntOutcome] = useState<HauntOutcome | null>(null)
   // Exam: the timer reached zero and the run was ended early.
   const [timeUp, setTimeUp] = useState(false)
-  // The question on screen is a second chance (it returned after a miss, or Quick retry was used).
-  const [secondChance, setSecondChance] = useState(false)
+  // Only missed questions are left for the monster: the encounter ended and this says why.
+  const [selectionNotice, setSelectionNotice] = useState<string | null>(null)
   const navigate = useNavigate()
   const navigateRef = useRef(navigate)
   useEffect(() => {
@@ -210,7 +214,15 @@ export function usePlaySession(scope?: PlayScope) {
 
   const apiRef = useRef<ApiClient | null>(null)
   const attemptIdRef = useRef<string>('')
-  const askCountsRef = useRef<Map<string, number>>(new Map())
+  /** Questions answered per room monster in this run, by monster id. */
+  const answeredRef = useRef<Map<string, Set<string>>>(new Map())
+  /** Questions answered wrongly / correctly in this run, from the server's `result.correct` only. */
+  const missedRef = useRef<Set<string>>(new Set())
+  const correctRef = useRef<Set<string>>(new Set())
+  /** Question ids in the order they were answered in this run (oldest first); rotates recycled questions. */
+  const askedOrderRef = useRef<string[]>([])
+  /** Questions left unanswered by a retreat, per monster id: they move to the back of the rotation. */
+  const skippedRef = useRef<Map<string, string[]>>(new Map())
   const pendingClearRoomRef = useRef<string | null>(null)
   const submittingRef = useRef(false)
   /** Best streak of the current run (the finish summary does not carry it); feeds the provisional rank. */
@@ -459,14 +471,22 @@ export function usePlaySession(scope?: PlayScope) {
         if (cur.phase !== 'exploring' || (cur.combat !== null && cur.combat !== 'exited') || !dungeon) return
         const monsterRoom = dungeon.rooms.find((r) => r.monster.id === e.monsterId)
         if (!monsterRoom) return
-        // A missed question that is due comes back first; otherwise the next one in the monster's rotation.
-        const { q, returned } = chooseQuestion(dungeon, monsterRoom, cur.pendingRequeue, askCountsRef.current)
-        if (!q) {
+        // The next fresh question for the monster; a question missed in this run never comes back here.
+        const answered = answeredRef.current.get(monsterRoom.monster.id) ?? new Set<string>()
+        const skipped = skippedRef.current.get(monsterRoom.monster.id)
+        const pick = chooseQuestion(dungeon, monsterRoom, answered, missedRef.current, correctRef.current, skipped, askedOrderRef.current)
+        if ('empty' in pick) {
           setLoadError('This monster has no questions to ask.')
           return
         }
-        if (cur.pendingRequeue.length > 0) dispatch({ type: 'requeue-presented', returned })
-        setSecondChance(returned !== undefined)
+        if ('none' in pick) {
+          // Nothing left but missed questions: no encounter opens, the scene puts the player back to exploring.
+          setSelectionNotice(NO_FRESH_QUESTIONS)
+          bridge.send({ type: 'encounter-close' })
+          return
+        }
+        const q = pick.q
+        setSelectionNotice(null)
         attemptIdRef.current = newAttemptId()
         setAnswerError(null)
         setAnimDone(false)
@@ -512,7 +532,7 @@ export function usePlaySession(scope?: PlayScope) {
         setAnswerError(null)
         setAnimDone(false)
         setQuestion(review.question)
-        setSecondChance(false)
+
         setRevenantView(true)
         dispatch({ type: 'encounter-started', revenant: true })
         dispatch({ type: 'question-presented' })
@@ -555,6 +575,18 @@ export function usePlaySession(scope?: PlayScope) {
         })
         setAnimDone(false)
         bestStreakRef.current = Math.max(bestStreakRef.current, result.streak)
+        // Only the server's verdict decides what was missed; a missed question waits in Memories.
+        if (result.correct) correctRef.current.add(q.id)
+        else missedRef.current.add(q.id)
+        askedOrderRef.current.push(q.id)
+        if (!isRevenant) {
+          const monsterId = roomsRef.current.find((r) => r.id === stateRef.current.currentRoomId)?.monster.id
+          if (monsterId) {
+            const seen = answeredRef.current.get(monsterId) ?? new Set<string>()
+            seen.add(q.id)
+            answeredRef.current.set(monsterId, seen)
+          }
+        }
         dispatch({ type: 'result-received', result, questionId: q.id })
         // The killing blow on a boss: arm the death sequence first, then hold the Scorecard until it ends
         // (or a timeout, so a missing scene can never block the results).
@@ -579,8 +611,6 @@ export function usePlaySession(scope?: PlayScope) {
           // A wrong answer that costs no health is a "miss"; otherwise the wrong thud.
           sfx.play(result.correct ? 'correct' : result.player_hp_remaining >= hpBefore ? 'miss' : 'wrong')
         }
-        if (!result.correct && typeof result.requeue_after === 'number') sfx.play('requeue')
-        if (!result.correct && typeof result.requeue_after === 'number') sfx.play('requeue')
         if (result.player_hp_remaining <= 0) setTimeout(() => sfx.play('defeat'), 450)
       } catch (err) {
         dispatch({ type: 'answer-failed' })
@@ -730,17 +760,35 @@ export function usePlaySession(scope?: PlayScope) {
     dispatch({ type: 'advance' })
     if (c === 'next') {
       const monsterRoom = dungeon?.rooms.find((r) => r.id === s.currentRoomId)
-      const { q, returned } =
+      const answered = monsterRoom ? (answeredRef.current.get(monsterRoom.monster.id) ?? new Set<string>()) : new Set<string>()
+      const pick =
         dungeon && monsterRoom
-          ? chooseQuestion(dungeon, monsterRoom, s.pendingRequeue, askCountsRef.current)
-          : { q: undefined, returned: undefined }
-      if (!q) {
+          ? chooseQuestion(
+              dungeon,
+              monsterRoom,
+              answered,
+              missedRef.current,
+              correctRef.current,
+              skippedRef.current.get(monsterRoom.monster.id),
+              askedOrderRef.current,
+            )
+          : ({ empty: true } as const)
+      if ('empty' in pick) {
         setLoadError('This monster has no questions to ask.')
         return
       }
-      // Counts one more question toward every waiting return (the gap itself is the Backend's).
-      if (s.pendingRequeue.length > 0) dispatch({ type: 'requeue-presented', returned })
-      setSecondChance(returned !== undefined)
+      if ('none' in pick) {
+        // Only missed questions remain: leave through the retreat flow (monster HP kept) and say why.
+        // The reducer is already at 'question' after 'advance' (stateRef is not yet), so retreat is dispatched here.
+        setSelectionNotice(NO_FRESH_QUESTIONS)
+        dispatch({ type: 'retreat' })
+        setQuestion(null)
+        setAnswerError(null)
+        bridge.send({ type: 'encounter-close' })
+        setTimeout(focusGame, 0)
+        return
+      }
+      const q = pick.q
       attemptIdRef.current = newAttemptId()
       setAnswerError(null)
       setAnimDone(false)
@@ -778,7 +826,7 @@ export function usePlaySession(scope?: PlayScope) {
   const lastCorrect = state.lastResult?.correct ?? true
   useEffect(() => {
     if (combat !== 'next' && combat !== 'monster_defeated' && combat !== 'player_defeated') return
-    // A wrong answer opens the Memory scroll: the player reads it and chooses Quick retry or Continue.
+    // A wrong answer opens the Memory scroll: the player reads it and chooses Continue.
     if (combat === 'next' && !lastCorrect) return
     waitTimerRef.current = setTimeout(() => {
       waitTimerRef.current = null
@@ -795,21 +843,6 @@ export function usePlaySession(scope?: PlayScope) {
     advanceRef.current()
   }, [clearWaitTimer])
 
-  /** Memory scroll, Quick retry: the same question again, right now, as a second chance. */
-  const quickRetry = useCallback(() => {
-    const s = stateRef.current
-    const q = questionRef.current
-    if (s.combat !== 'next' || !q) return
-    clearWaitTimer()
-    // The question is being asked now, so it no longer waits for its turn.
-    dispatch({ type: 'requeue-cancel', questionId: q.id })
-    dispatch({ type: 'advance' })
-    attemptIdRef.current = newAttemptId()
-    setAnswerError(null)
-    setAnimDone(false)
-    setSecondChance(true)
-    dispatch({ type: 'question-presented' })
-  }, [clearWaitTimer])
 
   const retryClear = useCallback(async () => {
     if (pendingClearRoomRef.current) await clear(pendingClearRoomRef.current)
@@ -834,7 +867,11 @@ export function usePlaySession(scope?: PlayScope) {
         ? started.run
         : await api.startRun(mode === null ? dungeon.id : startRequest(dungeon.id, floorId, mode))
       const rooms = started ? started.dungeon.rooms : dungeon.rooms
-      askCountsRef.current = new Map()
+      answeredRef.current = new Map()
+      missedRef.current = new Set()
+      correctRef.current = new Set()
+      askedOrderRef.current = []
+      skippedRef.current = new Map()
       bestStreakRef.current = 0
       pendingClearRoomRef.current = null
       clearStartedRoomsRef.current = new Set()
@@ -848,7 +885,7 @@ export function usePlaySession(scope?: PlayScope) {
       setHallRested(0)
       setRestedLocal(0)
       setRevenantView(false)
-      setSecondChance(false)
+      setSelectionNotice(null)
       setQuestion(null)
       setAnswerError(null)
       setAnimDone(false)
@@ -893,7 +930,13 @@ export function usePlaySession(scope?: PlayScope) {
     // Paused-from-question: resume first so the final phase is 'exploring'.
     if (cur.phase === 'paused') dispatch({ type: 'resume' })
     dispatch({ type: 'retreat' })
-    setSecondChance(false)
+    // The unanswered question moves to the back of the monster's rotation (it was not missed).
+    const q = questionRef.current
+    const monsterId = roomsRef.current.find((r) => r.id === cur.currentRoomId)?.monster.id
+    if (q && monsterId && !cur.revenantActive) {
+      const skipped = (skippedRef.current.get(monsterId) ?? []).filter((id) => id !== q.id)
+      skippedRef.current.set(monsterId, [...skipped, q.id])
+    }
     setQuestion(null)
     setAnswerError(null)
     bridge.send({ type: 'encounter-close' })
@@ -1008,10 +1051,8 @@ export function usePlaySession(scope?: PlayScope) {
     progress,
     leaderboardEnabled,
     revenantView,
-    secondChance,
-    /** Further questions until a missed one returns (the Backend's gap, counted down); null when none waits. */
-    requeueRemaining: nextReturnIn(state.pendingRequeue),
-    quickRetry,
+    /** Why the last encounter ended without a question (only missed questions were left); null otherwise. */
+    selectionNotice,
     // Haunted memories due, once progress has loaded: the backend count minus Revenants rested since.
     // In the Haunted Hall it counts the ghosts of this visit that are still waiting.
     hauntedDue: hall

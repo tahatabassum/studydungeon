@@ -161,6 +161,14 @@ export default function PlayPage({ scope, examMinutes = null }: PlayPageProps = 
         </div>
       )}
 
+      {s.selectionNotice && state.phase === 'exploring' && (
+        <div className="absolute inset-x-0 top-28 z-10 flex justify-center">
+          <Panel role="status" className="px-6 py-3" data-testid="no-fresh-questions">
+            {s.selectionNotice}
+          </Panel>
+        </div>
+      )}
+
       {/* Floating HUD: top bar over the stage, kept out of the hudSafeBand. */}
       <div className="sd-hud-top">
         <div className="flex items-start gap-2">
@@ -226,9 +234,6 @@ export default function PlayPage({ scope, examMinutes = null }: PlayPageProps = 
         damageReceived={state.lastResult ? damageReceived(state.prevPlayerHp, state.lastResult) : undefined}
         onAnswer={(sel) => void s.onAnswer(sel)}
         onNext={s.skipWait}
-        secondChance={s.secondChance}
-        requeueRemaining={s.requeueRemaining}
-        onQuickRetry={s.quickRetry}
         onRetreat={s.retreat}
         keysEnabled={state.phase !== 'paused' && state.phase !== 'defeated' && !showVictory}
         announcement={routeAnnouncement(announcement, panelVisible).dialog}

@@ -1,3 +1,4 @@
+from typing import Optional
 from urllib.parse import parse_qs, urlencode, urlparse, urlunparse
 
 
@@ -38,7 +39,7 @@ def normalize_database_url(url: str, is_alembic_sync: bool = False) -> str:
     cleaned_params = {}
     for k, v in query_params.items():
         k_lower = k.lower()
-        if k_lower in ("channel_binding", "sslmode", "target_session_attrs"):
+        if k_lower in ("channel_binding", "sslmode", "ssl", "target_session_attrs"):
             # Handled separately or dropped if unsupported
             continue
         cleaned_params[k] = v
@@ -56,3 +57,26 @@ def normalize_database_url(url: str, is_alembic_sync: bool = False) -> str:
     ))
     return normalized
 
+_ASYNCPG_SSL_MODES = {"disable", "allow", "prefer", "require", "verify-ca", "verify-full"}
+
+
+def get_ssl_connect_arg(url: str) -> Optional[str]:
+    """
+    Return the asyncpg `ssl` connect argument implied by the URL's `sslmode`
+    (or `ssl`) query parameter, or None when no SSL setting was requested.
+
+    asyncpg rejects `sslmode`/`channel_binding` as query params, so
+    `normalize_database_url` strips them and callers pass the result of this
+    function as `connect_args={"ssl": ...}`.
+    """
+    if not url or url.startswith("sqlite"):
+        return None
+    params = {k.lower(): v for k, v in parse_qs(urlparse(url).query).items()}
+    mode = (params.get("sslmode") or params.get("ssl") or [""])[0].lower()
+    if mode in ("true", "1"):
+        mode = "require"
+    if mode in ("false", "0"):
+        mode = "disable"
+    if mode in _ASYNCPG_SSL_MODES:
+        return mode
+    return None

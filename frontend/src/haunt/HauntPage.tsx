@@ -34,15 +34,15 @@ export default function HauntPage() {
   if (haunt.status === 'loading') {
     return (
       <main className="flex min-h-screen items-center justify-center gap-3 bg-bg text-ink">
-        <Spinner label="Checking your memories..." />
-        <span aria-hidden="true">Checking your memories...</span>
+        <Spinner label="Checking your Memories..." />
+        <span aria-hidden="true">Checking your Memories...</span>
       </main>
     )
   }
   if (haunt.status === 'unsupported') {
     return (
       <Notice dungeonId={dungeonId}>
-        <p role="status">The Daily Haunt is coming soon. This backend cannot build review runs yet.</p>
+        <p role="status">The Daily Haunt is coming soon. This backend cannot build Memories review runs yet.</p>
       </Notice>
     )
   }

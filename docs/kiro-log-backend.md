@@ -200,7 +200,7 @@ This log records dated facts, steering documents, feature specifications, automa
 
 ### Accomplishments
 - **Production Container Entrypoint:** Configured `Dockerfile` to automatically execute `alembic upgrade head && python -m app.demo.seed` prior to spinning up `uvicorn` on the dynamic `$PORT`.
-- **Submission Artifacts:** Created [`docs/SUBMISSION_CHECKLIST.md`](file:///D:/dev-stuff/studydungeon/docs/SUBMISSION_CHECKLIST.md) and populated the authentic hackathon journey in [`docs/KIRO_WRITEUP.md`](file:///D:/dev-stuff/studydungeon/docs/KIRO_WRITEUP.md).
+- **Submission Artifacts:** Populated the authentic hackathon journey in [`docs/KIRO_WRITEUP.md`](file:///D:/dev-stuff/studydungeon/docs/KIRO_WRITEUP.md).
 - **Static Contract Generation:** Built and verified `backend/scripts/export_openapi.py` with static generation of `docs/openapi.json`.
 - **Automated Smoke Testing:** End-to-end multi-stage smoke script `backend/scripts/smoke.py` passes all 11 lifecycle scenarios.
 

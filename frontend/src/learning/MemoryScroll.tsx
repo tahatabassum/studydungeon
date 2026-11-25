@@ -1,9 +1,9 @@
 import { useEffect, useRef } from 'react'
-import { RotateCcw, ScrollText } from 'lucide-react'
+import { ScrollText } from 'lucide-react'
 import { sfx } from '../audio/sfx'
+import { useOfflineMode } from '../components/OfflineLabel'
 import { SourceLine } from '../components/SourceLine'
 import type { AnswerResult } from '../types/api'
-import { RequeueNotice } from './RequeueNotice'
 import '../styles/learning.css'
 
 export interface MemoryScrollProps {
@@ -11,12 +11,14 @@ export interface MemoryScrollProps {
   result: AnswerResult
   /** Instant when true: no unrolling. */
   reduced: boolean
-  /** Presents the same question again. Omit when a retry is not possible (for example the player has fallen). */
-  onRetry?(): void
   onContinue(): void
-  /** Further questions until the missed one returns, when the Backend scheduled a return. */
-  returnsIn?: number | null
 }
+
+/** Said under every wrong answer: the missed question goes to the review queue. */
+export const SAVED_TO_MEMORIES = 'Saved to Memories. You will meet it again in the Daily Haunt.'
+
+/** The offline demo has no review queue, so it cannot promise Memories. */
+export const SAVED_FOR_REVIEW_OFFLINE = 'Saved for review. Sign in online to keep it in Memories.'
 
 /** The words a screen reader hears when the scroll opens (sent to the play screen's single live region). Built only from what the response carries. */
 export function scrollAnnouncement(result: Pick<AnswerResult, 'correct_answer' | 'explanation'>): string {
@@ -28,15 +30,15 @@ export function scrollAnnouncement(result: Pick<AnswerResult, 'correct_answer' |
 
 /**
  * Memory scroll: a parchment that unrolls under a wrong answer with what the notes say. It shows the
- * correct answer (when the Backend revealed it), the explanation, the quote and the page, then offers a
- * quick retry or to continue. Focus moves to Retry (or Continue when a retry is not possible).
+ * correct answer (when the Backend revealed it), the explanation, the quote and the page, then says the
+ * question was saved to Memories. The missed question is not asked again at once. Focus moves to Continue.
  */
-export function MemoryScroll({ result, reduced, onRetry, onContinue, returnsIn = null }: MemoryScrollProps) {
-  const retryRef = useRef<HTMLButtonElement>(null)
+export function MemoryScroll({ result, reduced, onContinue }: MemoryScrollProps) {
   const continueRef = useRef<HTMLButtonElement>(null)
+  const offline = useOfflineMode()
 
   useEffect(() => {
-    ;(retryRef.current ?? continueRef.current)?.focus()
+    continueRef.current?.focus()
     sfx.play('scroll')
   }, [])
 
@@ -74,15 +76,9 @@ export function MemoryScroll({ result, reduced, onRetry, onContinue, returnsIn =
             {`"${quote}"`}
           </blockquote>
         )}
-        {returnsIn !== null && <RequeueNotice remaining={returnsIn} className="sd-scroll__whisper" />}
+        <p className="sd-scroll__saved" data-testid="scroll-saved">{offline ? SAVED_FOR_REVIEW_OFFLINE : SAVED_TO_MEMORIES}</p>
         <div className="sd-scroll__actions">
-          {onRetry && (
-            <button ref={retryRef} type="button" className="sd-speech__btn sd-speech__btn--primary" onClick={onRetry}>
-              <RotateCcw aria-hidden="true" size={15} />
-              Quick retry
-            </button>
-          )}
-          <button ref={continueRef} type="button" className={onRetry ? 'sd-speech__btn' : 'sd-speech__btn sd-speech__btn--primary'} onClick={onContinue}>
+          <button ref={continueRef} type="button" className="sd-speech__btn sd-speech__btn--primary" onClick={onContinue}>
             Continue
           </button>
         </div>

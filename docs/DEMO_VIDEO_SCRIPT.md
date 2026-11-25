@@ -1,37 +1,36 @@
-# StudyDungeon — 3-Minute Demo Video Script & Shot List
+# StudyDungeon: Demo Video Script (under 3:00)
 
-Target Duration: 2 minutes 45 seconds (Under 3-minute hard ceiling).
+Target length: 2:50. Record on a desktop browser, which is the device the game was built for.
 
----
+## Before you record
 
-## Shot List & Narration
+- Wake the Render backend and Supabase first. Open the live URL and `/api/health`, and wait until both respond.
+- Pre-upload the sample notes so a dungeon is already generated. Do not wait on ingestion or a cold start on camera.
+- Record at 1080p. Set browser zoom to 110 to 125 percent so text is readable. Hide bookmarks and other tabs.
+- Have a registered account with a ready dungeon, plus a fresh guest session in a second window.
+- Open `.kiro/specs`, `.kiro/hooks` and `.kiro/steering` in the editor, and have a few tasks queued to run in parallel for the montage.
+- Use a good microphone and record narration separately if needed.
 
-### [0:00 - 0:25] The Hook: The Cramming Problem
-- **Visual**: Student staring at a massive, boring 40-page computer architecture PDF on screen.
-- **Audio / Narration**: "Every student knows the dread of staring down a 50-page lecture slide deck the night before an exam. Flashcards are dry, passive reading doesn't stick, and motivation drops to zero. What if reviewing for your exam felt like clearing a gothic dungeon?"
+## Timeline
 
-### [0:25 - 0:55] Instant Play: The Demo Guest Experience
-- **Visual**: Browser opens StudyDungeon on Vercel. User clicks "Try Demo (No Sign-Up Needed)".
-- **Audio / Narration**: "With StudyDungeon, judges and players can jump in immediately. One click provisions an isolated guest session and loads our pre-seeded Computer Architecture demo dungeon. No credit cards, no sign-ups, no waiting."
+| Time | On screen | Narration |
+|---|---|---|
+| 0:00-0:15 | Landing page, then a cluttered notes PDF | "You reread your notes and still blank on the exam. What if your notes were a dungeon, and every monster was something you need to know?" |
+| 0:15-0:35 | Click "Try the Demo", enter a guest name, enter the dungeon | "StudyDungeon is a haunted learning RPG. No sign-up. The demo uses zero AI calls, so it loads instantly." |
+| 0:35-1:00 | Switch to the logged-in account. Upload the PDF. Show the relevance check result, then the generated dungeon with topic rooms | "Upload PDFs, slides, docs or photos of notes. A relevance gate rejects non-study files. Then AI builds topic rooms with questions grounded in your own text." (Show the pre-generated dungeon; do not wait.) |
+| 1:00-1:40 | Enter a room. Answer correctly (damage numbers, streak). Answer one wrong (HP drops, toast "Saved to Memories"). Show the evidence quote after an answer | "Right answers hit the monster. Wrong answers cost you HP and are saved to Memories to review in ten minutes. Every answer shows the exact quote from your notes. The server computes all damage, so the game cannot be cheated." |
+| 1:40-1:55 | Defeat the monster, room clear, new weapon unlock | "Clear rooms to earn XP and unlock weapons, from the Rusty Dagger to the Flame Sigil." |
+| 1:55-2:15 | Run scorecard with mastery bands, then Memories and Daily Haunt | "The scorecard shows what is Weak, Learning or Strong. Memories and the Daily Haunt bring back what you missed at the right time." |
+| 2:15-2:20 | Leaderboard with named guests | "Compete on the leaderboard, even as a guest." |
+| 2:20-2:45 | **Kiro montage (25 s).** Show `.kiro/specs` (20 spec folders), a spec's requirements, design and tasks, the two hooks running tests on save, the steering files, and several tasks running in parallel via sub-agents. Show a property-based test catching a bug | "We built this with Kiro. Twenty specs turned ideas into requirements, design and tasks. Steering files were the contract between backend and frontend. Hooks ran our tests on every save. Sub-agents worked tasks in parallel, and property tests caught real bugs." |
+| 2:45-2:50 | Logo and URL | "StudyDungeon. Turn your notes into a dungeon. Try it now." |
 
-### [0:55 - 1:40] Authoritative RPG Combat & Spaced Repetition
-- **Visual**: Retro Phaser 3 canvas loads Room 1: 'ALU Chamber'. Goblin monster attacks. Player selects the correct answer.
-- **Audio / Narration**: "Combat is 100% authoritative. The player answers grounded questions extracted directly from the notes. Notice the Rusty Dagger dealing 20 damage plus streak criticals. But answer incorrectly... and the player takes counter-damage while our backend automatically logs the question into a deterministic spaced repetition ladder."
+## Rules checklist
 
-### [1:40 - 2:15] Custom Dungeon Generation via Gemini 2.0
-- **Visual**: User signs in, uploads a custom lecture PDF, and watches Gemini cluster the material into rooms.
-- **Audio / Narration**: "For custom notes, Google Gemini 2.0 parses PDFs, Word docs, PowerPoints, and scanned diagrams, extracting coherent topics and generating multiple-choice questions where every question must cite a verbatim evidence quote from your source."
-
-### [2:15 - 2:45] Victory & Mastery Scorecard
-- **Visual**: Player clears Room 3, defeats the final boss, and sees the Run Finish Summary and Mastery Scorecard.
-- **Audio / Narration**: "Clearing the boss grants 100 XP, unlocks weapons like the Iron Longsword, and updates your mastery scorecard. StudyDungeon turns studying from a chore into a quest. Thanks for watching!"
-
----
-
-## Music, Audio & Licensing Checklist
-- [x] **Sprites & Pixel Art**: Original or CC0 public domain assets (OpenGameArt / Kenney.nl). Credited in repository.
-- [x] **Sound Effects**: 8-bit sound effects synthesized or CC0 (credited).
-- [x] **Music**: Original chiptune soundtrack or royalty-free licensed music. No copyrighted music.
-- [x] **Brand Logos**: No commercial university or corporate logos used.
-- [x] **Audio Level Sanity**: Checked audio mix before upload to ensure narration is loud and clear over background music.
-
+- [ ] Under 3 minutes in total.
+- [ ] No copyrighted music. Use royalty-free or original audio only, or none.
+- [ ] Upload to YouTube as **Public** (not unlisted or private) and paste the link in Devpost: [FILL IN: YouTube URL].
+- [ ] Show the project running on the device it was built for: a desktop browser.
+- [ ] Show the Kiro workflow clearly: specs, hooks, steering, parallel tasks.
+- [ ] No API keys, `.env` contents or personal data visible on screen.
+- [ ] Check captions and audio levels before uploading.

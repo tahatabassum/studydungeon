@@ -340,7 +340,6 @@ async def submit_attempt(
         remaining_hp = 0
         cached_correct_answer = None
         cached_combo = None
-        cached_requeue = None
         if cached_q:
             target_r = next((r for r in run_rooms(run, run.dungeon.rooms) if r.topic_id == cached_q.topic_id), None)
             if target_r:
@@ -354,7 +353,6 @@ async def submit_attempt(
             cached_ans_text = cached_q.options[cached_q.correct_option] if cached_q.correct_option < len(cached_q.options) else ""
             if not existing_attempt.is_correct:
                 cached_correct_answer = cached_ans_text
-                cached_requeue = 3
                 cached_combo = 0
             else:
                 cached_combo = run.current_streak
@@ -389,7 +387,6 @@ async def submit_attempt(
             player_points=pp_dict,
             correct_answer=cached_correct_answer,
             combo=cached_combo,
-            requeue_after=cached_requeue,
         )
         if req.attempt_id:
             _PROCESSED_ATTEMPTS[cache_key] = replayed_resp
@@ -602,7 +599,6 @@ async def submit_attempt(
         player_points=player_pts,
         correct_answer=correct_text if not is_correct else None,
         combo=run.current_streak if is_correct else 0,
-        requeue_after=3 if not is_correct else None,
     )
 
     if req.attempt_id:

@@ -40,8 +40,15 @@ htmlcov/
 
 # Database files
 *.db
+*.db-journal
 *.sqlite
 *.sqlite3
+local.backup-before-cleanup.db
+
+# Tool caches
+.hypothesis/
+.ruff_cache/
+.mypy_cache/
 
 # Temporary uploads & logs
 temp_uploads/
