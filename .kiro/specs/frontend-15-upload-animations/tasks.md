@@ -27,12 +27,12 @@ Restyle `/upload` with a balanced layout and CSS-only animation, then verify and
     - _Requirements: 4.1, 4.2, 4.3, 4.5_
 
 - [ ] 2. Verify and commit
-  - [-] 2.1 Run the checks
+  - [x] 2.1 Run the checks
     - Clear `VITE_CONTRACT_LIVE`, `VITE_API_BASE`, `VITE_USE_MOCKS` and `VITE_CONTRACT_UPLOADS` in the shell
     - Run `npx vitest run src/upload`, `npm run typecheck` and `npm run lint` in `frontend`
     - Run `node scripts/layout-check.mjs --routes "/upload" --sizes "1366x768,360x740" | Out-File -Encoding utf8 <file>`, and never use port 8000
     - _Requirements: 1.3, 1.4, 4.2_
-  - [~] 2.2 Commit and push
+  - [-] 2.2 Commit and push
     - Stage the changed files by explicit path
     - Commit with the message "style(upload): balanced layout and animated steps"
     - Push to `origin feature/frontend-live-players`
