@@ -2,7 +2,9 @@
 
 Upload your study notes and play them as a haunted dungeon crawl. Topics become rooms, key concepts become monsters, and correct answers are your weapon.
 
-- Live app: [FILL IN: deployed Vercel URL]
+**Play it: https://studydungeon.vercel.app — click Try the Demo, no sign-up.**
+
+- Live app: https://studydungeon.vercel.app (API: https://studydungeon-api.onrender.com)
 - Demo video: [FILL IN: public YouTube link]
 - Screenshots: [FILL IN: 2-4 screenshots, e.g. title screen, combat, scorecard, leaderboard]
 

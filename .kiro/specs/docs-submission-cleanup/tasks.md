@@ -28,7 +28,7 @@ Four sequential steps: remove obsolete docs, verify hackathon requirements, writ
     - Count spec folders, hook files, and steering files for the write-up
     - _Requirements: 2.2, 2.3_
 
-- [ ] 3. Write the submission documents from real evidence
+- [x] 3. Write the submission documents from real evidence
   - [x] 3.1 Rewrite README.md
     - Include all sections listed in Requirement 3.3 with `[FILL IN: ...]` placeholders for links and names
     - _Requirements: 3.1, 3.2, 3.3_
@@ -40,18 +40,18 @@ Four sequential steps: remove obsolete docs, verify hackathon requirements, writ
     - Devpost: required seven sections, Supabase, Memories, named guest leaderboard
     - Video script: timestamps under 3 minutes, music and YouTube reminder
     - _Requirements: 3.1, 3.5, 3.6_
-  - [-] 3.4 Fix stale Neon mentions in Kept_Docs
+  - [x] 3.4 Fix stale Neon mentions in Kept_Docs
     - Run `git grep -i neon` over kept docs and replace with Supabase where accurate
     - _Requirements: 3.7_
 
-- [ ] 4. Commit and push
-  - [~] 4.1 Stage by explicit path
+- [x] 4. Commit and push
+  - [x] 4.1 Stage by explicit path
     - Add README.md, the four docs files, docs/planning, and .kiro/specs/docs-submission-cleanup
     - _Requirements: 4.1_
-  - [~] 4.2 Confirm nothing sensitive is staged
+  - [x] 4.2 Confirm nothing sensitive is staged
     - Run `git status --short` and unstage any .env or .db file
     - _Requirements: 4.2_
-  - [~] 4.3 Commit and push
+  - [-] 4.3 Commit and push
     - Commit message `docs: submission README, Kiro write-up, cleanup old reports`, then `git push origin feature/frontend-live-players`
     - Final report notes: repo must be public, About shows MIT license, PR merged to default branch
     - _Requirements: 4.3, 4.4_
