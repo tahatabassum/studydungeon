@@ -2,9 +2,9 @@
 
 **Tagline:** Turn your study notes into a haunted dungeon. Answer to fight, miss and the monster bites back.
 
-- Live demo: [FILL IN: Vercel URL]
+- Live demo: https://studydungeon.vercel.app
 - Demo video: [FILL IN: public YouTube URL]
-- Repository: [FILL IN: public GitHub URL] (MIT license)
+- Repository: https://github.com/tahatabassum/studydungeon (MIT license)
 - Kiro write-up: [docs/KIRO_WRITEUP.md](KIRO_WRITEUP.md)
 
 ## Inspiration
@@ -74,4 +74,4 @@ Python, FastAPI, SQLAlchemy, Alembic, PostgreSQL, Supabase, React, TypeScript, V
 
 ## Try it
 
-[FILL IN: live URL]. Click "Try the Demo". No account needed.
+https://studydungeon.vercel.app. Click "Try the Demo". No account needed.

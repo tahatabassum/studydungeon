@@ -6,6 +6,7 @@ import '../styles/upload.css'
 import { useReducedMotion } from '../state/useReducedMotion'
 import { Dropzone } from './Dropzone'
 import { FileRules } from './FileRules'
+import { GuideCard } from './GuideCard'
 import { FloorProgressList } from './FloorProgressList'
 import { PreloadedFallback } from './PreloadedFallback'
 import { fileHint, formatSize } from './limits'
@@ -50,6 +51,7 @@ export function UploadWizard({ noticeAccepted = false, blocked = false, blockedR
         <aside className="sd-up__aside" aria-label="Allowance and rules">
           {picking && intro}
           <FileRules />
+          <GuideCard />
         </aside>
         <div className="sd-up__main">
           {picking && (
