@@ -1,4 +1,4 @@
-/* Upload page polish: card depth, gold accents, drop zone hover and drag glow.
+﻿/* Upload page polish: card depth, gold accents, drop zone hover and drag glow.
    Only colors, shadows and transitions; no size or spacing changes, so the fit layout is untouched. */
 
 .sd-upload .sd-card,
@@ -314,3 +314,88 @@ html[data-touch] .sd-upload .sd-up__main { min-height: 0; }
 .sd-upload .sd-up[data-reduced='true'] *::before,
 .sd-upload .sd-up[data-reduced='true'] *::after { animation: none !important; transition: none !important; }
 .sd-upload .sd-up[data-reduced='true'] .sd-up__embers { display: none; }
+
+/* ================= Rework 1.1: full-height layout with guide card ================= */
+
+/* Guide card (static text). */
+.sd-upload .sd-up__guide {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sd-space-3, 12px);
+  padding: var(--sd-space-5, 24px);
+  min-width: 0;
+  background: var(--color-panel, #1a1226);
+  border: 1px solid color-mix(in srgb, var(--color-gold) 20%, var(--color-deep));
+  border-radius: var(--sd-radius-md, 10px);
+  box-shadow: var(--sd-elev-1, 0 2px 6px rgb(0 0 0 / 0.35));
+}
+.sd-upload .sd-up__guide-h { margin: 0; font-family: var(--font-label); font-size: var(--sd-text-md, 1rem); letter-spacing: 0.06em; text-transform: uppercase; color: var(--color-gold); }
+.sd-upload .sd-up__guide-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: var(--sd-space-3, 12px); }
+.sd-upload .sd-up__guide-list li { display: flex; gap: var(--sd-space-3, 12px); align-items: flex-start; }
+.sd-upload .sd-up__guide-icon {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  color: var(--color-gold);
+  background: color-mix(in srgb, var(--color-gold) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-gold) 35%, transparent);
+}
+.sd-upload .sd-up__guide-copy { display: flex; flex-direction: column; font-size: var(--sd-text-sm, 0.9rem); line-height: 1.4; color: var(--color-ink); }
+.sd-upload .sd-up__guide-copy strong { color: var(--color-bone); }
+.sd-upload .sd-up__guide-text { color: var(--color-ink-muted); }
+.sd-upload .sd-up__guide-tip { margin: 0; font-size: var(--sd-text-sm, 0.9rem); color: var(--color-ink-muted); }
+
+@media (min-width: 900px) and (pointer: fine) {
+  /* The page, inner column and body all fill the viewport; the work area takes what is left. */
+  .sd-upload.sd-page--fit .sd-page__inner { grid-template-rows: auto minmax(0, 1fr); min-height: 100dvh; padding-bottom: clamp(0.5rem, 3vh, 2.5rem); }
+  .sd-upload.sd-page--fit .sd-page__body { grid-template-rows: minmax(0, 1fr); }
+  .sd-upload .sd-up { display: grid; grid-template-rows: auto minmax(0, 1fr); height: 100%; min-height: 0; }
+  .sd-upload .sd-up__grid { align-items: stretch; grid-template-rows: minmax(0, 1fr); min-height: 0; }
+  .sd-upload .sd-up__aside { min-height: 0; }
+  .sd-upload .sd-up__aside > * { flex: 0 0 auto; }
+  .sd-upload .sd-up__aside > .sd-up__guide { flex: 1 1 auto; min-height: 0; overflow: hidden; justify-content: center; }
+  .sd-upload .sd-up__main { min-height: 0; }
+  .sd-upload .sd-up__main > * { flex: 1 1 auto; align-self: stretch; min-height: 0; }
+  .sd-upload .sd-up__result,
+  .sd-upload .sd-up__panel { align-self: stretch; justify-content: center; align-items: center; text-align: center; }
+  .sd-upload .sd-up__panel[data-testid='upload-topics'] { justify-content: center; }
+  .sd-upload .sd-up__panel .sd-card__h { font-size: clamp(1.1rem, 3.4vh, 1.6rem); justify-content: center; }
+  .sd-upload .sd-up__panel .sd-cta { font-size: var(--sd-text-md, 1rem); padding-inline: 2rem; min-height: 3rem; }
+  .sd-upload .sd-up__drop { flex: 1 1 auto; min-height: 0; justify-content: center; align-items: center; }
+  .sd-upload .sd-up__seal { width: clamp(72px, 16vh, 128px); height: clamp(72px, 16vh, 128px); }
+  .sd-upload .sd-up__drop-title { font-size: clamp(1.5rem, 4vh, 2.25rem); }
+  .sd-upload .sd-up__result-h { font-size: clamp(1.75rem, 5vh, 2.75rem); }
+}
+
+/* Short desktop windows: no guide while the aside is crowded (idle); chips only when very short. */
+@media (max-height: 900px) and (min-width: 900px) {
+  .sd-upload .sd-up__guide { padding: var(--sd-space-3, 12px) var(--sd-space-4, 16px); gap: var(--sd-space-2, 8px); }
+  .sd-upload .sd-up__guide-tip { display: none; }
+  .sd-upload .sd-up__guide-list { gap: var(--sd-space-2, 8px); }
+  .sd-upload .sd-up[data-phase='idle'] .sd-up__guide { display: none; }
+}
+@media (max-height: 700px) and (min-width: 900px) {
+  .sd-upload .sd-up__guide-text { display: none; }
+  .sd-upload .sd-up__guide-list { flex-direction: row; flex-wrap: wrap; gap: var(--sd-space-2, 8px) var(--sd-space-4, 16px); }
+  .sd-upload .sd-up__guide-icon { width: 1.5rem; height: 1.5rem; }
+}
+@media (max-height: 640px) and (min-width: 900px) {
+  .sd-upload .sd-up__panel { padding-block: var(--sd-space-3, 12px); gap: var(--sd-space-2, 8px); }
+  .sd-upload .sd-up__guide { display: none; }
+  .sd-upload .sd-up__topics { gap: 0; }
+  .sd-upload .sd-up__topics li { padding-block: 0; }
+}
+/* Below 900px: stack naturally, no forced height; guide sits after the rules. */
+@media (max-width: 899px), (pointer: coarse) {
+  .sd-upload .sd-up__guide { order: 3; }
+  .sd-upload .sd-up__guide { padding: var(--sd-space-4, 16px); }
+}
+html[data-touch] .sd-upload .sd-up__guide { order: 3; }
+
+
+
+
+
