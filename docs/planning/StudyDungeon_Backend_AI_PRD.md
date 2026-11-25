@@ -48,7 +48,7 @@ This PRD defines the complete technical, operational, and architectural requirem
 | **Runtime** | Python | 3.11+ | High performance, typed async FastAPI |
 | **Framework** | FastAPI | >= 0.110 | Asynchronous OpenAPI generation, Pydantic v2 support |
 | **ORM & Migrations**| SQLAlchemy + Alembic | 2.0+ (asyncpg/psycopg) | Strict relational integrity, async DB driver |
-| **Database** | PostgreSQL | 15+ (Neon / Supabase) | Serverless free-tier with connection pooling |
+| **Database** | PostgreSQL | 15+ (Supabase) | Serverless free-tier with connection pooling |
 | **Password Hashing**| Argon2 | `argon2-cffi` | State-of-the-art security without plaintext storage |
 | **Primary AI Provider**| Google Gemini API | `gemini-1.5-flash` / `gemini-pro` | High rate limits, multimodal capability on AI Studio free tier |
 | **Fallback AI Provider**| OpenRouter | Manual switch only | Emergency testing only; NEVER auto-triggered on error |
@@ -78,7 +78,7 @@ flowchart TD
 
     subgraph External ["External Services"]
         GeminiAPI["Gemini AI (AI Studio Free Tier)"]
-        PostgresDB[("Neon/Supabase PostgreSQL")]
+        PostgresDB[("Supabase PostgreSQL")]
     end
 
     Landing -->|"POST /demo/session"| AuthService

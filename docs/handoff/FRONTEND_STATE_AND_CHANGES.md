@@ -78,7 +78,7 @@ Flags for development: `?debug=1` (fps report), `?mockLevel=N` (mock player leve
 
 ## 4. Deviations from the original plan
 
-Compared against the master roadmap (`docs/StudyDungeon_Complete_Build_Roadmap_and_Kiro_Prompts_UPDATED.docx`, v1.0, 6 Nov 2026) and the Person B prompt pack (`docs/StudyDungeon_PersonB_Game_Frontend_Kiro_Prompts.txt`). The Person A prompt pack is not in the repository; its content is inferred from the roadmap and A-to-B.md (ASSUMPTION A2).
+Compared against the master roadmap (`docs/planning/StudyDungeon_Complete_Build_Roadmap_and_Kiro_Prompts_UPDATED.docx`, v1.0, 6 Nov 2026) and the Person B prompt pack (`docs/planning/StudyDungeon_PersonB_Game_Frontend_Kiro_Prompts.txt`). The Person A prompt pack is not in the repository; its content is inferred from the roadmap and A-to-B.md (ASSUMPTION A2).
 
 ### 4.1 Added (not in the plan)
 

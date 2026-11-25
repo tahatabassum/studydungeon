@@ -175,7 +175,7 @@ Below is the authoritative reconciliation table comparing frontend expectations 
 ## [Day 4] - Person A Backend Tasks Completion (Points, Leaderboard, Quota, File Limits)
 
 Dated: 2026-11-15
-All backend tasks from `PERSON_A_BACKEND_TASKS.md` have been implemented, tested, and contract-verified with Person B's frontend suite.
+All backend tasks from `docs/handoff/PERSON_A_BACKEND_TASKS.md` have been implemented, tested, and contract-verified with Person B's frontend suite.
 
 ### 1. New & Updated Endpoints Shipped
 

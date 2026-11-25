@@ -113,12 +113,12 @@ Environment notes: Windows PowerShell, single-line commands. `>` writes UTF-16, 
     - Run the existing layout or viewport test for the play and combat route (`frontend/src/encounter/stageLayout.test.ts` and any layout check script) and confirm the Memory scroll without the retry button does not overflow.
     - _Requirements: 1.3, 1.4, 12.2_
 
-- [ ] 6. Commit and push
+- [x] 6. Commit and push
   - [x] 6.1 Commit the combat change
     - Stage the Part A files by explicit path (never `git add -A`, never `.env*` or `*.db`) and commit with a message starting `fix(combat): send missed questions to Memories instead of re-asking`.
     - _Requirements: 12.3_
 
-  - [-] 6.2 Commit the audit fixes and push
+  - [x] 6.2 Commit the audit fixes and push
     - Stage the Part B files and `docs/DEPLOY_CHECKLIST.md` by explicit path and commit with `chore: pre-deploy audit fixes` (or one combined commit with the message `fix(combat): send missed questions to Memories instead of re-asking; chore: pre-deploy audit fixes`); run `git push origin feature/frontend-live-players`.
     - _Requirements: 12.3_
 
