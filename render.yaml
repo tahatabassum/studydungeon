@@ -5,7 +5,7 @@ services:
     dockerfilePath: ./backend/Dockerfile
     dockerContext: ./backend
     plan: free
-    region: oregon
+    region: singapore
     healthCheckPath: /health
     envVars:
       # Secrets: set in the Render dashboard
@@ -27,7 +27,7 @@ services:
       - key: GEMINI_MODEL
         value: gemini-2.5-flash
       - key: OPENROUTER_ENABLED
-        value: "false"
+        value: "true"
       # Vercel rewrite hop + Render proxy hop. Verify after deploy.
       - key: TRUSTED_PROXY_COUNT
         value: "2"
