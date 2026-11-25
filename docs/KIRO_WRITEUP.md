@@ -2,7 +2,7 @@
 
 StudyDungeon turns a student's notes (PDF, DOCX, PPTX, TXT, images) into a playable 2D dungeon. Topics become rooms, key concepts become monsters, and source-grounded multiple-choice questions are the attacks. The FastAPI backend is authoritative for damage, HP, XP, score and spaced repetition. The AI only extracts topics and proposes questions with verbatim evidence quotes, and only during ingestion.
 
-Two people built it with Kiro: Person A owned `backend/**`, Person B owned `frontend/**` (see `.kiro/steering/team-ownership.md`).
+Two people built it with Kiro: Muhammad Abdullah (Person A) owned `backend/**`, and M Taha Tabassum (Person B) owned `frontend/**` (see `.kiro/steering/team-ownership.md`).
 
 This file answers the judges' Kiro questions in order. Anything only the team can know is marked `[FILL IN: ...]`.
 
@@ -10,17 +10,17 @@ This file answers the judges' Kiro questions in order. Anything only the team ca
 
 ## 1. Which Kiro apps did we use (IDE, CLI, Web, Crew)?
 
-The repo evidence shows `.kiro/specs`, `.kiro/hooks` and `.kiro/steering`, which the Kiro IDE and agent read. The logs (`docs/kiro-log-backend.md`, `docs/kiro-log-frontend.md`) record work by date and step but do not name the app used for each session.
+The repo evidence shows `.kiro/specs`, `.kiro/hooks` and `.kiro/steering`, which the Kiro IDE and agent read. The logs (`docs/kiro-log-backend.md`, `docs/kiro-log-frontend.md`) record work by date and step. The team confirms that all of it was done in the Kiro IDE.
 
-- Kiro IDE: `[FILL IN: confirm. Which sessions, and which features (specs, hooks, steering) you used it for.]`
-- Kiro CLI: `[FILL IN: used or not, and for what.]`
-- Kiro Web: `[FILL IN: used or not, and for what.]`
-- Kiro Crew: `[FILL IN: used or not. Nothing in the repo mentions it.]`
-- How they differed in practice: `[FILL IN: one or two sentences from your own experience.]`
+- Kiro IDE: Yes, and it was the only Kiro app we used. Every session ran inside the Kiro IDE: writing specs (requirements, design, tasks), steering files, hooks, and sub-agent task execution.
+- Kiro CLI: Not used.
+- Kiro Web: Not used.
+- Kiro Crew: Not used.
+- How they differed in practice: Not applicable, since we used only the IDE.
 
 ## 2. Custom agents and sub-agents
 
-No `.kiro/agents/` directory exists, so we did not define custom agents `[FILL IN: confirm]`. What we did use is Kiro's built-in orchestration. `[FILL IN: confirm this ran in the Kiro IDE agent or another app.]`
+No `.kiro/agents/` directory exists, so we did not define custom agents. What we did use is Kiro's built-in orchestration. This ran in the Kiro IDE.
 
 **Spec workflow agents.** Each spec's `.config.kiro` records the workflow that generated it:
 - `requirements-first` (requirements, then design, then tasks): `frontend-00`, `frontend-03`, `frontend-04`, `frontend-06`, `frontend-07`, `frontend-08`, `frontend-10`, `frontend-11`.
