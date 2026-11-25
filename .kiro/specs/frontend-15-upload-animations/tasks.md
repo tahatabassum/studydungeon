@@ -26,7 +26,7 @@ Restyle `/upload` with a balanced layout and CSS-only animation, then verify and
     - Disable all new animations under `prefers-reduced-motion` and `[data-reduced='true']`
     - _Requirements: 4.1, 4.2, 4.3, 4.5_
 
-- [ ] 2. Verify and commit
+- [x] 2. Verify and commit
   - [x] 2.1 Run the checks
     - Clear `VITE_CONTRACT_LIVE`, `VITE_API_BASE`, `VITE_USE_MOCKS` and `VITE_CONTRACT_UPLOADS` in the shell
     - Run `npx vitest run src/upload`, `npm run typecheck` and `npm run lint` in `frontend`
