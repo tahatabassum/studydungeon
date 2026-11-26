@@ -46,13 +46,51 @@ Students re-read notes and call it studying, but recall practice works better an
 
 ```mermaid
 flowchart LR
-    B["Browser: React 19 + Phaser"] -->|/api/*| V["Vercel rewrite"]
-    V --> F["FastAPI on Render"]
-    F --> S[("Supabase PostgreSQL")]
-    F -.->|ingestion only| G["Gemini"]
+    subgraph Browser ["Browser"]
+        UI["React 19 shell"]
+        PH["Phaser 3 canvas"]
+        OFF["Bundled offline demo"]
+    end
+
+    subgraph Vercel ["Vercel"]
+        SPA["Static SPA hosting"]
+        RW["Rewrite /api/:path* to Render, prefix stripped"]
+    end
+
+    subgraph Render ["Render free, Docker, Singapore"]
+        API["FastAPI routers: auth, documents, dungeons, runs, progress, leaderboard, packs, health"]
+        SVC["Services: ingestion, combat, srs, points, progression"]
+        ORM["SQLAlchemy async + Alembic"]
+        BG["Ingestion background task"]
+        OCR["Tesseract OCR"]
+        SEED["Demo and pack seed, no AI"]
+    end
+
+    DB[("Supabase PostgreSQL, Session pooler, asyncpg, SSL")]
+    GEM["Gemini, primary"]
+    OR["OpenRouter, fallback"]
+    UP["UptimeRobot"]
+
+    UI --- PH
+    UI -->|"loads the app"| SPA
+    UI -->|"API calls with HttpOnly session cookie"| RW
+    RW --> API
+    API --> SVC
+    SVC --> ORM
+    ORM --> DB
+    API --> BG
+    BG --> OCR
+    BG -.->|"ingestion only"| GEM
+    GEM -.->|"on failure"| OR
+    SEED --> ORM
+    UP -.->|"GET /health every 5 min"| API
+    UI -.->|"backend slow after 8 s"| OFF
 ```
 
-Combat never calls the AI. Questions are generated once at upload and read from the database during play.
+- **Request flow:** The browser calls `/api/*` on the Vercel domain. Vercel strips the `/api` prefix and forwards to the Render FastAPI service, whose routes have no `/api` prefix. Routers call services, which use SQLAlchemy to reach Supabase.
+- **Same-origin cookies:** Because of the rewrite, the HttpOnly session cookie is first-party to the Vercel domain.
+- **AI only during ingestion:** `POST /documents` starts a background task that extracts text (Tesseract for images), runs the relevance check and generates questions with Gemini, falling back to OpenRouter when enabled. Combat reads stored questions from the database and the server computes all results.
+- **Cold start:** Render's free tier sleeps when idle (an optional UptimeRobot ping of `/health` keeps it warm). If the backend has not answered after 8 seconds, the app offers the bundled offline demo.
 
 ## 📁 Repository layout
 
