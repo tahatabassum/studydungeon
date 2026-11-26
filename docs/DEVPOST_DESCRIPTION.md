@@ -3,7 +3,7 @@
 **Tagline:** Turn your study notes into a haunted dungeon. Answer to fight, miss and the monster bites back.
 
 - Live demo: https://studydungeon.vercel.app
-- Demo video: [FILL IN: public YouTube URL]
+- Demo video: https://youtu.be/4OxCNVbh314
 - Repository: https://github.com/tahatabassum/studydungeon (MIT license)
 - Kiro write-up: [docs/KIRO_WRITEUP.md](KIRO_WRITEUP.md)
 

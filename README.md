@@ -6,9 +6,10 @@ Upload your study notes and play them as a haunted dungeon crawl. Topics become 
 
 **🎮 Play it: https://studydungeon.vercel.app — click Try the Demo, no sign-up.**
 
+**[▶️ Watch the demo](https://youtu.be/4OxCNVbh314)**
+
 - Live app: https://studydungeon.vercel.app (API: https://studydungeon-api.onrender.com)
-- Demo video: [FILL IN: public YouTube link]
-- Screenshots: [FILL IN: 2-4 screenshots, e.g. title screen, combat, scorecard, leaderboard]
+- Demo video: https://youtu.be/4OxCNVbh314
 
 ## 🎯 Problem and audience
 
