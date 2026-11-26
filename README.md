@@ -177,8 +177,8 @@ Property-based tests found real bugs, for example a preloaded-dungeon pick that 
 
 ## 👥 Team
 
-- M Taha Tabassum: Person B, frontend and game (React, Phaser, UI, Vercel)
-- Muhammad Abdullah: Person A, AI and backend (FastAPI, ingestion, Gemini, database, Render)
+- M Taha Tabassum: Frontend and Game (React, Phaser, UI, Vercel)
+- Muhammad Abdullah: AI and Backend (FastAPI, ingestion, Gemini, database, Render)
 
 ## 📜 License
 
