@@ -1,0 +1,95 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900" font-family="Segoe UI, Inter, Arial, sans-serif">
+<defs>
+<linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#120a1f"/><stop offset="1" stop-color="#1d1030"/></linearGradient>
+<linearGradient id="card" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2a1845"/><stop offset="1" stop-color="#201238"/></linearGradient>
+<filter id="glow" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="7" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+<marker id="ah" viewBox="0 0 10 10" markerWidth="7" markerHeight="7" refX="8" refY="5" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#f5b942"/></marker>
+<marker id="ahd" viewBox="0 0 10 10" markerWidth="7" markerHeight="7" refX="8" refY="5" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#b9a6e6"/></marker>
+</defs>
+<rect width="1600" height="900" fill="url(#bg)"/>
+<text x="800" y="62" text-anchor="middle" font-size="40" font-weight="700" fill="#f5b942">The learning loop</text>
+<text x="800" y="96" text-anchor="middle" font-size="18" fill="#d9cff5">Mistakes come back at growing intervals until they stick</text>
+
+<!-- row 1 -->
+<g filter="url(#glow)" stroke="#f5b942" stroke-opacity="0.45" stroke-width="1.5" fill="url(#card)">
+<rect x="50" y="170" width="290" height="120" rx="18"/>
+<rect x="430" y="170" width="290" height="120" rx="18"/>
+<rect x="810" y="170" width="290" height="120" rx="18"/>
+<rect x="1190" y="170" width="360" height="210" rx="18"/>
+</g>
+<g text-anchor="middle">
+<text x="195" y="224" font-size="24" font-weight="700" fill="#f5b942">Upload notes</text>
+<text x="195" y="252" font-size="15" fill="#d9cff5">PDF, DOCX, PPTX, TXT, images</text>
+<text x="575" y="224" font-size="24" font-weight="700" fill="#f5b942">Dungeon</text>
+<text x="575" y="252" font-size="15" fill="#d9cff5">topics become rooms and monsters</text>
+<text x="955" y="224" font-size="24" font-weight="700" fill="#f5b942">Fight</text>
+<text x="955" y="252" font-size="15" fill="#d9cff5">answer questions to deal damage</text>
+<text x="1370" y="205" font-size="24" font-weight="700" fill="#f5b942">Scorecard</text>
+<text x="1370" y="228" font-size="15" fill="#d9cff5">accuracy and mastery per topic</text>
+</g>
+<g stroke-width="1.5" fill="#201238">
+<rect x="1210" y="245" width="320" height="34" rx="17" stroke="#ff8fa3"/>
+<rect x="1210" y="287" width="320" height="34" rx="17" stroke="#f5b942"/>
+<rect x="1210" y="329" width="320" height="34" rx="17" stroke="#7ee2a8"/>
+</g>
+<g font-size="16" font-weight="700" text-anchor="middle">
+<text x="1370" y="268" fill="#ff8fa3">Weak: below 50%</text>
+<text x="1370" y="310" fill="#f5b942">Learning: 50% to 79%</text>
+<text x="1370" y="352" fill="#7ee2a8">Strong: 80% or more</text>
+</g>
+
+<!-- row 1 arrows -->
+<g stroke="#f5b942" stroke-width="2.5" fill="none">
+<line x1="340" y1="230" x2="428" y2="230" marker-end="url(#ah)"/>
+<line x1="720" y1="230" x2="808" y2="230" marker-end="url(#ah)"/>
+<line x1="1100" y1="230" x2="1188" y2="230" marker-end="url(#ah)"/>
+</g>
+<g font-size="13" fill="#f5b942" text-anchor="middle">
+<text x="384" y="214">AI builds</text><text x="764" y="214">enter</text><text x="764" y="258">rooms</text><text x="1144" y="214">finish</text><text x="1144" y="258">run</text>
+</g>
+
+<!-- row 2 -->
+<g filter="url(#glow)" stroke="#f5b942" stroke-opacity="0.45" stroke-width="1.5" fill="url(#card)">
+<rect x="810" y="440" width="290" height="120" rx="18"/>
+<rect x="430" y="440" width="290" height="120" rx="18"/>
+</g>
+<g text-anchor="middle">
+<text x="955" y="494" font-size="24" font-weight="700" fill="#f5b942">Memories</text>
+<text x="955" y="522" font-size="15" fill="#d9cff5">every wrong answer is saved</text>
+<text x="575" y="494" font-size="24" font-weight="700" fill="#f5b942">Daily Haunt</text>
+<text x="575" y="522" font-size="15" fill="#d9cff5">review what is due today</text>
+</g>
+<line x1="955" y1="290" x2="955" y2="438" stroke="#f5b942" stroke-width="2.5" marker-end="url(#ah)"/>
+<text x="970" y="360" font-size="14" fill="#f5b942">wrong answers</text>
+<line x1="810" y1="500" x2="722" y2="500" stroke="#f5b942" stroke-width="2.5" marker-end="url(#ah)"/>
+<text x="766" y="478" text-anchor="middle" font-size="13" fill="#f5b942">due</text>
+<path d="M575,440 V380 H870 V292" stroke="#f5b942" stroke-width="2.5" fill="none" marker-end="url(#ah)"/>
+<text x="722" y="370" text-anchor="middle" font-size="14" fill="#f5b942">back to the fight</text>
+
+<!-- ladder -->
+<rect x="40" y="610" width="1520" height="200" rx="20" fill="#160c26" stroke="#f5b942" stroke-opacity="0.6" stroke-width="1.5" stroke-dasharray="8 6"/>
+<text x="62" y="640" font-size="14" font-weight="700" fill="#b9a6e6" letter-spacing="1.5">SPACED-REPETITION LADDER (SM-2, SIMPLIFIED)</text>
+<g filter="url(#glow)" stroke="#f5b942" stroke-opacity="0.45" stroke-width="1.5" fill="url(#card)">
+<rect x="75" y="665" width="200" height="70" rx="14"/>
+<rect x="325" y="665" width="200" height="70" rx="14"/>
+<rect x="575" y="665" width="200" height="70" rx="14"/>
+<rect x="825" y="665" width="200" height="70" rx="14"/>
+<rect x="1075" y="665" width="200" height="70" rx="14"/>
+<rect x="1325" y="665" width="200" height="70" rx="14"/>
+</g>
+<g font-size="24" font-weight="700" fill="#f5b942" text-anchor="middle">
+<text x="175" y="708">10 min</text><text x="425" y="708">1 day</text><text x="675" y="708">3 days</text><text x="925" y="708">7 days</text><text x="1175" y="708">14 days</text><text x="1425" y="708">30 days</text>
+</g>
+<g stroke="#f5b942" stroke-width="2.5" fill="none">
+<line x1="275" y1="700" x2="323" y2="700" marker-end="url(#ah)"/>
+<line x1="525" y1="700" x2="573" y2="700" marker-end="url(#ah)"/>
+<line x1="775" y1="700" x2="823" y2="700" marker-end="url(#ah)"/>
+<line x1="1025" y1="700" x2="1073" y2="700" marker-end="url(#ah)"/>
+<line x1="1275" y1="700" x2="1323" y2="700" marker-end="url(#ah)"/>
+</g>
+<text x="800" y="780" text-anchor="middle" font-size="16" fill="#d9cff5">A wrong answer sends the question back to 10 minutes. Each correct review moves it one step up.</text>
+<path d="M1100,500 H1250 V608" stroke="#b9a6e6" stroke-width="2" stroke-dasharray="7 6" fill="none" marker-end="url(#ahd)"/>
+<text x="1262" y="560" font-size="14" fill="#b9a6e6">scheduled on this ladder</text>
+
+<text x="800" y="866" text-anchor="middle" font-size="14" fill="#b9a6e6">StudyDungeon · built with Kiro</text>
+</svg>

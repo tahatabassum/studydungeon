@@ -1,0 +1,86 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="920" viewBox="0 0 1600 920" font-family="Segoe UI, Inter, Arial, sans-serif">
+<defs>
+<linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#120a1f"/><stop offset="1" stop-color="#1d1030"/></linearGradient>
+<linearGradient id="card" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2a1845"/><stop offset="1" stop-color="#201238"/></linearGradient>
+<filter id="glow" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="7" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+<marker id="ah" viewBox="0 0 10 10" markerWidth="7" markerHeight="7" refX="8" refY="5" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#f5b942"/></marker>
+<marker id="ag" viewBox="0 0 10 10" markerWidth="7" markerHeight="7" refX="8" refY="5" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#7ee2a8"/></marker>
+<marker id="ar" viewBox="0 0 10 10" markerWidth="7" markerHeight="7" refX="8" refY="5" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#ff8fa3"/></marker>
+</defs>
+<rect width="1600" height="920" fill="url(#bg)"/>
+<text x="800" y="62" text-anchor="middle" font-size="40" font-weight="700" fill="#f5b942">Server-authoritative combat</text>
+<text x="800" y="96" text-anchor="middle" font-size="18" fill="#d9cff5">The browser sends only its choice. The server decides damage, HP, score and XP.</text>
+
+<!-- row A -->
+<g filter="url(#glow)" stroke="#f5b942" stroke-opacity="0.45" stroke-width="1.5" fill="url(#card)">
+<rect x="40" y="140" width="300" height="110" rx="16"/>
+<rect x="420" y="140" width="580" height="110" rx="16"/>
+<rect x="1140" y="140" width="420" height="110" rx="16"/>
+</g>
+<text x="190" y="188" text-anchor="middle" font-size="20" font-weight="700" fill="#f5b942">Player clicks</text>
+<text x="190" y="214" text-anchor="middle" font-size="20" font-weight="700" fill="#f5b942">an answer</text>
+<text x="710" y="180" text-anchor="middle" font-size="20" font-weight="700" fill="#f5b942">POST /runs/{id}/attempts</text>
+<text x="710" y="208" text-anchor="middle" font-size="14" fill="#d9cff5">{ attempt_id, question_id,</text>
+<text x="710" y="228" text-anchor="middle" font-size="14" fill="#d9cff5">selected_option, response_time_ms }</text>
+<text x="1350" y="188" text-anchor="middle" font-size="20" font-weight="700" fill="#f5b942">Phaser plays hit or miss</text>
+<text x="1350" y="216" text-anchor="middle" font-size="15" fill="#d9cff5">UI shows the source line (page + quote)</text>
+
+<!-- server container -->
+<rect x="40" y="290" width="1060" height="540" rx="20" fill="#160c26" stroke="#f5b942" stroke-opacity="0.6" stroke-width="1.5" stroke-dasharray="8 6"/>
+<text x="62" y="316" font-size="14" font-weight="700" fill="#b9a6e6" letter-spacing="1.5">SERVER (FASTAPI): NO AI CALLS IN COMBAT</text>
+
+<g filter="url(#glow)" fill="url(#card)" stroke-width="1.5">
+<rect x="70" y="335" width="470" height="80" rx="14" stroke="#f5b942" stroke-opacity="0.45"/>
+<rect x="600" y="335" width="470" height="80" rx="14" stroke="#f5b942" stroke-opacity="0.45"/>
+<rect x="70" y="490" width="470" height="200" rx="14" stroke="#7ee2a8" stroke-opacity="0.8"/>
+<rect x="600" y="490" width="470" height="200" rx="14" stroke="#ff8fa3" stroke-opacity="0.8"/>
+<rect x="70" y="735" width="1000" height="70" rx="14" stroke="#f5b942" stroke-opacity="0.45"/>
+</g>
+<text x="90" y="368" font-size="18" font-weight="700" fill="#f5b942">1  Idempotency check</text>
+<text x="90" y="394" font-size="15" fill="#d9cff5">Same attempt_id returns the same result</text>
+<text x="620" y="368" font-size="18" font-weight="700" fill="#f5b942">2  Load question from the database</text>
+<text x="620" y="394" font-size="15" fill="#d9cff5">Correct option is stored, so no AI call</text>
+
+<text x="90" y="526" font-size="20" font-weight="700" fill="#7ee2a8">Correct</text>
+<g font-size="15" fill="#d9cff5">
+<text x="90" y="556">damage = weapon base damage</text>
+<text x="90" y="580">   × 1.25 if the question is hard</text>
+<text x="90" y="604">   × 1.5 on a critical (3 correct in a row)</text>
+<text x="90" y="636">Monster HP goes down. Score and XP go up.</text>
+<text x="90" y="660">Player HP is unchanged.</text>
+</g>
+<text x="620" y="526" font-size="20" font-weight="700" fill="#ff8fa3">Wrong</text>
+<g font-size="15" fill="#d9cff5">
+<text x="620" y="556">Player loses 10 HP (12 against a boss)</text>
+<text x="620" y="580">Monster takes 0 damage. Streak resets.</text>
+<text x="620" y="612">Question is saved to Memories,</text>
+<text x="620" y="636">due for review in 10 minutes.</text>
+</g>
+<text x="90" y="764" font-size="18" font-weight="700" fill="#f5b942">3  Append the attempt (append-only)</text>
+<text x="90" y="790" font-size="15" fill="#d9cff5">Update run HP, score, XP and the spaced-repetition schedule</text>
+
+<!-- response -->
+<g filter="url(#glow)"><rect x="1140" y="330" width="420" height="410" rx="16" fill="url(#card)" stroke="#f5b942" stroke-opacity="0.45" stroke-width="1.5"/></g>
+<text x="1162" y="368" font-size="20" font-weight="700" fill="#f5b942">Response to the browser</text>
+<g font-size="16" fill="#d9cff5">
+<text x="1162" y="410">correct</text><text x="1162" y="440">damage_dealt</text><text x="1162" y="470">monster_hp_remaining</text><text x="1162" y="500">player_hp_remaining</text><text x="1162" y="530">score_delta</text><text x="1162" y="560">xp_delta</text><text x="1162" y="590">streak</text><text x="1162" y="620">is_critical</text>
+<text x="1162" y="660">source: page + evidence_quote</text>
+</g>
+
+<!-- arrows -->
+<g stroke="#f5b942" stroke-width="2.5" fill="none">
+<line x1="340" y1="195" x2="418" y2="195" marker-end="url(#ah)"/>
+<line x1="710" y1="250" x2="710" y2="333" marker-end="url(#ah)"/>
+<line x1="540" y1="375" x2="598" y2="375" marker-end="url(#ah)"/>
+<line x1="305" y1="690" x2="305" y2="733" marker-end="url(#ah)"/>
+<line x1="835" y1="690" x2="835" y2="733" marker-end="url(#ah)"/>
+<path d="M1070,770 H1350 V742" marker-end="url(#ah)"/>
+<line x1="1350" y1="330" x2="1350" y2="252" marker-end="url(#ah)"/>
+</g>
+<path d="M835,415 V488" stroke="#ff8fa3" stroke-width="2.5" fill="none" marker-end="url(#ar)"/>
+<path d="M835,440 H305 V488" stroke="#7ee2a8" stroke-width="2.5" fill="none" marker-end="url(#ag)"/>
+<text x="850" y="459" font-size="14" font-weight="700" fill="#ff8fa3">wrong</text>
+<text x="320" y="433" font-size="14" font-weight="700" fill="#7ee2a8">correct</text>
+
+<text x="800" y="890" text-anchor="middle" font-size="14" fill="#b9a6e6">StudyDungeon · built with Kiro</text>
+</svg>
