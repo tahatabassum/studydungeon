@@ -29,14 +29,14 @@ Four sequential steps: remove obsolete docs, verify hackathon requirements, writ
     - _Requirements: 2.2, 2.3_
 
 - [x] 3. Write the submission documents from real evidence
-  - [x] 3.1 Rewrite README.md
+  - [-] 3.1 Rewrite README.md
     - Include all sections listed in Requirement 3.3 with `[FILL IN: ...]` placeholders for links and names
     - _Requirements: 3.1, 3.2, 3.3_
   - [x] 3.2 Rewrite docs/KIRO_WRITEUP.md
     - Read .kiro/specs, hooks, steering, kiro-log files, and handoff docs; preserve existing user-written content
     - Use the nine judge-question sections with real hooks, specs, steering files, and PBT examples
     - _Requirements: 3.1, 3.2, 3.4_
-  - [-] 3.3 Update docs/DEVPOST_DESCRIPTION.md and docs/DEMO_VIDEO_SCRIPT.md
+  - [x] 3.3 Update docs/DEVPOST_DESCRIPTION.md and docs/DEMO_VIDEO_SCRIPT.md
     - Devpost: required seven sections, Supabase, Memories, named guest leaderboard
     - Video script: timestamps under 3 minutes, music and YouTube reminder
     - _Requirements: 3.1, 3.5, 3.6_
