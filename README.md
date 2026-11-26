@@ -5,7 +5,6 @@
 Upload your study notes and play them as a haunted dungeon crawl. Topics become rooms, key concepts become monsters, and correct answers are your weapon.
 
 **🎮 Play it: https://studydungeon.vercel.app — click Try the Demo, no sign-up.**
-
 **[▶️ Watch the demo](https://youtu.be/4OxCNVbh314)**
 
 - Live app: https://studydungeon.vercel.app (API: https://studydungeon-api.onrender.com)
@@ -178,8 +177,8 @@ Property-based tests found real bugs, for example a preloaded-dungeon pick that 
 
 ## 👥 Team
 
-- M Taha Tabassum: Person B, frontend and game (React, Phaser, UI, Vercel)
-- Muhammad Abdullah: Person A, AI and backend (FastAPI, ingestion, Gemini, database, Render)
+- M Taha Tabassum: Frontend and Game (React, Phaser, UI, Vercel)
+- Muhammad Abdullah: AI and Backend (FastAPI, ingestion, Gemini, database, Render)
 
 ## 📜 License
 
